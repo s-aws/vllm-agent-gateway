@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "runtime_priority": "linux_ubuntu_24_04_first",
+  "roles": [
+    {
+      "id": "reviewer/code",
+      "role": "reviewer",
+      "subrole": "code",
+      "port": 8101,
+      "prompt_file": "roles/reviewer/code.md",
+      "expected_role": "REVIEWER",
+      "budget": {
+        "target_input_tokens": 24000,
+        "default_output_tokens": 4000
+      },
+      "claude_code": {
+        "bare": true,
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "allowed_tools": []
+      }
+    },
+    {
+      "id": "tester/code",
+      "role": "tester",
+      "subrole": "code",
+      "port": 8102,
+      "prompt_file": "roles/tester/code.md",
+      "expected_role": "TESTER",
+      "budget": {
+        "target_input_tokens": 24000,
+        "default_output_tokens": 4000
+      },
+      "claude_code": {
+        "bare": true,
+        "tools": [
+          "Bash",
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "allowed_tools": [
+          "Bash(pytest*)",
+          "Bash(python -m pytest*)",
+          "Bash(python3 -m pytest*)"
+        ]
+      }
+    },
+    {
+      "id": "architect/default",
+      "role": "architect",
+      "subrole": "default",
+      "port": 8201,
+      "prompt_file": "roles/architect/default.md",
+      "expected_role": "ARCHITECT",
+      "budget": {
+        "target_input_tokens": 24000,
+        "default_output_tokens": 4000
+      },
+      "claude_code": {
+        "bare": true,
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "allowed_tools": []
+      }
+    },
+    {
+      "id": "dispatcher/default",
+      "role": "dispatcher",
+      "subrole": "default",
+      "port": 8202,
+      "prompt_file": "roles/dispatcher/default.md",
+      "expected_role": "DISPATCHER",
+      "budget": {
+        "target_input_tokens": 24000,
+        "default_output_tokens": 4000
+      },
+      "claude_code": {
+        "bare": true,
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "allowed_tools": []
+      }
+    },
+    {
+      "id": "implementer/default",
+      "role": "implementer",
+      "subrole": "default",
+      "port": 8203,
+      "prompt_file": "roles/implementer/default.md",
+      "expected_role": "IMPLEMENTER",
+      "budget": {
+        "target_input_tokens": 24000,
+        "default_output_tokens": 4000
+      },
+      "claude_code": {
+        "bare": true,
+        "tools": [
+          "Bash",
+          "Edit",
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "allowed_tools": []
+      }
+    },
+    {
+      "id": "researcher/default",
+      "role": "researcher",
+      "subrole": "default",
+      "port": 8204,
+      "prompt_file": "roles/researcher/default.md",
+      "expected_role": "RESEARCHER",
+      "budget": {
+        "target_input_tokens": 24000,
+        "default_output_tokens": 4000
+      },
+      "claude_code": {
+        "bare": true,
+        "tools": [
+          "Read",
+          "Grep",
+          "Glob"
+        ],
+        "allowed_tools": []
+      }
+    },
+    {
+      "id": "documenter/default",
+      "role": "documenter",
+      "subrole": "default",
+      "port": 8205,
+      "prompt_file": "roles/documenter/default.md",
+      "expected_role": "DOCUMENTER",
+      "budget": {
+        "target_input_tokens": 24000,
+        "default_output_tokens": 4000
+      },
+      "claude_code": {
+        "bare": true,
+        "tools": [
+          "Bash"
+        ],
+        "allowed_tools": [
+          "Bash(git ls-files*)"
+        ]
+      }
+    }
+  ]
+}

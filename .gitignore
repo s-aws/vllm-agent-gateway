@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+
+# Local runtime state belongs outside this public repo.
+*.log
+*.pid
+*.debug.jsonl
+agent-prompt-proxy*.log
+agent-prompt-proxy*.pid
+llm-gateway*.log
+llm-gateway*.pid
