@@ -13,6 +13,10 @@
         "target_input_tokens": 24000,
         "default_output_tokens": 4000
       },
+      "tool_ids": [
+        "git_grep",
+        "read_file"
+      ],
       "claude_code": {
         "bare": true,
         "tools": [
@@ -34,6 +38,10 @@
         "target_input_tokens": 24000,
         "default_output_tokens": 4000
       },
+      "tool_ids": [
+        "read_file",
+        "run_tests"
+      ],
       "claude_code": {
         "bare": true,
         "tools": [
@@ -60,6 +68,11 @@
         "target_input_tokens": 24000,
         "default_output_tokens": 4000
       },
+      "tool_ids": [
+        "git_ls_files",
+        "git_grep",
+        "read_file"
+      ],
       "claude_code": {
         "bare": true,
         "tools": [
@@ -81,6 +94,7 @@
         "target_input_tokens": 24000,
         "default_output_tokens": 4000
       },
+      "tool_ids": [],
       "claude_code": {
         "bare": true,
         "tools": [
@@ -102,6 +116,12 @@
         "target_input_tokens": 24000,
         "default_output_tokens": 4000
       },
+      "tool_ids": [
+        "git_ls_files",
+        "git_grep",
+        "read_file",
+        "run_tests"
+      ],
       "claude_code": {
         "bare": true,
         "tools": [
@@ -125,6 +145,10 @@
         "target_input_tokens": 24000,
         "default_output_tokens": 4000
       },
+      "tool_ids": [
+        "git_grep",
+        "read_file"
+      ],
       "claude_code": {
         "bare": true,
         "tools": [
@@ -146,6 +170,10 @@
         "target_input_tokens": 24000,
         "default_output_tokens": 4000
       },
+      "tool_ids": [
+        "git_ls_files",
+        "read_file"
+      ],
       "claude_code": {
         "bare": true,
         "tools": [

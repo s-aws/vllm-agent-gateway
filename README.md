@@ -8,6 +8,7 @@ It provides:
 - tiny role/subrole prompt files
 - a budget gateway that counts input tokens and clamps output tokens
 - fail-closed rejection for oversized requests
+- a tool catalog used by controllers/runners to authorize deterministic actions
 - Linux-first startup and stop scripts
 - a JSON role manifest for ports, prompts, budgets, and client policy
 
@@ -48,6 +49,44 @@ Default ports:
 ```
 
 Role endpoints are loaded from `runtime/roles.json`. Add or remove role ports in the manifest, not in the startup script.
+
+## Documenter Orchestrator Demo
+
+The first controller example is intentionally narrow: it reviews one tracked documentation file with the `documenter/default` role.
+
+```text
+controller -> documenter role proxy -> LLM gateway -> vLLM
+```
+
+The controller owns repo discovery, file reading, chunking, packet construction, sequencing, validation, and report writing. The documenter role receives one bounded packet and returns one structured JSON delta.
+
+Dry-run packet generation:
+
+```bash
+python scripts/run_documenter_orchestrator.py --doc README.md --dry-run
+```
+
+Run against the local documenter role endpoint:
+
+```bash
+python scripts/run_documenter_orchestrator.py --doc README.md
+```
+
+Reports are written under `.agentic_reports/`, which is ignored by git.
+
+## Tool Policy
+
+`runtime/tools.json` is the tool catalog. `runtime/roles.json` assigns tool IDs to each role with `tool_ids`.
+
+In this version, tool IDs authorize deterministic controller behavior. They are not synthetic model tools yet. For example, the documenter orchestrator requires `git_ls_files` and `read_file` before it can discover tracked docs and read the selected document.
+
+Future synthetic tools will need a real execution loop:
+
+```text
+tool schema -> model tool call -> local execution -> tool result -> final model answer
+```
+
+Prompt text alone is not tool execution.
 
 ## Start
 
@@ -115,8 +154,10 @@ For details on the verified vLLM launch command, gateway behavior, and Claude Co
 ```text
 roles/                    role and subrole prompt files
 runtime/roles.json         active role manifest
+runtime/tools.json         controller/tool mediator catalog
 agent_prompt_proxy.py      OpenAI/Anthropic-compatible role prompt proxy
 llm_gateway.py             token budget and forwarding gateway
+scripts/                   controller and smoke-test helpers
 start-agent-prompt-proxies.sh
 stop-agent-prompt-proxies.sh
 VLLM_AGENT_HOST.md         setup and operating notes

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "tools": [
+    {
+      "id": "git_ls_files",
+      "kind": "local_command",
+      "description": "List tracked repository files.",
+      "command": [
+        "git",
+        "ls-files"
+      ],
+      "read_only": true,
+      "args_schema": {
+        "pattern": {
+          "type": "string",
+          "required": false
+        }
+      }
+    },
+    {
+      "id": "git_grep",
+      "kind": "local_command",
+      "description": "Search tracked repository content with line numbers.",
+      "command": [
+        "git",
+        "grep",
+        "-n"
+      ],
+      "read_only": true,
+      "args_schema": {
+        "pattern": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "read_file",
+      "kind": "filesystem_read",
+      "description": "Read a repository file selected by the controller.",
+      "read_only": true,
+      "args_schema": {
+        "path": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    {
+      "id": "run_tests",
+      "kind": "local_command",
+      "description": "Run an explicit test command selected by the controller.",
+      "command": [
+        "python",
+        "-m",
+        "pytest"
+      ],
+      "read_only": false,
+      "args_schema": {
+        "args": {
+          "type": "array",
+          "required": false
+        }
+      }
+    }
+  ]
+}

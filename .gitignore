@@ -9,3 +9,4 @@ agent-prompt-proxy*.log
 agent-prompt-proxy*.pid
 llm-gateway*.log
 llm-gateway*.pid
+.agentic_reports/

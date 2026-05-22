@@ -161,6 +161,33 @@ tool_count=1 tool_names=Bash
 
 In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` and the model emitted raw tool-call-shaped JSON. That means `git_ls_files` was not an executable Claude Code tool schema in the request. The restricted Bash pattern produced `tool_count=1 tool_names=Bash` and returned real `git ls-files` output.
 
+## Controller Demo
+
+`scripts/run_documenter_orchestrator.py` is the first controller example. It is deliberately smaller than a general orchestrator:
+
+- loads `runtime/roles.json` and `runtime/tools.json`
+- checks the `documenter/default` role has the required controller tools
+- discovers tracked documentation files with `git ls-files`
+- reads one selected doc file
+- chunks it deterministically
+- sends one bounded packet at a time to the documenter role endpoint
+- validates the returned JSON delta
+- writes a local ignored report under `.agentic_reports/`
+
+Dry run without calling the model:
+
+```bash
+python scripts/run_documenter_orchestrator.py --doc README.md --dry-run
+```
+
+Run against the local role endpoint:
+
+```bash
+python scripts/run_documenter_orchestrator.py --doc README.md
+```
+
+The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk.
+
 ## Role Prompt Proxies
 
 Use these OpenAI-compatible proxy base URLs when a client should receive a tiny role-specific system instruction before the gateway and vLLM see the request. The startup script prints this list from `runtime/roles.json`.
