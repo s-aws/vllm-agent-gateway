@@ -24,6 +24,7 @@ from urllib.parse import urlsplit
 DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 DEFAULT_ROLE_ID = "documenter/default"
 DEFAULT_OUTPUT_DIR = ".agentic_reports"
+SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
 DOC_SUFFIXES = {".adoc", ".md", ".rst", ".txt"}
 DEFAULT_CRITERIA = [
     "installation steps documented",
@@ -53,6 +54,7 @@ class Chunk:
     end_line: int
     text: str
     token_estimate: int
+    overlap_previous_lines: int
 
 
 def utc_now() -> str:
@@ -147,9 +149,14 @@ def normalize_repo_path(repo_root: Path, value: str) -> str:
     return rel_path.as_posix()
 
 
-def select_document(repo_root: Path, assigned_tool_ids: set[str], requested_doc: str | None) -> tuple[str, list[str]]:
+def select_document(
+    repo_root: Path,
+    assigned_tool_ids: set[str],
+    requested_doc: str | None,
+    allow_untracked_doc: bool,
+) -> tuple[str, list[str]]:
     docs = tracked_docs(repo_root, assigned_tool_ids)
-    if not docs:
+    if not docs and requested_doc is None:
         raise OrchestratorError("No tracked documentation files found.")
     if requested_doc is None:
         if "README.md" in docs:
@@ -158,6 +165,14 @@ def select_document(repo_root: Path, assigned_tool_ids: set[str], requested_doc:
 
     doc_id = normalize_repo_path(repo_root, requested_doc)
     if doc_id not in docs:
+        candidate = repo_root / doc_id
+        if (
+            allow_untracked_doc
+            and candidate.exists()
+            and candidate.is_file()
+            and candidate.suffix.lower() in DOC_SUFFIXES
+        ):
+            return doc_id, docs
         raise OrchestratorError(f"Selected document is not a tracked documentation file: {doc_id}")
     return doc_id, docs
 
@@ -172,41 +187,53 @@ def read_repo_file(repo_root: Path, assigned_tool_ids: set[str], doc_id: str) ->
     return path.read_text(encoding="utf-8", errors="replace")
 
 
-def chunk_document(doc_id: str, text: str, max_tokens: int) -> list[Chunk]:
+def chunk_document(doc_id: str, text: str, max_tokens: int, overlap_lines: int) -> list[Chunk]:
     if max_tokens < 128:
         raise OrchestratorError("--chunk-token-limit must be at least 128.")
+    if overlap_lines < 0:
+        raise OrchestratorError("--chunk-overlap-lines cannot be negative.")
     lines = text.splitlines(keepends=True)
     if not lines:
-        return [Chunk(f"{doc_id}:0001", 1, 1, "", 1)]
+        return [Chunk(f"{doc_id}:0001", 1, 1, "", 1, 0)]
 
     chunks: list[Chunk] = []
-    current: list[str] = []
-    start_line = 1
+    start_index = 0
+    previous_end_line = 0
 
-    def flush(end_line: int) -> None:
+    while start_index < len(lines):
+        current: list[str] = []
+        end_index = start_index
+        while end_index < len(lines):
+            proposed = "".join([*current, lines[end_index]])
+            if current and estimate_tokens(proposed) > max_tokens:
+                break
+            current.append(lines[end_index])
+            end_index += 1
+
         if not current:
-            return
+            current.append(lines[start_index])
+            end_index = start_index + 1
+
+        start_line = start_index + 1
+        end_line = end_index
+        overlap_previous = max(0, previous_end_line - start_line + 1)
         chunk_text = "".join(current)
-        index = len(chunks) + 1
         chunks.append(
             Chunk(
-                chunk_id=f"{doc_id}:{index:04d}",
+                chunk_id=f"{doc_id}:{len(chunks) + 1:04d}",
                 start_line=start_line,
                 end_line=end_line,
                 text=chunk_text,
                 token_estimate=estimate_tokens(chunk_text),
+                overlap_previous_lines=overlap_previous,
             )
         )
 
-    for line_number, line in enumerate(lines, start=1):
-        proposed = "".join([*current, line])
-        if current and estimate_tokens(proposed) > max_tokens:
-            flush(line_number - 1)
-            current = [line]
-            start_line = line_number
-        else:
-            current.append(line)
-    flush(len(lines))
+        if end_index >= len(lines):
+            break
+        previous_end_line = end_line
+        next_start = max(end_index - overlap_lines, start_index + 1)
+        start_index = next_start
     return chunks
 
 
@@ -217,6 +244,7 @@ def build_packet(doc_id: str, chunk: Chunk, criteria_remaining: list[str]) -> di
         "doc_id": doc_id,
         "chunk_id": chunk.chunk_id,
         "lines": [chunk.start_line, chunk.end_line],
+        "overlap_previous_lines": chunk.overlap_previous_lines,
         "criteria_remaining": criteria_remaining,
         "required_output": {
             "chunk_id": "string",
@@ -364,6 +392,16 @@ def normalize_result_policy(
         )
         result["criteria_remaining"] = [item for item in result["criteria_remaining"] if item in allowed]
 
+    if result["doc_gaps"] and result["criteria_satisfied"]:
+        warnings.append(
+            {
+                "field": "criteria_satisfied",
+                "reason": "blocked_satisfaction_because_doc_gaps_were_reported",
+                "values": result["criteria_satisfied"],
+            }
+        )
+        result["criteria_satisfied"] = []
+
     invalid_followups = [item for item in result["followup_files"] if item not in known_files]
     if invalid_followups:
         warnings.append(
@@ -383,26 +421,49 @@ def sanitize_filename(value: str) -> str:
     return sanitized or "document"
 
 
-def write_report(output_dir: Path, doc_id: str, report: dict[str, Any]) -> Path:
+def resolve_output_dir(config_root: Path, output_dir: str) -> Path:
+    value = Path(output_dir)
+    return value if value.is_absolute() else config_root / value
+
+
+def write_report(output_dir: Path, target_label: str, doc_id: str, report: dict[str, Any]) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     timestamp = utc_now().replace(":", "").replace("-", "")
-    path = output_dir / f"documenter-{sanitize_filename(doc_id)}-{timestamp}.json"
+    path = output_dir / f"documenter-{sanitize_filename(target_label)}-{sanitize_filename(doc_id)}-{timestamp}.json"
     path.write_text(json.dumps(report, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
     return path
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run a bounded documenter orchestrator demo.")
-    parser.add_argument("--repo-root", default=".", help="Repository root to inspect.")
+    parser.add_argument(
+        "--config-root",
+        default=None,
+        help="vllm-agent-gateway repo containing runtime/roles.json and runtime/tools.json.",
+    )
+    parser.add_argument(
+        "--target-root",
+        "--repo-root",
+        dest="target_root",
+        default=".",
+        help="Target repository whose docs should be reviewed.",
+    )
     parser.add_argument("--doc", default=None, help="Tracked documentation file to review. Defaults to README.md.")
     parser.add_argument("--role-id", default=DEFAULT_ROLE_ID)
     parser.add_argument("--role-base-url", default=None, help="Role proxy base URL. Defaults to role port from manifest.")
     parser.add_argument("--model", default=os.environ.get("AGENTIC_GATEWAY_MODEL", DEFAULT_MODEL))
     parser.add_argument("--chunk-token-limit", type=int, default=1000)
-    parser.add_argument("--max-chunks", type=int, default=1, help="Maximum chunks to process. Use --all-chunks for all.")
-    parser.add_argument("--all-chunks", action="store_true")
+    parser.add_argument("--chunk-overlap-lines", type=int, default=8)
+    parser.add_argument("--max-chunks", type=int, default=None, help="Maximum chunks to process. Defaults to all chunks.")
+    parser.add_argument("--all-chunks", action="store_true", help="Process all chunks. This is the default.")
     parser.add_argument("--criteria", action="append", default=None, help="Documentation criterion. Repeatable.")
-    parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument(
+        "--output-dir",
+        default=DEFAULT_OUTPUT_DIR,
+        help="Report directory. Relative paths are resolved under --config-root.",
+    )
+    parser.add_argument("--allow-untracked-doc", action="store_true", help="Allow selected doc if it is inside target root.")
+    parser.add_argument("--list-docs", action="store_true", help="List tracked docs in the target repo and exit.")
     parser.add_argument("--dry-run", action="store_true", help="Write packets without calling the role endpoint.")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--max-output-tokens", type=int, default=1000)
@@ -411,16 +472,22 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    repo_root = Path(args.repo_root).resolve()
-    manifest = read_json(repo_root / "runtime" / "roles.json")
-    tool_catalog = read_json(repo_root / "runtime" / "tools.json")
+    config_root = Path(args.config_root).resolve() if args.config_root else SCRIPT_CONFIG_ROOT
+    target_root = Path(args.target_root).resolve()
+    manifest = read_json(config_root / "runtime" / "roles.json")
+    tool_catalog = read_json(config_root / "runtime" / "tools.json")
     role = load_role(manifest, args.role_id)
     assigned_tool_ids = role_tool_ids(role, load_tool_ids(tool_catalog))
-    doc_id, docs = select_document(repo_root, assigned_tool_ids, args.doc)
-    all_tracked_files = tracked_files(repo_root, assigned_tool_ids)
-    content = read_repo_file(repo_root, assigned_tool_ids, doc_id)
-    chunks = chunk_document(doc_id, content, args.chunk_token_limit)
-    max_chunks = None if args.all_chunks else args.max_chunks
+    if args.list_docs:
+        for path in tracked_docs(target_root, assigned_tool_ids):
+            print(path)
+        return 0
+
+    doc_id, docs = select_document(target_root, assigned_tool_ids, args.doc, args.allow_untracked_doc)
+    all_tracked_files = tracked_files(target_root, assigned_tool_ids)
+    content = read_repo_file(target_root, assigned_tool_ids, doc_id)
+    chunks = chunk_document(doc_id, content, args.chunk_token_limit, args.chunk_overlap_lines)
+    max_chunks = None if args.all_chunks or args.max_chunks is None else args.max_chunks
     selected_chunks = chunks if max_chunks is None else chunks[:max_chunks]
     role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
     criteria_initial = args.criteria if args.criteria else list(DEFAULT_CRITERIA)
@@ -432,6 +499,7 @@ def main() -> int:
         entry: dict[str, Any] = {
             "chunk_id": chunk.chunk_id,
             "lines": [chunk.start_line, chunk.end_line],
+            "overlap_previous_lines": chunk.overlap_previous_lines,
             "input_token_estimate": chunk.token_estimate,
             "packet": packet if args.dry_run else {"criteria_remaining": criteria_remaining},
         }
@@ -449,7 +517,8 @@ def main() -> int:
         "schema_version": 1,
         "kind": "documenter_orchestrator_report",
         "generated_at": utc_now(),
-        "repo_root": str(repo_root),
+        "config_root": str(config_root),
+        "target_root": str(target_root),
         "role_id": args.role_id,
         "role_base_url": role_base_url,
         "model": args.model,
@@ -464,12 +533,13 @@ def main() -> int:
         "criteria_initial": criteria_initial,
         "criteria_remaining": criteria_remaining,
         "chunk_token_limit": args.chunk_token_limit,
+        "chunk_overlap_lines": args.chunk_overlap_lines,
         "chunks_total": len(chunks),
         "chunks_processed": len(selected_chunks),
         "truncated_after_chunks": len(selected_chunks) < len(chunks),
         "chunks": chunk_reports,
     }
-    output_path = write_report(repo_root / args.output_dir, doc_id, report)
+    output_path = write_report(resolve_output_dir(config_root, args.output_dir), target_root.name, doc_id, report)
     print(f"Wrote {output_path}")
     if args.dry_run:
         print("Dry run only; no role endpoint was called.")

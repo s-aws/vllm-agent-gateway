@@ -60,19 +60,44 @@ controller -> documenter role proxy -> LLM gateway -> vLLM
 
 The controller owns repo discovery, file reading, chunking, packet construction, sequencing, validation, and report writing. The documenter role receives one bounded packet and returns one structured JSON delta.
 
+Chunks overlap by default with `--chunk-overlap-lines 8`. This gives the documenter local continuity without making it stateful.
+
 Dry-run packet generation:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --doc README.md --dry-run
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --dry-run
 ```
 
 Run against the local documenter role endpoint:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --doc README.md
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md
 ```
 
-Reports are written under `.agentic_reports/`, which is ignored by git.
+Quick one-chunk smoke run:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --max-chunks 1
+```
+
+Adjust chunk sizing:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --chunk-token-limit 1200 \
+  --chunk-overlap-lines 12
+```
+
+Review a different project while using this repo for gateway configuration:
+
+```bash
+python /path/to/vllm-agent-gateway/scripts/run_documenter_orchestrator.py \
+  --config-root /path/to/vllm-agent-gateway \
+  --target-root /path/to/project \
+  --doc README.md
+```
+
+Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. The target project is read only unless you explicitly point `--output-dir` at it.
 
 ## Tool Policy
 

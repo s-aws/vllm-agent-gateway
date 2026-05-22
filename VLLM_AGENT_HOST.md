@@ -170,6 +170,7 @@ In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` 
 - discovers tracked documentation files with `git ls-files`
 - reads one selected doc file
 - chunks it deterministically
+- overlaps chunks by line count for local continuity
 - sends one bounded packet at a time to the documenter role endpoint
 - validates the returned JSON delta
 - writes a local ignored report under `.agentic_reports/`
@@ -177,16 +178,33 @@ In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` 
 Dry run without calling the model:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --doc README.md --dry-run
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --dry-run
 ```
 
 Run against the local role endpoint:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --doc README.md
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md
 ```
 
-The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk.
+Quick one-chunk smoke run:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --max-chunks 1
+```
+
+Default chunk overlap is `--chunk-overlap-lines 8`.
+
+Run against another target repo while keeping this repo as the config root:
+
+```bash
+python /path/to/vllm-agent-gateway/scripts/run_documenter_orchestrator.py \
+  --config-root /path/to/vllm-agent-gateway \
+  --target-root /path/to/project \
+  --doc README.md
+```
+
+The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk. By default, reports are written under `.agentic_reports/` in the config root, not the target repo.
 
 ## Role Prompt Proxies
 

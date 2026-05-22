@@ -43,6 +43,7 @@ PACKET TASK review_chunk_for_documentation:
 - do_not_decide_next_chunk
 - do_not_summarize_unseen_content
 - set_followup_files_to_empty_if_exact_path_is_not_visible
+- do_not_mark_criteria_satisfied_when_reporting_related_gaps
 
 OUTPUT JSON:
 {
