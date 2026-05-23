@@ -27,6 +27,23 @@ DEFAULT_OUTPUT_DIR = ".agentic_reports"
 SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
 MODES = {"review", "summarize", "full"}
 DOC_SUFFIXES = {".adoc", ".md", ".rst", ".txt"}
+DOCUMENT_SCOPES = {"tracked", "all"}
+IGNORED_SCAN_DIRS = {
+    ".agentic_reports",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+}
 FOLLOWUP_SUFFIXES = {
     ".adoc",
     ".cfg",
@@ -83,6 +100,10 @@ class ReviewTarget:
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def artifact_timestamp() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
 
 
 def estimate_tokens(text: str) -> int:
@@ -163,6 +184,55 @@ def tracked_docs(repo_root: Path, assigned_tool_ids: set[str]) -> list[str]:
     return [path for path in tracked_files(repo_root, assigned_tool_ids) if Path(path).suffix.lower() in DOC_SUFFIXES]
 
 
+def scan_repo_files(repo_root: Path, assigned_tool_ids: set[str]) -> list[str]:
+    require_tool(assigned_tool_ids, "scan_files")
+    root = repo_root.resolve()
+    files: list[str] = []
+    for current_root, dirnames, filenames in os.walk(root):
+        dirnames[:] = [
+            name
+            for name in dirnames
+            if name not in IGNORED_SCAN_DIRS and not name.endswith(".egg-info") and not name.endswith(".dist-info")
+        ]
+        current_path = Path(current_root)
+        for filename in filenames:
+            path = current_path / filename
+            if path.is_symlink():
+                continue
+            try:
+                rel_path = path.resolve().relative_to(root)
+            except (OSError, ValueError):
+                continue
+            files.append(rel_path.as_posix())
+    return sorted(files)
+
+
+def discover_files_for_scope(
+    repo_root: Path,
+    assigned_tool_ids: set[str],
+    document_scope: str,
+) -> tuple[list[str], list[str], list[dict[str, str]]]:
+    if document_scope not in DOCUMENT_SCOPES:
+        raise OrchestratorError(f"--document-scope must be one of: {', '.join(sorted(DOCUMENT_SCOPES))}")
+
+    warnings: list[dict[str, str]] = []
+    tracked: list[str] = []
+    try:
+        tracked = tracked_files(repo_root, assigned_tool_ids)
+    except OrchestratorError as exc:
+        if document_scope == "tracked":
+            raise
+        warnings.append({"source": "git_ls_files", "reason": "unavailable", "detail": str(exc)})
+
+    if document_scope == "tracked":
+        return tracked, tracked, warnings
+    return scan_repo_files(repo_root, assigned_tool_ids), tracked, warnings
+
+
+def doc_paths_from_files(files: list[str]) -> list[str]:
+    return [path for path in files if Path(path).suffix.lower() in DOC_SUFFIXES]
+
+
 def normalize_repo_path(repo_root: Path, value: str) -> str:
     raw_path = Path(value)
     candidate = raw_path.resolve() if raw_path.is_absolute() else (repo_root / raw_path).resolve()
@@ -175,13 +245,12 @@ def normalize_repo_path(repo_root: Path, value: str) -> str:
 
 def select_document(
     repo_root: Path,
-    assigned_tool_ids: set[str],
+    docs: list[str],
     requested_doc: str | None,
     allow_untracked_doc: bool,
 ) -> tuple[str, list[str]]:
-    docs = tracked_docs(repo_root, assigned_tool_ids)
     if not docs and requested_doc is None:
-        raise OrchestratorError("No tracked documentation files found.")
+        raise OrchestratorError("No documentation files found.")
     if requested_doc is None:
         if "README.md" in docs:
             return "README.md", docs
@@ -197,7 +266,7 @@ def select_document(
             and candidate.suffix.lower() in DOC_SUFFIXES
         ):
             return doc_id, docs
-        raise OrchestratorError(f"Selected document is not a tracked documentation file: {doc_id}")
+        raise OrchestratorError(f"Selected document is not in the discovered documentation manifest: {doc_id}")
     return doc_id, docs
 
 
@@ -495,6 +564,98 @@ def unique_strings(values: list[str]) -> list[str]:
     return unique
 
 
+def extract_heading_preview(doc_id: str, lines: list[str], limit: int = 20) -> list[dict[str, Any]]:
+    suffix = Path(doc_id).suffix.lower()
+    headings: list[dict[str, Any]] = []
+    for index, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if suffix in {".md", ".adoc"}:
+            marker = "=" if suffix == ".adoc" else "#"
+            if stripped.startswith(marker):
+                level = len(stripped) - len(stripped.lstrip(marker))
+                text = stripped[level:].strip()
+                if text:
+                    headings.append({"line": index, "level": level, "text": text[:160]})
+        elif suffix == ".rst":
+            if index < len(lines) and set(lines[index].strip()) in [{"="}, {"-"}, {"~"}, {"^"}]:
+                headings.append({"line": index, "level": 1, "text": stripped[:160]})
+        if len(headings) >= limit:
+            break
+    return headings
+
+
+def build_document_manifest(
+    repo_root: Path,
+    docs: list[str],
+    tracked_file_set: set[str],
+    document_scope: str,
+    seed_doc_id: str,
+    discovery_warnings: list[dict[str, str]],
+) -> dict[str, Any]:
+    entries: list[dict[str, Any]] = []
+    for doc_id in docs:
+        path = repo_root / doc_id
+        try:
+            stat = path.stat()
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError as exc:
+            entries.append(
+                {
+                    "path": doc_id,
+                    "suffix": Path(doc_id).suffix.lower(),
+                    "tracked": doc_id in tracked_file_set,
+                    "selected_seed": doc_id == seed_doc_id,
+                    "readable": False,
+                    "error": str(exc),
+                }
+            )
+            continue
+
+        lines = text.splitlines()
+        entries.append(
+            {
+                "path": doc_id,
+                "suffix": Path(doc_id).suffix.lower(),
+                "tracked": doc_id in tracked_file_set,
+                "selected_seed": doc_id == seed_doc_id,
+                "readable": True,
+                "bytes": stat.st_size,
+                "line_count": len(lines),
+                "token_estimate": estimate_tokens(text),
+                "heading_preview": extract_heading_preview(doc_id, lines),
+            }
+        )
+
+    return {
+        "schema_version": 1,
+        "kind": "document_manifest",
+        "generated_at": utc_now(),
+        "target_root": str(repo_root),
+        "document_scope": document_scope,
+        "doc_suffixes": sorted(DOC_SUFFIXES),
+        "ignored_scan_dirs": sorted(IGNORED_SCAN_DIRS) if document_scope == "all" else [],
+        "seed_doc_id": seed_doc_id,
+        "document_count": len(entries),
+        "tracked_document_count": sum(1 for entry in entries if entry.get("tracked")),
+        "untracked_document_count": sum(1 for entry in entries if not entry.get("tracked")),
+        "discovery_warnings": discovery_warnings,
+        "documents": entries,
+    }
+
+
+def summarize_document_manifest(manifest: dict[str, Any], manifest_path: Path) -> dict[str, Any]:
+    return {
+        "artifact": str(manifest_path),
+        "document_scope": manifest.get("document_scope"),
+        "document_count": manifest.get("document_count"),
+        "tracked_document_count": manifest.get("tracked_document_count"),
+        "untracked_document_count": manifest.get("untracked_document_count"),
+        "discovery_warnings": manifest.get("discovery_warnings"),
+    }
+
+
 def aggregate_report(report: dict[str, Any]) -> dict[str, Any]:
     facts_found: list[str] = []
     doc_gaps: list[str] = []
@@ -578,9 +739,17 @@ def resolve_output_dir(config_root: Path, output_dir: str) -> Path:
 
 def write_report(output_dir: Path, target_label: str, doc_id: str, report: dict[str, Any]) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = utc_now().replace(":", "").replace("-", "")
+    timestamp = artifact_timestamp()
     path = output_dir / f"documenter-{sanitize_filename(target_label)}-{sanitize_filename(doc_id)}-{timestamp}.json"
     path.write_text(json.dumps(report, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def write_document_manifest(output_dir: Path, target_label: str, manifest: dict[str, Any]) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = artifact_timestamp()
+    path = output_dir / f"document-manifest-{sanitize_filename(target_label)}-{timestamp}.json"
+    path.write_text(json.dumps(manifest, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
     return path
 
 
@@ -609,7 +778,13 @@ def parse_args() -> argparse.Namespace:
         default=".",
         help="Target repository whose docs should be reviewed.",
     )
-    parser.add_argument("--doc", default=None, help="Tracked documentation file to review. Defaults to README.md.")
+    parser.add_argument("--doc", default=None, help="Documentation file to review. Defaults to README.md.")
+    parser.add_argument(
+        "--document-scope",
+        choices=sorted(DOCUMENT_SCOPES),
+        default="tracked",
+        help="Use tracked docs by default, or scan all target files for first-run/bootstrap docs.",
+    )
     parser.add_argument("--role-id", default=DEFAULT_ROLE_ID)
     parser.add_argument("--role-base-url", default=None, help="Role proxy base URL. Defaults to role port from manifest.")
     parser.add_argument("--model", default=os.environ.get("AGENTIC_GATEWAY_MODEL", DEFAULT_MODEL))
@@ -641,7 +816,7 @@ def parse_args() -> argparse.Namespace:
         help="Report directory. Relative paths are resolved under --config-root.",
     )
     parser.add_argument("--allow-untracked-doc", action="store_true", help="Allow selected doc if it is inside target root.")
-    parser.add_argument("--list-docs", action="store_true", help="List tracked docs in the target repo and exit.")
+    parser.add_argument("--list-docs", action="store_true", help="List discovered docs in the target repo and exit.")
     parser.add_argument("--report", default=None, help="Existing JSON report to summarize with --mode summarize.")
     parser.add_argument("--summary-output", default=None, help="Markdown summary path. Defaults beside JSON report.")
     parser.add_argument("--dry-run", action="store_true", help="Write packets without calling the role endpoint.")
@@ -667,9 +842,19 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
     include_followups = bool(args.include_followups or args.followup_depth > 0)
     effective_followup_depth = args.followup_depth if args.followup_depth > 0 else (1 if include_followups else 0)
 
-    doc_id, docs = select_document(target_root, assigned_tool_ids, args.doc, args.allow_untracked_doc)
-    all_tracked_files = tracked_files(target_root, assigned_tool_ids)
-    all_tracked_file_set = set(all_tracked_files)
+    known_files, tracked_file_list, discovery_warnings = discover_files_for_scope(
+        target_root, assigned_tool_ids, args.document_scope
+    )
+    docs = doc_paths_from_files(known_files)
+    doc_id, docs = select_document(target_root, docs, args.doc, args.allow_untracked_doc)
+    if doc_id not in docs:
+        docs = [doc_id, *docs]
+    known_file_set = set(known_files)
+    known_file_set.add(doc_id)
+    tracked_file_set = set(tracked_file_list)
+    controller_tool_dependencies = ["git_ls_files", "read_file"]
+    if args.document_scope == "all":
+        controller_tool_dependencies.append("scan_files")
     max_chunks = None if args.all_chunks or args.max_chunks is None else args.max_chunks
     role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
     criteria_initial = args.criteria if args.criteria else list(DEFAULT_CRITERIA)
@@ -707,7 +892,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
             }
             if not args.dry_run:
                 result = call_documenter(role_base_url, args.model, packet, args.max_output_tokens, args.timeout)
-                warnings = normalize_result_policy(result, all_tracked_file_set, criteria_remaining)
+                warnings = normalize_result_policy(result, known_file_set, criteria_remaining)
                 satisfied = {item for item in result["criteria_satisfied"] if isinstance(item, str)}
                 criteria_remaining = [item for item in criteria_remaining if item not in satisfied]
                 entry["result"] = result
@@ -728,8 +913,8 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
                     if target.depth >= effective_followup_depth:
                         skipped_followups.append({**followup_record, "reason": "depth_limit_reached"})
                         continue
-                    if followup_file not in all_tracked_file_set:
-                        skipped_followups.append({**followup_record, "reason": "not_tracked"})
+                    if followup_file not in known_file_set:
+                        skipped_followups.append({**followup_record, "reason": "not_in_document_scope"})
                         continue
                     if Path(followup_file).suffix.lower() not in FOLLOWUP_SUFFIXES:
                         skipped_followups.append({**followup_record, "reason": "unsupported_extension"})
@@ -781,9 +966,12 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         "dry_run": args.dry_run,
         "tool_policy": {
             "assigned_tool_ids": sorted(assigned_tool_ids),
-            "controller_tools_used": ["git_ls_files", "read_file"],
+            "controller_tool_dependencies": controller_tool_dependencies,
+            "controller_tools_used": controller_tool_dependencies,
         },
-        "tracked_files_count": len(all_tracked_files),
+        "document_scope": args.document_scope,
+        "known_files_count": len(known_file_set),
+        "tracked_files_count": len(tracked_file_set),
         "docs_discovered": docs,
         "doc_id": doc_id,
         "seed_doc_id": doc_id,
@@ -806,9 +994,25 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         "truncated_after_chunks": any(item["truncated_after_chunks"] for item in reviewed_file_reports),
         "chunks": chunk_reports,
     }
+    if discovery_warnings:
+        report["discovery_warnings"] = discovery_warnings
+    if args.mode == "full":
+        document_manifest = build_document_manifest(
+            target_root,
+            docs,
+            tracked_file_set,
+            args.document_scope,
+            doc_id,
+            discovery_warnings,
+        )
+        manifest_path = write_document_manifest(resolve_output_dir(config_root, args.output_dir), target_root.name, document_manifest)
+        report["document_manifest"] = summarize_document_manifest(document_manifest, manifest_path)
+        report["artifacts"] = {"document_manifest": str(manifest_path)}
     report["aggregate"] = aggregate_report(report)
     output_path = write_report(resolve_output_dir(config_root, args.output_dir), target_root.name, doc_id, report)
-    report["artifacts"] = {"json_report": str(output_path)}
+    report.setdefault("artifacts", {})
+    if isinstance(report["artifacts"], dict):
+        report["artifacts"]["json_report"] = str(output_path)
     output_path.write_text(json.dumps(report, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {output_path}")
     if args.dry_run:
@@ -856,7 +1060,8 @@ def main() -> int:
         tool_catalog = read_json(config_root / "runtime" / "tools.json")
         assigned_tool_ids = role_tool_ids(role, load_tool_ids(tool_catalog))
         target_root = Path(args.target_root).resolve()
-        for path in tracked_docs(target_root, assigned_tool_ids):
+        known_files, _, _ = discover_files_for_scope(target_root, assigned_tool_ids, args.document_scope)
+        for path in doc_paths_from_files(known_files):
             print(path)
         return 0
 

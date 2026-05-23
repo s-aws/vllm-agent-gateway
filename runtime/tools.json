@@ -47,6 +47,18 @@
       }
     },
     {
+      "id": "scan_files",
+      "kind": "filesystem_read",
+      "description": "Scan repository files for first-run/bootstrap discovery.",
+      "read_only": true,
+      "args_schema": {
+        "ignored_dirs": {
+          "type": "array",
+          "required": false
+        }
+      }
+    },
+    {
       "id": "run_tests",
       "kind": "local_command",
       "description": "Run an explicit test command selected by the controller.",

@@ -74,6 +74,16 @@ Run the full workflow against the local documenter role endpoint:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
+`full` mode automatically writes a document manifest JSON artifact beside the report. By default the manifest uses tracked files only. For first-run/bootstrap repositories where useful docs may not be tracked yet, scan the target tree:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --document-scope all
+```
+
+The all-files scan skips common generated directories such as `.git`, `.venv`, `node_modules`, build outputs, caches, and `.agentic_reports`.
+
 Quick one-chunk smoke run. `--max-chunks` is applied per reviewed file:
 
 ```bash
@@ -117,13 +127,15 @@ summarize   summarize an existing JSON report with --report
 full        review chunks and write the final Markdown summary
 ```
 
-Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes both a JSON report and a Markdown summary. The target project is read only unless you explicitly point `--output-dir` at it.
+Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a document manifest JSON artifact, and a Markdown summary. The target project is read only unless you explicitly point `--output-dir` at it.
 
 ## Tool Policy
 
 `runtime/tools.json` is the tool catalog. `runtime/roles.json` assigns tool IDs to each role with `tool_ids`.
 
-In this version, tool IDs authorize deterministic controller behavior. They are not synthetic model tools yet. For example, the documenter orchestrator requires `git_ls_files` and `read_file` before it can discover tracked docs and read the selected document.
+In this version, tool IDs authorize deterministic controller behavior. They are not synthetic model tools yet. For example, the documenter orchestrator requires `git_ls_files` and `read_file` before it can discover tracked docs and read selected documents. First-run all-file discovery also requires `scan_files`.
+
+Controller reports include `tool_policy.controller_tool_dependencies` so runs can be audited against the role's assigned `tool_ids`.
 
 Future synthetic tools will need a real execution loop:
 

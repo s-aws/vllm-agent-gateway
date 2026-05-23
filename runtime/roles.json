@@ -172,7 +172,8 @@
       },
       "tool_ids": [
         "git_ls_files",
-        "read_file"
+        "read_file",
+        "scan_files"
       ],
       "claude_code": {
         "bare": true,

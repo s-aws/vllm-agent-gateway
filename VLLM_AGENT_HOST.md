@@ -167,7 +167,8 @@ In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` 
 
 - loads `runtime/roles.json` and `runtime/tools.json`
 - checks the `documenter/default` role has the required controller tools
-- discovers tracked documentation files with `git ls-files`
+- discovers documentation files from tracked files by default, or from an all-file scan for bootstrap runs
+- writes a document manifest in `full` mode
 - reads one selected doc file
 - chunks it deterministically
 - overlaps chunks by line count for local continuity
@@ -186,6 +187,16 @@ Run the full workflow against the local role endpoint:
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
+
+`full` mode writes a document manifest JSON artifact beside the report. The default manifest source is tracked files. For first-run/bootstrap repositories, use all-file discovery:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --document-scope all
+```
+
+The all-file scan is an explicit controller dependency named `scan_files`; it skips common generated directories and is recorded in `tool_policy.controller_tool_dependencies`.
 
 Quick one-chunk smoke run. `--max-chunks` is applied per reviewed file:
 
