@@ -25,6 +25,7 @@ DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 DEFAULT_ROLE_ID = "documenter/default"
 DEFAULT_OUTPUT_DIR = ".agentic_reports"
 SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
+MODES = {"review", "summarize", "full"}
 DOC_SUFFIXES = {".adoc", ".md", ".rst", ".txt"}
 DEFAULT_CRITERIA = [
     "installation steps documented",
@@ -268,6 +269,16 @@ def packet_prompt(packet: dict[str, Any]) -> str:
     )
 
 
+def summary_prompt(packet: dict[str, Any]) -> str:
+    return (
+        "Prepare a final documentation review summary from the controller aggregate. "
+        "Use only the aggregate content. Return Markdown only. "
+        "Use these headings exactly: Summary, Satisfied Criteria, Remaining Gaps, "
+        "Recommended Follow-Up Files, Validation Notes, Confidence and Caveats.\n\n"
+        f"{json.dumps(packet, ensure_ascii=True, indent=2)}"
+    )
+
+
 def post_json(base_url: str, route: str, payload: dict[str, Any], timeout: int) -> tuple[int, str]:
     target = urlsplit(base_url.rstrip("/"))
     if target.scheme not in {"http", "https"} or not target.hostname:
@@ -315,6 +326,37 @@ def call_documenter(role_base_url: str, model: str, packet: dict[str, Any], max_
     if not isinstance(content, str):
         raise OrchestratorError("Documenter response content was not a string.")
     return parse_result(content, expected_chunk_id=str(packet["chunk_id"]))
+
+
+def call_documenter_summary(
+    role_base_url: str,
+    model: str,
+    packet: dict[str, Any],
+    max_tokens: int,
+    timeout: int,
+) -> str:
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": summary_prompt(packet),
+            }
+        ],
+        "temperature": 0,
+        "max_tokens": max_tokens,
+    }
+    status, body = post_json(role_base_url, "/chat/completions", payload, timeout)
+    if status >= 400:
+        raise OrchestratorError(f"Documenter summary request failed with HTTP {status}: {body[:1000]}")
+    try:
+        response = json.loads(body)
+        content = response["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+        raise OrchestratorError(f"Unexpected documenter summary response shape: {body[:1000]}") from exc
+    if not isinstance(content, str) or not content.strip():
+        raise OrchestratorError("Documenter summary response content was empty or not a string.")
+    return content.strip() + "\n"
 
 
 def parse_result(content: str, expected_chunk_id: str) -> dict[str, Any]:
@@ -416,6 +458,85 @@ def normalize_result_policy(
     return warnings
 
 
+def unique_strings(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    unique: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        unique.append(value)
+    return unique
+
+
+def aggregate_report(report: dict[str, Any]) -> dict[str, Any]:
+    facts_found: list[str] = []
+    doc_gaps: list[str] = []
+    followup_files: list[str] = []
+    validation_warnings: list[dict[str, Any]] = []
+    confidence_counts = {"low": 0, "medium": 0, "high": 0}
+
+    for chunk in report.get("chunks", []):
+        if not isinstance(chunk, dict):
+            continue
+        result = chunk.get("result")
+        if isinstance(result, dict):
+            facts_found.extend([item for item in result.get("facts_found", []) if isinstance(item, str)])
+            doc_gaps.extend([item for item in result.get("doc_gaps", []) if isinstance(item, str)])
+            followup_files.extend([item for item in result.get("followup_files", []) if isinstance(item, str)])
+            confidence = result.get("confidence")
+            if confidence in confidence_counts:
+                confidence_counts[confidence] += 1
+        for warning in chunk.get("validation_warnings", []):
+            if isinstance(warning, dict):
+                validation_warnings.append({"chunk_id": chunk.get("chunk_id"), **warning})
+
+    criteria_initial = [item for item in report.get("criteria_initial", []) if isinstance(item, str)]
+    criteria_remaining = [item for item in report.get("criteria_remaining", []) if isinstance(item, str)]
+    criteria_satisfied = [item for item in criteria_initial if item not in set(criteria_remaining)]
+    aggregate_confidence = "low"
+    if confidence_counts["high"] and not confidence_counts["low"]:
+        aggregate_confidence = "high" if not confidence_counts["medium"] else "medium"
+    elif confidence_counts["medium"] and not confidence_counts["low"]:
+        aggregate_confidence = "medium"
+
+    return {
+        "facts_found": unique_strings(facts_found),
+        "criteria_satisfied": criteria_satisfied,
+        "criteria_remaining": criteria_remaining,
+        "doc_gaps": unique_strings(doc_gaps),
+        "followup_files": unique_strings(followup_files),
+        "validation_warnings": validation_warnings,
+        "confidence_counts": confidence_counts,
+        "confidence": aggregate_confidence,
+    }
+
+
+def build_summary_packet(report: dict[str, Any], aggregate: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "role": "documenter",
+        "task": "summarize_documentation_review",
+        "doc_id": report.get("doc_id"),
+        "target_root": report.get("target_root"),
+        "chunks_processed": report.get("chunks_processed"),
+        "chunks_total": report.get("chunks_total"),
+        "truncated_after_chunks": report.get("truncated_after_chunks"),
+        "criteria_initial": report.get("criteria_initial"),
+        "aggregate": aggregate,
+        "required_output": {
+            "format": "markdown",
+            "headings": [
+                "Summary",
+                "Satisfied Criteria",
+                "Remaining Gaps",
+                "Recommended Follow-Up Files",
+                "Validation Notes",
+                "Confidence and Caveats",
+            ],
+        },
+    }
+
+
 def sanitize_filename(value: str) -> str:
     sanitized = re.sub(r"[^A-Za-z0-9_.-]+", "-", value).strip("-")
     return sanitized or "document"
@@ -434,8 +555,19 @@ def write_report(output_dir: Path, target_label: str, doc_id: str, report: dict[
     return path
 
 
+def summary_path_for_report(report_path: Path) -> Path:
+    return report_path.with_suffix(".md")
+
+
+def write_summary(path: Path, summary: str) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(summary, encoding="utf-8")
+    return path
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run a bounded documenter orchestrator demo.")
+    parser.add_argument("--mode", choices=sorted(MODES), default="full")
     parser.add_argument(
         "--config-root",
         default=None,
@@ -464,14 +596,15 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--allow-untracked-doc", action="store_true", help="Allow selected doc if it is inside target root.")
     parser.add_argument("--list-docs", action="store_true", help="List tracked docs in the target repo and exit.")
+    parser.add_argument("--report", default=None, help="Existing JSON report to summarize with --mode summarize.")
+    parser.add_argument("--summary-output", default=None, help="Markdown summary path. Defaults beside JSON report.")
     parser.add_argument("--dry-run", action="store_true", help="Write packets without calling the role endpoint.")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--max-output-tokens", type=int, default=1000)
     return parser.parse_args()
 
 
-def main() -> int:
-    args = parse_args()
+def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
     config_root = Path(args.config_root).resolve() if args.config_root else SCRIPT_CONFIG_ROOT
     target_root = Path(args.target_root).resolve()
     manifest = read_json(config_root / "runtime" / "roles.json")
@@ -517,6 +650,7 @@ def main() -> int:
         "schema_version": 1,
         "kind": "documenter_orchestrator_report",
         "generated_at": utc_now(),
+        "mode": args.mode,
         "config_root": str(config_root),
         "target_root": str(target_root),
         "role_id": args.role_id,
@@ -539,10 +673,80 @@ def main() -> int:
         "truncated_after_chunks": len(selected_chunks) < len(chunks),
         "chunks": chunk_reports,
     }
+    report["aggregate"] = aggregate_report(report)
     output_path = write_report(resolve_output_dir(config_root, args.output_dir), target_root.name, doc_id, report)
+    report["artifacts"] = {"json_report": str(output_path)}
+    output_path.write_text(json.dumps(report, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {output_path}")
     if args.dry_run:
         print("Dry run only; no role endpoint was called.")
+    return report, output_path
+
+
+def run_summary(
+    report: dict[str, Any],
+    report_path: Path,
+    role_base_url: str,
+    model: str,
+    max_tokens: int,
+    timeout: int,
+    summary_output: str | None,
+) -> Path:
+    aggregate = report.get("aggregate")
+    if not isinstance(aggregate, dict):
+        aggregate = aggregate_report(report)
+        report["aggregate"] = aggregate
+    if not report.get("chunks") or all(not isinstance(chunk, dict) or "result" not in chunk for chunk in report["chunks"]):
+        raise OrchestratorError("Cannot summarize a report without chunk review results.")
+    packet = build_summary_packet(report, aggregate)
+    summary = call_documenter_summary(role_base_url, model, packet, max_tokens, timeout)
+    summary_path = Path(summary_output).resolve() if summary_output else summary_path_for_report(report_path)
+    write_summary(summary_path, summary)
+    report.setdefault("artifacts", {})
+    if isinstance(report["artifacts"], dict):
+        report["artifacts"]["markdown_summary"] = str(summary_path)
+    report_path.write_text(json.dumps(report, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+    print(f"Wrote {summary_path}")
+    return summary_path
+
+
+def main() -> int:
+    args = parse_args()
+    config_root = Path(args.config_root).resolve() if args.config_root else SCRIPT_CONFIG_ROOT
+    manifest = read_json(config_root / "runtime" / "roles.json")
+    role = load_role(manifest, args.role_id)
+    role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
+
+    if args.mode == "summarize":
+        if not args.report:
+            raise OrchestratorError("--mode summarize requires --report.")
+        report_path = Path(args.report).resolve()
+        report = read_json(report_path)
+        summary_role_base_url = args.role_base_url or report.get("role_base_url") or role_base_url
+        if not isinstance(summary_role_base_url, str):
+            raise OrchestratorError("Report role_base_url must be a string when used for summarization.")
+        run_summary(
+            report,
+            report_path,
+            summary_role_base_url,
+            args.model,
+            args.max_output_tokens,
+            args.timeout,
+            args.summary_output,
+        )
+        return 0
+
+    report, report_path = run_review(args)
+    if args.mode == "full" and not args.dry_run:
+        run_summary(
+            report,
+            report_path,
+            role_base_url,
+            args.model,
+            args.max_output_tokens,
+            args.timeout,
+            args.summary_output,
+        )
     return 0
 
 

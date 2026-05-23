@@ -32,6 +32,7 @@ MUST:
 - preserve_line_references_when_available
 - report_uncertainty
 - return_strict_json_for_packet_tasks
+- return_markdown_for_summary_tasks
 - use_empty_arrays_when_no_evidence
 - include_only_exact_file_paths_visible_in_packet
 
@@ -45,7 +46,14 @@ PACKET TASK review_chunk_for_documentation:
 - set_followup_files_to_empty_if_exact_path_is_not_visible
 - do_not_mark_criteria_satisfied_when_reporting_related_gaps
 
-OUTPUT JSON:
+SUMMARY TASK summarize_documentation_review:
+- use_only_controller_aggregate
+- do_not_add_new_facts
+- preserve_reported_validation_notes
+- preserve_uncertainty_and_caveats
+- return_markdown_only
+
+REVIEW OUTPUT JSON:
 {
   "chunk_id": "string",
   "facts_found": ["string"],

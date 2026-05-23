@@ -181,19 +181,25 @@ Dry run without calling the model:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --dry-run
 ```
 
-Run against the local role endpoint:
+Run the full workflow against the local role endpoint:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
 Quick one-chunk smoke run:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --max-chunks 1
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode review --max-chunks 1
 ```
 
 Default chunk overlap is `--chunk-overlap-lines 8`.
+
+Summarize an existing JSON report:
+
+```bash
+python scripts/run_documenter_orchestrator.py --mode summarize --report .agentic_reports/example.json
+```
 
 Run against another target repo while keeping this repo as the config root:
 
@@ -204,7 +210,7 @@ python /path/to/vllm-agent-gateway/scripts/run_documenter_orchestrator.py \
   --doc README.md
 ```
 
-The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk. By default, reports are written under `.agentic_reports/` in the config root, not the target repo.
+The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk. In `full` mode, the controller aggregates chunk deltas and sends only that aggregate back for the final Markdown summary. By default, reports are written under `.agentic_reports/` in the config root, not the target repo.
 
 ## Role Prompt Proxies
 

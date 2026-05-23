@@ -68,16 +68,16 @@ Dry-run packet generation:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --dry-run
 ```
 
-Run against the local documenter role endpoint:
+Run the full workflow against the local documenter role endpoint:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
 Quick one-chunk smoke run:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --max-chunks 1
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode review --max-chunks 1
 ```
 
 Adjust chunk sizing:
@@ -97,7 +97,15 @@ python /path/to/vllm-agent-gateway/scripts/run_documenter_orchestrator.py \
   --doc README.md
 ```
 
-Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. The target project is read only unless you explicitly point `--output-dir` at it.
+Modes:
+
+```text
+review      write chunk-review JSON only
+summarize   summarize an existing JSON report with --report
+full        review chunks and write the final Markdown summary
+```
+
+Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes both a JSON report and a Markdown summary. The target project is read only unless you explicitly point `--output-dir` at it.
 
 ## Tool Policy
 
