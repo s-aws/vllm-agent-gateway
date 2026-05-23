@@ -35,6 +35,8 @@ MUST:
 - return_markdown_for_summary_tasks
 - use_empty_arrays_when_no_evidence
 - include_only_exact_file_paths_visible_in_packet
+- include_visible_file_paths_in_followup_files_when_gaps_require_them
+- let_controller_decide_followup_queueing
 
 PACKET TASK review_chunk_for_documentation:
 - process_only_current_chunk
@@ -45,6 +47,7 @@ PACKET TASK review_chunk_for_documentation:
 - do_not_summarize_unseen_content
 - set_followup_files_to_empty_if_exact_path_is_not_visible
 - do_not_mark_criteria_satisfied_when_reporting_related_gaps
+- do_not_claim_followup_file_will_be_reviewed
 
 SUMMARY TASK summarize_documentation_review:
 - use_only_controller_aggregate

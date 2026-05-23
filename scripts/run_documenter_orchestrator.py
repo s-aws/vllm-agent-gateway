@@ -27,6 +27,21 @@ DEFAULT_OUTPUT_DIR = ".agentic_reports"
 SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
 MODES = {"review", "summarize", "full"}
 DOC_SUFFIXES = {".adoc", ".md", ".rst", ".txt"}
+FOLLOWUP_SUFFIXES = {
+    ".adoc",
+    ".cfg",
+    ".ini",
+    ".json",
+    ".md",
+    ".ps1",
+    ".py",
+    ".rst",
+    ".sh",
+    ".toml",
+    ".txt",
+    ".yaml",
+    ".yml",
+}
 DEFAULT_CRITERIA = [
     "installation steps documented",
     "configuration documented",
@@ -56,6 +71,14 @@ class Chunk:
     text: str
     token_estimate: int
     overlap_previous_lines: int
+
+
+@dataclass(frozen=True)
+class ReviewTarget:
+    doc_id: str
+    source: str
+    depth: int
+    parent_doc_id: str | None = None
 
 
 def utc_now() -> str:
@@ -238,11 +261,14 @@ def chunk_document(doc_id: str, text: str, max_tokens: int, overlap_lines: int) 
     return chunks
 
 
-def build_packet(doc_id: str, chunk: Chunk, criteria_remaining: list[str]) -> dict[str, Any]:
+def build_packet(target: ReviewTarget, chunk: Chunk, criteria_remaining: list[str]) -> dict[str, Any]:
     return {
         "role": "documenter",
         "task": "review_chunk_for_documentation",
-        "doc_id": doc_id,
+        "doc_id": target.doc_id,
+        "source": target.source,
+        "followup_depth": target.depth,
+        "parent_doc_id": target.parent_doc_id,
         "chunk_id": chunk.chunk_id,
         "lines": [chunk.start_line, chunk.end_line],
         "overlap_previous_lines": chunk.overlap_previous_lines,
@@ -517,7 +543,10 @@ def build_summary_packet(report: dict[str, Any], aggregate: dict[str, Any]) -> d
         "role": "documenter",
         "task": "summarize_documentation_review",
         "doc_id": report.get("doc_id"),
+        "seed_doc_id": report.get("seed_doc_id"),
         "target_root": report.get("target_root"),
+        "reviewed_files": report.get("reviewed_files"),
+        "followup_policy": report.get("followup_policy"),
         "chunks_processed": report.get("chunks_processed"),
         "chunks_total": report.get("chunks_total"),
         "truncated_after_chunks": report.get("truncated_after_chunks"),
@@ -588,6 +617,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--chunk-overlap-lines", type=int, default=8)
     parser.add_argument("--max-chunks", type=int, default=None, help="Maximum chunks to process. Defaults to all chunks.")
     parser.add_argument("--all-chunks", action="store_true", help="Process all chunks. This is the default.")
+    parser.add_argument(
+        "--include-followups",
+        action="store_true",
+        help="Review exact tracked follow-up files returned by the documenter.",
+    )
+    parser.add_argument(
+        "--followup-depth",
+        type=int,
+        default=0,
+        help="Maximum follow-up expansion depth. 0 disables expansion unless --include-followups is set.",
+    )
+    parser.add_argument(
+        "--max-followup-files",
+        type=int,
+        default=5,
+        help="Maximum number of follow-up files to add to the controller queue.",
+    )
     parser.add_argument("--criteria", action="append", default=None, help="Documentation criterion. Repeatable.")
     parser.add_argument(
         "--output-dir",
@@ -611,40 +657,116 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
     tool_catalog = read_json(config_root / "runtime" / "tools.json")
     role = load_role(manifest, args.role_id)
     assigned_tool_ids = role_tool_ids(role, load_tool_ids(tool_catalog))
-    if args.list_docs:
-        for path in tracked_docs(target_root, assigned_tool_ids):
-            print(path)
-        return 0
+    if args.max_chunks is not None and args.max_chunks < 1:
+        raise OrchestratorError("--max-chunks must be at least 1 when provided.")
+    if args.followup_depth < 0:
+        raise OrchestratorError("--followup-depth cannot be negative.")
+    if args.max_followup_files < 0:
+        raise OrchestratorError("--max-followup-files cannot be negative.")
+
+    include_followups = bool(args.include_followups or args.followup_depth > 0)
+    effective_followup_depth = args.followup_depth if args.followup_depth > 0 else (1 if include_followups else 0)
 
     doc_id, docs = select_document(target_root, assigned_tool_ids, args.doc, args.allow_untracked_doc)
     all_tracked_files = tracked_files(target_root, assigned_tool_ids)
-    content = read_repo_file(target_root, assigned_tool_ids, doc_id)
-    chunks = chunk_document(doc_id, content, args.chunk_token_limit, args.chunk_overlap_lines)
+    all_tracked_file_set = set(all_tracked_files)
     max_chunks = None if args.all_chunks or args.max_chunks is None else args.max_chunks
-    selected_chunks = chunks if max_chunks is None else chunks[:max_chunks]
     role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
     criteria_initial = args.criteria if args.criteria else list(DEFAULT_CRITERIA)
     criteria_remaining = list(criteria_initial)
     chunk_reports: list[dict[str, Any]] = []
+    reviewed_file_reports: list[dict[str, Any]] = []
+    accepted_followups: list[dict[str, Any]] = []
+    skipped_followups: list[dict[str, Any]] = []
+    target_queue: list[ReviewTarget] = [ReviewTarget(doc_id=doc_id, source="seed", depth=0)]
+    queued_files: set[str] = {doc_id}
+    reviewed_files: set[str] = set()
 
-    for chunk in selected_chunks:
-        packet = build_packet(doc_id, chunk, criteria_remaining)
-        entry: dict[str, Any] = {
-            "chunk_id": chunk.chunk_id,
-            "lines": [chunk.start_line, chunk.end_line],
-            "overlap_previous_lines": chunk.overlap_previous_lines,
-            "input_token_estimate": chunk.token_estimate,
-            "packet": packet if args.dry_run else {"criteria_remaining": criteria_remaining},
-        }
-        if not args.dry_run:
-            result = call_documenter(role_base_url, args.model, packet, args.max_output_tokens, args.timeout)
-            warnings = normalize_result_policy(result, set(all_tracked_files), criteria_remaining)
-            satisfied = {item for item in result["criteria_satisfied"] if isinstance(item, str)}
-            criteria_remaining = [item for item in criteria_remaining if item not in satisfied]
-            entry["result"] = result
-            if warnings:
-                entry["validation_warnings"] = warnings
-        chunk_reports.append(entry)
+    queue_index = 0
+    while queue_index < len(target_queue):
+        target = target_queue[queue_index]
+        queue_index += 1
+        reviewed_files.add(target.doc_id)
+
+        content = read_repo_file(target_root, assigned_tool_ids, target.doc_id)
+        chunks = chunk_document(target.doc_id, content, args.chunk_token_limit, args.chunk_overlap_lines)
+        selected_chunks = chunks if max_chunks is None else chunks[:max_chunks]
+
+        for chunk in selected_chunks:
+            packet = build_packet(target, chunk, criteria_remaining)
+            entry: dict[str, Any] = {
+                "doc_id": target.doc_id,
+                "source": target.source,
+                "depth": target.depth,
+                "parent_doc_id": target.parent_doc_id,
+                "chunk_id": chunk.chunk_id,
+                "lines": [chunk.start_line, chunk.end_line],
+                "overlap_previous_lines": chunk.overlap_previous_lines,
+                "input_token_estimate": chunk.token_estimate,
+                "packet": packet if args.dry_run else {"criteria_remaining": criteria_remaining},
+            }
+            if not args.dry_run:
+                result = call_documenter(role_base_url, args.model, packet, args.max_output_tokens, args.timeout)
+                warnings = normalize_result_policy(result, all_tracked_file_set, criteria_remaining)
+                satisfied = {item for item in result["criteria_satisfied"] if isinstance(item, str)}
+                criteria_remaining = [item for item in criteria_remaining if item not in satisfied]
+                entry["result"] = result
+                if warnings:
+                    entry["validation_warnings"] = warnings
+
+                for followup_file in unique_strings(result["followup_files"]):
+                    candidate_depth = target.depth + 1
+                    followup_record = {
+                        "path": followup_file,
+                        "source_doc_id": target.doc_id,
+                        "source_chunk_id": chunk.chunk_id,
+                        "candidate_depth": candidate_depth,
+                    }
+                    if not include_followups:
+                        skipped_followups.append({**followup_record, "reason": "followups_disabled"})
+                        continue
+                    if target.depth >= effective_followup_depth:
+                        skipped_followups.append({**followup_record, "reason": "depth_limit_reached"})
+                        continue
+                    if followup_file not in all_tracked_file_set:
+                        skipped_followups.append({**followup_record, "reason": "not_tracked"})
+                        continue
+                    if Path(followup_file).suffix.lower() not in FOLLOWUP_SUFFIXES:
+                        skipped_followups.append({**followup_record, "reason": "unsupported_extension"})
+                        continue
+                    if followup_file in reviewed_files or followup_file in queued_files:
+                        skipped_followups.append({**followup_record, "reason": "already_seen"})
+                        continue
+                    if len(accepted_followups) >= args.max_followup_files:
+                        skipped_followups.append({**followup_record, "reason": "max_followup_files_reached"})
+                        continue
+
+                    accepted_followups.append(followup_record)
+                    target_queue.append(
+                        ReviewTarget(
+                            doc_id=followup_file,
+                            source="followup",
+                            depth=candidate_depth,
+                            parent_doc_id=target.doc_id,
+                        )
+                    )
+                    queued_files.add(followup_file)
+            chunk_reports.append(entry)
+
+        reviewed_file_reports.append(
+            {
+                "doc_id": target.doc_id,
+                "source": target.source,
+                "depth": target.depth,
+                "parent_doc_id": target.parent_doc_id,
+                "chunks_total": len(chunks),
+                "chunks_processed": len(selected_chunks),
+                "truncated_after_chunks": len(selected_chunks) < len(chunks),
+            }
+        )
+
+    chunks_total = sum(item["chunks_total"] for item in reviewed_file_reports)
+    chunks_processed = sum(item["chunks_processed"] for item in reviewed_file_reports)
 
     report = {
         "schema_version": 1,
@@ -664,13 +786,24 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         "tracked_files_count": len(all_tracked_files),
         "docs_discovered": docs,
         "doc_id": doc_id,
+        "seed_doc_id": doc_id,
+        "reviewed_files": reviewed_file_reports,
+        "followup_policy": {
+            "include_followups": include_followups,
+            "followup_depth": effective_followup_depth,
+            "max_followup_files": args.max_followup_files,
+            "allowed_suffixes": sorted(FOLLOWUP_SUFFIXES),
+            "accepted_followups": accepted_followups,
+            "skipped_followups": skipped_followups,
+        },
         "criteria_initial": criteria_initial,
         "criteria_remaining": criteria_remaining,
         "chunk_token_limit": args.chunk_token_limit,
         "chunk_overlap_lines": args.chunk_overlap_lines,
-        "chunks_total": len(chunks),
-        "chunks_processed": len(selected_chunks),
-        "truncated_after_chunks": len(selected_chunks) < len(chunks),
+        "max_chunks_per_file": max_chunks,
+        "chunks_total": chunks_total,
+        "chunks_processed": chunks_processed,
+        "truncated_after_chunks": any(item["truncated_after_chunks"] for item in reviewed_file_reports),
         "chunks": chunk_reports,
     }
     report["aggregate"] = aggregate_report(report)
@@ -716,6 +849,16 @@ def main() -> int:
     manifest = read_json(config_root / "runtime" / "roles.json")
     role = load_role(manifest, args.role_id)
     role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
+
+    if args.list_docs:
+        if args.mode == "summarize":
+            raise OrchestratorError("--list-docs cannot be combined with --mode summarize.")
+        tool_catalog = read_json(config_root / "runtime" / "tools.json")
+        assigned_tool_ids = role_tool_ids(role, load_tool_ids(tool_catalog))
+        target_root = Path(args.target_root).resolve()
+        for path in tracked_docs(target_root, assigned_tool_ids):
+            print(path)
+        return 0
 
     if args.mode == "summarize":
         if not args.report:

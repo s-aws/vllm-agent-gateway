@@ -52,7 +52,7 @@ Role endpoints are loaded from `runtime/roles.json`. Add or remove role ports in
 
 ## Documenter Orchestrator Demo
 
-The first controller example is intentionally narrow: it reviews one tracked documentation file with the `documenter/default` role.
+The first controller example is intentionally narrow: it reviews a seed documentation file with the `documenter/default` role. It can optionally expand to exact tracked follow-up files reported by the documenter, but the controller owns that decision.
 
 ```text
 controller -> documenter role proxy -> LLM gateway -> vLLM
@@ -74,7 +74,7 @@ Run the full workflow against the local documenter role endpoint:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
-Quick one-chunk smoke run:
+Quick one-chunk smoke run. `--max-chunks` is applied per reviewed file:
 
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode review --max-chunks 1
@@ -96,6 +96,18 @@ python /path/to/vllm-agent-gateway/scripts/run_documenter_orchestrator.py \
   --target-root /path/to/project \
   --doc README.md
 ```
+
+Bounded follow-up expansion:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --include-followups \
+  --followup-depth 1 \
+  --max-followup-files 5
+```
+
+Follow-up expansion is fail-closed. The documenter can only return exact file paths visible in the packet, and the controller only queues paths that are tracked by git, use an allowed text/config/code suffix, have not already been seen, and fit within the configured depth/count limits. Accepted and skipped follow-ups are recorded in the JSON report.
 
 Modes:
 

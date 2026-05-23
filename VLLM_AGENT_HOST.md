@@ -187,13 +187,25 @@ Run the full workflow against the local role endpoint:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
-Quick one-chunk smoke run:
+Quick one-chunk smoke run. `--max-chunks` is applied per reviewed file:
 
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode review --max-chunks 1
 ```
 
 Default chunk overlap is `--chunk-overlap-lines 8`.
+
+Run with bounded follow-up expansion:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --include-followups \
+  --followup-depth 1 \
+  --max-followup-files 5
+```
+
+The controller validates follow-up files before queueing them. A follow-up must be an exact tracked path, use an allowed text/config/code suffix, fit within the depth/count limits, and not already be reviewed or queued. Accepted and skipped follow-ups are recorded in the JSON report.
 
 Summarize an existing JSON report:
 
