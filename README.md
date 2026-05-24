@@ -74,7 +74,7 @@ Run the full workflow against the local documenter role endpoint:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
-`full` mode automatically writes a document manifest JSON artifact beside the report. By default the manifest uses tracked files only. For first-run/bootstrap repositories where useful docs may not be tracked yet, scan the target tree:
+`full` mode automatically writes a document manifest JSON artifact beside the report. It also writes a non-mutating `doc-change-plan-*.md` artifact that groups review findings by target file into safe documentation edits, items needing a user decision, and insufficient-evidence items. By default the manifest uses tracked files only. For first-run/bootstrap repositories where useful docs may not be tracked yet, scan the target tree:
 
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
@@ -137,10 +137,10 @@ Modes:
 ```text
 review      write chunk-review JSON only
 summarize   summarize an existing JSON report with --report
-full        review chunks and write the final Markdown summary
+full        review chunks and write manifest, review plan, change plan, and final summary artifacts
 ```
 
-Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a document manifest JSON artifact, a review plan JSON artifact, and a Markdown summary. The target project is read only unless you explicitly point `--output-dir` at it.
+Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a document manifest JSON artifact, a review plan JSON artifact, a Markdown change plan, and a Markdown summary. The change plan is generated from validated report fields only; it does not modify target project files. The target project is read only unless you explicitly point `--output-dir` at it.
 
 ## Tool Policy
 

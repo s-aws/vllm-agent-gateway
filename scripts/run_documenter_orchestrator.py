@@ -588,6 +588,290 @@ def unique_strings(values: list[str]) -> list[str]:
     return unique
 
 
+def inline_markdown(value: Any) -> str:
+    text = str(value).replace("\r", " ").replace("\n", " ").strip()
+    text = re.sub(r"\s+", " ", text)
+    return text or "(blank)"
+
+
+def chunk_source_ref(chunk: dict[str, Any]) -> str:
+    chunk_id = inline_markdown(chunk.get("chunk_id", "unknown-chunk"))
+    lines = chunk.get("lines")
+    if (
+        isinstance(lines, list)
+        and len(lines) == 2
+        and isinstance(lines[0], int)
+        and isinstance(lines[1], int)
+    ):
+        return f"{chunk_id} lines {lines[0]}-{lines[1]}"
+    return chunk_id
+
+
+def source_from_followup_record(record: dict[str, Any]) -> str:
+    source_chunk_id = record.get("source_chunk_id")
+    if isinstance(source_chunk_id, str) and source_chunk_id:
+        return inline_markdown(source_chunk_id)
+    source_doc_id = record.get("source_doc_id")
+    if isinstance(source_doc_id, str) and source_doc_id:
+        return inline_markdown(source_doc_id)
+    return "followup_policy"
+
+
+def add_change_item(
+    grouped: dict[str, list[dict[str, str]]],
+    doc_id: str,
+    source: str,
+    confidence: str,
+    text: str,
+) -> None:
+    grouped.setdefault(doc_id, []).append(
+        {
+            "source": inline_markdown(source),
+            "confidence": inline_markdown(confidence),
+            "text": inline_markdown(text),
+        }
+    )
+
+
+def append_grouped_change_section(
+    lines: list[str],
+    title: str,
+    intro: str,
+    grouped: dict[str, list[dict[str, str]]],
+) -> None:
+    lines.append(f"## {title}")
+    lines.append("")
+    lines.append(intro)
+    lines.append("")
+    if not any(grouped.values()):
+        lines.append("- None recorded.")
+        lines.append("")
+        return
+    for doc_id in sorted(grouped):
+        items = grouped[doc_id]
+        if not items:
+            continue
+        lines.append(f"### {inline_markdown(doc_id)}")
+        lines.append("")
+        for item in items:
+            lines.append(
+                f"- [{item['source']}; confidence: {item['confidence']}] {item['text']}"
+            )
+        lines.append("")
+
+
+def build_doc_change_plan(report: dict[str, Any]) -> str:
+    aggregate = report.get("aggregate")
+    if not isinstance(aggregate, dict):
+        aggregate = aggregate_report(report)
+
+    seed_doc_id = inline_markdown(report.get("seed_doc_id") or report.get("doc_id") or "unknown")
+    safe_edits: dict[str, list[dict[str, str]]] = {}
+    needs_decision: dict[str, list[dict[str, str]]] = {}
+    insufficient_evidence: dict[str, list[dict[str, str]]] = {}
+    reviewed_result_count = 0
+
+    for chunk in report.get("chunks", []):
+        if not isinstance(chunk, dict):
+            continue
+        doc_id = inline_markdown(chunk.get("doc_id") or seed_doc_id)
+        source = chunk_source_ref(chunk)
+        result = chunk.get("result")
+        if isinstance(result, dict):
+            reviewed_result_count += 1
+            confidence = inline_markdown(result.get("confidence", "unknown"))
+            facts_found = [item for item in result.get("facts_found", []) if isinstance(item, str)]
+            doc_gaps = [item for item in result.get("doc_gaps", []) if isinstance(item, str)]
+
+            target_group = safe_edits if confidence in {"medium", "high"} else insufficient_evidence
+            for fact in facts_found:
+                if target_group is safe_edits:
+                    text = f"Preserve or clarify review-backed fact: {fact}"
+                else:
+                    text = f"Verify low-confidence fact before proposing an edit: {fact}"
+                add_change_item(target_group, doc_id, source, confidence, text)
+
+            for gap in doc_gaps:
+                add_change_item(
+                    needs_decision,
+                    doc_id,
+                    source,
+                    confidence,
+                    f"Decide how to address reported documentation gap: {gap}",
+                )
+
+            if confidence == "low" and not facts_found:
+                add_change_item(
+                    insufficient_evidence,
+                    doc_id,
+                    source,
+                    confidence,
+                    "Low-confidence review result; do not make edits from this chunk without verification.",
+                )
+
+        for warning in chunk.get("validation_warnings", []):
+            if not isinstance(warning, dict):
+                continue
+            field = inline_markdown(warning.get("field", "unknown_field"))
+            reason = inline_markdown(warning.get("reason", "unknown_reason"))
+            values = warning.get("values")
+            value_detail = ""
+            if isinstance(values, list) and values:
+                value_detail = f"; values: {', '.join(inline_markdown(item) for item in values)}"
+            add_change_item(
+                insufficient_evidence,
+                doc_id,
+                source,
+                "validation-warning",
+                f"Validation warning from report field {field}: {reason}{value_detail}",
+            )
+
+    if reviewed_result_count == 0:
+        source = "run-level"
+        reason = "dry-run produced packets only" if report.get("dry_run") else "no chunk review results were recorded"
+        add_change_item(
+            insufficient_evidence,
+            seed_doc_id,
+            source,
+            "none",
+            f"No model-backed review results are available; {reason}.",
+        )
+
+    artifacts = report.get("artifacts", {})
+    if not isinstance(artifacts, dict):
+        artifacts = {}
+    followup_policy = report.get("followup_policy", {})
+    if not isinstance(followup_policy, dict):
+        followup_policy = {}
+    accepted_followups = [
+        item for item in followup_policy.get("accepted_followups", []) if isinstance(item, dict)
+    ]
+    skipped_followups = [
+        item for item in followup_policy.get("skipped_followups", []) if isinstance(item, dict)
+    ]
+    reported_followup_files = [
+        item for item in aggregate.get("reported_followup_files", []) if isinstance(item, str)
+    ]
+    validation_warnings = [
+        item for item in aggregate.get("validation_warnings", []) if isinstance(item, dict)
+    ]
+
+    lines: list[str] = [
+        "# Documentation Change Plan",
+        "",
+        "Generated by the controller from validated documenter report data. This artifact is non-mutating; target repository files are not modified.",
+        "",
+        "## Run Context",
+        "",
+        f"- Generated at: {inline_markdown(report.get('generated_at', 'unknown'))}",
+        f"- Target root: {inline_markdown(report.get('target_root', 'unknown'))}",
+        f"- Seed document: {seed_doc_id}",
+        f"- Mode: {inline_markdown(report.get('mode', 'unknown'))}",
+        f"- Dry run: {str(bool(report.get('dry_run'))).lower()}",
+        f"- Document scope: {inline_markdown(report.get('document_scope', 'unknown'))}",
+        f"- Chunks processed: {inline_markdown(report.get('chunks_processed', 'unknown'))} of {inline_markdown(report.get('chunks_total', 'unknown'))}",
+        f"- Truncated after chunks: {str(bool(report.get('truncated_after_chunks'))).lower()}",
+        f"- Aggregate confidence: {inline_markdown(aggregate.get('confidence', 'unknown'))}",
+        "",
+        "### Artifacts",
+        "",
+    ]
+
+    if artifacts:
+        for name in sorted(artifacts):
+            lines.append(f"- {inline_markdown(name)}: {inline_markdown(artifacts[name])}")
+    else:
+        lines.append("- None recorded.")
+    lines.append("")
+
+    append_grouped_change_section(
+        lines,
+        "Safe Documentation Edits",
+        "These items are backed by medium- or high-confidence facts found in reviewed chunks. They should still be reviewed, but they do not require inventing new source material.",
+        safe_edits,
+    )
+    append_grouped_change_section(
+        lines,
+        "Needs User Decision",
+        "These items come from reported documentation gaps and require a human decision before drafting text.",
+        needs_decision,
+    )
+    append_grouped_change_section(
+        lines,
+        "Insufficient Evidence",
+        "These items come from low-confidence facts, missing review results, or validation warnings. Do not turn them into edits without more evidence.",
+        insufficient_evidence,
+    )
+
+    lines.extend(["## Follow-Up Files", ""])
+    if not reported_followup_files and not accepted_followups and not skipped_followups:
+        lines.append("- None recorded.")
+        lines.append("")
+    else:
+        if reported_followup_files:
+            lines.append("### Reported By Documenter")
+            lines.append("")
+            for path in reported_followup_files:
+                lines.append(f"- {inline_markdown(path)}")
+            lines.append("")
+        if accepted_followups:
+            lines.append("### Accepted By Controller")
+            lines.append("")
+            for item in accepted_followups:
+                reasons = item.get("candidate_reasons", [])
+                reason_text = ", ".join(inline_markdown(reason) for reason in reasons) if isinstance(reasons, list) else ""
+                suffix = f"; reasons: {reason_text}" if reason_text else ""
+                lines.append(
+                    f"- [{source_from_followup_record(item)}] {inline_markdown(item.get('path', 'unknown'))} accepted via {inline_markdown(item.get('accepted_via', 'unknown'))}{suffix}"
+                )
+            lines.append("")
+        if skipped_followups:
+            lines.append("### Skipped By Controller")
+            lines.append("")
+            for item in skipped_followups:
+                lines.append(
+                    f"- [{source_from_followup_record(item)}] {inline_markdown(item.get('path', 'unknown'))} skipped: {inline_markdown(item.get('reason', 'unknown'))}"
+                )
+            lines.append("")
+
+    lines.extend(["## Validation Notes", ""])
+    criteria_satisfied = [item for item in aggregate.get("criteria_satisfied", []) if isinstance(item, str)]
+    criteria_remaining = [item for item in aggregate.get("criteria_remaining", []) if isinstance(item, str)]
+    if criteria_satisfied:
+        lines.append(f"- Criteria satisfied: {', '.join(inline_markdown(item) for item in criteria_satisfied)}")
+    if criteria_remaining:
+        lines.append(f"- Criteria remaining: {', '.join(inline_markdown(item) for item in criteria_remaining)}")
+    if not validation_warnings and not report.get("discovery_warnings"):
+        if not criteria_satisfied and not criteria_remaining:
+            lines.append("- None recorded.")
+    else:
+        for warning in validation_warnings:
+            chunk_id = inline_markdown(warning.get("chunk_id", "unknown-chunk"))
+            field = inline_markdown(warning.get("field", "unknown_field"))
+            reason = inline_markdown(warning.get("reason", "unknown_reason"))
+            lines.append(f"- [{chunk_id}] {field}: {reason}")
+        for warning in report.get("discovery_warnings", []):
+            if isinstance(warning, dict):
+                source = inline_markdown(warning.get("source", "discovery"))
+                reason = inline_markdown(warning.get("reason", "unknown_reason"))
+                detail = inline_markdown(warning.get("detail", ""))
+                lines.append(f"- [{source}] {reason}: {detail}")
+    lines.append("")
+
+    lines.extend(
+        [
+            "## Caveats",
+            "",
+            "- This plan is generated from processed chunks only; it does not imply unprocessed files were reviewed.",
+            "- Proposed changes are grouped by the file whose chunk produced the evidence.",
+            "- Safe edits are source-backed facts, not automatic file modifications.",
+            "- Low-confidence and validation-warning items require additional verification before drafting.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def extract_heading_preview(doc_id: str, lines: list[str], limit: int = 20) -> list[dict[str, Any]]:
     suffix = Path(doc_id).suffix.lower()
     headings: list[dict[str, Any]] = []
@@ -991,6 +1275,14 @@ def write_report(output_dir: Path, target_label: str, doc_id: str, report: dict[
     return path
 
 
+def write_change_plan(output_dir: Path, target_label: str, doc_id: str, change_plan: str) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = artifact_timestamp()
+    path = output_dir / f"doc-change-plan-{sanitize_filename(target_label)}-{sanitize_filename(doc_id)}-{timestamp}.md"
+    path.write_text(change_plan, encoding="utf-8")
+    return path
+
+
 def write_document_manifest(output_dir: Path, target_label: str, manifest: dict[str, Any]) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     timestamp = artifact_timestamp()
@@ -1350,6 +1642,11 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
     report.setdefault("artifacts", {})
     if isinstance(report["artifacts"], dict):
         report["artifacts"]["json_report"] = str(output_path)
+        if args.mode == "full":
+            change_plan_path = write_change_plan(output_dir, target_root.name, doc_id, build_doc_change_plan(report))
+            report["artifacts"]["doc_change_plan"] = str(change_plan_path)
+            change_plan_path.write_text(build_doc_change_plan(report), encoding="utf-8")
+            print(f"Wrote {change_plan_path}")
     output_path.write_text(json.dumps(report, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {output_path}")
     if args.dry_run:

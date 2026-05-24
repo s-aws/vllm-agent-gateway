@@ -34,6 +34,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Document manifest | Done | `full` mode writes a manifest artifact; default scope is tracked files, with `--document-scope all` for bootstrap scans. |
 | Review planning | Done | Review plan artifacts feed bounded `visible_followup_candidates` into packets. |
 | Source-aware follow-up review | Done | Follow-up expansion defaults to packet-visible candidates and records skip reason codes. |
+| Documentation change plan | Done | `full` mode writes a non-mutating Markdown change plan grouped by target file, evidence class, follow-ups, validation notes, and caveats. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -78,22 +79,22 @@ Acceptance criteria:
 
 ## Phase 3: Documentation Change Plan
 
-Status: Planned
+Status: Done
 
 Convert review findings into a non-mutating documentation change plan.
 
 Deliverables:
 
-- `doc-change-plan-*.md` artifact.
-- Group findings by target file.
-- Separate safe edits, needs-user-decision items, and insufficient-evidence items.
-- Include confidence and source chunk references where available.
+- `doc-change-plan-*.md` artifact. Done.
+- Group findings by target file. Done.
+- Separate safe edits, needs-user-decision items, and insufficient-evidence items. Done.
+- Include confidence and source chunk references where available. Done.
 
 Acceptance criteria:
 
-- No target repo files are modified.
-- Every proposed change traces back to facts, gaps, or validation warnings in the report.
-- The plan can be reviewed without opening the full JSON report.
+- No target repo files are modified. Done.
+- Every proposed change traces back to facts, gaps, or validation warnings in the report. Done.
+- The plan can be reviewed without opening the full JSON report. Done.
 
 ## Phase 4: Draft Output
 
@@ -197,13 +198,13 @@ Current artifacts:
 - `documenter-*.md`: final Markdown summary from `full` mode.
 - `document-manifest-*.json`: document manifest from `full` mode.
 - `doc-review-plan-*.json`: review plan and candidate pool.
+- `doc-change-plan-*.md`: non-mutating documentation change plan from `full` mode.
 
 Planned artifacts:
 
-- `doc-change-plan-*.md`
 - `drafts/<run-id>/...`
 - `run-state-*.json`
 
 ## Immediate Next Step
 
-Implement Phase 3: documentation change planning. The controller should convert validated review findings into a non-mutating `doc-change-plan-*.md` artifact grouped by target file, risk, missing evidence, and confidence.
+Implement Phase 4: optional draft output. Drafts should be written only under an ignored artifact directory, never directly over target documentation, and each draft should map back to the change-plan item and source report that produced it.

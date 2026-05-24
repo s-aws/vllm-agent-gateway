@@ -175,6 +175,7 @@ In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` 
 - overlaps chunks by line count for local continuity
 - sends one bounded packet at a time to the documenter role endpoint
 - validates the returned JSON delta
+- writes a non-mutating documentation change plan from validated report fields
 - writes a local ignored report under `.agentic_reports/`
 
 Dry run without calling the model:
@@ -189,7 +190,7 @@ Run the full workflow against the local role endpoint:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
-`full` mode writes a document manifest JSON artifact beside the report. The default manifest source is tracked files. For first-run/bootstrap repositories, use all-file discovery:
+`full` mode writes a document manifest JSON artifact beside the report. It also writes a `doc-change-plan-*.md` artifact that groups findings by target file into safe edits, user-decision items, insufficient-evidence items, follow-up files, and validation notes. The default manifest source is tracked files. For first-run/bootstrap repositories, use all-file discovery:
 
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
@@ -245,7 +246,7 @@ python /path/to/vllm-agent-gateway/scripts/run_documenter_orchestrator.py \
   --doc README.md
 ```
 
-The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk. In `full` mode, the controller aggregates chunk deltas and sends only that aggregate back for the final Markdown summary. By default, reports are written under `.agentic_reports/` in the config root, not the target repo.
+The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk. In `full` mode, the controller aggregates chunk deltas, writes the deterministic change plan locally, and sends only that aggregate back for the final Markdown summary. By default, reports are written under `.agentic_reports/` in the config root, not the target repo.
 
 ## Role Prompt Proxies
 
