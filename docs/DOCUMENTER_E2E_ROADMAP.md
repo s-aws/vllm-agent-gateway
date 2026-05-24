@@ -39,6 +39,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Resume and state | Done | `run-state-*.json` tracks queue position, completed chunks, follow-ups, failures, artifacts, and compatibility keys for restartable runs. |
 | Controller tests | Done | `tests/regression/test_documenter_orchestrator.py` covers deterministic controller behavior with temp repos and fake endpoints. |
 | Tool mediation | Done | `tool_mediator.py` generates schemas, detects structured tool calls, executes local tools, injects results, and validates final responses. |
+| Large content mode | Planned | Very large repos or single documents need streaming reads, coverage accounting, and lossy-summary labels before they are safe to process. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -180,6 +181,34 @@ Acceptance criteria:
 - Raw tool-call-shaped text is never treated as completed tool execution. Done.
 - Role prompts describe policy, but enforcement lives in controller/client/tool mediator code. Done.
 
+## Phase 8: Large Content Mode
+
+Status: Planned
+
+Handle very large documentation sets and oversized single documents without pretending lossy summaries are equivalent to source review.
+
+Current non-streaming mode is not suitable for 1GB single-document inputs because it reads full files into memory for manifests, chunking, and some reports.
+
+Deliverables:
+
+- Hard max file size for current in-memory document mode, with an explicit future override or large-content mode flag.
+- Streaming manifest/index that records size, line or byte ranges, sampled headings, and document type without reading full content into memory.
+- Streaming chunk iterator that emits bounded packets by byte and/or line offsets.
+- Recursive reduction pipeline for too-large aggregates: chunk -> extract structured facts/gaps/evidence refs -> merge records -> summarize merged records.
+- Coverage accounting for reviewed, skipped, summarized, and failed byte/line/chunk ranges.
+- Quality labels on every aggregate claim: `source_verified`, `summary_derived`, or `insufficient_evidence`.
+- Resume state that can continue from byte/line offsets instead of restarting a large file.
+- Report caveats that explicitly state recursive summaries are lossy and are not evidence by themselves.
+
+Acceptance criteria:
+
+- A very large file is never read fully into memory by the controller's large-content path.
+- A final recommendation cannot be labeled source-verified unless it cites source chunk ranges.
+- Recursive summaries may guide prioritization, but they cannot satisfy criteria without source evidence.
+- The report shows coverage totals and skipped ranges clearly enough to judge review completeness.
+- The user can bound work by max bytes, max chunks, max summaries, or max elapsed run budget.
+- Existing normal-document mode remains simple and does not silently switch to lossy summarization.
+
 ## Drift Controls
 
 Use these checks before adding or changing documenter workflow behavior:
@@ -208,4 +237,4 @@ Current artifacts:
 
 ## Immediate Next Step
 
-Use the drift controls before adding another documenter workflow phase. The remaining known gap is deeper per-artifact provenance for tool dependency auditing.
+Use the drift controls before adding another documenter workflow phase. The remaining known gaps are large-content mode and deeper per-artifact provenance for tool dependency auditing.
