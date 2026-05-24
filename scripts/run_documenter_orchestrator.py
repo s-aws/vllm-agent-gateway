@@ -97,10 +97,16 @@ REQUIRED_RESULT_FIELDS = {
     "followup_files": list,
     "confidence": str,
 }
+RUN_STATE_SCHEMA_VERSION = 1
+RESUMABLE_RUN_STATUSES = {"running", "failed", "paused", "review_complete"}
 
 
 class OrchestratorError(RuntimeError):
     """Raised for deterministic controller failures."""
+
+
+class OrchestratorPaused(RuntimeError):
+    """Raised after writing a resumable pause state."""
 
 
 @dataclass(frozen=True)
@@ -424,6 +430,8 @@ def post_json(base_url: str, route: str, payload: dict[str, Any], timeout: int) 
         response = conn.getresponse()
         response_body = response.read().decode("utf-8", errors="replace")
         return response.status, response_body
+    except OSError as exc:
+        raise OrchestratorError(f"HTTP request to {base_url.rstrip('/')}/{route.lstrip('/')} failed: {exc}") from exc
     finally:
         conn.close()
 
@@ -1521,6 +1529,176 @@ def write_document_manifest(output_dir: Path, target_label: str, manifest: dict[
     return path
 
 
+def write_run_state_artifact(path: Path, state: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    state["schema_version"] = RUN_STATE_SCHEMA_VERSION
+    state["kind"] = "documenter_run_state"
+    state["updated_at"] = utc_now()
+    path.write_text(json.dumps(state, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+
+
+def make_run_state_path(output_dir: Path, target_label: str, doc_id: str, run_id: str) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir / f"run-state-{sanitize_filename(target_label)}-{sanitize_filename(doc_id)}-{run_id}.json"
+
+
+def review_target_to_state(target: ReviewTarget) -> dict[str, Any]:
+    return {
+        "doc_id": target.doc_id,
+        "source": target.source,
+        "depth": target.depth,
+        "parent_doc_id": target.parent_doc_id,
+    }
+
+
+def review_target_from_state(value: dict[str, Any]) -> ReviewTarget:
+    doc_id = value.get("doc_id")
+    source = value.get("source")
+    depth = value.get("depth")
+    parent_doc_id = value.get("parent_doc_id")
+    if not isinstance(doc_id, str) or not isinstance(source, str) or not isinstance(depth, int):
+        raise OrchestratorError("Run state contains an invalid review target.")
+    if parent_doc_id is not None and not isinstance(parent_doc_id, str):
+        raise OrchestratorError("Run state contains an invalid parent_doc_id.")
+    return ReviewTarget(doc_id=doc_id, source=source, depth=depth, parent_doc_id=parent_doc_id)
+
+
+def state_list(value: Any, field_name: str) -> list[Any]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise OrchestratorError(f"Run state field {field_name} must be a list.")
+    return value
+
+
+def build_resume_key(
+    args: argparse.Namespace,
+    config_root: Path,
+    target_root: Path,
+    output_dir: Path,
+    doc_id: str,
+    role_base_url: str,
+    criteria_initial: list[str],
+    max_chunks: int | None,
+    include_followups: bool,
+    effective_followup_depth: int,
+    followup_source_policy: str,
+) -> dict[str, Any]:
+    return {
+        "mode": args.mode,
+        "config_root": str(config_root),
+        "target_root": str(target_root),
+        "output_dir": str(output_dir.resolve()),
+        "document_scope": args.document_scope,
+        "doc_id": doc_id,
+        "allow_untracked_doc": bool(args.allow_untracked_doc),
+        "role_id": args.role_id,
+        "role_base_url": role_base_url,
+        "model": args.model,
+        "dry_run": bool(args.dry_run),
+        "write_draft": bool(args.write_draft),
+        "chunk_token_limit": args.chunk_token_limit,
+        "chunk_overlap_lines": args.chunk_overlap_lines,
+        "visible_candidate_limit": args.visible_candidate_limit,
+        "visible_candidate_token_limit": args.visible_candidate_token_limit,
+        "max_chunks_per_file": max_chunks,
+        "include_followups": include_followups,
+        "followup_depth": effective_followup_depth,
+        "max_followup_files": args.max_followup_files,
+        "allow_nonvisible_followups": bool(args.allow_nonvisible_followups),
+        "followup_source_policy": followup_source_policy,
+        "criteria_initial": criteria_initial,
+        "max_output_tokens": args.max_output_tokens,
+    }
+
+
+def resume_key_mismatches(expected: dict[str, Any], current: dict[str, Any]) -> list[str]:
+    mismatches: list[str] = []
+    for key in sorted(set(expected) | set(current)):
+        if expected.get(key) != current.get(key):
+            mismatches.append(f"{key}: state={expected.get(key)!r} current={current.get(key)!r}")
+    return mismatches
+
+
+def load_resume_state(resume_path: Path) -> tuple[Path, dict[str, Any]]:
+    data = read_json(resume_path)
+    if data.get("kind") == "documenter_run_state":
+        return resume_path, data
+    if data.get("kind") != "documenter_orchestrator_report":
+        raise OrchestratorError("--resume must point to a documenter report or run-state JSON artifact.")
+
+    artifacts = data.get("artifacts")
+    if not isinstance(artifacts, dict) or not isinstance(artifacts.get("run_state"), str):
+        raise OrchestratorError("Report does not reference a run_state artifact and cannot be resumed.")
+    state_path = Path(artifacts["run_state"])
+    if not state_path.is_absolute():
+        state_path = (resume_path.parent / state_path).resolve()
+    state = read_json(state_path)
+    if state.get("kind") != "documenter_run_state":
+        raise OrchestratorError(f"Referenced run state is not a documenter_run_state artifact: {state_path}")
+    return state_path, state
+
+
+def validate_resume_state(
+    state: dict[str, Any],
+    current_resume_key: dict[str, Any],
+    allow_arg_changes: bool,
+) -> None:
+    if state.get("kind") != "documenter_run_state":
+        raise OrchestratorError("Resume artifact is not a documenter_run_state.")
+    if state.get("schema_version") != RUN_STATE_SCHEMA_VERSION:
+        raise OrchestratorError(
+            f"Unsupported run state schema_version: {state.get('schema_version')!r}; "
+            f"expected {RUN_STATE_SCHEMA_VERSION}."
+        )
+    status = state.get("status")
+    if status not in RESUMABLE_RUN_STATUSES:
+        raise OrchestratorError(
+            f"Run state is not resumable because status is {status!r}. "
+            "Use a running, failed, paused, or review_complete state."
+        )
+    previous_resume_key = state.get("resume_key")
+    if not isinstance(previous_resume_key, dict):
+        raise OrchestratorError("Run state is missing a resume_key object.")
+    mismatches = resume_key_mismatches(previous_resume_key, current_resume_key)
+    if mismatches and not allow_arg_changes:
+        detail = "\n".join(f"- {item}" for item in mismatches)
+        raise OrchestratorError(
+            "Resume arguments are incompatible with the saved run state. "
+            "Re-run with --resume-allow-arg-changes only if this is intentional.\n"
+            f"{detail}"
+        )
+
+
+def mark_run_state_completed(state_path: Path, report: dict[str, Any]) -> None:
+    state = read_json(state_path)
+    if state.get("kind") != "documenter_run_state":
+        raise OrchestratorError(f"Cannot mark non-state artifact complete: {state_path}")
+    state["status"] = "completed"
+    state["completed_at"] = utc_now()
+    state["failure"] = None
+    state["artifacts"] = report.get("artifacts", {})
+    state["final_report"] = {
+        "json_report": report.get("artifacts", {}).get("json_report")
+        if isinstance(report.get("artifacts"), dict)
+        else None,
+        "chunks_processed": report.get("chunks_processed"),
+        "reviewed_file_count": len(report.get("reviewed_files", []))
+        if isinstance(report.get("reviewed_files"), list)
+        else None,
+    }
+    write_run_state_artifact(state_path, state)
+
+
+def mark_run_state_failed(state_path: Path, failure: dict[str, Any]) -> None:
+    state = read_json(state_path)
+    if state.get("kind") != "documenter_run_state":
+        raise OrchestratorError(f"Cannot mark non-state artifact failed: {state_path}")
+    state["status"] = "failed"
+    state["failure"] = failure
+    write_run_state_artifact(state_path, state)
+
+
 def summary_path_for_report(report_path: Path) -> Path:
     return report_path.with_suffix(".md")
 
@@ -1603,11 +1781,27 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--allow-untracked-doc", action="store_true", help="Allow selected doc if it is inside target root.")
     parser.add_argument("--list-docs", action="store_true", help="List discovered docs in the target repo and exit.")
     parser.add_argument("--report", default=None, help="Existing JSON report to summarize with --mode summarize.")
+    parser.add_argument(
+        "--resume",
+        default=None,
+        help="Resume from a documenter report or run-state JSON artifact.",
+    )
+    parser.add_argument(
+        "--resume-allow-arg-changes",
+        action="store_true",
+        help="Allow resume even when controller arguments changed.",
+    )
     parser.add_argument("--summary-output", default=None, help="Markdown summary path. Defaults beside JSON report.")
     parser.add_argument(
         "--write-draft",
         action="store_true",
         help="Write draft artifact copies under the configured output directory. Requires --mode full.",
+    )
+    parser.add_argument(
+        "--stop-after-chunks",
+        type=int,
+        default=None,
+        help="Write state and pause after N newly processed chunks. Intended for resume smoke testing.",
     )
     parser.add_argument("--dry-run", action="store_true", help="Write packets without calling the role endpoint.")
     parser.add_argument("--timeout", type=int, default=600)
@@ -1615,7 +1809,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
+def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
     config_root = Path(args.config_root).resolve() if args.config_root else SCRIPT_CONFIG_ROOT
     target_root = Path(args.target_root).resolve()
     manifest = read_json(config_root / "runtime" / "roles.json")
@@ -1634,12 +1828,17 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         raise OrchestratorError("--visible-candidate-token-limit cannot be negative.")
     if args.write_draft and args.mode != "full":
         raise OrchestratorError("--write-draft requires --mode full.")
+    if args.stop_after_chunks is not None and args.stop_after_chunks < 1:
+        raise OrchestratorError("--stop-after-chunks must be at least 1 when provided.")
 
     include_followups = bool(args.include_followups or args.followup_depth > 0)
     effective_followup_depth = args.followup_depth if args.followup_depth > 0 else (1 if include_followups else 0)
     followup_source_policy = (
         "known_files_compatibility" if args.allow_nonvisible_followups else "visible_followup_candidates"
     )
+    max_chunks = None if args.all_chunks or args.max_chunks is None else args.max_chunks
+    role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
+    criteria_initial = args.criteria if args.criteria else list(DEFAULT_CRITERIA)
 
     known_files, tracked_file_list, discovery_warnings = discover_files_for_scope(
         target_root, assigned_tool_ids, args.document_scope
@@ -1663,11 +1862,39 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         doc_id,
         discovery_warnings,
     )
+    resume_key = build_resume_key(
+        args,
+        config_root,
+        target_root,
+        output_dir,
+        doc_id,
+        role_base_url,
+        criteria_initial,
+        max_chunks,
+        include_followups,
+        effective_followup_depth,
+        followup_source_policy,
+    )
+    loaded_state: dict[str, Any] | None = None
+    resume_state_path: Path | None = None
+    if args.resume:
+        resume_state_path, loaded_state = load_resume_state(Path(args.resume).resolve())
+        validate_resume_state(loaded_state, resume_key, bool(args.resume_allow_arg_changes))
+
     manifest_path: Path | None = None
     artifacts: dict[str, str] = {}
-    if args.mode == "full":
+    if loaded_state is not None:
+        raw_artifacts = loaded_state.get("artifacts", {})
+        if not isinstance(raw_artifacts, dict):
+            raise OrchestratorError("Run state artifacts field must be an object.")
+        artifacts = {key: value for key, value in raw_artifacts.items() if isinstance(key, str) and isinstance(value, str)}
+        artifacts["run_state"] = str(resume_state_path)
+        if isinstance(artifacts.get("document_manifest"), str):
+            manifest_path = Path(artifacts["document_manifest"])
+    elif args.mode == "full":
         manifest_path = write_document_manifest(output_dir, target_root.name, document_manifest)
         artifacts["document_manifest"] = str(manifest_path)
+
     review_plan = build_review_plan(
         target_root,
         document_manifest,
@@ -1680,36 +1907,144 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         args.visible_candidate_token_limit,
         manifest_path,
     )
-    review_plan_path = write_review_plan(output_dir, target_root.name, review_plan)
-    artifacts["review_plan"] = str(review_plan_path)
-    max_chunks = None if args.all_chunks or args.max_chunks is None else args.max_chunks
-    role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
-    criteria_initial = args.criteria if args.criteria else list(DEFAULT_CRITERIA)
-    criteria_remaining = list(criteria_initial)
-    chunk_reports: list[dict[str, Any]] = []
-    reviewed_file_reports: list[dict[str, Any]] = []
-    accepted_followups: list[dict[str, Any]] = []
-    skipped_followups: list[dict[str, Any]] = []
-    target_queue: list[ReviewTarget] = [ReviewTarget(doc_id=doc_id, source="seed", depth=0)]
-    queued_files: set[str] = {doc_id}
-    reviewed_files: set[str] = set()
+    if loaded_state is not None:
+        if not isinstance(artifacts.get("review_plan"), str):
+            raise OrchestratorError("Run state is missing a review_plan artifact path.")
+        review_plan_path = Path(artifacts["review_plan"])
+    else:
+        review_plan_path = write_review_plan(output_dir, target_root.name, review_plan)
+        artifacts["review_plan"] = str(review_plan_path)
+
+    if loaded_state is not None:
+        run_state_path = resume_state_path
+        assert run_state_path is not None
+        run_id = loaded_state.get("run_id")
+        if not isinstance(run_id, str) or not run_id:
+            run_id = artifact_timestamp()
+        state_generated_at = loaded_state.get("generated_at") if isinstance(loaded_state.get("generated_at"), str) else utc_now()
+        criteria_remaining = [
+            item for item in state_list(loaded_state.get("criteria_remaining"), "criteria_remaining") if isinstance(item, str)
+        ]
+        chunk_reports = [
+            item for item in state_list(loaded_state.get("chunk_reports"), "chunk_reports") if isinstance(item, dict)
+        ]
+        reviewed_file_reports = [
+            item
+            for item in state_list(loaded_state.get("reviewed_file_reports"), "reviewed_file_reports")
+            if isinstance(item, dict)
+        ]
+        accepted_followups = [
+            item for item in state_list(loaded_state.get("accepted_followups"), "accepted_followups") if isinstance(item, dict)
+        ]
+        skipped_followups = [
+            item for item in state_list(loaded_state.get("skipped_followups"), "skipped_followups") if isinstance(item, dict)
+        ]
+        raw_queue = state_list(loaded_state.get("target_queue"), "target_queue")
+        target_queue = [review_target_from_state(item) for item in raw_queue if isinstance(item, dict)]
+        if not target_queue:
+            raise OrchestratorError("Run state target_queue is empty.")
+        queue_index = loaded_state.get("queue_index")
+        if not isinstance(queue_index, int) or queue_index < 0:
+            raise OrchestratorError("Run state queue_index must be a non-negative integer.")
+        if queue_index > len(target_queue):
+            raise OrchestratorError("Run state queue_index is beyond target_queue length.")
+        queued_files = {
+            item for item in state_list(loaded_state.get("queued_files"), "queued_files") if isinstance(item, str)
+        }
+        reviewed_files = {
+            item for item in state_list(loaded_state.get("reviewed_files"), "reviewed_files") if isinstance(item, str)
+        }
+        completed_chunk_ids = {
+            item
+            for item in state_list(loaded_state.get("completed_chunk_ids"), "completed_chunk_ids")
+            if isinstance(item, str)
+        }
+        failed_packets = [
+            item for item in state_list(loaded_state.get("failed_packets"), "failed_packets") if isinstance(item, dict)
+        ]
+        queued_files.update(target.doc_id for target in target_queue)
+    else:
+        run_id = artifact_timestamp()
+        run_state_path = make_run_state_path(output_dir, target_root.name, doc_id, run_id)
+        state_generated_at = utc_now()
+        artifacts["run_state"] = str(run_state_path)
+        criteria_remaining = list(criteria_initial)
+        chunk_reports: list[dict[str, Any]] = []
+        reviewed_file_reports: list[dict[str, Any]] = []
+        accepted_followups: list[dict[str, Any]] = []
+        skipped_followups: list[dict[str, Any]] = []
+        target_queue: list[ReviewTarget] = [ReviewTarget(doc_id=doc_id, source="seed", depth=0)]
+        queued_files: set[str] = {doc_id}
+        reviewed_files: set[str] = set()
+        completed_chunk_ids: set[str] = set()
+        failed_packets: list[dict[str, Any]] = []
+        queue_index = 0
+
     review_plan_candidates = {
         item["path"]: item
         for item in review_plan.get("candidate_pool", [])
         if isinstance(item, dict) and isinstance(item.get("path"), str)
     }
 
-    queue_index = 0
+    def persist_state(status: str, failure: dict[str, Any] | None = None) -> None:
+        state = {
+            "schema_version": RUN_STATE_SCHEMA_VERSION,
+            "kind": "documenter_run_state",
+            "generated_at": state_generated_at,
+            "status": status,
+            "run_id": run_id,
+            "mode": args.mode,
+            "config_root": str(config_root),
+            "target_root": str(target_root),
+            "output_dir": str(output_dir.resolve()),
+            "role_id": args.role_id,
+            "role_base_url": role_base_url,
+            "model": args.model,
+            "dry_run": bool(args.dry_run),
+            "resume_key": resume_key,
+            "artifacts": artifacts,
+            "doc_id": doc_id,
+            "seed_doc_id": doc_id,
+            "document_scope": args.document_scope,
+            "criteria_initial": criteria_initial,
+            "criteria_remaining": criteria_remaining,
+            "chunk_token_limit": args.chunk_token_limit,
+            "chunk_overlap_lines": args.chunk_overlap_lines,
+            "max_chunks_per_file": max_chunks,
+            "include_followups": include_followups,
+            "followup_depth": effective_followup_depth,
+            "max_followup_files": args.max_followup_files,
+            "followup_source_policy": followup_source_policy,
+            "target_queue": [review_target_to_state(target) for target in target_queue],
+            "queue_index": queue_index,
+            "queued_files": sorted(queued_files),
+            "reviewed_files": sorted(reviewed_files),
+            "completed_chunk_ids": sorted(completed_chunk_ids),
+            "completed_chunk_count": len(completed_chunk_ids),
+            "chunk_reports": chunk_reports,
+            "reviewed_file_reports": reviewed_file_reports,
+            "accepted_followups": accepted_followups,
+            "skipped_followups": skipped_followups,
+            "failed_packets": failed_packets,
+            "failure": failure,
+        }
+        if loaded_state is not None:
+            state["resumed_from"] = str(resume_state_path)
+            state["resume_allow_arg_changes"] = bool(args.resume_allow_arg_changes)
+        write_run_state_artifact(run_state_path, state)
+
+    persist_state("running")
+    newly_processed_chunks = 0
     while queue_index < len(target_queue):
         target = target_queue[queue_index]
-        queue_index += 1
-        reviewed_files.add(target.doc_id)
 
         content = read_repo_file(target_root, assigned_tool_ids, target.doc_id)
         chunks = chunk_document(target.doc_id, content, args.chunk_token_limit, args.chunk_overlap_lines)
         selected_chunks = chunks if max_chunks is None else chunks[:max_chunks]
 
         for chunk in selected_chunks:
+            if chunk.chunk_id in completed_chunk_ids:
+                continue
             visible_followup_candidates = select_visible_followup_candidates(
                 review_plan,
                 target,
@@ -1737,7 +2072,34 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
                 "packet": packet if args.dry_run else {"criteria_remaining": criteria_remaining},
             }
             if not args.dry_run:
-                result = call_documenter(role_base_url, args.model, packet, args.max_output_tokens, args.timeout)
+                try:
+                    result = call_documenter(role_base_url, args.model, packet, args.max_output_tokens, args.timeout)
+                except OrchestratorError as exc:
+                    failed_packet = {
+                        "failed_at": utc_now(),
+                        "doc_id": target.doc_id,
+                        "source": target.source,
+                        "depth": target.depth,
+                        "parent_doc_id": target.parent_doc_id,
+                        "chunk_id": chunk.chunk_id,
+                        "lines": [chunk.start_line, chunk.end_line],
+                        "overlap_previous_lines": chunk.overlap_previous_lines,
+                        "input_token_estimate": chunk.token_estimate,
+                        "criteria_remaining": list(criteria_remaining),
+                        "visible_followup_candidates": visible_followup_candidates,
+                        "packet_summary": {
+                            "role": packet.get("role"),
+                            "task": packet.get("task"),
+                            "doc_id": packet.get("doc_id"),
+                            "chunk_id": packet.get("chunk_id"),
+                            "source": packet.get("source"),
+                            "followup_depth": packet.get("followup_depth"),
+                        },
+                        "error": str(exc),
+                    }
+                    failed_packets.append(failed_packet)
+                    persist_state("failed", failed_packet)
+                    raise
                 warnings = normalize_result_policy(result, known_file_set, criteria_remaining)
                 satisfied = {item for item in result["criteria_satisfied"] if isinstance(item, str)}
                 criteria_remaining = [item for item in criteria_remaining if item not in satisfied]
@@ -1799,6 +2161,13 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
                     )
                     queued_files.add(followup_file)
             chunk_reports.append(entry)
+            completed_chunk_ids.add(chunk.chunk_id)
+            newly_processed_chunks += 1
+            persist_state("running")
+            if args.stop_after_chunks is not None and newly_processed_chunks >= args.stop_after_chunks:
+                persist_state("paused")
+                print(f"Paused after {newly_processed_chunks} newly processed chunk(s). Resume with {run_state_path}")
+                raise OrchestratorPaused()
 
         reviewed_file_reports.append(
             {
@@ -1811,6 +2180,9 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
                 "truncated_after_chunks": len(selected_chunks) < len(chunks),
             }
         )
+        reviewed_files.add(target.doc_id)
+        queue_index += 1
+        persist_state("running")
 
     chunks_total = sum(item["chunks_total"] for item in reviewed_file_reports)
     chunks_processed = sum(item["chunks_processed"] for item in reviewed_file_reports)
@@ -1868,6 +2240,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         "chunks_processed": chunks_processed,
         "truncated_after_chunks": any(item["truncated_after_chunks"] for item in reviewed_file_reports),
         "chunks": chunk_reports,
+        "failed_packets": failed_packets,
     }
     if discovery_warnings:
         report["discovery_warnings"] = discovery_warnings
@@ -1880,9 +2253,9 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
     if isinstance(report["artifacts"], dict):
         report["artifacts"]["json_report"] = str(output_path)
         if args.mode == "full":
-            change_plan_path = write_change_plan(output_dir, target_root.name, doc_id, build_doc_change_plan(report))
+            change_plan = build_doc_change_plan(report)
+            change_plan_path = write_change_plan(output_dir, target_root.name, doc_id, change_plan)
             report["artifacts"]["doc_change_plan"] = str(change_plan_path)
-            change_plan_path.write_text(build_doc_change_plan(report), encoding="utf-8")
             print(f"Wrote {change_plan_path}")
             if args.write_draft:
                 draft_artifacts = write_draft_artifacts(
@@ -1899,7 +2272,8 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
     print(f"Wrote {output_path}")
     if args.dry_run:
         print("Dry run only; no role endpoint was called.")
-    return report, output_path
+    persist_state("review_complete")
+    return report, output_path, run_state_path
 
 
 def run_summary(
@@ -1933,6 +2307,10 @@ def main() -> int:
     args = parse_args()
     if args.write_draft and args.mode != "full":
         raise OrchestratorError("--write-draft requires --mode full.")
+    if args.resume and args.mode == "summarize":
+        raise OrchestratorError("--resume cannot be combined with --mode summarize.")
+    if args.resume and args.list_docs:
+        raise OrchestratorError("--resume cannot be combined with --list-docs.")
     config_root = Path(args.config_root).resolve() if args.config_root else SCRIPT_CONFIG_ROOT
     manifest = read_json(config_root / "runtime" / "roles.json")
     role = load_role(manifest, args.role_id)
@@ -1968,17 +2346,32 @@ def main() -> int:
         )
         return 0
 
-    report, report_path = run_review(args)
-    if args.mode == "full" and not args.dry_run:
-        run_summary(
-            report,
-            report_path,
-            role_base_url,
-            args.model,
-            args.max_output_tokens,
-            args.timeout,
-            args.summary_output,
+    try:
+        report, report_path, run_state_path = run_review(args)
+    except OrchestratorPaused:
+        return 0
+    try:
+        if args.mode == "full" and not args.dry_run:
+            run_summary(
+                report,
+                report_path,
+                role_base_url,
+                args.model,
+                args.max_output_tokens,
+                args.timeout,
+                args.summary_output,
+            )
+    except OrchestratorError as exc:
+        mark_run_state_failed(
+            run_state_path,
+            {
+                "failed_at": utc_now(),
+                "stage": "summary",
+                "error": str(exc),
+            },
         )
+        raise
+    mark_run_state_completed(run_state_path, report)
     return 0
 
 

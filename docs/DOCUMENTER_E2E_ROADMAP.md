@@ -36,6 +36,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Source-aware follow-up review | Done | Follow-up expansion defaults to packet-visible candidates and records skip reason codes. |
 | Documentation change plan | Done | `full` mode writes a non-mutating Markdown change plan grouped by target file, evidence class, follow-ups, validation notes, and caveats. |
 | Draft output | Done | `--write-draft` writes reversible draft artifact copies and metadata under the configured output directory. |
+| Resume and state | Done | `run-state-*.json` tracks queue position, completed chunks, follow-ups, failures, artifacts, and compatibility keys for restartable runs. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -117,22 +118,22 @@ Acceptance criteria:
 
 ## Phase 5: Resume And State
 
-Status: Planned
+Status: Done
 
 Make longer runs restartable.
 
 Deliverables:
 
-- `run-state-*.json` artifact or embedded resumable state.
-- `--resume <report-or-state>` option.
-- Completed chunks and accepted follow-ups are skipped on resume.
-- Failed packet metadata is preserved.
+- `run-state-*.json` artifact or embedded resumable state. Done.
+- `--resume <report-or-state>` option. Done.
+- Completed chunks and accepted follow-ups are skipped on resume. Done.
+- Failed packet metadata is preserved. Done.
 
 Acceptance criteria:
 
-- Interrupting a run does not require starting from the seed document again.
-- Resume refuses incompatible arguments unless explicitly overridden.
-- State format is documented and versioned.
+- Interrupting a run does not require starting from the seed document again. Done.
+- Resume refuses incompatible arguments unless explicitly overridden. Done.
+- State format is documented and versioned. Done.
 
 ## Phase 6: Controller Tests
 
@@ -201,11 +202,8 @@ Current artifacts:
 - `doc-review-plan-*.json`: review plan and candidate pool.
 - `doc-change-plan-*.md`: non-mutating documentation change plan from `full` mode.
 - `drafts/<run-id>/...`: optional draft artifact directory from `--write-draft`.
-
-Planned artifacts:
-
-- `run-state-*.json`
+- `run-state-*.json`: resumable controller state with schema version 1.
 
 ## Immediate Next Step
 
-Implement Phase 5: resume and state. Longer documenter runs should be restartable without reprocessing completed chunks or accepted follow-ups, and the state format should be documented and versioned.
+Implement Phase 6: controller tests. The resume path now exists, so the next risk is deterministic coverage without depending on vLLM.

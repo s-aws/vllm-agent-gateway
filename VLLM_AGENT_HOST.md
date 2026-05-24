@@ -175,6 +175,7 @@ In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` 
 - overlaps chunks by line count for local continuity
 - sends one bounded packet at a time to the documenter role endpoint
 - validates the returned JSON delta
+- writes versioned run state and can resume interrupted runs
 - writes a non-mutating documentation change plan from validated report fields
 - optionally writes draft artifact copies under the configured output directory
 - writes a local ignored report under `.agentic_reports/`
@@ -222,6 +223,16 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
 ```
 
 The controller validates follow-up files before queueing them. By default, a follow-up must be an exact path from the packet's `visible_followup_candidates`, be in scope, use an allowed text/config/code suffix, fit within the depth/count limits, and not already be reviewed or queued. Accepted and skipped follow-ups are recorded in the JSON report with reason codes.
+
+Resume a longer run from state:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --resume .agentic_reports/run-state-agentic_agents-README.md-<run-id>.json
+```
+
+The controller writes `run-state-*.json` while it runs. Resume skips completed chunks, restores accepted follow-ups from the saved queue, and refuses changed controller arguments unless `--resume-allow-arg-changes` is used. The state format is documented in `docs/DOCUMENTER_RUN_STATE.md`.
 
 Compatibility mode allows in-scope paths that were not visible in the packet:
 

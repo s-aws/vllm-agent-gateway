@@ -9,6 +9,7 @@ It provides:
 - a budget gateway that counts input tokens and clamps output tokens
 - fail-closed rejection for oversized requests
 - a tool catalog used by controllers/runners to authorize deterministic actions
+- resumable controller state for long documenter runs
 - Linux-first startup and stop scripts
 - a JSON role manifest for ports, prompts, budgets, and client policy
 
@@ -142,6 +143,24 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
 
 `--write-draft` writes artifact copies under `.agentic_reports/drafts/<run-id>/` by default. Each draft file copies the reviewed target file and appends controller-generated draft notes mapped to change-plan item IDs. The draft directory also contains `draft-metadata.json` and an index README that map every draft back to the source document, JSON report, and change plan. Target repository files are not overwritten.
 
+Resumable state:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --dry-run \
+  --max-chunks 1 \
+  --stop-after-chunks 1
+
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --dry-run \
+  --max-chunks 1 \
+  --resume .agentic_reports/run-state-agentic_agents-README.md-<run-id>.json
+```
+
+The controller writes `run-state-*.json` while it works. On resume, completed chunk IDs are skipped, accepted follow-ups are restored from the saved queue, and incompatible arguments are refused unless `--resume-allow-arg-changes` is provided. Failed packet metadata is preserved in the state artifact. The state schema is versioned in `docs/DOCUMENTER_RUN_STATE.md`.
+
 Modes:
 
 ```text
@@ -150,7 +169,7 @@ summarize   summarize an existing JSON report with --report
 full        review chunks and write manifest, review plan, change plan, and final summary artifacts
 ```
 
-Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a document manifest JSON artifact, a review plan JSON artifact, a Markdown change plan, and a Markdown summary. With `--write-draft`, it also writes draft artifacts under the configured output directory. The change plan and drafts are generated from validated report fields only; they do not modify target project files. The target project is read only unless you explicitly point `--output-dir` at it.
+Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a run-state JSON artifact, a document manifest JSON artifact, a review plan JSON artifact, a Markdown change plan, and a Markdown summary. With `--write-draft`, it also writes draft artifacts under the configured output directory. The change plan and drafts are generated from validated report fields only; they do not modify target project files. The target project is read only unless you explicitly point `--output-dir` at it.
 
 ## Tool Policy
 
