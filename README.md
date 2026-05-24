@@ -179,13 +179,13 @@ In this version, tool IDs authorize deterministic controller behavior. They are 
 
 Controller reports include `tool_policy.controller_tool_dependencies` so runs can be audited against the role's assigned `tool_ids`.
 
-Future synthetic tools will need a real execution loop:
+`tool_mediator.py` provides the first real execution loop for model-mediated tools:
 
 ```text
 tool schema -> model tool call -> local execution -> tool result -> final model answer
 ```
 
-Prompt text alone is not tool execution.
+It generates OpenAI-compatible tool schemas from `runtime/tools.json`, executes only allowed catalog-backed tools, injects `role: tool` result messages, and rejects raw tool-call-shaped assistant text as incomplete tool execution. See `docs/TOOL_MEDIATION.md`.
 
 ## Tests
 

@@ -161,6 +161,8 @@ tool_count=1 tool_names=Bash
 
 In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` and the model emitted raw tool-call-shaped JSON. That means `git_ls_files` was not an executable Claude Code tool schema in the request. The restricted Bash pattern produced `tool_count=1 tool_names=Bash` and returned real `git ls-files` output.
 
+For controller/client paths that need synthetic model-visible tools, use `tool_mediator.py` rather than prompt text. It generates schemas from `runtime/tools.json`, executes only allowed catalog-backed tools, injects tool result messages, and rejects raw tool-call-shaped text as incomplete execution. See `docs/TOOL_MEDIATION.md`.
+
 ## Controller Demo
 
 `scripts/run_documenter_orchestrator.py` is the first controller example. It is deliberately smaller than a general orchestrator:

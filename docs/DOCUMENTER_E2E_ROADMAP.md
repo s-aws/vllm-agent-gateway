@@ -38,6 +38,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Draft output | Done | `--write-draft` writes reversible draft artifact copies and metadata under the configured output directory. |
 | Resume and state | Done | `run-state-*.json` tracks queue position, completed chunks, follow-ups, failures, artifacts, and compatibility keys for restartable runs. |
 | Controller tests | Done | `tests/regression/test_documenter_orchestrator.py` covers deterministic controller behavior with temp repos and fake endpoints. |
+| Tool mediation | Done | `tool_mediator.py` generates schemas, detects structured tool calls, executes local tools, injects results, and validates final responses. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -161,23 +162,23 @@ Acceptance criteria:
 
 ## Phase 7: Tool Mediation
 
-Status: Planned
+Status: Done
 
 Move from controller-only tool authorization toward real mediated tools when needed.
 
 Deliverables:
 
-- Tool schema generation from `runtime/tools.json`.
-- Model tool-call detection.
-- Local execution loop.
-- Tool result injection.
-- Final response validation.
+- Tool schema generation from `runtime/tools.json`. Done.
+- Model tool-call detection. Done.
+- Local execution loop. Done.
+- Tool result injection. Done.
+- Final response validation. Done.
 
 Acceptance criteria:
 
-- A model-visible tool name always corresponds to an executable local capability.
-- Raw tool-call-shaped text is never treated as completed tool execution.
-- Role prompts describe policy, but enforcement lives in controller/client/tool mediator code.
+- A model-visible tool name always corresponds to an executable local capability. Done.
+- Raw tool-call-shaped text is never treated as completed tool execution. Done.
+- Role prompts describe policy, but enforcement lives in controller/client/tool mediator code. Done.
 
 ## Drift Controls
 
@@ -207,4 +208,4 @@ Current artifacts:
 
 ## Immediate Next Step
 
-Implement Phase 7: tool mediation. The deterministic controller suite is in place, so the next broadening step is executable tool schema generation, model tool-call detection, local execution, result injection, and final response validation.
+Use the drift controls before adding another documenter workflow phase. The remaining known gap is deeper per-artifact provenance for tool dependency auditing.

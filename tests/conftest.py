@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import sys
 import uuid
 from pathlib import Path
 
@@ -10,6 +11,9 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 LOCAL_TMP_ROOT = REPO_ROOT / ".tmp_pytest"
+
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 
 def safe_name(value: str) -> str:
