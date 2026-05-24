@@ -37,6 +37,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Documentation change plan | Done | `full` mode writes a non-mutating Markdown change plan grouped by target file, evidence class, follow-ups, validation notes, and caveats. |
 | Draft output | Done | `--write-draft` writes reversible draft artifact copies and metadata under the configured output directory. |
 | Resume and state | Done | `run-state-*.json` tracks queue position, completed chunks, follow-ups, failures, artifacts, and compatibility keys for restartable runs. |
+| Controller tests | Done | `tests/regression/test_documenter_orchestrator.py` covers deterministic controller behavior with temp repos and fake endpoints. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -137,26 +138,26 @@ Acceptance criteria:
 
 ## Phase 6: Controller Tests
 
-Status: Planned
+Status: Done
 
 Add tests before broadening controller behavior further.
 
 Required coverage:
 
-- tracked vs all document scope
-- manifest artifact shape
-- review plan candidate limits
-- follow-up depth/count limits
-- invalid follow-up rejection
-- tool dependency reporting
-- artifact path safety
-- resume compatibility checks when resume exists
+- tracked vs all document scope. Done.
+- manifest artifact shape. Done.
+- review plan candidate limits. Done.
+- follow-up depth/count limits. Done.
+- invalid follow-up rejection. Done.
+- tool dependency reporting. Done.
+- artifact path safety. Done.
+- resume compatibility checks when resume exists. Done.
 
 Acceptance criteria:
 
-- Tests use fake endpoints where model behavior is not the subject under test.
-- Tests do not require vLLM.
-- Model smoke tests remain separate from deterministic controller tests.
+- Tests use fake endpoints where model behavior is not the subject under test. Done.
+- Tests do not require vLLM. Done.
+- Model smoke tests remain separate from deterministic controller tests. Done.
 
 ## Phase 7: Tool Mediation
 
@@ -206,4 +207,4 @@ Current artifacts:
 
 ## Immediate Next Step
 
-Implement Phase 6: controller tests. The resume path now exists, so the next risk is deterministic coverage without depending on vLLM.
+Implement Phase 7: tool mediation. The deterministic controller suite is in place, so the next broadening step is executable tool schema generation, model tool-call detection, local execution, result injection, and final response validation.

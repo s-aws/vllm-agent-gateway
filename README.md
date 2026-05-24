@@ -187,6 +187,14 @@ tool schema -> model tool call -> local execution -> tool result -> final model 
 
 Prompt text alone is not tool execution.
 
+## Tests
+
+Controller regression tests do not require vLLM. They build temporary target repos and use fake HTTP endpoints where model behavior is not the subject under test.
+
+```bash
+pytest tests/regression/ -v
+```
+
 ## Start
 
 Start vLLM separately, then run:

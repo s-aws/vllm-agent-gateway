@@ -270,6 +270,12 @@ python /path/to/vllm-agent-gateway/scripts/run_documenter_orchestrator.py \
 
 The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk. In `full` mode, the controller aggregates chunk deltas, writes the deterministic change plan locally, optionally writes draft artifacts, and sends only that aggregate back for the final Markdown summary. By default, reports and drafts are written under `.agentic_reports/` in the config root, not the target repo.
 
+Controller regression tests are deterministic and do not require vLLM:
+
+```bash
+pytest tests/regression/ -v
+```
+
 ## Role Prompt Proxies
 
 Use these OpenAI-compatible proxy base URLs when a client should receive a tiny role-specific system instruction before the gateway and vLLM see the request. The startup script prints this list from `runtime/roles.json`.
