@@ -119,6 +119,8 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
 
 Follow-up expansion is fail-closed. The documenter can only return exact file paths visible in the packet, and the controller only queues paths that are tracked by git, use an allowed text/config/code suffix, have not already been seen, and fit within the configured depth/count limits. Accepted and skipped follow-ups are recorded in the JSON report.
 
+The E2E documenter roadmap is tracked in `docs/DOCUMENTER_E2E_ROADMAP.md`. Use it as the control document before adding new documenter workflow behavior.
+
 Modes:
 
 ```text
