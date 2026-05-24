@@ -84,6 +84,8 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
 
 The all-files scan skips common generated directories such as `.git`, `.venv`, `node_modules`, build outputs, caches, and `.agentic_reports`.
 
+The controller also writes a `doc-review-plan-*.json` artifact before review starts. The plan provides the bounded candidate pool used to populate `visible_followup_candidates` in each packet. Packet candidates are capped by `--visible-candidate-limit` and `--visible-candidate-token-limit` so the documenter sees a small, deterministic list instead of the whole manifest.
+
 Quick one-chunk smoke run. `--max-chunks` is applied per reviewed file:
 
 ```bash
@@ -129,7 +131,7 @@ summarize   summarize an existing JSON report with --report
 full        review chunks and write the final Markdown summary
 ```
 
-Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a document manifest JSON artifact, and a Markdown summary. The target project is read only unless you explicitly point `--output-dir` at it.
+Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a document manifest JSON artifact, a review plan JSON artifact, and a Markdown summary. The target project is read only unless you explicitly point `--output-dir` at it.
 
 ## Tool Policy
 

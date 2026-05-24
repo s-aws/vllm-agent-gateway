@@ -169,6 +169,7 @@ In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` 
 - checks the `documenter/default` role has the required controller tools
 - discovers documentation files from tracked files by default, or from an all-file scan for bootstrap runs
 - writes a document manifest in `full` mode
+- writes a review plan before chunk review
 - reads one selected doc file
 - chunks it deterministically
 - overlaps chunks by line count for local continuity
@@ -197,6 +198,8 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
 ```
 
 The all-file scan is an explicit controller dependency named `scan_files`; it skips common generated directories and is recorded in `tool_policy.controller_tool_dependencies`.
+
+The review plan is written as `doc-review-plan-*.json` and is used to place a bounded `visible_followup_candidates` list into each packet. Candidate visibility is controlled by `--visible-candidate-limit` and `--visible-candidate-token-limit`; the packet does not receive the whole manifest.
 
 Quick one-chunk smoke run. `--max-chunks` is applied per reviewed file:
 

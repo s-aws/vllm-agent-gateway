@@ -32,29 +32,30 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Summary aggregation | Done | `full` mode writes JSON and Markdown summary artifacts. |
 | Follow-up queue | Done | Optional exact-file follow-up expansion has depth/count bounds. |
 | Document manifest | Done | `full` mode writes a manifest artifact; default scope is tracked files, with `--document-scope all` for bootstrap scans. |
+| Review planning | Done | Review plan artifacts feed bounded `visible_followup_candidates` into packets. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Phase 1: Manifest-Backed Review Planning
 
-Status: Next
+Status: Done
 
 Build a review plan from the document manifest before chunk review.
 
 Deliverables:
 
-- `doc-review-plan-*.json` artifact.
-- `visible_followup_candidates` included in each review packet.
-- Candidate list bounded by count and token estimate.
-- Candidate reasons recorded, such as `seed_doc`, `same_directory`, `runtime_config`, `startup_script`, `role_prompt`, or `linked_from_chunk`.
-- Plan summary added to the main report.
+- `doc-review-plan-*.json` artifact. Done.
+- `visible_followup_candidates` included in each review packet. Done.
+- Candidate list bounded by count and token estimate. Done.
+- Candidate reasons recorded, such as `seed_doc`, `same_directory`, `runtime_config`, `startup_script`, `role_prompt`, or `linked_from_chunk`. Done.
+- Plan summary added to the main report. Done.
 
 Acceptance criteria:
 
-- The documenter no longer has to infer exact follow-up paths only from chunk prose.
-- The packet never receives the whole manifest by default.
-- Candidate selection is deterministic for the same repo state and arguments.
-- Invalid candidate paths cannot enter the packet.
-- Tool dependencies used to build the plan are recorded.
+- The documenter no longer has to infer exact follow-up paths only from chunk prose. Done.
+- The packet never receives the whole manifest by default. Done.
+- Candidate selection is deterministic for the same repo state and arguments. Done.
+- Invalid candidate paths cannot enter the packet. Done.
+- Tool dependencies used to build the plan are recorded. Done.
 
 ## Phase 2: Source-Aware Follow-Up Review
 
@@ -194,14 +195,14 @@ Current artifacts:
 - `documenter-*.json`: main controller report.
 - `documenter-*.md`: final Markdown summary from `full` mode.
 - `document-manifest-*.json`: document manifest from `full` mode.
+- `doc-review-plan-*.json`: review plan and candidate pool.
 
 Planned artifacts:
 
-- `doc-review-plan-*.json`
 - `doc-change-plan-*.md`
 - `drafts/<run-id>/...`
 - `run-state-*.json`
 
 ## Immediate Next Step
 
-Implement Phase 1: manifest-backed review planning. This should make follow-up selection more consistent and reduce prompt drift by giving the documenter a bounded, controller-approved candidate set instead of relying on the model to infer exact file paths from chunk text.
+Implement Phase 2: source-aware follow-up review. Follow-up expansion should use the review plan as the allowed candidate set by default, with clear skip reasons when a returned path was not visible to the packet.

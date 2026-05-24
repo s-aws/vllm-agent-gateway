@@ -36,6 +36,7 @@ MUST:
 - use_empty_arrays_when_no_evidence
 - include_only_exact_file_paths_visible_in_packet
 - include_visible_file_paths_in_followup_files_when_gaps_require_them
+- prefer_visible_followup_candidates
 - let_controller_decide_followup_queueing
 
 PACKET TASK review_chunk_for_documentation:
@@ -46,6 +47,7 @@ PACKET TASK review_chunk_for_documentation:
 - do_not_decide_next_chunk
 - do_not_summarize_unseen_content
 - set_followup_files_to_empty_if_exact_path_is_not_visible
+- choose_followup_files_from_visible_followup_candidates_when_relevant
 - do_not_mark_criteria_satisfied_when_reporting_related_gaps
 - do_not_claim_followup_file_will_be_reviewed
 

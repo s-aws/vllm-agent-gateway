@@ -24,6 +24,8 @@ from urllib.parse import urlsplit
 DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 DEFAULT_ROLE_ID = "documenter/default"
 DEFAULT_OUTPUT_DIR = ".agentic_reports"
+DEFAULT_VISIBLE_CANDIDATE_LIMIT = 12
+DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT = 1200
 SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
 MODES = {"review", "summarize", "full"}
 DOC_SUFFIXES = {".adoc", ".md", ".rst", ".txt"}
@@ -58,6 +60,22 @@ FOLLOWUP_SUFFIXES = {
     ".txt",
     ".yaml",
     ".yml",
+}
+PATH_TOKEN_RE = re.compile(
+    r"(?<![A-Za-z0-9_./-])(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+"
+    r"\.(?:adoc|cfg|ini|json|md|ps1|py|rst|sh|toml|txt|yaml|yml)(?![A-Za-z0-9_./-])",
+    re.IGNORECASE,
+)
+CANDIDATE_REASON_PRIORITY = {
+    "linked_from_chunk": 0,
+    "seed_doc": 10,
+    "runtime_config": 20,
+    "role_prompt": 30,
+    "startup_script": 40,
+    "same_directory": 50,
+    "documentation_index": 60,
+    "documentation": 70,
+    "in_scope_file": 90,
 }
 DEFAULT_CRITERIA = [
     "installation steps documented",
@@ -330,7 +348,12 @@ def chunk_document(doc_id: str, text: str, max_tokens: int, overlap_lines: int) 
     return chunks
 
 
-def build_packet(target: ReviewTarget, chunk: Chunk, criteria_remaining: list[str]) -> dict[str, Any]:
+def build_packet(
+    target: ReviewTarget,
+    chunk: Chunk,
+    criteria_remaining: list[str],
+    visible_followup_candidates: list[dict[str, Any]],
+) -> dict[str, Any]:
     return {
         "role": "documenter",
         "task": "review_chunk_for_documentation",
@@ -342,6 +365,8 @@ def build_packet(target: ReviewTarget, chunk: Chunk, criteria_remaining: list[st
         "lines": [chunk.start_line, chunk.end_line],
         "overlap_previous_lines": chunk.overlap_previous_lines,
         "criteria_remaining": criteria_remaining,
+        "visible_followup_candidates": visible_followup_candidates,
+        "followup_file_policy": "Prefer exact paths from visible_followup_candidates. Use an empty array when no visible candidate is relevant.",
         "required_output": {
             "chunk_id": "string",
             "facts_found": ["string"],
@@ -656,6 +681,216 @@ def summarize_document_manifest(manifest: dict[str, Any], manifest_path: Path) -
     }
 
 
+def candidate_base_reasons(path: str, seed_doc_id: str) -> list[str]:
+    reasons: list[str] = []
+    path_obj = Path(path)
+    seed_parent = Path(seed_doc_id).parent.as_posix()
+    parent = path_obj.parent.as_posix()
+    name = path_obj.name.lower()
+    suffix = path_obj.suffix.lower()
+    lower_path = path.lower()
+
+    if path == seed_doc_id:
+        reasons.append("seed_doc")
+    if parent == seed_parent:
+        reasons.append("same_directory")
+    if lower_path.startswith("runtime/") or suffix in {".cfg", ".ini", ".json", ".toml", ".yaml", ".yml"}:
+        reasons.append("runtime_config")
+    if lower_path.startswith("roles/"):
+        reasons.append("role_prompt")
+    if name.startswith(("start-", "stop-")) or (
+        suffix in {".sh", ".ps1"} and ("start" in name or "stop" in name)
+    ):
+        reasons.append("startup_script")
+    if name == "readme.md" or lower_path.endswith("/readme.md"):
+        reasons.append("documentation_index")
+    if suffix in DOC_SUFFIXES:
+        reasons.append("documentation")
+    if not reasons:
+        reasons.append("in_scope_file")
+    return unique_strings(reasons)
+
+
+def candidate_reason_score(reasons: list[str]) -> int:
+    return min((CANDIDATE_REASON_PRIORITY.get(reason, 100) for reason in reasons), default=100)
+
+
+def metadata_for_candidate(
+    repo_root: Path,
+    path: str,
+    tracked_file_set: set[str],
+    document_entries: dict[str, dict[str, Any]],
+    seed_doc_id: str,
+) -> dict[str, Any] | None:
+    suffix = Path(path).suffix.lower()
+    if suffix not in FOLLOWUP_SUFFIXES:
+        return None
+    repo_path = (repo_root / path).resolve()
+    try:
+        repo_path.relative_to(repo_root.resolve())
+        stat = repo_path.stat()
+    except (OSError, ValueError):
+        return None
+
+    doc_entry = document_entries.get(path, {})
+    candidate: dict[str, Any] = {
+        "path": path,
+        "suffix": suffix,
+        "tracked": path in tracked_file_set,
+        "reasons": candidate_base_reasons(path, seed_doc_id),
+        "bytes": int(doc_entry.get("bytes", stat.st_size)),
+    }
+    if isinstance(doc_entry.get("line_count"), int):
+        candidate["line_count"] = doc_entry["line_count"]
+    if isinstance(doc_entry.get("token_estimate"), int):
+        candidate["token_estimate"] = doc_entry["token_estimate"]
+    if isinstance(doc_entry.get("heading_preview"), list) and doc_entry["heading_preview"]:
+        candidate["heading_preview"] = doc_entry["heading_preview"][:5]
+    return candidate
+
+
+def build_review_plan(
+    repo_root: Path,
+    document_manifest: dict[str, Any],
+    known_files: list[str],
+    tracked_file_set: set[str],
+    seed_doc_id: str,
+    document_scope: str,
+    controller_tool_dependencies: list[str],
+    visible_candidate_limit: int,
+    visible_candidate_token_limit: int,
+    manifest_path: Path | None,
+) -> dict[str, Any]:
+    raw_docs = document_manifest.get("documents", [])
+    document_entries = {
+        entry["path"]: entry
+        for entry in raw_docs
+        if isinstance(entry, dict) and isinstance(entry.get("path"), str)
+    }
+
+    candidate_pool: list[dict[str, Any]] = []
+    for path in unique_strings(sorted(known_files)):
+        candidate = metadata_for_candidate(repo_root, path, tracked_file_set, document_entries, seed_doc_id)
+        if candidate is not None:
+            candidate_pool.append(candidate)
+
+    candidate_pool.sort(key=lambda item: (candidate_reason_score(item["reasons"]), item["path"]))
+    reason_counts: dict[str, int] = {}
+    for candidate in candidate_pool:
+        for reason in candidate["reasons"]:
+            reason_counts[reason] = reason_counts.get(reason, 0) + 1
+
+    return {
+        "schema_version": 1,
+        "kind": "documenter_review_plan",
+        "generated_at": utc_now(),
+        "target_root": str(repo_root),
+        "document_scope": document_scope,
+        "seed_doc_id": seed_doc_id,
+        "document_manifest": summarize_document_manifest(document_manifest, manifest_path)
+        if manifest_path is not None
+        else {
+            "document_scope": document_manifest.get("document_scope"),
+            "document_count": document_manifest.get("document_count"),
+            "tracked_document_count": document_manifest.get("tracked_document_count"),
+            "untracked_document_count": document_manifest.get("untracked_document_count"),
+            "discovery_warnings": document_manifest.get("discovery_warnings"),
+        },
+        "candidate_policy": {
+            "max_visible_candidates_per_packet": visible_candidate_limit,
+            "max_visible_candidate_tokens_per_packet": visible_candidate_token_limit,
+            "candidate_reason_priority": CANDIDATE_REASON_PRIORITY,
+            "followup_suffixes": sorted(FOLLOWUP_SUFFIXES),
+        },
+        "tool_dependencies": controller_tool_dependencies,
+        "candidate_pool_count": len(candidate_pool),
+        "candidate_reason_counts": dict(sorted(reason_counts.items())),
+        "candidate_pool": candidate_pool,
+    }
+
+
+def summarize_review_plan(review_plan: dict[str, Any], review_plan_path: Path) -> dict[str, Any]:
+    return {
+        "artifact": str(review_plan_path),
+        "candidate_pool_count": review_plan.get("candidate_pool_count"),
+        "candidate_reason_counts": review_plan.get("candidate_reason_counts"),
+        "candidate_policy": review_plan.get("candidate_policy"),
+        "tool_dependencies": review_plan.get("tool_dependencies"),
+    }
+
+
+def write_review_plan(output_dir: Path, target_label: str, review_plan: dict[str, Any]) -> Path:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = artifact_timestamp()
+    path = output_dir / f"doc-review-plan-{sanitize_filename(target_label)}-{timestamp}.json"
+    path.write_text(json.dumps(review_plan, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def extract_linked_candidate_paths(text: str, candidate_paths: set[str]) -> set[str]:
+    linked: set[str] = set()
+    for match in PATH_TOKEN_RE.finditer(text):
+        candidate = match.group(0).strip("`'\".,:;()[]{}<>")
+        candidate = candidate.replace("\\", "/")
+        if candidate in candidate_paths:
+            linked.add(candidate)
+    return linked
+
+
+def select_visible_followup_candidates(
+    review_plan: dict[str, Any],
+    target: ReviewTarget,
+    chunk: Chunk,
+    excluded_paths: set[str],
+    max_candidates: int,
+    max_candidate_tokens: int,
+) -> list[dict[str, Any]]:
+    if max_candidates <= 0 or max_candidate_tokens <= 0:
+        return []
+
+    candidate_pool = [
+        item
+        for item in review_plan.get("candidate_pool", [])
+        if isinstance(item, dict) and isinstance(item.get("path"), str) and isinstance(item.get("reasons"), list)
+    ]
+    candidate_paths = {item["path"] for item in candidate_pool}
+    linked_paths = extract_linked_candidate_paths(chunk.text, candidate_paths)
+    current_parent = Path(target.doc_id).parent.as_posix()
+    ranked_candidates: list[tuple[int, str, dict[str, Any]]] = []
+
+    for candidate in candidate_pool:
+        path = candidate["path"]
+        if path in excluded_paths:
+            continue
+        reasons = [reason for reason in candidate["reasons"] if isinstance(reason, str)]
+        if path in linked_paths and "linked_from_chunk" not in reasons:
+            reasons = ["linked_from_chunk", *reasons]
+        if Path(path).parent.as_posix() == current_parent and "same_directory" not in reasons:
+            reasons.append("same_directory")
+        visible = {
+            "path": path,
+            "reasons": unique_strings(reasons),
+            "suffix": candidate.get("suffix"),
+            "tracked": bool(candidate.get("tracked")),
+        }
+        for optional_field in ("line_count", "token_estimate"):
+            if isinstance(candidate.get(optional_field), int):
+                visible[optional_field] = candidate[optional_field]
+        ranked_candidates.append((candidate_reason_score(visible["reasons"]), path, visible))
+
+    selected: list[dict[str, Any]] = []
+    token_total = 0
+    for _, _, candidate in sorted(ranked_candidates, key=lambda item: (item[0], item[1])):
+        candidate_tokens = estimate_tokens(json.dumps(candidate, ensure_ascii=True, sort_keys=True))
+        if len(selected) >= max_candidates:
+            break
+        if token_total + candidate_tokens > max_candidate_tokens:
+            continue
+        selected.append(candidate)
+        token_total += candidate_tokens
+    return selected
+
+
 def aggregate_report(report: dict[str, Any]) -> dict[str, Any]:
     facts_found: list[str] = []
     doc_gaps: list[str] = []
@@ -707,6 +942,7 @@ def build_summary_packet(report: dict[str, Any], aggregate: dict[str, Any]) -> d
         "seed_doc_id": report.get("seed_doc_id"),
         "target_root": report.get("target_root"),
         "reviewed_files": report.get("reviewed_files"),
+        "review_plan": report.get("review_plan"),
         "followup_policy": report.get("followup_policy"),
         "chunks_processed": report.get("chunks_processed"),
         "chunks_total": report.get("chunks_total"),
@@ -790,6 +1026,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", default=os.environ.get("AGENTIC_GATEWAY_MODEL", DEFAULT_MODEL))
     parser.add_argument("--chunk-token-limit", type=int, default=1000)
     parser.add_argument("--chunk-overlap-lines", type=int, default=8)
+    parser.add_argument(
+        "--visible-candidate-limit",
+        type=int,
+        default=DEFAULT_VISIBLE_CANDIDATE_LIMIT,
+        help="Maximum visible follow-up candidates included in each packet.",
+    )
+    parser.add_argument(
+        "--visible-candidate-token-limit",
+        type=int,
+        default=DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT,
+        help="Maximum estimated tokens for visible follow-up candidate metadata in each packet.",
+    )
     parser.add_argument("--max-chunks", type=int, default=None, help="Maximum chunks to process. Defaults to all chunks.")
     parser.add_argument("--all-chunks", action="store_true", help="Process all chunks. This is the default.")
     parser.add_argument(
@@ -838,6 +1086,10 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         raise OrchestratorError("--followup-depth cannot be negative.")
     if args.max_followup_files < 0:
         raise OrchestratorError("--max-followup-files cannot be negative.")
+    if args.visible_candidate_limit < 0:
+        raise OrchestratorError("--visible-candidate-limit cannot be negative.")
+    if args.visible_candidate_token_limit < 0:
+        raise OrchestratorError("--visible-candidate-token-limit cannot be negative.")
 
     include_followups = bool(args.include_followups or args.followup_depth > 0)
     effective_followup_depth = args.followup_depth if args.followup_depth > 0 else (1 if include_followups else 0)
@@ -855,6 +1107,34 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
     controller_tool_dependencies = ["git_ls_files", "read_file"]
     if args.document_scope == "all":
         controller_tool_dependencies.append("scan_files")
+    output_dir = resolve_output_dir(config_root, args.output_dir)
+    document_manifest = build_document_manifest(
+        target_root,
+        docs,
+        tracked_file_set,
+        args.document_scope,
+        doc_id,
+        discovery_warnings,
+    )
+    manifest_path: Path | None = None
+    artifacts: dict[str, str] = {}
+    if args.mode == "full":
+        manifest_path = write_document_manifest(output_dir, target_root.name, document_manifest)
+        artifacts["document_manifest"] = str(manifest_path)
+    review_plan = build_review_plan(
+        target_root,
+        document_manifest,
+        known_files,
+        tracked_file_set,
+        doc_id,
+        args.document_scope,
+        controller_tool_dependencies,
+        args.visible_candidate_limit,
+        args.visible_candidate_token_limit,
+        manifest_path,
+    )
+    review_plan_path = write_review_plan(output_dir, target_root.name, review_plan)
+    artifacts["review_plan"] = str(review_plan_path)
     max_chunks = None if args.all_chunks or args.max_chunks is None else args.max_chunks
     role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
     criteria_initial = args.criteria if args.criteria else list(DEFAULT_CRITERIA)
@@ -866,6 +1146,11 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
     target_queue: list[ReviewTarget] = [ReviewTarget(doc_id=doc_id, source="seed", depth=0)]
     queued_files: set[str] = {doc_id}
     reviewed_files: set[str] = set()
+    review_plan_candidates = {
+        item["path"]: item
+        for item in review_plan.get("candidate_pool", [])
+        if isinstance(item, dict) and isinstance(item.get("path"), str)
+    }
 
     queue_index = 0
     while queue_index < len(target_queue):
@@ -878,7 +1163,20 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         selected_chunks = chunks if max_chunks is None else chunks[:max_chunks]
 
         for chunk in selected_chunks:
-            packet = build_packet(target, chunk, criteria_remaining)
+            visible_followup_candidates = select_visible_followup_candidates(
+                review_plan,
+                target,
+                chunk,
+                reviewed_files | {target.doc_id},
+                args.visible_candidate_limit,
+                args.visible_candidate_token_limit,
+            )
+            visible_followup_candidate_by_path = {
+                candidate["path"]: candidate
+                for candidate in visible_followup_candidates
+                if isinstance(candidate.get("path"), str)
+            }
+            packet = build_packet(target, chunk, criteria_remaining, visible_followup_candidates)
             entry: dict[str, Any] = {
                 "doc_id": target.doc_id,
                 "source": target.source,
@@ -888,6 +1186,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
                 "lines": [chunk.start_line, chunk.end_line],
                 "overlap_previous_lines": chunk.overlap_previous_lines,
                 "input_token_estimate": chunk.token_estimate,
+                "visible_followup_candidates": visible_followup_candidates,
                 "packet": packet if args.dry_run else {"criteria_remaining": criteria_remaining},
             }
             if not args.dry_run:
@@ -906,6 +1205,10 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
                         "source_doc_id": target.doc_id,
                         "source_chunk_id": chunk.chunk_id,
                         "candidate_depth": candidate_depth,
+                        "visible_candidate": followup_file in visible_followup_candidate_by_path,
+                        "candidate_reasons": visible_followup_candidate_by_path.get(
+                            followup_file, review_plan_candidates.get(followup_file, {})
+                        ).get("reasons", []),
                     }
                     if not include_followups:
                         skipped_followups.append({**followup_record, "reason": "followups_disabled"})
@@ -968,6 +1271,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
             "assigned_tool_ids": sorted(assigned_tool_ids),
             "controller_tool_dependencies": controller_tool_dependencies,
             "controller_tools_used": controller_tool_dependencies,
+            "review_plan_tool_dependencies": review_plan.get("tool_dependencies", []),
         },
         "document_scope": args.document_scope,
         "known_files_count": len(known_file_set),
@@ -975,6 +1279,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         "docs_discovered": docs,
         "doc_id": doc_id,
         "seed_doc_id": doc_id,
+        "review_plan": summarize_review_plan(review_plan, review_plan_path),
         "reviewed_files": reviewed_file_reports,
         "followup_policy": {
             "include_followups": include_followups,
@@ -996,20 +1301,11 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
     }
     if discovery_warnings:
         report["discovery_warnings"] = discovery_warnings
-    if args.mode == "full":
-        document_manifest = build_document_manifest(
-            target_root,
-            docs,
-            tracked_file_set,
-            args.document_scope,
-            doc_id,
-            discovery_warnings,
-        )
-        manifest_path = write_document_manifest(resolve_output_dir(config_root, args.output_dir), target_root.name, document_manifest)
+    if manifest_path is not None:
         report["document_manifest"] = summarize_document_manifest(document_manifest, manifest_path)
-        report["artifacts"] = {"document_manifest": str(manifest_path)}
+    report["artifacts"] = artifacts
     report["aggregate"] = aggregate_report(report)
-    output_path = write_report(resolve_output_dir(config_root, args.output_dir), target_root.name, doc_id, report)
+    output_path = write_report(output_dir, target_root.name, doc_id, report)
     report.setdefault("artifacts", {})
     if isinstance(report["artifacts"], dict):
         report["artifacts"]["json_report"] = str(output_path)
