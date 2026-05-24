@@ -37,6 +37,7 @@ MUST:
 - include_only_exact_file_paths_visible_in_packet
 - include_visible_file_paths_in_followup_files_when_gaps_require_them
 - prefer_visible_followup_candidates
+- do_not_return_nonvisible_followup_paths
 - let_controller_decide_followup_queueing
 
 PACKET TASK review_chunk_for_documentation:

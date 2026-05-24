@@ -33,6 +33,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Follow-up queue | Done | Optional exact-file follow-up expansion has depth/count bounds. |
 | Document manifest | Done | `full` mode writes a manifest artifact; default scope is tracked files, with `--document-scope all` for bootstrap scans. |
 | Review planning | Done | Review plan artifacts feed bounded `visible_followup_candidates` into packets. |
+| Source-aware follow-up review | Done | Follow-up expansion defaults to packet-visible candidates and records skip reason codes. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -59,21 +60,21 @@ Acceptance criteria:
 
 ## Phase 2: Source-Aware Follow-Up Review
 
-Status: Planned
+Status: Done
 
 Make follow-up review more consistent by using the review plan as the allowed candidate set.
 
 Deliverables:
 
-- Follow-up files must come from `visible_followup_candidates` unless explicitly allowed by a strict option.
-- Skipped follow-ups include reason codes for not visible, not in scope, unsupported suffix, depth limit, count limit, and already seen.
-- Follow-up acceptance records include the candidate reason from the plan.
+- Follow-up files must come from `visible_followup_candidates` unless explicitly allowed by a strict option. Done.
+- Skipped follow-ups include reason codes for not visible, not in scope, unsupported suffix, depth limit, count limit, and already seen. Done.
+- Follow-up acceptance records include the candidate reason from the plan. Done.
 
 Acceptance criteria:
 
-- A role cannot expand traversal beyond controller-provided candidates by inventing paths.
-- The report explains why each accepted follow-up was visible to the model.
-- Existing exact tracked follow-up behavior remains available for compatibility only when intentionally enabled.
+- A role cannot expand traversal beyond controller-provided candidates by inventing paths. Done.
+- The report explains why each accepted follow-up was visible to the model. Done.
+- Existing exact tracked follow-up behavior remains available for compatibility only when intentionally enabled. Done.
 
 ## Phase 3: Documentation Change Plan
 
@@ -205,4 +206,4 @@ Planned artifacts:
 
 ## Immediate Next Step
 
-Implement Phase 2: source-aware follow-up review. Follow-up expansion should use the review plan as the allowed candidate set by default, with clear skip reasons when a returned path was not visible to the packet.
+Implement Phase 3: documentation change planning. The controller should convert validated review findings into a non-mutating `doc-change-plan-*.md` artifact grouped by target file, risk, missing evidence, and confidence.

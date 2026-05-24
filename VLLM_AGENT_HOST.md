@@ -219,7 +219,16 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
   --max-followup-files 5
 ```
 
-The controller validates follow-up files before queueing them. A follow-up must be an exact tracked path, use an allowed text/config/code suffix, fit within the depth/count limits, and not already be reviewed or queued. Accepted and skipped follow-ups are recorded in the JSON report.
+The controller validates follow-up files before queueing them. By default, a follow-up must be an exact path from the packet's `visible_followup_candidates`, be in scope, use an allowed text/config/code suffix, fit within the depth/count limits, and not already be reviewed or queued. Accepted and skipped follow-ups are recorded in the JSON report with reason codes.
+
+Compatibility mode allows in-scope paths that were not visible in the packet:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --include-followups \
+  --allow-nonvisible-followups
+```
 
 Summarize an existing JSON report:
 

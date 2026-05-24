@@ -569,11 +569,10 @@ def normalize_result_policy(
         warnings.append(
             {
                 "field": "followup_files",
-                "reason": "removed_untracked_or_unprovided_paths",
+                "reason": "reported_untracked_or_unprovided_paths",
                 "values": invalid_followups,
             }
         )
-        result["followup_files"] = [item for item in result["followup_files"] if item in known_files]
 
     return warnings
 
@@ -894,7 +893,7 @@ def select_visible_followup_candidates(
 def aggregate_report(report: dict[str, Any]) -> dict[str, Any]:
     facts_found: list[str] = []
     doc_gaps: list[str] = []
-    followup_files: list[str] = []
+    reported_followup_files: list[str] = []
     validation_warnings: list[dict[str, Any]] = []
     confidence_counts = {"low": 0, "medium": 0, "high": 0}
 
@@ -905,7 +904,7 @@ def aggregate_report(report: dict[str, Any]) -> dict[str, Any]:
         if isinstance(result, dict):
             facts_found.extend([item for item in result.get("facts_found", []) if isinstance(item, str)])
             doc_gaps.extend([item for item in result.get("doc_gaps", []) if isinstance(item, str)])
-            followup_files.extend([item for item in result.get("followup_files", []) if isinstance(item, str)])
+            reported_followup_files.extend([item for item in result.get("followup_files", []) if isinstance(item, str)])
             confidence = result.get("confidence")
             if confidence in confidence_counts:
                 confidence_counts[confidence] += 1
@@ -922,12 +921,23 @@ def aggregate_report(report: dict[str, Any]) -> dict[str, Any]:
     elif confidence_counts["medium"] and not confidence_counts["low"]:
         aggregate_confidence = "medium"
 
+    followup_policy = report.get("followup_policy", {})
+    accepted_followups: list[str] = []
+    if isinstance(followup_policy, dict):
+        for item in followup_policy.get("accepted_followups", []):
+            if isinstance(item, dict) and isinstance(item.get("path"), str):
+                accepted_followups.append(item["path"])
+    include_followups = isinstance(followup_policy, dict) and bool(followup_policy.get("include_followups"))
+    followup_files = unique_strings(accepted_followups) if include_followups else unique_strings(reported_followup_files)
+
     return {
         "facts_found": unique_strings(facts_found),
         "criteria_satisfied": criteria_satisfied,
         "criteria_remaining": criteria_remaining,
         "doc_gaps": unique_strings(doc_gaps),
-        "followup_files": unique_strings(followup_files),
+        "followup_files": followup_files,
+        "reported_followup_files": unique_strings(reported_followup_files),
+        "accepted_followup_files": unique_strings(accepted_followups),
         "validation_warnings": validation_warnings,
         "confidence_counts": confidence_counts,
         "confidence": aggregate_confidence,
@@ -1057,6 +1067,11 @@ def parse_args() -> argparse.Namespace:
         default=5,
         help="Maximum number of follow-up files to add to the controller queue.",
     )
+    parser.add_argument(
+        "--allow-nonvisible-followups",
+        action="store_true",
+        help="Compatibility mode: allow in-scope follow-up paths even when they were not visible in the packet.",
+    )
     parser.add_argument("--criteria", action="append", default=None, help="Documentation criterion. Repeatable.")
     parser.add_argument(
         "--output-dir",
@@ -1093,6 +1108,9 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
 
     include_followups = bool(args.include_followups or args.followup_depth > 0)
     effective_followup_depth = args.followup_depth if args.followup_depth > 0 else (1 if include_followups else 0)
+    followup_source_policy = (
+        "known_files_compatibility" if args.allow_nonvisible_followups else "visible_followup_candidates"
+    )
 
     known_files, tracked_file_list, discovery_warnings = discover_files_for_scope(
         target_root, assigned_tool_ids, args.document_scope
@@ -1209,6 +1227,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
                         "candidate_reasons": visible_followup_candidate_by_path.get(
                             followup_file, review_plan_candidates.get(followup_file, {})
                         ).get("reasons", []),
+                        "source_policy": followup_source_policy,
                     }
                     if not include_followups:
                         skipped_followups.append({**followup_record, "reason": "followups_disabled"})
@@ -1222,6 +1241,12 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
                     if Path(followup_file).suffix.lower() not in FOLLOWUP_SUFFIXES:
                         skipped_followups.append({**followup_record, "reason": "unsupported_extension"})
                         continue
+                    if (
+                        followup_file not in visible_followup_candidate_by_path
+                        and not args.allow_nonvisible_followups
+                    ):
+                        skipped_followups.append({**followup_record, "reason": "not_visible_to_packet"})
+                        continue
                     if followup_file in reviewed_files or followup_file in queued_files:
                         skipped_followups.append({**followup_record, "reason": "already_seen"})
                         continue
@@ -1229,7 +1254,12 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
                         skipped_followups.append({**followup_record, "reason": "max_followup_files_reached"})
                         continue
 
-                    accepted_followups.append(followup_record)
+                    accepted_via = (
+                        "visible_followup_candidates"
+                        if followup_file in visible_followup_candidate_by_path
+                        else "known_files_compatibility"
+                    )
+                    accepted_followups.append({**followup_record, "accepted_via": accepted_via})
                     target_queue.append(
                         ReviewTarget(
                             doc_id=followup_file,
@@ -1285,7 +1315,18 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
             "include_followups": include_followups,
             "followup_depth": effective_followup_depth,
             "max_followup_files": args.max_followup_files,
+            "source_policy": followup_source_policy,
+            "allow_nonvisible_followups": args.allow_nonvisible_followups,
             "allowed_suffixes": sorted(FOLLOWUP_SUFFIXES),
+            "skip_reason_codes": [
+                "followups_disabled",
+                "depth_limit_reached",
+                "not_in_document_scope",
+                "unsupported_extension",
+                "not_visible_to_packet",
+                "already_seen",
+                "max_followup_files_reached",
+            ],
             "accepted_followups": accepted_followups,
             "skipped_followups": skipped_followups,
         },
