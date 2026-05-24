@@ -132,6 +132,16 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
 
 The E2E documenter roadmap is tracked in `docs/DOCUMENTER_E2E_ROADMAP.md`. Use it as the control document before adding new documenter workflow behavior.
 
+Optional draft artifacts:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --write-draft
+```
+
+`--write-draft` writes artifact copies under `.agentic_reports/drafts/<run-id>/` by default. Each draft file copies the reviewed target file and appends controller-generated draft notes mapped to change-plan item IDs. The draft directory also contains `draft-metadata.json` and an index README that map every draft back to the source document, JSON report, and change plan. Target repository files are not overwritten.
+
 Modes:
 
 ```text
@@ -140,7 +150,7 @@ summarize   summarize an existing JSON report with --report
 full        review chunks and write manifest, review plan, change plan, and final summary artifacts
 ```
 
-Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a document manifest JSON artifact, a review plan JSON artifact, a Markdown change plan, and a Markdown summary. The change plan is generated from validated report fields only; it does not modify target project files. The target project is read only unless you explicitly point `--output-dir` at it.
+Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a document manifest JSON artifact, a review plan JSON artifact, a Markdown change plan, and a Markdown summary. With `--write-draft`, it also writes draft artifacts under the configured output directory. The change plan and drafts are generated from validated report fields only; they do not modify target project files. The target project is read only unless you explicitly point `--output-dir` at it.
 
 ## Tool Policy
 

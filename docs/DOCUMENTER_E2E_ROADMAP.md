@@ -35,6 +35,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Review planning | Done | Review plan artifacts feed bounded `visible_followup_candidates` into packets. |
 | Source-aware follow-up review | Done | Follow-up expansion defaults to packet-visible candidates and records skip reason codes. |
 | Documentation change plan | Done | `full` mode writes a non-mutating Markdown change plan grouped by target file, evidence class, follow-ups, validation notes, and caveats. |
+| Draft output | Done | `--write-draft` writes reversible draft artifact copies and metadata under the configured output directory. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -98,21 +99,21 @@ Acceptance criteria:
 
 ## Phase 4: Draft Output
 
-Status: Planned
+Status: Done
 
 Add optional draft generation without mutating target docs in place.
 
 Deliverables:
 
-- `--write-draft` writes proposed files under an ignored draft artifact directory.
-- Draft metadata maps each draft file back to source document, change-plan item, and report path.
-- No overwrite of target repo files by default.
+- `--write-draft` writes proposed files under an ignored draft artifact directory. Done.
+- Draft metadata maps each draft file back to source document, change-plan item, and report path. Done.
+- No overwrite of target repo files by default. Done.
 
 Acceptance criteria:
 
-- Running draft mode is reversible by deleting the draft artifact directory.
-- The controller refuses draft writes outside the configured output directory unless a future explicit unsafe option exists.
-- Drafts include enough provenance to review or apply manually.
+- Running draft mode is reversible by deleting the draft artifact directory. Done.
+- The controller refuses draft writes outside the configured output directory unless a future explicit unsafe option exists. Done.
+- Drafts include enough provenance to review or apply manually. Done.
 
 ## Phase 5: Resume And State
 
@@ -199,12 +200,12 @@ Current artifacts:
 - `document-manifest-*.json`: document manifest from `full` mode.
 - `doc-review-plan-*.json`: review plan and candidate pool.
 - `doc-change-plan-*.md`: non-mutating documentation change plan from `full` mode.
+- `drafts/<run-id>/...`: optional draft artifact directory from `--write-draft`.
 
 Planned artifacts:
 
-- `drafts/<run-id>/...`
 - `run-state-*.json`
 
 ## Immediate Next Step
 
-Implement Phase 4: optional draft output. Drafts should be written only under an ignored artifact directory, never directly over target documentation, and each draft should map back to the change-plan item and source report that produced it.
+Implement Phase 5: resume and state. Longer documenter runs should be restartable without reprocessing completed chunks or accepted follow-ups, and the state format should be documented and versioned.

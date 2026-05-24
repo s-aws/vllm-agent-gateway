@@ -28,6 +28,11 @@ DEFAULT_VISIBLE_CANDIDATE_LIMIT = 12
 DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT = 1200
 SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
 MODES = {"review", "summarize", "full"}
+CHANGE_PLAN_CATEGORY_TITLES = {
+    "safe_documentation_edit": "Safe Documentation Edits",
+    "needs_user_decision": "Needs User Decision",
+    "insufficient_evidence": "Insufficient Evidence",
+}
 DOC_SUFFIXES = {".adoc", ".md", ".rst", ".txt"}
 DOCUMENT_SCOPES = {"tracked", "all"}
 IGNORED_SCAN_DIRS = {
@@ -617,27 +622,140 @@ def source_from_followup_record(record: dict[str, Any]) -> str:
     return "followup_policy"
 
 
-def add_change_item(
-    grouped: dict[str, list[dict[str, str]]],
+def append_change_plan_item(
+    items: list[dict[str, Any]],
+    category: str,
     doc_id: str,
     source: str,
     confidence: str,
+    basis: str,
     text: str,
+    chunk: dict[str, Any] | None = None,
 ) -> None:
-    grouped.setdefault(doc_id, []).append(
-        {
-            "source": inline_markdown(source),
-            "confidence": inline_markdown(confidence),
-            "text": inline_markdown(text),
-        }
-    )
+    item: dict[str, Any] = {
+        "id": f"CP-{len(items) + 1:04d}",
+        "category": category,
+        "category_title": CHANGE_PLAN_CATEGORY_TITLES.get(category, category),
+        "target_file": inline_markdown(doc_id),
+        "source": inline_markdown(source),
+        "confidence": inline_markdown(confidence),
+        "basis": inline_markdown(basis),
+        "text": inline_markdown(text),
+    }
+    if isinstance(chunk, dict):
+        if isinstance(chunk.get("doc_id"), str):
+            item["source_doc_id"] = chunk["doc_id"]
+        if isinstance(chunk.get("chunk_id"), str):
+            item["source_chunk_id"] = chunk["chunk_id"]
+        lines = chunk.get("lines")
+        if (
+            isinstance(lines, list)
+            and len(lines) == 2
+            and isinstance(lines[0], int)
+            and isinstance(lines[1], int)
+        ):
+            item["lines"] = [lines[0], lines[1]]
+    items.append(item)
+
+
+def collect_change_plan_items(report: dict[str, Any]) -> list[dict[str, Any]]:
+    seed_doc_id = inline_markdown(report.get("seed_doc_id") or report.get("doc_id") or "unknown")
+    items: list[dict[str, Any]] = []
+    reviewed_result_count = 0
+
+    for chunk in report.get("chunks", []):
+        if not isinstance(chunk, dict):
+            continue
+        doc_id = inline_markdown(chunk.get("doc_id") or seed_doc_id)
+        source = chunk_source_ref(chunk)
+        result = chunk.get("result")
+        if isinstance(result, dict):
+            reviewed_result_count += 1
+            confidence = inline_markdown(result.get("confidence", "unknown"))
+            facts_found = [item for item in result.get("facts_found", []) if isinstance(item, str)]
+            doc_gaps = [item for item in result.get("doc_gaps", []) if isinstance(item, str)]
+
+            category = "safe_documentation_edit" if confidence in {"medium", "high"} else "insufficient_evidence"
+            for fact in facts_found:
+                if category == "safe_documentation_edit":
+                    text = f"Preserve or clarify review-backed fact: {fact}"
+                else:
+                    text = f"Verify low-confidence fact before proposing an edit: {fact}"
+                append_change_plan_item(items, category, doc_id, source, confidence, "facts_found", text, chunk)
+
+            for gap in doc_gaps:
+                append_change_plan_item(
+                    items,
+                    "needs_user_decision",
+                    doc_id,
+                    source,
+                    confidence,
+                    "doc_gaps",
+                    f"Decide how to address reported documentation gap: {gap}",
+                    chunk,
+                )
+
+            if confidence == "low" and not facts_found:
+                append_change_plan_item(
+                    items,
+                    "insufficient_evidence",
+                    doc_id,
+                    source,
+                    confidence,
+                    "confidence",
+                    "Low-confidence review result; do not make edits from this chunk without verification.",
+                    chunk,
+                )
+
+        for warning in chunk.get("validation_warnings", []):
+            if not isinstance(warning, dict):
+                continue
+            field = inline_markdown(warning.get("field", "unknown_field"))
+            reason = inline_markdown(warning.get("reason", "unknown_reason"))
+            values = warning.get("values")
+            value_detail = ""
+            if isinstance(values, list) and values:
+                value_detail = f"; values: {', '.join(inline_markdown(item) for item in values)}"
+            append_change_plan_item(
+                items,
+                "insufficient_evidence",
+                doc_id,
+                source,
+                "validation-warning",
+                "validation_warnings",
+                f"Validation warning from report field {field}: {reason}{value_detail}",
+                chunk,
+            )
+
+    if reviewed_result_count == 0:
+        reason = "dry-run produced packets only" if report.get("dry_run") else "no chunk review results were recorded"
+        append_change_plan_item(
+            items,
+            "insufficient_evidence",
+            seed_doc_id,
+            "run-level",
+            "none",
+            "chunk_results",
+            f"No model-backed review results are available; {reason}.",
+        )
+    return items
+
+
+def group_change_plan_items(items: list[dict[str, Any]], category: str) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for item in items:
+        if item.get("category") != category:
+            continue
+        target_file = inline_markdown(item.get("target_file", "unknown"))
+        grouped.setdefault(target_file, []).append(item)
+    return grouped
 
 
 def append_grouped_change_section(
     lines: list[str],
     title: str,
     intro: str,
-    grouped: dict[str, list[dict[str, str]]],
+    grouped: dict[str, list[dict[str, Any]]],
 ) -> None:
     lines.append(f"## {title}")
     lines.append("")
@@ -655,7 +773,11 @@ def append_grouped_change_section(
         lines.append("")
         for item in items:
             lines.append(
-                f"- [{item['source']}; confidence: {item['confidence']}] {item['text']}"
+                f"- {inline_markdown(item.get('id', 'CP-????'))} "
+                f"[{inline_markdown(item.get('source', 'unknown'))}; "
+                f"confidence: {inline_markdown(item.get('confidence', 'unknown'))}; "
+                f"basis: {inline_markdown(item.get('basis', 'unknown'))}] "
+                f"{inline_markdown(item.get('text', ''))}"
             )
         lines.append("")
 
@@ -666,76 +788,10 @@ def build_doc_change_plan(report: dict[str, Any]) -> str:
         aggregate = aggregate_report(report)
 
     seed_doc_id = inline_markdown(report.get("seed_doc_id") or report.get("doc_id") or "unknown")
-    safe_edits: dict[str, list[dict[str, str]]] = {}
-    needs_decision: dict[str, list[dict[str, str]]] = {}
-    insufficient_evidence: dict[str, list[dict[str, str]]] = {}
-    reviewed_result_count = 0
-
-    for chunk in report.get("chunks", []):
-        if not isinstance(chunk, dict):
-            continue
-        doc_id = inline_markdown(chunk.get("doc_id") or seed_doc_id)
-        source = chunk_source_ref(chunk)
-        result = chunk.get("result")
-        if isinstance(result, dict):
-            reviewed_result_count += 1
-            confidence = inline_markdown(result.get("confidence", "unknown"))
-            facts_found = [item for item in result.get("facts_found", []) if isinstance(item, str)]
-            doc_gaps = [item for item in result.get("doc_gaps", []) if isinstance(item, str)]
-
-            target_group = safe_edits if confidence in {"medium", "high"} else insufficient_evidence
-            for fact in facts_found:
-                if target_group is safe_edits:
-                    text = f"Preserve or clarify review-backed fact: {fact}"
-                else:
-                    text = f"Verify low-confidence fact before proposing an edit: {fact}"
-                add_change_item(target_group, doc_id, source, confidence, text)
-
-            for gap in doc_gaps:
-                add_change_item(
-                    needs_decision,
-                    doc_id,
-                    source,
-                    confidence,
-                    f"Decide how to address reported documentation gap: {gap}",
-                )
-
-            if confidence == "low" and not facts_found:
-                add_change_item(
-                    insufficient_evidence,
-                    doc_id,
-                    source,
-                    confidence,
-                    "Low-confidence review result; do not make edits from this chunk without verification.",
-                )
-
-        for warning in chunk.get("validation_warnings", []):
-            if not isinstance(warning, dict):
-                continue
-            field = inline_markdown(warning.get("field", "unknown_field"))
-            reason = inline_markdown(warning.get("reason", "unknown_reason"))
-            values = warning.get("values")
-            value_detail = ""
-            if isinstance(values, list) and values:
-                value_detail = f"; values: {', '.join(inline_markdown(item) for item in values)}"
-            add_change_item(
-                insufficient_evidence,
-                doc_id,
-                source,
-                "validation-warning",
-                f"Validation warning from report field {field}: {reason}{value_detail}",
-            )
-
-    if reviewed_result_count == 0:
-        source = "run-level"
-        reason = "dry-run produced packets only" if report.get("dry_run") else "no chunk review results were recorded"
-        add_change_item(
-            insufficient_evidence,
-            seed_doc_id,
-            source,
-            "none",
-            f"No model-backed review results are available; {reason}.",
-        )
+    change_plan_items = collect_change_plan_items(report)
+    safe_edits = group_change_plan_items(change_plan_items, "safe_documentation_edit")
+    needs_decision = group_change_plan_items(change_plan_items, "needs_user_decision")
+    insufficient_evidence = group_change_plan_items(change_plan_items, "insufficient_evidence")
 
     artifacts = report.get("artifacts", {})
     if not isinstance(artifacts, dict):
@@ -870,6 +926,180 @@ def build_doc_change_plan(report: dict[str, Any]) -> str:
         ]
     )
     return "\n".join(lines)
+
+
+def require_path_under_directory(path: Path, directory: Path, label: str) -> None:
+    try:
+        path.resolve().relative_to(directory.resolve())
+    except ValueError as exc:
+        raise OrchestratorError(f"{label} must stay under configured output directory: {path}") from exc
+
+
+def draft_path_for_target(draft_files_dir: Path, target_file: str) -> Path:
+    relative_target = Path(target_file)
+    if relative_target.is_absolute():
+        raise OrchestratorError(f"Cannot draft an absolute target path: {target_file}")
+    draft_path = (draft_files_dir / relative_target).resolve()
+    require_path_under_directory(draft_path, draft_files_dir, "Draft file path")
+    return draft_path
+
+
+def build_draft_notes(
+    target_file: str,
+    items: list[dict[str, Any]],
+    report: dict[str, Any],
+    report_path: Path,
+    change_plan_path: Path,
+) -> str:
+    lines = [
+        "",
+        "",
+        "<!-- agentic-documenter-draft-notes:start -->",
+        "# Documenter Draft Notes",
+        "",
+        "This draft is an artifact copy, not an applied edit. Review the notes below before manually applying any change.",
+        "",
+        f"- Target file: {inline_markdown(target_file)}",
+        f"- Source report: {inline_markdown(report_path)}",
+        f"- Change plan: {inline_markdown(change_plan_path)}",
+        f"- Generated from report timestamp: {inline_markdown(report.get('generated_at', 'unknown'))}",
+        "",
+    ]
+    for category in CHANGE_PLAN_CATEGORY_TITLES:
+        category_items = [item for item in items if item.get("category") == category]
+        if not category_items:
+            continue
+        lines.extend([f"## {CHANGE_PLAN_CATEGORY_TITLES[category]}", ""])
+        for item in category_items:
+            lines.append(
+                f"- {inline_markdown(item.get('id', 'CP-????'))} "
+                f"[{inline_markdown(item.get('source', 'unknown'))}; "
+                f"confidence: {inline_markdown(item.get('confidence', 'unknown'))}; "
+                f"basis: {inline_markdown(item.get('basis', 'unknown'))}] "
+                f"{inline_markdown(item.get('text', ''))}"
+            )
+        lines.append("")
+    lines.append("<!-- agentic-documenter-draft-notes:end -->")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def write_draft_index(draft_root: Path, metadata: dict[str, Any]) -> Path:
+    index_path = draft_root / "README.md"
+    lines = [
+        "# Documenter Draft Artifacts",
+        "",
+        "These drafts are generated artifacts. They do not modify target repository files and can be removed by deleting this draft directory.",
+        "",
+        f"- Target root: {inline_markdown(metadata.get('target_root', 'unknown'))}",
+        f"- Source report: {inline_markdown(metadata.get('report_path', 'unknown'))}",
+        f"- Change plan: {inline_markdown(metadata.get('change_plan_path', 'unknown'))}",
+        f"- Draft metadata: {inline_markdown(metadata.get('metadata_path', 'draft-metadata.json'))}",
+        "",
+        "## Draft Files",
+        "",
+    ]
+    drafts = metadata.get("drafts", [])
+    if not isinstance(drafts, list) or not drafts:
+        lines.append("- None recorded.")
+    else:
+        for draft in drafts:
+            if not isinstance(draft, dict):
+                continue
+            item_ids = draft.get("change_plan_item_ids", [])
+            item_text = ", ".join(inline_markdown(item) for item in item_ids) if isinstance(item_ids, list) else ""
+            suffix = f" ({item_text})" if item_text else ""
+            lines.append(
+                f"- `{inline_markdown(draft.get('target_file', 'unknown'))}` -> "
+                f"`{inline_markdown(draft.get('draft_path', 'unknown'))}`{suffix}"
+            )
+    lines.append("")
+    index_path.write_text("\n".join(lines), encoding="utf-8")
+    return index_path
+
+
+def write_draft_artifacts(
+    output_dir: Path,
+    target_root: Path,
+    report: dict[str, Any],
+    report_path: Path,
+    change_plan_path: Path,
+    assigned_tool_ids: set[str],
+) -> dict[str, str]:
+    output_root = output_dir.resolve()
+    run_id = (
+        f"{sanitize_filename(target_root.name)}-"
+        f"{sanitize_filename(str(report.get('seed_doc_id') or report.get('doc_id') or 'document'))}-"
+        f"{artifact_timestamp()}"
+    )
+    draft_root = (output_dir / "drafts" / run_id).resolve()
+    require_path_under_directory(draft_root, output_root, "Draft root")
+    draft_files_dir = (draft_root / "files").resolve()
+    require_path_under_directory(draft_files_dir, output_root, "Draft files directory")
+    draft_files_dir.mkdir(parents=True, exist_ok=False)
+
+    change_plan_items = collect_change_plan_items(report)
+    items_by_target: dict[str, list[dict[str, Any]]] = {}
+    for item in change_plan_items:
+        target_file = inline_markdown(item.get("target_file", "unknown"))
+        items_by_target.setdefault(target_file, []).append(item)
+
+    drafts: list[dict[str, Any]] = []
+    for target_file in sorted(items_by_target):
+        source_path = (target_root / target_file).resolve()
+        try:
+            source_path.relative_to(target_root.resolve())
+        except ValueError as exc:
+            raise OrchestratorError(f"Cannot draft file outside target root: {target_file}") from exc
+        content = read_repo_file(target_root, assigned_tool_ids, target_file)
+        draft_path = draft_path_for_target(draft_files_dir, target_file)
+        draft_path.parent.mkdir(parents=True, exist_ok=True)
+        draft_items = items_by_target[target_file]
+        draft_path.write_text(
+            content + build_draft_notes(target_file, draft_items, report, report_path, change_plan_path),
+            encoding="utf-8",
+        )
+        drafts.append(
+            {
+                "target_file": target_file,
+                "source_path": str(source_path),
+                "draft_path": str(draft_path),
+                "change_plan_item_ids": [item["id"] for item in draft_items],
+                "change_plan_items": draft_items,
+                "report_path": str(report_path),
+                "change_plan_path": str(change_plan_path),
+            }
+        )
+
+    metadata_path = draft_root / "draft-metadata.json"
+    require_path_under_directory(metadata_path, output_root, "Draft metadata path")
+    metadata: dict[str, Any] = {
+        "schema_version": 1,
+        "kind": "documenter_draft_metadata",
+        "generated_at": utc_now(),
+        "target_root": str(target_root),
+        "output_dir": str(output_root),
+        "draft_root": str(draft_root),
+        "report_path": str(report_path),
+        "change_plan_path": str(change_plan_path),
+        "write_policy": {
+            "target_repo_read_only": True,
+            "drafts_under_output_dir_only": True,
+            "overwrite_target_files": False,
+        },
+        "draft_count": len(drafts),
+        "drafts": drafts,
+    }
+    metadata["metadata_path"] = str(metadata_path)
+    metadata_path.write_text(json.dumps(metadata, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+    index_path = write_draft_index(draft_root, metadata)
+    metadata["index_path"] = str(index_path)
+    metadata_path.write_text(json.dumps(metadata, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+    return {
+        "draft_root": str(draft_root),
+        "draft_index": str(index_path),
+        "draft_metadata": str(metadata_path),
+    }
 
 
 def extract_heading_preview(doc_id: str, lines: list[str], limit: int = 20) -> list[dict[str, Any]]:
@@ -1374,6 +1604,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--list-docs", action="store_true", help="List discovered docs in the target repo and exit.")
     parser.add_argument("--report", default=None, help="Existing JSON report to summarize with --mode summarize.")
     parser.add_argument("--summary-output", default=None, help="Markdown summary path. Defaults beside JSON report.")
+    parser.add_argument(
+        "--write-draft",
+        action="store_true",
+        help="Write draft artifact copies under the configured output directory. Requires --mode full.",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Write packets without calling the role endpoint.")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--max-output-tokens", type=int, default=1000)
@@ -1397,6 +1632,8 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
         raise OrchestratorError("--visible-candidate-limit cannot be negative.")
     if args.visible_candidate_token_limit < 0:
         raise OrchestratorError("--visible-candidate-token-limit cannot be negative.")
+    if args.write_draft and args.mode != "full":
+        raise OrchestratorError("--write-draft requires --mode full.")
 
     include_followups = bool(args.include_followups or args.followup_depth > 0)
     effective_followup_depth = args.followup_depth if args.followup_depth > 0 else (1 if include_followups else 0)
@@ -1647,6 +1884,17 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
             report["artifacts"]["doc_change_plan"] = str(change_plan_path)
             change_plan_path.write_text(build_doc_change_plan(report), encoding="utf-8")
             print(f"Wrote {change_plan_path}")
+            if args.write_draft:
+                draft_artifacts = write_draft_artifacts(
+                    output_dir,
+                    target_root,
+                    report,
+                    output_path,
+                    change_plan_path,
+                    assigned_tool_ids,
+                )
+                report["artifacts"].update(draft_artifacts)
+                print(f"Wrote {draft_artifacts['draft_root']}")
     output_path.write_text(json.dumps(report, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote {output_path}")
     if args.dry_run:
@@ -1683,6 +1931,8 @@ def run_summary(
 
 def main() -> int:
     args = parse_args()
+    if args.write_draft and args.mode != "full":
+        raise OrchestratorError("--write-draft requires --mode full.")
     config_root = Path(args.config_root).resolve() if args.config_root else SCRIPT_CONFIG_ROOT
     manifest = read_json(config_root / "runtime" / "roles.json")
     role = load_role(manifest, args.role_id)

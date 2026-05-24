@@ -176,6 +176,7 @@ In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` 
 - sends one bounded packet at a time to the documenter role endpoint
 - validates the returned JSON delta
 - writes a non-mutating documentation change plan from validated report fields
+- optionally writes draft artifact copies under the configured output directory
 - writes a local ignored report under `.agentic_reports/`
 
 Dry run without calling the model:
@@ -231,6 +232,16 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
   --allow-nonvisible-followups
 ```
 
+Write reversible draft artifacts without overwriting target files:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --write-draft
+```
+
+`--write-draft` writes under `.agentic_reports/drafts/<run-id>/` by default. Draft files are artifact copies with appended controller notes, and `draft-metadata.json` maps each draft file back to the source document, change-plan item IDs, JSON report, and change plan. The controller refuses draft file paths that escape the configured output directory.
+
 Summarize an existing JSON report:
 
 ```bash
@@ -246,7 +257,7 @@ python /path/to/vllm-agent-gateway/scripts/run_documenter_orchestrator.py \
   --doc README.md
 ```
 
-The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk. In `full` mode, the controller aggregates chunk deltas, writes the deterministic change plan locally, and sends only that aggregate back for the final Markdown summary. By default, reports are written under `.agentic_reports/` in the config root, not the target repo.
+The controller is stateful. The documenter role is packet-bound and should not choose files, maintain repo-wide manifests, or decide the next chunk. In `full` mode, the controller aggregates chunk deltas, writes the deterministic change plan locally, optionally writes draft artifacts, and sends only that aggregate back for the final Markdown summary. By default, reports and drafts are written under `.agentic_reports/` in the config root, not the target repo.
 
 ## Role Prompt Proxies
 
