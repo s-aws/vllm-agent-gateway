@@ -43,6 +43,8 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Reduction/query modes | Done | Deterministic streaming modes now include `token_count`, `coverage`, and `outline`. |
 | Structured model-assisted modes | Done | `extract_facts` and `classify` call a role endpoint chunk-by-chunk and controller-validate evidence refs before accepting source-backed records. |
 | Lossy summarization mode | Done | `summarize` recursively reduces chunk summaries with `summary_derived` labels, caveats, and separate source-verified support records. |
+| Code structure indexes | Planned | Build deterministic AST/symbol/reference indexes so code repos are indexed structurally instead of by naive recursive reading. |
+| Implementation workflow | Planned | Convert approved plans into bounded implementation packets, verification steps, and reversible draft/application controls. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Test Coverage Map
@@ -62,6 +64,8 @@ Implemented phases must have deterministic regression coverage unless the phase 
 | Phase 9: Deterministic Reduction Modes | Direct | `test_token_count_mode_reports_file_chunk_section_and_query_counts`, `test_coverage_mode_reports_range_accounting_and_partial_budget`, `test_outline_mode_extracts_headings_and_sections_with_source_ranges`, `test_deterministic_modes_resume_from_saved_streaming_state` | Covers mode schemas, budget behavior, source ranges, outline boundary handling, and resume for each deterministic mode. |
 | Phase 10: Structured Model-Assisted Modes | Direct | `test_extract_facts_mode_source_validates_model_records`, `test_classify_mode_validates_labels_risks_and_source_refs`, `test_model_assisted_modes_resume_from_saved_streaming_state`, `test_model_assisted_mode_requires_role_base_url`, `test_model_assisted_invalid_result_schema_records_failed_range`, `test_model_assisted_mode_registry_entries_declare_budget_and_source_refs` | Covers fake-endpoint model calls, strict top-level result fields, failed schema state, evidence validation, low-confidence downgrade, disallowed labels, invalid risk severity, required endpoint config, registry metadata, and resume. |
 | Phase 11: Lossy Summarization Mode | Direct | `test_summarize_mode_writes_lossy_summary_and_separate_source_records`, `test_summarize_mode_does_not_treat_unsupported_summary_as_evidence`, `test_summarize_mode_resume_and_final_merge`, `test_summarize_mode_registry_declares_lossy_summary_controls` | Covers explicit lossy mode, recursive fake-endpoint merge, `summary_derived` labels, caveats, source-verified support separation, unsupported summary downgrade, resume, and summary budget metadata. |
+| Phase 12: Code Structure Indexes | Not covered | None | Not implemented yet. Tests should prove deterministic AST/symbol/reference index output without vLLM. |
+| Phase 13: Implementation Workflow | Not covered | None | Not implemented yet. Tests should prove bounded implementation packets, read-only default behavior, verification capture, and reversible output/application policy. |
 
 ## Phase 1: Manifest-Backed Review Planning
 
@@ -305,18 +309,70 @@ Acceptance criteria:
 - The controller never silently switches to summarization. Done.
 - The report separates source-verified findings from summary-derived orientation. Done.
 
-## Future: Code Structure Indexes
+## Phase 12: Code Structure Indexes
 
 Status: Planned
 
-For code repositories, prefer AST or symbol indexes when structure is available instead of naive recursive reading.
+For code repositories, prefer deterministic structure indexes when structure is available instead of naive recursive reading or lossy summarization.
 
-Candidate extensions:
+Initial target:
 
 - Python AST/symbol index.
 - Markdown/reference link graph.
 - JSON/YAML key path index.
-- Language-specific adapters added only when tests and use cases justify them.
+
+Deliverables:
+
+- `code-structure-index-*.json` artifact with schema version, target root, selected files, parser versions, and per-file index status.
+- Python index records for modules, classes, functions, imports, decorators, docstrings, line ranges, and syntax errors.
+- Markdown link/reference graph records for headings, anchors, relative links, unresolved links, and inbound/outbound edges.
+- JSON/YAML key-path records for config files, including dotted paths, scalar previews, line ranges where available, and parse errors.
+- Controller selection policy that decides when to prefer a structure index over raw chunk review.
+- Packet fields that expose only the relevant index slice to a role, not the full index by default.
+- Tool dependency records for parsers/scanners used to build each index artifact.
+- Regression tests using small temp repos with valid files, syntax errors, unresolved links, and malformed config.
+
+Acceptance criteria:
+
+- Index generation is deterministic for the same repo state and arguments.
+- Parser failures are represented as indexed errors, not silent skips.
+- Every indexed symbol/reference/key path has a file path and line range when the parser can provide it.
+- Role packets can request bounded slices by symbol, file, reference edge, or key path.
+- Indexes remain read-only and do not execute target code.
+- The controller can fall back to existing document/chunk paths when no suitable structural index exists.
+
+## Phase 13: Implementation Workflow
+
+Status: Planned
+
+Add a controlled path from validated plans to bounded implementation work. This should not make the documenter an implementer; it should hand off approved, source-backed work packets to an implementation controller or role.
+
+Scope:
+
+- Documentation edits generated from approved change-plan items.
+- Code/config edits generated from explicit implementation packets.
+- Verification commands tied to the changed files and declared by controller policy.
+- Reversible drafts by default, with direct target mutation only behind an explicit apply option.
+
+Deliverables:
+
+- `implementation-plan-*.json` artifact derived from approved change-plan items or explicit user-approved work packets.
+- `implementation-state-*.json` artifact with queued packets, completed packets, failed packets, changed artifacts, verification results, and resume keys.
+- Bounded implementation packets with exact target files, allowed operations, relevant source refs, acceptance criteria, and max context budget.
+- Default draft mode that writes proposed changes under the configured output directory without mutating the target repo.
+- Explicit apply mode that refuses untracked or out-of-scope writes unless a future unsafe option is added deliberately.
+- Verification capture for command, working directory, timeout, exit code, stdout/stderr hashes or bounded excerpts, and associated changed files.
+- Rollback/review metadata that maps every draft or applied change back to packet ID, source refs, and verification result.
+- Regression tests with temp repos proving draft containment, packet bounds, resume behavior, verification capture, and refusal of out-of-scope writes.
+
+Acceptance criteria:
+
+- The default implementation workflow is read-only against the target repo.
+- No packet can edit files outside its explicit target set.
+- No implementation result can be marked complete without a recorded verification decision.
+- Failed verification is preserved in state and final artifacts.
+- Resume skips completed packets and refuses incompatible arguments by default.
+- Direct apply, when added, must be explicit, auditable, and reversible through generated metadata or VCS state.
 
 ## Drift Controls
 
@@ -355,4 +411,4 @@ Current artifacts:
 
 ## Immediate Next Step
 
-Define the next roadmap phase before implementation. Likely candidates are code structure indexes or deeper tool dependency provenance; keep this roadmap as the drift control point.
+Implement Phase 12 code structure indexes before Phase 13 implementation workflow. Structure indexes should give implementation packets precise symbol/reference/key-path context instead of broad file chunks.
