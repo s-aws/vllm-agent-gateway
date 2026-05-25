@@ -41,6 +41,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Tool mediation | Done | `tool_mediator.py` generates schemas, detects structured tool calls, executes local tools, injects results, and validates final responses. |
 | Streaming core | Done | `context_presence` proves bounded streaming reads, byte/line offsets, coverage accounting, source labels, and resumable state without vLLM. |
 | Reduction/query modes | Done | Deterministic streaming modes now include `token_count`, `coverage`, and `outline`; summarization remains a later explicit lossy mode. |
+| Structured model-assisted modes | Done | `extract_facts` and `classify` call a role endpoint chunk-by-chunk and controller-validate evidence refs before accepting source-backed records. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Test Coverage Map
@@ -58,7 +59,7 @@ Implemented phases must have deterministic regression coverage unless the phase 
 | Phase 7: Tool Mediation | Direct | `tests/regression/test_tool_mediator.py` | Covers schema generation, tool execution loop, raw tool-call-shaped text rejection, policy blocks, scan files, and test execution capability. |
 | Phase 8: Streaming Core And Context Presence Mode | Direct | `test_context_presence_*`, `test_in_memory_documenter_rejects_oversized_selected_doc_without_override` | Covers bounded reads, source refs, partial coverage, resume offsets, split query boundary, mode registry, and in-memory guard. |
 | Phase 9: Deterministic Reduction Modes | Direct | `test_token_count_mode_reports_file_chunk_section_and_query_counts`, `test_coverage_mode_reports_range_accounting_and_partial_budget`, `test_outline_mode_extracts_headings_and_sections_with_source_ranges`, `test_deterministic_modes_resume_from_saved_streaming_state` | Covers mode schemas, budget behavior, source ranges, outline boundary handling, and resume for each deterministic mode. |
-| Phase 10: Structured Model-Assisted Modes | Not covered | None | Not implemented yet. Tests should be added with fake endpoints before marking done. |
+| Phase 10: Structured Model-Assisted Modes | Direct | `test_extract_facts_mode_source_validates_model_records`, `test_classify_mode_validates_labels_risks_and_source_refs`, `test_model_assisted_modes_resume_from_saved_streaming_state`, `test_model_assisted_mode_requires_role_base_url`, `test_model_assisted_invalid_result_schema_records_failed_range`, `test_model_assisted_mode_registry_entries_declare_budget_and_source_refs` | Covers fake-endpoint model calls, strict top-level result fields, failed schema state, evidence validation, low-confidence downgrade, disallowed labels, invalid risk severity, required endpoint config, registry metadata, and resume. |
 | Phase 11: Lossy Summarization Mode | Not covered | None | Not implemented yet. Tests should prove summaries are explicit, caveated, and separated from source-verified evidence. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -258,27 +259,27 @@ Acceptance criteria:
 
 ## Phase 10: Structured Model-Assisted Modes
 
-Status: Planned
+Status: Done
 
 Add source-backed model-assisted modes after the streaming core and deterministic modes are stable.
 
 Modes:
 
-- `extract_facts`: structured facts, gaps, and evidence refs.
-- `classify`: classify chunks by relevance, type, or risk.
+- `extract_facts`: structured facts, gaps, and evidence refs. Done.
+- `classify`: classify chunks by relevance, type, or risk. Done.
 
 Deliverables:
 
-- Strict packet schemas per mode.
-- Strict result schemas per mode.
-- Controller validation for evidence refs and quality labels.
-- Fake-endpoint regression tests that do not require vLLM.
+- Strict packet schemas per mode. Done.
+- Strict result schemas per mode. Done.
+- Controller validation for evidence refs and quality labels. Done.
+- Fake-endpoint regression tests that do not require vLLM. Done.
 
 Acceptance criteria:
 
-- A model-assisted claim cannot be accepted without a valid source range.
-- Low-confidence or unsupported model output is labeled `insufficient_evidence`.
-- The controller, not the role prompt, enforces schema and evidence policy.
+- A model-assisted claim cannot be accepted without a valid source range. Done.
+- Low-confidence or unsupported model output is labeled `insufficient_evidence`. Done.
+- The controller, not the role prompt, enforces schema and evidence policy. Done.
 
 ## Phase 11: Lossy Summarization Mode
 
@@ -347,7 +348,9 @@ Current artifacts:
 - `streaming-token-count-*.json`: deterministic token estimate report with file, chunk, section, and optional query-match ranges.
 - `streaming-coverage-*.json`: deterministic coverage report with reviewed, skipped, summarized, and failed ranges.
 - `streaming-outline-*.json`: deterministic heading and section outline report.
+- `streaming-extract-facts-*.json`: model-assisted facts and gaps with source-validated evidence refs and validation warnings.
+- `streaming-classify-*.json`: model-assisted classifications, risks, class counts, source-validated evidence refs, and validation warnings.
 
 ## Immediate Next Step
 
-Implement Phase 10 structured model-assisted modes. Keep `extract_facts` and `classify` source-backed and schema-validated; do not add lossy summarization until Phase 11.
+Implement Phase 11 lossy summarization mode. Keep summarization explicit and source-caveated; do not let it satisfy evidence requirements unless backed by source-verified records.

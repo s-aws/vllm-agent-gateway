@@ -138,7 +138,7 @@ The normal documenter controller is intentionally an in-memory path for ordinary
 
 ## Streaming Documenter
 
-Use the streaming runner for oversized single-document inputs, literal source-presence checks, and deterministic reductions:
+Use the streaming runner for oversized single-document inputs, literal source-presence checks, deterministic reductions, and source-validated model-assisted reductions:
 
 ```bash
 python scripts/run_streaming_documenter.py --target-root . --doc README.md \
@@ -148,12 +148,20 @@ python scripts/run_streaming_documenter.py --target-root . --doc README.md \
 
 Implemented deterministic modes are `context_presence`, `token_count`, `coverage`, and `outline`. They do not call vLLM. They stream bounded byte chunks and return source-backed ranges plus coverage totals.
 
+Implemented model-assisted modes are `extract_facts` and `classify`. They call a role endpoint one chunk at a time, then the controller validates evidence refs before accepting any record as `source_verified`.
+
 Examples:
 
 ```bash
 python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode token_count
 python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode coverage
 python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode outline
+python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode extract_facts \
+  --role-base-url http://127.0.0.1:8205/v1
+python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode classify \
+  --role-base-url http://127.0.0.1:8205/v1 \
+  --classification-label installation \
+  --classification-label runtime
 ```
 
 Bound large runs explicitly:
@@ -164,7 +172,8 @@ python scripts/run_streaming_documenter.py --target-root /path/to/project --doc 
   --chunk-bytes 65536 \
   --read-block-bytes 8192 \
   --max-bytes 104857600 \
-  --max-chunks 1000
+  --max-chunks 1000 \
+  --max-model-records 1000
 ```
 
 Resume from streaming state:
@@ -175,7 +184,7 @@ python scripts/run_streaming_documenter.py --target-root /path/to/project --doc 
   --resume .agentic_reports/streaming-state-<target>-<doc>-<run-id>.json
 ```
 
-Streaming artifacts are written as `streaming-manifest-*.json`, `streaming-state-*.json`, and `streaming-<mode>-*.json`. See `docs/STREAMING_DOCUMENT_MODES.md`.
+Streaming artifacts are written as `streaming-manifest-*.json`, `streaming-state-*.json`, and `streaming-<mode>-*.json`. Model-assisted reports include `validation_warnings` whenever a record is low-confidence, unsupported, outside the chunk source range, or uses a disallowed classification label. See `docs/STREAMING_DOCUMENT_MODES.md`.
 
 Optional draft artifacts:
 

@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import pytest
 
@@ -64,6 +66,50 @@ def artifact_path(directory: Path, pattern: str) -> Path:
 def write_bytes(path: Path, data: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(data)
+
+
+class FakeEndpoint:
+    def __init__(self, response_for_packet: Callable[[dict[str, Any]], dict[str, Any]]):
+        self.response_for_packet = response_for_packet
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), self._handler_class())
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+
+    @property
+    def base_url(self) -> str:
+        host, port = self.server.server_address
+        return f"http://{host}:{port}/v1"
+
+    def __enter__(self) -> "FakeEndpoint":
+        self.thread.start()
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=5)
+
+    def _handler_class(self) -> type[BaseHTTPRequestHandler]:
+        response_for_packet = self.response_for_packet
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self) -> None:
+                length = int(self.headers.get("Content-Length", "0"))
+                request = json.loads(self.rfile.read(length).decode("utf-8"))
+                content = request["messages"][0]["content"]
+                packet = json.loads(content[content.find("{") :])
+                result = response_for_packet(packet)
+                response = {"choices": [{"message": {"content": json.dumps(result)}}]}
+                data = json.dumps(response).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+            def log_message(self, format: str, *args: object) -> None:
+                return
+
+        return Handler
 
 
 def make_large_doc_repo(tmp_path: Path, data: bytes) -> Path:
@@ -430,6 +476,325 @@ def test_all_deterministic_mode_registry_entries_declare_budget_and_source_refs(
         assert definition["requires_source_refs"] is True
         assert "byte_range" in definition["source_reference_requirements"]
         assert "max_bytes" in definition["budget_limits"]
+
+
+def test_extract_facts_mode_source_validates_model_records(tmp_path: Path) -> None:
+    data = (
+        b"# Install\n"
+        b"Install with Docker.\n"
+        b"Configuration is not documented here.\n"
+    )
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / "extract-facts"
+
+    def response_for_packet(packet: dict[str, Any]) -> dict[str, Any]:
+        chunk_text = packet["chunk"]
+        base_byte = packet["byte_range"][0]
+        install_start = base_byte + chunk_text.index("Install with Docker")
+        install_end = install_start + len("Install with Docker")
+        config_start = base_byte + chunk_text.index("Configuration")
+        config_end = config_start + len("Configuration")
+        valid_install_ref = {
+            "doc_id": packet["doc_id"],
+            "chunk_id": packet["chunk_id"],
+            "byte_range": [install_start, install_end],
+            "line_range": [2, 2],
+        }
+        valid_config_ref = {
+            "doc_id": packet["doc_id"],
+            "chunk_id": packet["chunk_id"],
+            "byte_range": [config_start, config_end],
+            "line_range": [3, 3],
+        }
+        invalid_ref = {
+            "doc_id": packet["doc_id"],
+            "chunk_id": packet["chunk_id"],
+            "byte_range": [packet["byte_range"][1] + 1, packet["byte_range"][1] + 10],
+            "line_range": [3, 3],
+        }
+        return {
+            "chunk_id": packet["chunk_id"],
+            "facts": [
+                {
+                    "text": "The document says to install with Docker.",
+                    "confidence": "medium",
+                    "evidence_refs": [valid_install_ref],
+                },
+                {
+                    "text": "Low-confidence installation wording exists.",
+                    "confidence": "low",
+                    "evidence_refs": [valid_install_ref],
+                },
+                {
+                    "text": "Unsupported invented fact.",
+                    "confidence": "high",
+                    "evidence_refs": [],
+                },
+            ],
+            "gaps": [
+                {
+                    "text": "Configuration details are called out as missing.",
+                    "confidence": "high",
+                    "evidence_refs": [valid_config_ref],
+                },
+                {
+                    "text": "Invalid evidence should not be accepted.",
+                    "confidence": "high",
+                    "evidence_refs": [invalid_ref],
+                },
+            ],
+        }
+
+    with FakeEndpoint(response_for_packet) as endpoint:
+        run_streaming(
+            "--target-root",
+            target,
+            "--doc",
+            "large.md",
+            "--mode",
+            "extract_facts",
+            "--role-base-url",
+            endpoint.base_url,
+            "--chunk-bytes",
+            "4096",
+            "--read-block-bytes",
+            "512",
+            "--output-dir",
+            output_dir,
+        )
+
+    report = load_one_json(output_dir, "streaming-extract-facts-*.json")
+    facts = report["extract_facts"]["facts"]
+    gaps = report["extract_facts"]["gaps"]
+
+    assert report["kind"] == "streaming_extract_facts_report"
+    assert report["quality_label"] == "source_verified"
+    assert facts[0]["quality_label"] == "source_verified"
+    assert facts[1]["quality_label"] == "insufficient_evidence"
+    assert facts[2]["quality_label"] == "insufficient_evidence"
+    assert gaps[0]["quality_label"] == "source_verified"
+    assert gaps[1]["quality_label"] == "insufficient_evidence"
+    assert any(warning["reason"] == "evidence_refs_empty" for warning in report["validation_warnings"])
+    assert any(warning["reason"] == "evidence_ref_byte_range_outside_chunk" for warning in report["validation_warnings"])
+
+
+def test_classify_mode_validates_labels_risks_and_source_refs(tmp_path: Path) -> None:
+    data = b"# Runtime\nRuntime ports are configured in runtime/roles.json.\n"
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / "classify"
+
+    def response_for_packet(packet: dict[str, Any]) -> dict[str, Any]:
+        chunk_text = packet["chunk"]
+        base_byte = packet["byte_range"][0]
+        runtime_start = base_byte + chunk_text.index("Runtime ports")
+        runtime_end = runtime_start + len("Runtime ports")
+        valid_ref = {
+            "doc_id": packet["doc_id"],
+            "chunk_id": packet["chunk_id"],
+            "byte_range": [runtime_start, runtime_end],
+            "line_range": [2, 2],
+        }
+        return {
+            "chunk_id": packet["chunk_id"],
+            "classifications": [
+                {
+                    "label": "runtime",
+                    "confidence": "high",
+                    "evidence_refs": [valid_ref],
+                },
+                {
+                    "label": "made_up",
+                    "confidence": "high",
+                    "evidence_refs": [valid_ref],
+                },
+            ],
+            "risks": [
+                {
+                    "label": "Runtime settings may be stale.",
+                    "severity": "medium",
+                    "confidence": "medium",
+                    "evidence_refs": [valid_ref],
+                },
+                {
+                    "label": "Bad severity should be downgraded.",
+                    "severity": "critical",
+                    "confidence": "high",
+                    "evidence_refs": [valid_ref],
+                },
+            ],
+        }
+
+    with FakeEndpoint(response_for_packet) as endpoint:
+        run_streaming(
+            "--target-root",
+            target,
+            "--doc",
+            "large.md",
+            "--mode",
+            "classify",
+            "--role-base-url",
+            endpoint.base_url,
+            "--classification-label",
+            "installation",
+            "--classification-label",
+            "runtime",
+            "--chunk-bytes",
+            "4096",
+            "--read-block-bytes",
+            "512",
+            "--output-dir",
+            output_dir,
+        )
+
+    report = load_one_json(output_dir, "streaming-classify-*.json")
+    classifications = report["classify"]["classifications"]
+    risks = report["classify"]["risks"]
+
+    assert report["kind"] == "streaming_classify_report"
+    assert report["quality_label"] == "source_verified"
+    assert report["classify"]["allowed_labels"] == ["installation", "runtime"]
+    assert report["classify"]["class_counts"] == {"runtime": 1}
+    assert classifications[0]["quality_label"] == "source_verified"
+    assert classifications[1]["quality_label"] == "insufficient_evidence"
+    assert risks[0]["quality_label"] == "source_verified"
+    assert risks[1]["quality_label"] == "insufficient_evidence"
+    assert any(warning["reason"] == "label_not_allowed" for warning in report["validation_warnings"])
+    assert any(warning["reason"] == "invalid_severity" for warning in report["validation_warnings"])
+
+
+@pytest.mark.parametrize("mode", ["extract_facts", "classify"])
+def test_model_assisted_modes_resume_from_saved_streaming_state(tmp_path: Path, mode: str) -> None:
+    data = b"# First\nfirst chunk content\n# Second\nsecond chunk content\n"
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / f"{mode}-resume"
+
+    def response_for_packet(packet: dict[str, Any]) -> dict[str, Any]:
+        ref = {
+            "doc_id": packet["doc_id"],
+            "chunk_id": packet["chunk_id"],
+            "byte_range": [packet["byte_range"][0], min(packet["byte_range"][0] + 1, packet["byte_range"][1])],
+            "line_range": [packet["line_range"][0], packet["line_range"][0]],
+        }
+        if mode == "extract_facts":
+            return {
+                "chunk_id": packet["chunk_id"],
+                "facts": [{"text": f"Fact {packet['chunk_index']}", "confidence": "medium", "evidence_refs": [ref]}],
+                "gaps": [],
+            }
+        return {
+            "chunk_id": packet["chunk_id"],
+            "classifications": [{"label": "runtime", "confidence": "medium", "evidence_refs": [ref]}],
+            "risks": [],
+        }
+
+    with FakeEndpoint(response_for_packet) as endpoint:
+        base_args: list[object] = [
+            "--target-root",
+            target,
+            "--doc",
+            "large.md",
+            "--mode",
+            mode,
+            "--role-base-url",
+            endpoint.base_url,
+            "--classification-label",
+            "runtime",
+            "--chunk-bytes",
+            "24",
+            "--read-block-bytes",
+            "8",
+        ]
+
+        run_streaming(
+            *base_args,
+            "--stop-after-chunks",
+            "1",
+            "--output-dir",
+            output_dir,
+        )
+        state_path = artifact_path(output_dir, "streaming-state-*.json")
+        paused_state = json.loads(state_path.read_text(encoding="utf-8"))
+
+        assert paused_state["status"] == "paused"
+        assert paused_state["next_start_byte"] > 0
+
+        run_streaming(
+            *base_args,
+            "--resume",
+            state_path,
+            "--output-dir",
+            output_dir,
+        )
+
+    completed_state = json.loads(state_path.read_text(encoding="utf-8"))
+    report = load_one_json(output_dir, f"streaming-{mode.replace('_', '-')}*.json")
+    assert completed_state["status"] == "completed"
+    assert report["coverage"]["review_complete"] is True
+    assert report["quality_label"] == "source_verified"
+
+
+def test_model_assisted_mode_requires_role_base_url(tmp_path: Path) -> None:
+    target = make_large_doc_repo(tmp_path, b"# Missing Endpoint\n")
+
+    result = run_streaming(
+        "--target-root",
+        target,
+        "--doc",
+        "large.md",
+        "--mode",
+        "extract_facts",
+        "--output-dir",
+        tmp_path / "missing-endpoint",
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "--role-base-url is required for extract_facts" in result.stderr
+
+
+def test_model_assisted_invalid_result_schema_records_failed_range(tmp_path: Path) -> None:
+    target = make_large_doc_repo(tmp_path, b"# Bad Schema\ncontent\n")
+    output_dir = tmp_path / "bad-schema"
+
+    def response_for_packet(packet: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "chunk_id": packet["chunk_id"],
+            "facts": [],
+        }
+
+    with FakeEndpoint(response_for_packet) as endpoint:
+        result = run_streaming(
+            "--target-root",
+            target,
+            "--doc",
+            "large.md",
+            "--mode",
+            "extract_facts",
+            "--role-base-url",
+            endpoint.base_url,
+            "--output-dir",
+            output_dir,
+            check=False,
+        )
+
+    state_path = artifact_path(output_dir, "streaming-state-*.json")
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+
+    assert result.returncode != 0
+    assert "field 'gaps' must be a list" in result.stderr
+    assert state["status"] == "failed"
+    assert state["failed_chunks"] == 1
+    assert state["failed_ranges"][0]["quality_label"] == "insufficient_evidence"
+
+
+def test_model_assisted_mode_registry_entries_declare_budget_and_source_refs() -> None:
+    for mode in ("extract_facts", "classify"):
+        definition = MODE_REGISTRY[mode]
+        assert definition["lossy"] is False
+        assert definition["requires_source_refs"] is True
+        assert definition["model_assisted"] is True
+        assert "byte_range" in definition["source_reference_requirements"]
+        assert "max_model_records" in definition["budget_limits"]
 
 
 def test_in_memory_documenter_rejects_oversized_selected_doc_without_override(tmp_path: Path) -> None:

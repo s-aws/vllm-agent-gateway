@@ -3,13 +3,16 @@
 
 from __future__ import annotations
 
+import http.client
 import json
+import os
 import re
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
+from urllib.parse import urlsplit
 
 
 STREAMING_SCHEMA_VERSION = 1
@@ -18,7 +21,22 @@ DEFAULT_READ_BLOCK_BYTES = 8 * 1024
 DEFAULT_HEADING_SAMPLE_BYTES = 64 * 1024
 DEFAULT_MAX_QUERY_MATCHES = 1000
 DEFAULT_MAX_OUTLINE_ENTRIES = 2000
+DEFAULT_MAX_MODEL_RECORDS = 1000
+DEFAULT_MODEL_OUTPUT_TOKENS = 2000
+DEFAULT_CLASSIFICATION_LABELS = (
+    "overview",
+    "installation",
+    "configuration",
+    "runtime",
+    "risk",
+    "reference",
+    "other",
+)
+VALID_CONFIDENCE_LABELS = {"low", "medium", "high"}
+SOURCE_VERIFIED_CONFIDENCE = {"medium", "high"}
 DETERMINISTIC_MODES = {"context_presence", "coverage", "outline", "token_count"}
+MODEL_ASSISTED_MODES = {"classify", "extract_facts"}
+STREAMING_MODES = DETERMINISTIC_MODES | MODEL_ASSISTED_MODES
 MODE_REGISTRY: dict[str, dict[str, Any]] = {
     "context_presence": {
         "input_type": "text",
@@ -113,6 +131,67 @@ MODE_REGISTRY: dict[str, dict[str, Any]] = {
             "max_outline_entries",
             "max_query_matches",
         ],
+    },
+    "extract_facts": {
+        "input_type": "text",
+        "chunking_strategy": "byte_stream",
+        "output_schema": {
+            "facts": [
+                {
+                    "text": "string",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": ["source reference object"],
+                    "quality_label": "source_verified|insufficient_evidence",
+                }
+            ],
+            "gaps": [
+                {
+                    "text": "string",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": ["source reference object"],
+                    "quality_label": "source_verified|insufficient_evidence",
+                }
+            ],
+            "quality_label": "source_verified|insufficient_evidence",
+        },
+        "lossy": False,
+        "requires_source_refs": True,
+        "source_reference_requirements": ["doc_id", "chunk_id", "byte_range", "line_range"],
+        "aggregation": "source_validated_fact_and_gap_lists",
+        "budget_limits": ["max_bytes", "max_chunks", "max_elapsed_seconds", "max_model_records"],
+        "budget_controls": ["max_bytes", "max_chunks", "max_elapsed_seconds", "max_model_records"],
+        "model_assisted": True,
+    },
+    "classify": {
+        "input_type": "text",
+        "chunking_strategy": "byte_stream",
+        "output_schema": {
+            "classifications": [
+                {
+                    "label": "allowed classification label",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": ["source reference object"],
+                    "quality_label": "source_verified|insufficient_evidence",
+                }
+            ],
+            "risks": [
+                {
+                    "label": "string",
+                    "severity": "low|medium|high",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": ["source reference object"],
+                    "quality_label": "source_verified|insufficient_evidence",
+                }
+            ],
+            "quality_label": "source_verified|insufficient_evidence",
+        },
+        "lossy": False,
+        "requires_source_refs": True,
+        "source_reference_requirements": ["doc_id", "chunk_id", "byte_range", "line_range"],
+        "aggregation": "source_validated_classification_and_risk_lists",
+        "budget_limits": ["max_bytes", "max_chunks", "max_elapsed_seconds", "max_model_records"],
+        "budget_controls": ["max_bytes", "max_chunks", "max_elapsed_seconds", "max_model_records"],
+        "model_assisted": True,
     },
 }
 IGNORED_STREAMING_SCAN_DIRS = {
@@ -486,6 +565,485 @@ def context_presence_matches(chunk: StreamingChunk, query: str) -> list[dict[str
     return matches
 
 
+def build_model_packet(mode: str, chunk: StreamingChunk, classification_labels: list[str]) -> dict[str, Any]:
+    if mode == "extract_facts":
+        required_output: dict[str, Any] = {
+            "chunk_id": chunk.chunk_id,
+            "facts": [
+                {
+                    "text": "source-backed fact string",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": [
+                        {
+                            "doc_id": chunk.doc_id,
+                            "chunk_id": chunk.chunk_id,
+                            "byte_range": [chunk.start_byte, chunk.end_byte],
+                            "line_range": [chunk.start_line, chunk.end_line],
+                        }
+                    ],
+                }
+            ],
+            "gaps": [
+                {
+                    "text": "documentation gap string",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": [
+                        {
+                            "doc_id": chunk.doc_id,
+                            "chunk_id": chunk.chunk_id,
+                            "byte_range": [chunk.start_byte, chunk.end_byte],
+                            "line_range": [chunk.start_line, chunk.end_line],
+                        }
+                    ],
+                }
+            ],
+        }
+        task = "extract_source_backed_facts_and_gaps"
+    elif mode == "classify":
+        required_output = {
+            "chunk_id": chunk.chunk_id,
+            "classifications": [
+                {
+                    "label": classification_labels[0] if classification_labels else "other",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": [
+                        {
+                            "doc_id": chunk.doc_id,
+                            "chunk_id": chunk.chunk_id,
+                            "byte_range": [chunk.start_byte, chunk.end_byte],
+                            "line_range": [chunk.start_line, chunk.end_line],
+                        }
+                    ],
+                }
+            ],
+            "risks": [
+                {
+                    "label": "risk label string",
+                    "severity": "low|medium|high",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": [
+                        {
+                            "doc_id": chunk.doc_id,
+                            "chunk_id": chunk.chunk_id,
+                            "byte_range": [chunk.start_byte, chunk.end_byte],
+                            "line_range": [chunk.start_line, chunk.end_line],
+                        }
+                    ],
+                }
+            ],
+        }
+        task = "classify_chunk_with_source_backed_evidence"
+    else:
+        raise StreamingDocumenterError(f"Unsupported model-assisted streaming mode: {mode}")
+
+    return {
+        "schema_version": STREAMING_SCHEMA_VERSION,
+        "role": "documenter",
+        "mode": mode,
+        "task": task,
+        "doc_id": chunk.doc_id,
+        "chunk_id": chunk.chunk_id,
+        "chunk_index": chunk.chunk_index,
+        "byte_range": [chunk.start_byte, chunk.end_byte],
+        "line_range": [chunk.start_line, chunk.end_line],
+        "classification_labels": classification_labels if mode == "classify" else [],
+        "quality_policy": {
+            "valid_evidence_required": True,
+            "source_verified_confidence": sorted(SOURCE_VERIFIED_CONFIDENCE),
+            "low_confidence_label": "insufficient_evidence",
+            "evidence_ref_must_be_inside_chunk": True,
+        },
+        "required_output": required_output,
+        "chunk": chunk.data.decode("utf-8", errors="replace"),
+    }
+
+
+def model_packet_prompt(packet: dict[str, Any]) -> str:
+    return (
+        "Process exactly one streaming documenter packet. "
+        "Use only the packet content. Return exactly one JSON object matching required_output. "
+        "Every claim must include evidence_refs using absolute doc byte_range and line_range inside this chunk. "
+        "Do not return markdown, prose, or raw tool calls.\n\n"
+        f"{json.dumps(packet, ensure_ascii=True, indent=2)}"
+    )
+
+
+def post_json(base_url: str, route: str, payload: dict[str, Any], timeout: int) -> tuple[int, str]:
+    target = urlsplit(base_url.rstrip("/"))
+    if target.scheme not in {"http", "https"} or not target.hostname:
+        raise StreamingDocumenterError(f"Invalid role base URL: {base_url}")
+    connection_cls = http.client.HTTPSConnection if target.scheme == "https" else http.client.HTTPConnection
+    port = target.port or (443 if target.scheme == "https" else 80)
+    base_path = target.path.rstrip("/")
+    request_path = f"{base_path}/{route.lstrip('/')}"
+    body = json.dumps(payload, ensure_ascii=True, separators=(",", ":")).encode("utf-8")
+    headers = {
+        "Authorization": f"Bearer {os.environ.get('AGENTIC_GATEWAY_API_KEY', 'dummy')}",
+        "Content-Type": "application/json",
+        "Content-Length": str(len(body)),
+    }
+    connection = connection_cls(target.hostname, port, timeout=timeout)
+    try:
+        connection.request("POST", request_path, body=body, headers=headers)
+        response = connection.getresponse()
+        response_body = response.read().decode("utf-8", errors="replace")
+        return response.status, response_body
+    except OSError as exc:
+        raise StreamingDocumenterError(
+            f"HTTP request to {base_url.rstrip('/')}/{route.lstrip('/')} failed: {exc}"
+        ) from exc
+    finally:
+        connection.close()
+
+
+def parse_model_json_content(content: str) -> dict[str, Any]:
+    text = content.strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+    if not text.startswith("{"):
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            text = text[start : end + 1]
+    try:
+        value = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise StreamingDocumenterError(f"Model-assisted mode returned invalid JSON: {exc}") from exc
+    if not isinstance(value, dict):
+        raise StreamingDocumenterError("Model-assisted mode result must be a JSON object.")
+    return value
+
+
+def call_model_assisted_chunk(
+    role_base_url: str,
+    model: str,
+    packet: dict[str, Any],
+    max_output_tokens: int,
+    timeout: int,
+) -> dict[str, Any]:
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": model_packet_prompt(packet),
+            }
+        ],
+        "temperature": 0,
+        "max_tokens": max_output_tokens,
+    }
+    status, body = post_json(role_base_url, "/chat/completions", payload, timeout)
+    if status >= 400:
+        raise StreamingDocumenterError(f"Model-assisted request failed with HTTP {status}: {body[:1000]}")
+    try:
+        response = json.loads(body)
+        content = response["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+        raise StreamingDocumenterError(f"Unexpected model-assisted response shape: {body[:1000]}") from exc
+    if not isinstance(content, str):
+        raise StreamingDocumenterError("Model-assisted response content was not a string.")
+    return parse_model_json_content(content)
+
+
+def compact_warning_value(value: Any, limit: int = 160) -> str:
+    try:
+        text = json.dumps(value, ensure_ascii=True, sort_keys=True)
+    except TypeError:
+        text = str(value)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:limit]
+
+
+def append_validation_warning(
+    state: dict[str, Any],
+    mode: str,
+    chunk: StreamingChunk,
+    field: str,
+    reason: str,
+    index: int | None = None,
+    value: Any = None,
+) -> None:
+    warnings = state_list(state, "validation_warnings")
+    warning: dict[str, Any] = {
+        "mode": mode,
+        "doc_id": chunk.doc_id,
+        "chunk_id": chunk.chunk_id,
+        "chunk_index": chunk.chunk_index,
+        "field": field,
+        "reason": reason,
+    }
+    if index is not None:
+        warning["index"] = index
+    if value is not None:
+        warning["value"] = compact_warning_value(value)
+    warnings.append(warning)
+
+
+def parse_int_pair(value: Any) -> list[int] | None:
+    if not isinstance(value, list) or len(value) != 2:
+        return None
+    if not isinstance(value[0], int) or not isinstance(value[1], int):
+        return None
+    return [value[0], value[1]]
+
+
+def validate_evidence_refs(
+    state: dict[str, Any],
+    mode: str,
+    chunk: StreamingChunk,
+    field: str,
+    index: int,
+    raw_refs: Any,
+) -> list[dict[str, Any]]:
+    if not isinstance(raw_refs, list):
+        append_validation_warning(state, mode, chunk, field, "evidence_refs_not_list", index, raw_refs)
+        return []
+    if not raw_refs:
+        append_validation_warning(state, mode, chunk, field, "evidence_refs_empty", index, raw_refs)
+        return []
+
+    valid_refs: list[dict[str, Any]] = []
+    for ref_index, raw_ref in enumerate(raw_refs):
+        warning_index = index if len(raw_refs) == 1 else ref_index
+        if not isinstance(raw_ref, dict):
+            append_validation_warning(state, mode, chunk, field, "evidence_ref_not_object", warning_index, raw_ref)
+            continue
+        if raw_ref.get("doc_id") != chunk.doc_id or raw_ref.get("chunk_id") != chunk.chunk_id:
+            append_validation_warning(
+                state,
+                mode,
+                chunk,
+                field,
+                "evidence_ref_wrong_source",
+                warning_index,
+                {"doc_id": raw_ref.get("doc_id"), "chunk_id": raw_ref.get("chunk_id")},
+            )
+            continue
+        byte_range = parse_int_pair(raw_ref.get("byte_range"))
+        line_range = parse_int_pair(raw_ref.get("line_range"))
+        if byte_range is None or line_range is None:
+            append_validation_warning(state, mode, chunk, field, "evidence_ref_invalid_range_shape", warning_index, raw_ref)
+            continue
+        byte_start, byte_end = byte_range
+        line_start, line_end = line_range
+        if byte_start < chunk.start_byte or byte_end > chunk.end_byte or byte_start >= byte_end:
+            append_validation_warning(state, mode, chunk, field, "evidence_ref_byte_range_outside_chunk", warning_index, raw_ref)
+            continue
+        if line_start < chunk.start_line or line_end > chunk.end_line or line_start > line_end:
+            append_validation_warning(state, mode, chunk, field, "evidence_ref_line_range_outside_chunk", warning_index, raw_ref)
+            continue
+        valid_refs.append(
+            {
+                "doc_id": chunk.doc_id,
+                "chunk_id": chunk.chunk_id,
+                "byte_range": byte_range,
+                "line_range": line_range,
+            }
+        )
+    return valid_refs
+
+
+def normalize_confidence(
+    state: dict[str, Any],
+    mode: str,
+    chunk: StreamingChunk,
+    field: str,
+    index: int,
+    raw_value: Any,
+) -> str:
+    if isinstance(raw_value, str) and raw_value in VALID_CONFIDENCE_LABELS:
+        return raw_value
+    append_validation_warning(state, mode, chunk, field, "invalid_confidence", index, raw_value)
+    return "low"
+
+
+def record_quality_label(confidence: str, evidence_refs: list[dict[str, Any]], blocked: bool = False) -> str:
+    if blocked:
+        return "insufficient_evidence"
+    if confidence in SOURCE_VERIFIED_CONFIDENCE and evidence_refs:
+        return "source_verified"
+    return "insufficient_evidence"
+
+
+def validate_result_shape(mode: str, result: dict[str, Any], expected_chunk_id: str) -> None:
+    if result.get("chunk_id") != expected_chunk_id:
+        raise StreamingDocumenterError(
+            f"Model-assisted result chunk_id mismatch: expected {expected_chunk_id!r}, got {result.get('chunk_id')!r}"
+        )
+    required_lists = {
+        "extract_facts": ("facts", "gaps"),
+        "classify": ("classifications", "risks"),
+    }.get(mode)
+    if required_lists is None:
+        raise StreamingDocumenterError(f"Unsupported model-assisted streaming mode: {mode}")
+    for field in required_lists:
+        if not isinstance(result.get(field), list):
+            raise StreamingDocumenterError(f"Model-assisted result field {field!r} must be a list.")
+
+
+def add_limited_records(
+    records: list[dict[str, Any]],
+    section: dict[str, Any],
+    field: str,
+    count_fields: tuple[str, ...],
+    max_model_records: int,
+) -> None:
+    existing = sum(len(section.get(name, [])) for name in count_fields if isinstance(section.get(name), list))
+    room = max(0, max_model_records - existing)
+    target = section.setdefault(field, [])
+    if not isinstance(target, list):
+        raise StreamingDocumenterError(f"Streaming state {field} must be a list.")
+    target.extend(records[:room])
+    section["records_omitted"] = int(section.get("records_omitted", 0) or 0) + max(0, len(records) - room)
+
+
+def normalize_fact_records(
+    state: dict[str, Any],
+    mode: str,
+    chunk: StreamingChunk,
+    field: str,
+    raw_records: list[Any],
+) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    for index, raw_record in enumerate(raw_records):
+        if not isinstance(raw_record, dict):
+            append_validation_warning(state, mode, chunk, field, "record_not_object", index, raw_record)
+            continue
+        text = raw_record.get("text")
+        if not isinstance(text, str) or not text.strip():
+            append_validation_warning(state, mode, chunk, field, "missing_text", index, raw_record)
+            continue
+        confidence = normalize_confidence(state, mode, chunk, field, index, raw_record.get("confidence"))
+        evidence_refs = validate_evidence_refs(state, mode, chunk, field, index, raw_record.get("evidence_refs"))
+        normalized.append(
+            {
+                "doc_id": chunk.doc_id,
+                "chunk_id": chunk.chunk_id,
+                "chunk_index": chunk.chunk_index,
+                "text": text.strip(),
+                "confidence": confidence,
+                "evidence_refs": evidence_refs,
+                "quality_label": record_quality_label(confidence, evidence_refs),
+            }
+        )
+    return normalized
+
+
+def normalize_classification_records(
+    state: dict[str, Any],
+    mode: str,
+    chunk: StreamingChunk,
+    raw_records: list[Any],
+    allowed_labels: set[str],
+) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    for index, raw_record in enumerate(raw_records):
+        if not isinstance(raw_record, dict):
+            append_validation_warning(state, mode, chunk, "classifications", "record_not_object", index, raw_record)
+            continue
+        label = raw_record.get("label")
+        if not isinstance(label, str) or not label.strip():
+            append_validation_warning(state, mode, chunk, "classifications", "missing_label", index, raw_record)
+            continue
+        label = label.strip()
+        invalid_label = label not in allowed_labels
+        if invalid_label:
+            append_validation_warning(state, mode, chunk, "classifications", "label_not_allowed", index, label)
+        confidence = normalize_confidence(state, mode, chunk, "classifications", index, raw_record.get("confidence"))
+        evidence_refs = validate_evidence_refs(
+            state,
+            mode,
+            chunk,
+            "classifications",
+            index,
+            raw_record.get("evidence_refs"),
+        )
+        normalized.append(
+            {
+                "doc_id": chunk.doc_id,
+                "chunk_id": chunk.chunk_id,
+                "chunk_index": chunk.chunk_index,
+                "label": label,
+                "confidence": confidence,
+                "evidence_refs": evidence_refs,
+                "quality_label": record_quality_label(confidence, evidence_refs, blocked=invalid_label),
+            }
+        )
+    return normalized
+
+
+def normalize_risk_records(
+    state: dict[str, Any],
+    mode: str,
+    chunk: StreamingChunk,
+    raw_records: list[Any],
+) -> list[dict[str, Any]]:
+    normalized: list[dict[str, Any]] = []
+    for index, raw_record in enumerate(raw_records):
+        if not isinstance(raw_record, dict):
+            append_validation_warning(state, mode, chunk, "risks", "record_not_object", index, raw_record)
+            continue
+        label = raw_record.get("label")
+        if not isinstance(label, str) or not label.strip():
+            append_validation_warning(state, mode, chunk, "risks", "missing_label", index, raw_record)
+            continue
+        severity = raw_record.get("severity")
+        invalid_severity = not isinstance(severity, str) or severity not in VALID_CONFIDENCE_LABELS
+        if invalid_severity:
+            append_validation_warning(state, mode, chunk, "risks", "invalid_severity", index, severity)
+            severity = "low"
+        confidence = normalize_confidence(state, mode, chunk, "risks", index, raw_record.get("confidence"))
+        evidence_refs = validate_evidence_refs(state, mode, chunk, "risks", index, raw_record.get("evidence_refs"))
+        normalized.append(
+            {
+                "doc_id": chunk.doc_id,
+                "chunk_id": chunk.chunk_id,
+                "chunk_index": chunk.chunk_index,
+                "label": label.strip(),
+                "severity": severity,
+                "confidence": confidence,
+                "evidence_refs": evidence_refs,
+                "quality_label": record_quality_label(confidence, evidence_refs, blocked=invalid_severity),
+            }
+        )
+    return normalized
+
+
+def add_model_assisted_result(
+    state: dict[str, Any],
+    mode: str,
+    chunk: StreamingChunk,
+    result: dict[str, Any],
+    classification_labels: list[str],
+    max_model_records: int,
+) -> None:
+    validate_result_shape(mode, result, chunk.chunk_id)
+    if mode == "extract_facts":
+        section = state.setdefault("extract_facts", initial_extract_facts_state())
+        if not isinstance(section, dict):
+            raise StreamingDocumenterError("Streaming state extract_facts must be an object.")
+        facts = normalize_fact_records(state, mode, chunk, "facts", result["facts"])
+        gaps = normalize_fact_records(state, mode, chunk, "gaps", result["gaps"])
+        add_limited_records(facts, section, "facts", ("facts", "gaps"), max_model_records)
+        add_limited_records(gaps, section, "gaps", ("facts", "gaps"), max_model_records)
+        return
+
+    section = state.setdefault("classify", initial_classify_state(classification_labels))
+    if not isinstance(section, dict):
+        raise StreamingDocumenterError("Streaming state classify must be an object.")
+    section["allowed_labels"] = classification_labels
+    allowed_labels = set(classification_labels)
+    classifications = normalize_classification_records(state, mode, chunk, result["classifications"], allowed_labels)
+    risks = normalize_risk_records(state, mode, chunk, result["risks"])
+    add_limited_records(classifications, section, "classifications", ("classifications", "risks"), max_model_records)
+    add_limited_records(risks, section, "risks", ("classifications", "risks"), max_model_records)
+
+
 def initial_token_count_state() -> dict[str, Any]:
     return {
         "estimate_method": "utf8_character_count_div_4_rounded_up",
@@ -497,6 +1055,24 @@ def initial_token_count_state() -> dict[str, Any]:
         "chunks": [],
         "query_matches": [],
         "query_matches_omitted": 0,
+    }
+
+
+def initial_extract_facts_state() -> dict[str, Any]:
+    return {
+        "facts": [],
+        "gaps": [],
+        "records_omitted": 0,
+    }
+
+
+def initial_classify_state(classification_labels: list[str] | tuple[str, ...] | None = None) -> dict[str, Any]:
+    labels = list(classification_labels or DEFAULT_CLASSIFICATION_LABELS)
+    return {
+        "allowed_labels": labels,
+        "classifications": [],
+        "risks": [],
+        "records_omitted": 0,
     }
 
 
@@ -536,6 +1112,10 @@ def initial_streaming_state(
             "headings_omitted": 0,
         },
         "token_count": initial_token_count_state(),
+        "extract_facts": initial_extract_facts_state(),
+        "classify": initial_classify_state(),
+        "validation_warnings": [],
+        "failed_ranges": [],
         "quality_label": "insufficient_evidence",
         "coverage": {},
     }
@@ -576,6 +1156,8 @@ def coverage_from_state(
     next_start_line = int(state.get("next_start_line", 1))
     raw_chunk_ranges = state.get("chunk_ranges", [])
     chunk_ranges = raw_chunk_ranges if isinstance(raw_chunk_ranges, list) else []
+    raw_failed_ranges = state.get("failed_ranges", [])
+    failed_ranges = raw_failed_ranges if isinstance(raw_failed_ranges, list) else []
     reviewed_ranges = []
     if reviewed_bytes > 0:
         reviewed_ranges.append(
@@ -607,7 +1189,7 @@ def coverage_from_state(
         "reviewed_chunk_ranges": chunk_ranges,
         "skipped_ranges": skipped_ranges,
         "summarized_ranges": [],
-        "failed_ranges": [],
+        "failed_ranges": failed_ranges,
         "review_complete": reviewed_bytes >= file_size,
         "stop_reason": stop_reason,
         "max_read_block_bytes": max_read_block_bytes,
@@ -620,6 +1202,28 @@ def mode_quality_label(state: dict[str, Any], mode: str, coverage: dict[str, Any
     if mode == "context_presence":
         matches = state.get("matches", [])
         return "source_verified" if isinstance(matches, list) and matches else "insufficient_evidence"
+    if mode == "extract_facts":
+        section = state.get("extract_facts", {})
+        if isinstance(section, dict):
+            records = []
+            for field in ("facts", "gaps"):
+                values = section.get(field, [])
+                if isinstance(values, list):
+                    records.extend(values)
+            if any(isinstance(record, dict) and record.get("quality_label") == "source_verified" for record in records):
+                return "source_verified"
+        return "insufficient_evidence"
+    if mode == "classify":
+        section = state.get("classify", {})
+        if isinstance(section, dict):
+            records = []
+            for field in ("classifications", "risks"):
+                values = section.get(field, [])
+                if isinstance(values, list):
+                    records.extend(values)
+            if any(isinstance(record, dict) and record.get("quality_label") == "source_verified" for record in records):
+                return "source_verified"
+        return "insufficient_evidence"
     if mode == "outline":
         outline = state.get("outline", {})
         headings = outline.get("headings", []) if isinstance(outline, dict) else []
@@ -899,6 +1503,9 @@ def build_streaming_report(
         "coverage": coverage,
         "manifest": manifest,
         "artifacts": state.get("artifacts", {}),
+        "validation_warnings": state.get("validation_warnings", [])
+        if isinstance(state.get("validation_warnings"), list)
+        else [],
     }
     if mode == "context_presence":
         matches = state.get("matches", [])
@@ -937,6 +1544,38 @@ def build_streaming_report(
             "query_matches_omitted": int(token_count.get("query_matches_omitted", 0) or 0),
             "section_source": "outline_headings",
         }
+    elif mode == "extract_facts":
+        section = state.get("extract_facts", initial_extract_facts_state())
+        if not isinstance(section, dict):
+            section = initial_extract_facts_state()
+        report["extract_facts"] = {
+            "facts": section.get("facts", []) if isinstance(section.get("facts"), list) else [],
+            "gaps": section.get("gaps", []) if isinstance(section.get("gaps"), list) else [],
+            "records_omitted": int(section.get("records_omitted", 0) or 0),
+        }
+    elif mode == "classify":
+        section = state.get("classify", initial_classify_state())
+        if not isinstance(section, dict):
+            section = initial_classify_state()
+        classifications = (
+            section.get("classifications", []) if isinstance(section.get("classifications"), list) else []
+        )
+        class_counts: dict[str, int] = {}
+        for record in classifications:
+            if not isinstance(record, dict) or record.get("quality_label") != "source_verified":
+                continue
+            label = record.get("label")
+            if isinstance(label, str):
+                class_counts[label] = class_counts.get(label, 0) + 1
+        report["classify"] = {
+            "allowed_labels": section.get("allowed_labels", [])
+            if isinstance(section.get("allowed_labels"), list)
+            else [],
+            "classifications": classifications,
+            "risks": section.get("risks", []) if isinstance(section.get("risks"), list) else [],
+            "class_counts": class_counts,
+            "records_omitted": int(section.get("records_omitted", 0) or 0),
+        }
     return report
 
 
@@ -952,6 +1591,11 @@ def build_resume_key(
     max_elapsed_seconds: float | None,
     max_outline_entries: int,
     max_query_matches: int,
+    role_base_url: str | None,
+    model: str | None,
+    max_output_tokens: int,
+    max_model_records: int,
+    classification_labels: list[str],
 ) -> dict[str, Any]:
     return {
         "repo_root": str(repo_root),
@@ -965,6 +1609,11 @@ def build_resume_key(
         "max_elapsed_seconds": max_elapsed_seconds,
         "max_outline_entries": max_outline_entries,
         "max_query_matches": max_query_matches,
+        "role_base_url": role_base_url if mode in MODEL_ASSISTED_MODES else None,
+        "model": model if mode in MODEL_ASSISTED_MODES else None,
+        "max_output_tokens": max_output_tokens if mode in MODEL_ASSISTED_MODES else None,
+        "max_model_records": max_model_records if mode in MODEL_ASSISTED_MODES else None,
+        "classification_labels": classification_labels if mode == "classify" else [],
     }
 
 
@@ -979,9 +1628,19 @@ def validate_run_args(
     stop_after_chunks: int | None,
     max_outline_entries: int,
     max_query_matches: int,
+    role_base_url: str | None,
+    model: str | None,
+    max_output_tokens: int,
+    max_model_records: int,
+    classification_labels: list[str],
 ) -> None:
-    if mode not in DETERMINISTIC_MODES:
-        raise StreamingDocumenterError(f"Unknown deterministic streaming mode: {mode}")
+    if mode not in STREAMING_MODES:
+        raise StreamingDocumenterError(f"Unknown streaming mode: {mode}")
+    if mode in MODEL_ASSISTED_MODES:
+        if not role_base_url:
+            raise StreamingDocumenterError(f"--role-base-url is required for {mode}.")
+        if not model:
+            raise StreamingDocumenterError(f"--model is required for {mode}.")
     if mode == "context_presence" and not query:
         raise StreamingDocumenterError("--query is required for context_presence.")
     if query == "":
@@ -1002,6 +1661,14 @@ def validate_run_args(
         raise StreamingDocumenterError("--max-outline-entries cannot be negative.")
     if max_query_matches < 0:
         raise StreamingDocumenterError("--max-query-matches cannot be negative.")
+    if max_output_tokens < 1:
+        raise StreamingDocumenterError("--max-output-tokens must be at least 1.")
+    if max_model_records < 0:
+        raise StreamingDocumenterError("--max-model-records cannot be negative.")
+    if mode == "classify" and not classification_labels:
+        raise StreamingDocumenterError("--classification-label must provide at least one label for classify.")
+    if any(not isinstance(label, str) or not label.strip() for label in classification_labels):
+        raise StreamingDocumenterError("--classification-label values cannot be empty.")
 
 
 def run_streaming_mode(
@@ -1020,9 +1687,18 @@ def run_streaming_mode(
     resume_allow_arg_changes: bool = False,
     max_outline_entries: int = DEFAULT_MAX_OUTLINE_ENTRIES,
     max_query_matches: int = DEFAULT_MAX_QUERY_MATCHES,
+    role_base_url: str | None = None,
+    model: str | None = None,
+    timeout: int = 600,
+    max_output_tokens: int = DEFAULT_MODEL_OUTPUT_TOKENS,
+    max_model_records: int = DEFAULT_MAX_MODEL_RECORDS,
+    classification_labels: list[str] | None = None,
 ) -> tuple[dict[str, Any], Path, Path]:
     repo_root = repo_root.resolve()
     doc_id = normalize_repo_path(repo_root, doc_id)
+    active_classification_labels = [label.strip() for label in (classification_labels or DEFAULT_CLASSIFICATION_LABELS)]
+    if timeout < 1:
+        raise StreamingDocumenterError("--timeout must be at least 1.")
     validate_run_args(
         mode,
         query,
@@ -1034,6 +1710,11 @@ def run_streaming_mode(
         stop_after_chunks,
         max_outline_entries,
         max_query_matches,
+        role_base_url,
+        model,
+        max_output_tokens,
+        max_model_records,
+        active_classification_labels,
     )
     path = (repo_root / doc_id).resolve()
     file_size = path.stat().st_size
@@ -1051,6 +1732,11 @@ def run_streaming_mode(
         max_elapsed_seconds,
         max_outline_entries,
         max_query_matches,
+        role_base_url,
+        model,
+        max_output_tokens,
+        max_model_records,
+        active_classification_labels,
     )
 
     if resume_state_path is not None:
@@ -1081,6 +1767,8 @@ def run_streaming_mode(
             f"streaming-state-{sanitize_filename(repo_root.name)}-{sanitize_filename(doc_id)}-{run_id}.json"
         )
         state = initial_streaming_state(state_path, run_id, mode, resume_key, manifest_path, report_path)
+        if mode == "classify":
+            state["classify"] = initial_classify_state(active_classification_labels)
         write_json(manifest_path, manifest)
         write_json(state_path, state)
 
@@ -1147,7 +1835,53 @@ def run_streaming_mode(
             if mode in {"outline", "token_count"}
             else []
         )
-        if mode == "context_presence":
+        if mode in MODEL_ASSISTED_MODES:
+            if role_base_url is None or model is None:
+                raise StreamingDocumenterError(f"--role-base-url and --model are required for {mode}.")
+            packet = build_model_packet(mode, chunk, active_classification_labels)
+            try:
+                result = call_model_assisted_chunk(
+                    role_base_url=role_base_url,
+                    model=model,
+                    packet=packet,
+                    max_output_tokens=max_output_tokens,
+                    timeout=timeout,
+                )
+                add_model_assisted_result(
+                    state=state,
+                    mode=mode,
+                    chunk=chunk,
+                    result=result,
+                    classification_labels=active_classification_labels,
+                    max_model_records=max_model_records,
+                )
+            except StreamingDocumenterError:
+                state["failed_chunks"] = int(state.get("failed_chunks", 0) or 0) + 1
+                failed_ranges = state_list(state, "failed_ranges")
+                failed_ranges.append(
+                    {
+                        "doc_id": chunk.doc_id,
+                        "chunk_id": chunk.chunk_id,
+                        "chunk_index": chunk.chunk_index,
+                        "byte_range": [chunk.start_byte, chunk.end_byte],
+                        "line_range": [chunk.start_line, chunk.end_line],
+                        "quality_label": "insufficient_evidence",
+                    }
+                )
+                state["status"] = "failed"
+                state["updated_at"] = utc_now()
+                state["coverage"] = coverage_from_state(
+                    state,
+                    doc_id,
+                    file_size,
+                    "failed",
+                    max_read_block_seen,
+                    chunk_bytes,
+                )
+                state["quality_label"] = mode_quality_label(state, mode, state["coverage"])
+                write_json(state_path, state)
+                raise
+        elif mode == "context_presence":
             matches = state_list(state, "matches")
             room = max(0, max_query_matches - len(matches))
             matches.extend(query_matches[:room])

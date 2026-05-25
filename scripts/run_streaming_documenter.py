@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -14,8 +15,11 @@ if str(SCRIPT_ROOT) not in sys.path:
 
 from streaming_documenter import (  # noqa: E402
     DEFAULT_CHUNK_BYTES,
+    DEFAULT_CLASSIFICATION_LABELS,
+    DEFAULT_MAX_MODEL_RECORDS,
     DEFAULT_MAX_OUTLINE_ENTRIES,
     DEFAULT_MAX_QUERY_MATCHES,
+    DEFAULT_MODEL_OUTPUT_TOKENS,
     DEFAULT_READ_BLOCK_BYTES,
     MODE_REGISTRY,
     StreamingDocumenterError,
@@ -24,6 +28,7 @@ from streaming_documenter import (  # noqa: E402
 
 
 DEFAULT_OUTPUT_DIR = ".agentic_reports"
+DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 
 
 def parse_args() -> argparse.Namespace:
@@ -75,6 +80,35 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Allow resume even when compatible controller arguments changed.",
     )
+    parser.add_argument(
+        "--role-base-url",
+        default=None,
+        help="OpenAI-compatible role endpoint base URL. Required for model-assisted modes.",
+    )
+    parser.add_argument(
+        "--model",
+        default=os.environ.get("AGENTIC_GATEWAY_MODEL", DEFAULT_MODEL),
+        help="Model name for model-assisted modes.",
+    )
+    parser.add_argument("--timeout", type=int, default=600, help="HTTP timeout for model-assisted calls.")
+    parser.add_argument(
+        "--max-output-tokens",
+        type=int,
+        default=DEFAULT_MODEL_OUTPUT_TOKENS,
+        help="Maximum output tokens requested per model-assisted chunk.",
+    )
+    parser.add_argument(
+        "--max-model-records",
+        type=int,
+        default=DEFAULT_MAX_MODEL_RECORDS,
+        help="Maximum retained facts/classifications/risks across model-assisted chunks.",
+    )
+    parser.add_argument(
+        "--classification-label",
+        action="append",
+        default=None,
+        help="Allowed classify label. May be repeated. Defaults to the built-in document labels.",
+    )
     return parser.parse_args()
 
 
@@ -100,6 +134,12 @@ def main() -> int:
         resume_allow_arg_changes=bool(args.resume_allow_arg_changes),
         max_outline_entries=args.max_outline_entries,
         max_query_matches=args.max_query_matches,
+        role_base_url=args.role_base_url,
+        model=args.model,
+        timeout=args.timeout,
+        max_output_tokens=args.max_output_tokens,
+        max_model_records=args.max_model_records,
+        classification_labels=args.classification_label or list(DEFAULT_CLASSIFICATION_LABELS),
     )
     print(f"Wrote {report_path}")
     print(f"Wrote {state_path}")
