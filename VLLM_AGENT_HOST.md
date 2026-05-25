@@ -269,7 +269,7 @@ python scripts/run_streaming_documenter.py --target-root . --doc README.md \
   --query "runtime ports"
 ```
 
-Streaming modes `context_presence`, `token_count`, `coverage`, and `outline` are deterministic and do not call vLLM. Model-assisted streaming modes `extract_facts` and `classify` call a role endpoint one chunk at a time and then validate returned source refs before accepting records as `source_verified`.
+Streaming modes `context_presence`, `token_count`, `coverage`, and `outline` are deterministic and do not call vLLM. Model-assisted streaming modes `extract_facts`, `classify`, and `summarize` call a role endpoint one chunk at a time and then validate returned source refs before accepting records. `summarize` is explicit lossy reduction: summary records are labeled `summary_derived`, never `source_verified`.
 
 They write streaming manifest, state, and report artifacts with byte/line source ranges, coverage totals, and validation warnings for unsupported model records. The normal documenter path refuses oversized files by default through `--max-in-memory-doc-bytes`; it does not silently switch to summarization.
 

@@ -787,6 +787,214 @@ def test_model_assisted_invalid_result_schema_records_failed_range(tmp_path: Pat
     assert state["failed_ranges"][0]["quality_label"] == "insufficient_evidence"
 
 
+def test_summarize_mode_writes_lossy_summary_and_separate_source_records(tmp_path: Path) -> None:
+    data = (
+        b"# One\nfirst chunk has installation notes\n"
+        b"# Two\nsecond chunk has runtime notes\n"
+        b"# Three\nthird chunk has risk notes\n"
+        b"# Four\nfourth chunk has reference notes\n"
+    )
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / "summarize"
+
+    def response_for_packet(packet: dict[str, Any]) -> dict[str, Any]:
+        if packet["task"] == "merge_lossy_summaries":
+            return {
+                "merge_id": packet["merge_id"],
+                "summary": "Merged lossy orientation across input summaries.",
+                "source_refs": packet["allowed_source_refs"][:2],
+                "caveats": ["Merged summaries are still lossy."],
+            }
+        ref = {
+            "doc_id": packet["doc_id"],
+            "chunk_id": packet["chunk_id"],
+            "byte_range": [packet["byte_range"][0], min(packet["byte_range"][0] + 1, packet["byte_range"][1])],
+            "line_range": [packet["line_range"][0], packet["line_range"][0]],
+        }
+        return {
+            "chunk_id": packet["chunk_id"],
+            "summary": f"Lossy summary for chunk {packet['chunk_index']}.",
+            "source_refs": [ref],
+            "source_verified_records": [
+                {
+                    "text": f"Support record for chunk {packet['chunk_index']}.",
+                    "confidence": "medium",
+                    "evidence_refs": [ref],
+                }
+            ],
+            "caveats": ["Chunk summary is lossy."],
+        }
+
+    with FakeEndpoint(response_for_packet) as endpoint:
+        run_streaming(
+            "--target-root",
+            target,
+            "--doc",
+            "large.md",
+            "--mode",
+            "summarize",
+            "--role-base-url",
+            endpoint.base_url,
+            "--chunk-bytes",
+            "36",
+            "--read-block-bytes",
+            "12",
+            "--max-summaries",
+            "2",
+            "--max-summary-depth",
+            "4",
+            "--output-dir",
+            output_dir,
+        )
+
+    report = load_one_json(output_dir, "streaming-summarize-*.json")
+    summary = report["summarize"]
+
+    assert report["kind"] == "streaming_summarize_report"
+    assert report["quality_label"] == "summary_derived"
+    assert report["coverage"]["summarized_bytes"] == report["coverage"]["reviewed_bytes"]
+    assert summary["lossy"] is True
+    assert "Summaries are lossy orientation, not evidence by themselves." in summary["caveats"]
+    assert "Merged summaries are still lossy." in summary["caveats"]
+    assert summary["summary_aggregate"]["quality_label"] == "summary_derived"
+    assert summary["summary_reductions"]
+    assert all(item["quality_label"] == "summary_derived" for item in summary["summary_derived"])
+    assert all(item["quality_label"] == "source_verified" for item in summary["source_verified_records"])
+    assert "source_verified_records" in summary
+    assert "summary_derived" in summary
+
+
+def test_summarize_mode_does_not_treat_unsupported_summary_as_evidence(tmp_path: Path) -> None:
+    target = make_large_doc_repo(tmp_path, b"# Unsupported\nsummary without source refs\n")
+    output_dir = tmp_path / "unsupported-summary"
+
+    def response_for_packet(packet: dict[str, Any]) -> dict[str, Any]:
+        ref = {
+            "doc_id": packet["doc_id"],
+            "chunk_id": packet["chunk_id"],
+            "byte_range": [packet["byte_range"][0], min(packet["byte_range"][0] + 1, packet["byte_range"][1])],
+            "line_range": [packet["line_range"][0], packet["line_range"][0]],
+        }
+        return {
+            "chunk_id": packet["chunk_id"],
+            "summary": "This summary has no supporting refs and must not become evidence.",
+            "source_refs": [],
+            "source_verified_records": [
+                {
+                    "text": "The support record is separate from the summary.",
+                    "confidence": "medium",
+                    "evidence_refs": [ref],
+                }
+            ],
+            "caveats": [],
+        }
+
+    with FakeEndpoint(response_for_packet) as endpoint:
+        run_streaming(
+            "--target-root",
+            target,
+            "--doc",
+            "large.md",
+            "--mode",
+            "summarize",
+            "--role-base-url",
+            endpoint.base_url,
+            "--output-dir",
+            output_dir,
+        )
+
+    report = load_one_json(output_dir, "streaming-summarize-*.json")
+    summary = report["summarize"]
+
+    assert report["quality_label"] == "insufficient_evidence"
+    assert summary["summary_derived"][0]["quality_label"] == "insufficient_evidence"
+    assert summary["source_verified_records"][0]["quality_label"] == "source_verified"
+    assert any(warning["reason"] == "evidence_refs_empty" for warning in report["validation_warnings"])
+
+
+def test_summarize_mode_resume_and_final_merge(tmp_path: Path) -> None:
+    data = b"# First\nfirst chunk content\n# Second\nsecond chunk content\n"
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / "summarize-resume"
+
+    def response_for_packet(packet: dict[str, Any]) -> dict[str, Any]:
+        if packet["task"] == "merge_lossy_summaries":
+            return {
+                "merge_id": packet["merge_id"],
+                "summary": "Final resumed summary.",
+                "source_refs": packet["allowed_source_refs"][:1],
+                "caveats": ["Final merge is lossy."],
+            }
+        ref = {
+            "doc_id": packet["doc_id"],
+            "chunk_id": packet["chunk_id"],
+            "byte_range": [packet["byte_range"][0], min(packet["byte_range"][0] + 1, packet["byte_range"][1])],
+            "line_range": [packet["line_range"][0], packet["line_range"][0]],
+        }
+        return {
+            "chunk_id": packet["chunk_id"],
+            "summary": f"Chunk {packet['chunk_index']} summary.",
+            "source_refs": [ref],
+            "source_verified_records": [],
+            "caveats": [],
+        }
+
+    with FakeEndpoint(response_for_packet) as endpoint:
+        base_args: list[object] = [
+            "--target-root",
+            target,
+            "--doc",
+            "large.md",
+            "--mode",
+            "summarize",
+            "--role-base-url",
+            endpoint.base_url,
+            "--chunk-bytes",
+            "24",
+            "--read-block-bytes",
+            "8",
+        ]
+
+        run_streaming(
+            *base_args,
+            "--stop-after-chunks",
+            "1",
+            "--output-dir",
+            output_dir,
+        )
+        state_path = artifact_path(output_dir, "streaming-state-*.json")
+        paused_state = json.loads(state_path.read_text(encoding="utf-8"))
+
+        assert paused_state["status"] == "paused"
+        assert paused_state["next_start_byte"] > 0
+
+        run_streaming(
+            *base_args,
+            "--resume",
+            state_path,
+            "--output-dir",
+            output_dir,
+        )
+
+    completed_state = json.loads(state_path.read_text(encoding="utf-8"))
+    report = load_one_json(output_dir, "streaming-summarize-*.json")
+
+    assert completed_state["status"] == "completed"
+    assert report["coverage"]["review_complete"] is True
+    assert report["quality_label"] == "summary_derived"
+    assert report["summarize"]["summary_aggregate"]["summary"] == "Final resumed summary."
+
+
+def test_summarize_mode_registry_declares_lossy_summary_controls() -> None:
+    definition = MODE_REGISTRY["summarize"]
+
+    assert definition["lossy"] is True
+    assert definition["requires_source_refs"] is True
+    assert definition["model_assisted"] is True
+    assert "max_summaries" in definition["budget_limits"]
+    assert "max_summary_depth" in definition["budget_limits"]
+
+
 def test_model_assisted_mode_registry_entries_declare_budget_and_source_refs() -> None:
     for mode in ("extract_facts", "classify"):
         definition = MODE_REGISTRY[mode]

@@ -19,6 +19,8 @@ from streaming_documenter import (  # noqa: E402
     DEFAULT_MAX_MODEL_RECORDS,
     DEFAULT_MAX_OUTLINE_ENTRIES,
     DEFAULT_MAX_QUERY_MATCHES,
+    DEFAULT_MAX_SUMMARIES,
+    DEFAULT_MAX_SUMMARY_DEPTH,
     DEFAULT_MODEL_OUTPUT_TOKENS,
     DEFAULT_READ_BLOCK_BYTES,
     MODE_REGISTRY,
@@ -109,6 +111,18 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Allowed classify label. May be repeated. Defaults to the built-in document labels.",
     )
+    parser.add_argument(
+        "--max-summaries",
+        type=int,
+        default=DEFAULT_MAX_SUMMARIES,
+        help="Maximum summaries per recursive summarize merge packet.",
+    )
+    parser.add_argument(
+        "--max-summary-depth",
+        type=int,
+        default=DEFAULT_MAX_SUMMARY_DEPTH,
+        help="Maximum recursive summarize merge depth.",
+    )
     return parser.parse_args()
 
 
@@ -140,6 +154,8 @@ def main() -> int:
         max_output_tokens=args.max_output_tokens,
         max_model_records=args.max_model_records,
         classification_labels=args.classification_label or list(DEFAULT_CLASSIFICATION_LABELS),
+        max_summaries=args.max_summaries,
+        max_summary_depth=args.max_summary_depth,
     )
     print(f"Wrote {report_path}")
     print(f"Wrote {state_path}")

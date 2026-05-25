@@ -40,8 +40,9 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Controller tests | Done | `tests/regression/test_documenter_orchestrator.py` covers deterministic controller behavior with temp repos and fake endpoints. |
 | Tool mediation | Done | `tool_mediator.py` generates schemas, detects structured tool calls, executes local tools, injects results, and validates final responses. |
 | Streaming core | Done | `context_presence` proves bounded streaming reads, byte/line offsets, coverage accounting, source labels, and resumable state without vLLM. |
-| Reduction/query modes | Done | Deterministic streaming modes now include `token_count`, `coverage`, and `outline`; summarization remains a later explicit lossy mode. |
+| Reduction/query modes | Done | Deterministic streaming modes now include `token_count`, `coverage`, and `outline`. |
 | Structured model-assisted modes | Done | `extract_facts` and `classify` call a role endpoint chunk-by-chunk and controller-validate evidence refs before accepting source-backed records. |
+| Lossy summarization mode | Done | `summarize` recursively reduces chunk summaries with `summary_derived` labels, caveats, and separate source-verified support records. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Test Coverage Map
@@ -60,7 +61,7 @@ Implemented phases must have deterministic regression coverage unless the phase 
 | Phase 8: Streaming Core And Context Presence Mode | Direct | `test_context_presence_*`, `test_in_memory_documenter_rejects_oversized_selected_doc_without_override` | Covers bounded reads, source refs, partial coverage, resume offsets, split query boundary, mode registry, and in-memory guard. |
 | Phase 9: Deterministic Reduction Modes | Direct | `test_token_count_mode_reports_file_chunk_section_and_query_counts`, `test_coverage_mode_reports_range_accounting_and_partial_budget`, `test_outline_mode_extracts_headings_and_sections_with_source_ranges`, `test_deterministic_modes_resume_from_saved_streaming_state` | Covers mode schemas, budget behavior, source ranges, outline boundary handling, and resume for each deterministic mode. |
 | Phase 10: Structured Model-Assisted Modes | Direct | `test_extract_facts_mode_source_validates_model_records`, `test_classify_mode_validates_labels_risks_and_source_refs`, `test_model_assisted_modes_resume_from_saved_streaming_state`, `test_model_assisted_mode_requires_role_base_url`, `test_model_assisted_invalid_result_schema_records_failed_range`, `test_model_assisted_mode_registry_entries_declare_budget_and_source_refs` | Covers fake-endpoint model calls, strict top-level result fields, failed schema state, evidence validation, low-confidence downgrade, disallowed labels, invalid risk severity, required endpoint config, registry metadata, and resume. |
-| Phase 11: Lossy Summarization Mode | Not covered | None | Not implemented yet. Tests should prove summaries are explicit, caveated, and separated from source-verified evidence. |
+| Phase 11: Lossy Summarization Mode | Direct | `test_summarize_mode_writes_lossy_summary_and_separate_source_records`, `test_summarize_mode_does_not_treat_unsupported_summary_as_evidence`, `test_summarize_mode_resume_and_final_merge`, `test_summarize_mode_registry_declares_lossy_summary_controls` | Covers explicit lossy mode, recursive fake-endpoint merge, `summary_derived` labels, caveats, source-verified support separation, unsupported summary downgrade, resume, and summary budget metadata. |
 
 ## Phase 1: Manifest-Backed Review Planning
 
@@ -283,26 +284,26 @@ Acceptance criteria:
 
 ## Phase 11: Lossy Summarization Mode
 
-Status: Planned
+Status: Done
 
 Add summarization only after source-backed and deterministic modes exist. Summarization is useful, but it is lossy compression and is not evidence by itself.
 
 Mode:
 
-- `summarize`: lossy prose summary with source refs and caveats.
+- `summarize`: lossy prose summary with source refs and caveats. Done.
 
 Deliverables:
 
-- Recursive reduction pipeline for summary mode: chunk -> structured records -> merge records -> summary aggregate.
-- `summary_derived` quality labels.
-- Report caveats that explicitly state summaries are lossy and are not evidence by themselves.
-- Budget controls for max summaries, max summary depth, and max elapsed run budget.
+- Recursive reduction pipeline for summary mode: chunk -> structured records -> merge records -> summary aggregate. Done.
+- `summary_derived` quality labels. Done.
+- Report caveats that explicitly state summaries are lossy and are not evidence by themselves. Done.
+- Budget controls for max summaries, max summary depth, and max elapsed run budget. Done.
 
 Acceptance criteria:
 
-- Summary-derived claims cannot satisfy criteria unless backed by source-verified records.
-- The controller never silently switches to summarization.
-- The report separates source-verified findings from summary-derived orientation.
+- Summary-derived claims cannot satisfy criteria unless backed by source-verified records. Done.
+- The controller never silently switches to summarization. Done.
+- The report separates source-verified findings from summary-derived orientation. Done.
 
 ## Future: Code Structure Indexes
 
@@ -350,7 +351,8 @@ Current artifacts:
 - `streaming-outline-*.json`: deterministic heading and section outline report.
 - `streaming-extract-facts-*.json`: model-assisted facts and gaps with source-validated evidence refs and validation warnings.
 - `streaming-classify-*.json`: model-assisted classifications, risks, class counts, source-validated evidence refs, and validation warnings.
+- `streaming-summarize-*.json`: lossy summary aggregate, chunk summaries, recursive merge rounds, caveats, and separate source-verified support records.
 
 ## Immediate Next Step
 
-Implement Phase 11 lossy summarization mode. Keep summarization explicit and source-caveated; do not let it satisfy evidence requirements unless backed by source-verified records.
+Define the next roadmap phase before implementation. Likely candidates are code structure indexes or deeper tool dependency provenance; keep this roadmap as the drift control point.

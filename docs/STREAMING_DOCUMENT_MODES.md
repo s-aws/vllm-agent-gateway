@@ -17,10 +17,12 @@ Implemented model-assisted modes:
 
 - `extract_facts`: asks the documenter role for structured facts and documentation gaps for each chunk.
 - `classify`: asks the documenter role to classify each chunk by allowed labels and report source-backed risks.
+- `summarize`: asks the documenter role for lossy chunk summaries and recursively merges them into a source-caveated aggregate.
 
 Output claims are labeled:
 
 - `source_verified`: at least one result record cites exact source ranges and passes mode-specific validation.
+- `summary_derived`: lossy orientation produced from source-referenced summaries; useful for navigation, not evidence by itself.
 - `insufficient_evidence`: no reviewed range supports the requested mode result, model confidence is low, model evidence is missing/invalid, a classification label is not allowed, or the run stopped before enough coverage.
 
 Source-backed mode records include:
@@ -93,6 +95,18 @@ python scripts/run_streaming_documenter.py \
   --classification-label risk
 ```
 
+Summarize with explicit lossy reduction:
+
+```bash
+python scripts/run_streaming_documenter.py \
+  --target-root /path/to/project \
+  --doc README.md \
+  --mode summarize \
+  --role-base-url http://127.0.0.1:8205/v1 \
+  --max-summaries 8 \
+  --max-summary-depth 3
+```
+
 Bound work explicitly:
 
 ```bash
@@ -107,7 +121,9 @@ python scripts/run_streaming_documenter.py \
   --max-query-matches 1000 \
   --max-outline-entries 2000 \
   --max-model-records 1000 \
-  --max-output-tokens 2000
+  --max-output-tokens 2000 \
+  --max-summaries 8 \
+  --max-summary-depth 3
 ```
 
 ## Artifacts
@@ -122,6 +138,7 @@ The runner writes:
 - `streaming-outline-*.json`: heading index and heading-derived section ranges.
 - `streaming-extract-facts-*.json`: source-validated facts and gaps plus validation warnings for weak/invalid records.
 - `streaming-classify-*.json`: source-validated classifications, risks, class counts, and validation warnings.
+- `streaming-summarize-*.json`: lossy summary aggregate, chunk summaries, recursive reduction rounds, caveats, and separate source-verified support records.
 
 The state schema is versioned with `schema_version: 1`.
 
@@ -151,8 +168,6 @@ Resume refuses incompatible arguments by default. Use `--resume-allow-arg-change
 
 ## Limits
 
-This phase does not implement recursive summarization. Summarization is a later lossy mode and must report caveats separately from source-verified evidence.
-
 `context_presence` is deterministic and source-backed, but it is not semantic search. It finds literal query bytes case-insensitively.
 
 `token_count` is an estimate, not tokenizer-exact accounting. Its default method is documented in the report as `utf8_character_count_div_4_rounded_up`.
@@ -161,4 +176,4 @@ This phase does not implement recursive summarization. Summarization is a later 
 
 `extract_facts` and `classify` are model-assisted, not deterministic. They require `--role-base-url`, and their output is never trusted directly. The controller only labels a record `source_verified` when the record has medium/high confidence and valid `doc_id`, `chunk_id`, `byte_range`, and `line_range` evidence inside the current chunk. Unsupported or low-confidence records are retained as `insufficient_evidence` with validation warnings.
 
-Lossy summarization is a later mode. Summarization remains explicit and non-default.
+`summarize` is model-assisted and lossy. It is explicit and non-default. Summary records are labeled `summary_derived` when they cite valid source refs, never `source_verified`. The report keeps `summary_derived` orientation separate from `source_verified_records`, and includes caveats stating that summaries are not evidence by themselves. Recursive merges can reduce many chunk summaries into a final aggregate, bounded by `--max-summaries` and `--max-summary-depth`.

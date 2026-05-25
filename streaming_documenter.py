@@ -23,6 +23,13 @@ DEFAULT_MAX_QUERY_MATCHES = 1000
 DEFAULT_MAX_OUTLINE_ENTRIES = 2000
 DEFAULT_MAX_MODEL_RECORDS = 1000
 DEFAULT_MODEL_OUTPUT_TOKENS = 2000
+DEFAULT_MAX_SUMMARIES = 8
+DEFAULT_MAX_SUMMARY_DEPTH = 3
+SUMMARY_DERIVED_QUALITY_LABEL = "summary_derived"
+SUMMARY_CAVEATS = (
+    "Summaries are lossy orientation, not evidence by themselves.",
+    "Use source_verified records for evidence-backed claims or decisions.",
+)
 DEFAULT_CLASSIFICATION_LABELS = (
     "overview",
     "installation",
@@ -35,7 +42,7 @@ DEFAULT_CLASSIFICATION_LABELS = (
 VALID_CONFIDENCE_LABELS = {"low", "medium", "high"}
 SOURCE_VERIFIED_CONFIDENCE = {"medium", "high"}
 DETERMINISTIC_MODES = {"context_presence", "coverage", "outline", "token_count"}
-MODEL_ASSISTED_MODES = {"classify", "extract_facts"}
+MODEL_ASSISTED_MODES = {"classify", "extract_facts", "summarize"}
 STREAMING_MODES = DETERMINISTIC_MODES | MODEL_ASSISTED_MODES
 MODE_REGISTRY: dict[str, dict[str, Any]] = {
     "context_presence": {
@@ -191,6 +198,48 @@ MODE_REGISTRY: dict[str, dict[str, Any]] = {
         "aggregation": "source_validated_classification_and_risk_lists",
         "budget_limits": ["max_bytes", "max_chunks", "max_elapsed_seconds", "max_model_records"],
         "budget_controls": ["max_bytes", "max_chunks", "max_elapsed_seconds", "max_model_records"],
+        "model_assisted": True,
+    },
+    "summarize": {
+        "input_type": "text",
+        "chunking_strategy": "byte_stream",
+        "output_schema": {
+            "summary_derived": [
+                {
+                    "summary": "lossy prose summary string",
+                    "source_refs": ["source reference object"],
+                    "caveats": ["string"],
+                    "quality_label": "summary_derived|insufficient_evidence",
+                }
+            ],
+            "source_verified_records": [
+                {
+                    "text": "source-backed supporting record string",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": ["source reference object"],
+                    "quality_label": "source_verified|insufficient_evidence",
+                }
+            ],
+            "quality_label": "summary_derived|insufficient_evidence",
+        },
+        "lossy": True,
+        "requires_source_refs": True,
+        "source_reference_requirements": ["doc_id", "chunk_id", "byte_range", "line_range"],
+        "aggregation": "recursive_lossy_summary_with_separate_source_verified_records",
+        "budget_limits": [
+            "max_bytes",
+            "max_chunks",
+            "max_elapsed_seconds",
+            "max_summaries",
+            "max_summary_depth",
+        ],
+        "budget_controls": [
+            "max_bytes",
+            "max_chunks",
+            "max_elapsed_seconds",
+            "max_summaries",
+            "max_summary_depth",
+        ],
         "model_assisted": True,
     },
 }
@@ -633,6 +682,35 @@ def build_model_packet(mode: str, chunk: StreamingChunk, classification_labels: 
             ],
         }
         task = "classify_chunk_with_source_backed_evidence"
+    elif mode == "summarize":
+        required_output = {
+            "chunk_id": chunk.chunk_id,
+            "summary": "lossy chunk summary string",
+            "source_refs": [
+                {
+                    "doc_id": chunk.doc_id,
+                    "chunk_id": chunk.chunk_id,
+                    "byte_range": [chunk.start_byte, chunk.end_byte],
+                    "line_range": [chunk.start_line, chunk.end_line],
+                }
+            ],
+            "source_verified_records": [
+                {
+                    "text": "optional source-backed support record string",
+                    "confidence": "low|medium|high",
+                    "evidence_refs": [
+                        {
+                            "doc_id": chunk.doc_id,
+                            "chunk_id": chunk.chunk_id,
+                            "byte_range": [chunk.start_byte, chunk.end_byte],
+                            "line_range": [chunk.start_line, chunk.end_line],
+                        }
+                    ],
+                }
+            ],
+            "caveats": ["summary is lossy and not evidence"],
+        }
+        task = "summarize_chunk_lossy"
     else:
         raise StreamingDocumenterError(f"Unsupported model-assisted streaming mode: {mode}")
 
@@ -652,6 +730,8 @@ def build_model_packet(mode: str, chunk: StreamingChunk, classification_labels: 
             "source_verified_confidence": sorted(SOURCE_VERIFIED_CONFIDENCE),
             "low_confidence_label": "insufficient_evidence",
             "evidence_ref_must_be_inside_chunk": True,
+            "summary_quality_label": SUMMARY_DERIVED_QUALITY_LABEL,
+            "summary_is_evidence": False,
         },
         "required_output": required_output,
         "chunk": chunk.data.decode("utf-8", errors="replace"),
@@ -662,7 +742,7 @@ def model_packet_prompt(packet: dict[str, Any]) -> str:
     return (
         "Process exactly one streaming documenter packet. "
         "Use only the packet content. Return exactly one JSON object matching required_output. "
-        "Every claim must include evidence_refs using absolute doc byte_range and line_range inside this chunk. "
+        "Every claim must include source references using absolute doc byte_range and line_range allowed by the packet. "
         "Do not return markdown, prose, or raw tool calls.\n\n"
         f"{json.dumps(packet, ensure_ascii=True, indent=2)}"
     )
@@ -875,6 +955,18 @@ def validate_result_shape(mode: str, result: dict[str, Any], expected_chunk_id: 
         raise StreamingDocumenterError(
             f"Model-assisted result chunk_id mismatch: expected {expected_chunk_id!r}, got {result.get('chunk_id')!r}"
         )
+    if mode == "summarize":
+        if not isinstance(result.get("summary"), str) or not result.get("summary", "").strip():
+            raise StreamingDocumenterError("Model-assisted summarize result field 'summary' must be a non-empty string.")
+        if not isinstance(result.get("source_refs"), list):
+            raise StreamingDocumenterError("Model-assisted summarize result field 'source_refs' must be a list.")
+        if not isinstance(result.get("source_verified_records"), list):
+            raise StreamingDocumenterError(
+                "Model-assisted summarize result field 'source_verified_records' must be a list."
+            )
+        if not isinstance(result.get("caveats"), list):
+            raise StreamingDocumenterError("Model-assisted summarize result field 'caveats' must be a list.")
+        return
     required_lists = {
         "extract_facts": ("facts", "gaps"),
         "classify": ("classifications", "risks"),
@@ -1014,6 +1106,398 @@ def normalize_risk_records(
     return normalized
 
 
+def initial_summarize_state() -> dict[str, Any]:
+    return {
+        "lossy": True,
+        "caveats": list(SUMMARY_CAVEATS),
+        "chunk_summaries": [],
+        "summary_frontier": [],
+        "summary_aggregate": None,
+        "summary_reductions": [],
+        "source_verified_records": [],
+        "records_omitted": 0,
+        "summary_depth": 0,
+    }
+
+
+def normalize_string_list(raw_values: Any) -> list[str]:
+    if not isinstance(raw_values, list):
+        return []
+    values: list[str] = []
+    for value in raw_values:
+        if isinstance(value, str) and value.strip():
+            values.append(value.strip())
+    return values
+
+
+def source_ref_key(ref: dict[str, Any]) -> tuple[str, str, tuple[int, int], tuple[int, int]] | None:
+    doc_id = ref.get("doc_id")
+    chunk_id = ref.get("chunk_id")
+    byte_range = parse_int_pair(ref.get("byte_range"))
+    line_range = parse_int_pair(ref.get("line_range"))
+    if not isinstance(doc_id, str) or not isinstance(chunk_id, str):
+        return None
+    if byte_range is None or line_range is None:
+        return None
+    return doc_id, chunk_id, (byte_range[0], byte_range[1]), (line_range[0], line_range[1])
+
+
+def append_summary_validation_warning(
+    state: dict[str, Any],
+    summary_id: str,
+    field: str,
+    reason: str,
+    index: int | None = None,
+    value: Any = None,
+) -> None:
+    warnings = state_list(state, "validation_warnings")
+    warning: dict[str, Any] = {
+        "mode": "summarize",
+        "summary_id": summary_id,
+        "field": field,
+        "reason": reason,
+    }
+    if index is not None:
+        warning["index"] = index
+    if value is not None:
+        warning["value"] = compact_warning_value(value)
+    warnings.append(warning)
+
+
+def summary_quality_label(source_refs: list[dict[str, Any]]) -> str:
+    return SUMMARY_DERIVED_QUALITY_LABEL if source_refs else "insufficient_evidence"
+
+
+def merge_caveats(section: dict[str, Any], caveats: list[str]) -> None:
+    current = section.setdefault("caveats", list(SUMMARY_CAVEATS))
+    if not isinstance(current, list):
+        section["caveats"] = list(SUMMARY_CAVEATS)
+        current = section["caveats"]
+    seen = {item for item in current if isinstance(item, str)}
+    for caveat in caveats:
+        if caveat not in seen:
+            current.append(caveat)
+            seen.add(caveat)
+
+
+def add_summarized_range(state: dict[str, Any], chunk: StreamingChunk, quality_label: str) -> None:
+    ranges = state_list(state, "summarized_ranges")
+    ranges.append(
+        {
+            "doc_id": chunk.doc_id,
+            "chunk_id": chunk.chunk_id,
+            "chunk_index": chunk.chunk_index,
+            "byte_range": [chunk.start_byte, chunk.end_byte],
+            "line_range": [chunk.start_line, chunk.end_line],
+            "quality_label": quality_label,
+        }
+    )
+
+
+def normalize_summary_chunk_result(
+    state: dict[str, Any],
+    chunk: StreamingChunk,
+    result: dict[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    validate_result_shape("summarize", result, chunk.chunk_id)
+    source_refs = validate_evidence_refs(state, "summarize", chunk, "source_refs", 0, result.get("source_refs"))
+    caveats = normalize_string_list(result.get("caveats"))
+    support_records = normalize_fact_records(
+        state,
+        "summarize",
+        chunk,
+        "source_verified_records",
+        result["source_verified_records"],
+    )
+    summary_record = {
+        "summary_id": f"{chunk.chunk_id}:summary",
+        "doc_id": chunk.doc_id,
+        "chunk_id": chunk.chunk_id,
+        "chunk_index": chunk.chunk_index,
+        "summary_depth": 0,
+        "summary": result["summary"].strip(),
+        "source_refs": source_refs,
+        "source_summary_ids": [],
+        "caveats": caveats,
+        "quality_label": summary_quality_label(source_refs),
+    }
+    return summary_record, support_records
+
+
+def add_summary_result(
+    state: dict[str, Any],
+    chunk: StreamingChunk,
+    result: dict[str, Any],
+    max_model_records: int,
+) -> None:
+    section = state.setdefault("summarize", initial_summarize_state())
+    if not isinstance(section, dict):
+        raise StreamingDocumenterError("Streaming state summarize must be an object.")
+    summary_record, support_records = normalize_summary_chunk_result(state, chunk, result)
+    chunk_summaries = section.setdefault("chunk_summaries", [])
+    frontier = section.setdefault("summary_frontier", [])
+    if not isinstance(chunk_summaries, list) or not isinstance(frontier, list):
+        raise StreamingDocumenterError("Streaming state summarize summary lists must be lists.")
+    chunk_summaries.append(summary_record)
+    frontier.append(summary_record)
+    add_limited_records(
+        support_records,
+        section,
+        "source_verified_records",
+        ("source_verified_records",),
+        max_model_records,
+    )
+    merge_caveats(section, summary_record["caveats"])
+    add_summarized_range(state, chunk, summary_record["quality_label"])
+
+
+def build_summary_merge_packet(
+    doc_id: str,
+    merge_id: str,
+    input_summaries: list[dict[str, Any]],
+    summary_depth: int,
+) -> dict[str, Any]:
+    allowed_refs: list[dict[str, Any]] = []
+    seen_refs: set[tuple[str, str, tuple[int, int], tuple[int, int]]] = set()
+    for summary in input_summaries:
+        refs = summary.get("source_refs", [])
+        if not isinstance(refs, list):
+            continue
+        for ref in refs:
+            if not isinstance(ref, dict):
+                continue
+            key = source_ref_key(ref)
+            if key is None or key in seen_refs:
+                continue
+            seen_refs.add(key)
+            allowed_refs.append(ref)
+
+    return {
+        "schema_version": STREAMING_SCHEMA_VERSION,
+        "role": "documenter",
+        "mode": "summarize",
+        "task": "merge_lossy_summaries",
+        "doc_id": doc_id,
+        "merge_id": merge_id,
+        "summary_depth": summary_depth,
+        "input_summary_ids": [str(summary.get("summary_id")) for summary in input_summaries],
+        "quality_policy": {
+            "summary_quality_label": SUMMARY_DERIVED_QUALITY_LABEL,
+            "summary_is_evidence": False,
+            "source_refs_must_come_from_input_summaries": True,
+        },
+        "allowed_source_refs": allowed_refs,
+        "required_output": {
+            "merge_id": merge_id,
+            "summary": "lossy merged summary string",
+            "source_refs": allowed_refs[:1],
+            "caveats": ["merged summary is lossy and not evidence"],
+        },
+        "input_summaries": [
+            {
+                "summary_id": summary.get("summary_id"),
+                "summary": summary.get("summary"),
+                "source_refs": summary.get("source_refs", []),
+                "caveats": summary.get("caveats", []),
+                "quality_label": summary.get("quality_label"),
+            }
+            for summary in input_summaries
+        ],
+    }
+
+
+def validate_summary_merge_refs(
+    state: dict[str, Any],
+    merge_id: str,
+    raw_refs: Any,
+    allowed_refs: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    if not isinstance(raw_refs, list):
+        append_summary_validation_warning(state, merge_id, "source_refs", "source_refs_not_list", value=raw_refs)
+        return []
+    if not raw_refs:
+        append_summary_validation_warning(state, merge_id, "source_refs", "source_refs_empty", value=raw_refs)
+        return []
+    allowed_by_key = {
+        key: ref
+        for ref in allowed_refs
+        if isinstance(ref, dict)
+        for key in [source_ref_key(ref)]
+        if key is not None
+    }
+    valid_refs: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, tuple[int, int], tuple[int, int]]] = set()
+    for index, raw_ref in enumerate(raw_refs):
+        if not isinstance(raw_ref, dict):
+            append_summary_validation_warning(state, merge_id, "source_refs", "source_ref_not_object", index, raw_ref)
+            continue
+        key = source_ref_key(raw_ref)
+        if key is None:
+            append_summary_validation_warning(state, merge_id, "source_refs", "source_ref_invalid_shape", index, raw_ref)
+            continue
+        if key not in allowed_by_key:
+            append_summary_validation_warning(
+                state,
+                merge_id,
+                "source_refs",
+                "source_ref_not_from_input_summaries",
+                index,
+                raw_ref,
+            )
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        valid_refs.append(allowed_by_key[key])
+    return valid_refs
+
+
+def normalize_summary_merge_result(
+    state: dict[str, Any],
+    doc_id: str,
+    merge_id: str,
+    summary_depth: int,
+    input_summaries: list[dict[str, Any]],
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    if result.get("merge_id") != merge_id:
+        raise StreamingDocumenterError(
+            f"Summary merge result merge_id mismatch: expected {merge_id!r}, got {result.get('merge_id')!r}"
+        )
+    if not isinstance(result.get("summary"), str) or not result.get("summary", "").strip():
+        raise StreamingDocumenterError("Summary merge result field 'summary' must be a non-empty string.")
+    allowed_refs: list[dict[str, Any]] = []
+    for summary in input_summaries:
+        refs = summary.get("source_refs", [])
+        if isinstance(refs, list):
+            allowed_refs.extend(ref for ref in refs if isinstance(ref, dict))
+    source_refs = validate_summary_merge_refs(state, merge_id, result.get("source_refs"), allowed_refs)
+    caveats = normalize_string_list(result.get("caveats"))
+    return {
+        "summary_id": merge_id,
+        "doc_id": doc_id,
+        "chunk_id": None,
+        "chunk_index": None,
+        "summary_depth": summary_depth,
+        "summary": result["summary"].strip(),
+        "source_refs": source_refs,
+        "source_summary_ids": [str(summary.get("summary_id")) for summary in input_summaries],
+        "caveats": caveats,
+        "quality_label": summary_quality_label(source_refs),
+    }
+
+
+def merge_summary_batch(
+    state: dict[str, Any],
+    doc_id: str,
+    role_base_url: str,
+    model: str,
+    input_summaries: list[dict[str, Any]],
+    summary_depth: int,
+    max_output_tokens: int,
+    timeout: int,
+) -> dict[str, Any]:
+    merge_id = f"{doc_id}:summary:depth-{summary_depth}:merge-{len(state.get('summarize', {}).get('summary_reductions', [])) + 1:08d}"
+    packet = build_summary_merge_packet(doc_id, merge_id, input_summaries, summary_depth)
+    result = call_model_assisted_chunk(
+        role_base_url=role_base_url,
+        model=model,
+        packet=packet,
+        max_output_tokens=max_output_tokens,
+        timeout=timeout,
+    )
+    return normalize_summary_merge_result(state, doc_id, merge_id, summary_depth, input_summaries, result)
+
+
+def reduce_summary_frontier(
+    state: dict[str, Any],
+    doc_id: str,
+    role_base_url: str,
+    model: str,
+    max_output_tokens: int,
+    timeout: int,
+    max_summaries: int,
+    max_summary_depth: int,
+    final: bool = False,
+) -> None:
+    section = state.setdefault("summarize", initial_summarize_state())
+    if not isinstance(section, dict):
+        raise StreamingDocumenterError("Streaming state summarize must be an object.")
+    frontier = section.setdefault("summary_frontier", [])
+    reductions = section.setdefault("summary_reductions", [])
+    if not isinstance(frontier, list) or not isinstance(reductions, list):
+        raise StreamingDocumenterError("Streaming state summarize reduction fields must be lists.")
+    depth = int(section.get("summary_depth", 0) or 0)
+
+    while len(frontier) > max_summaries and depth < max_summary_depth:
+        input_count = len(frontier)
+        next_depth = depth + 1
+        next_frontier: list[dict[str, Any]] = []
+        for start in range(0, len(frontier), max_summaries):
+            batch = frontier[start : start + max_summaries]
+            if len(batch) == 1:
+                next_frontier.append(batch[0])
+                continue
+            merged = merge_summary_batch(
+                state,
+                doc_id,
+                role_base_url,
+                model,
+                batch,
+                next_depth,
+                max_output_tokens,
+                timeout,
+            )
+            next_frontier.append(merged)
+            merge_caveats(section, merged["caveats"])
+        frontier[:] = next_frontier
+        depth = next_depth
+        section["summary_depth"] = depth
+        reductions.append(
+            {
+                "summary_depth": depth,
+                "input_count": input_count,
+                "output_count": len(frontier),
+                "quality_label": SUMMARY_DERIVED_QUALITY_LABEL if frontier else "insufficient_evidence",
+            }
+        )
+
+    if not final:
+        return
+    if len(frontier) == 1:
+        section["summary_aggregate"] = frontier[0]
+        return
+    if len(frontier) > 1 and depth < max_summary_depth:
+        next_depth = depth + 1
+        merged = merge_summary_batch(
+            state,
+            doc_id,
+            role_base_url,
+            model,
+            frontier,
+            next_depth,
+            max_output_tokens,
+            timeout,
+        )
+        merge_caveats(section, merged["caveats"])
+        reductions.append(
+            {
+                "summary_depth": next_depth,
+                "input_count": len(frontier),
+                "output_count": 1,
+                "quality_label": merged["quality_label"],
+                "final_aggregate": True,
+            }
+        )
+        frontier[:] = [merged]
+        section["summary_depth"] = next_depth
+        section["summary_aggregate"] = merged
+        return
+    if len(frontier) > 1:
+        merge_caveats(section, ["Summary depth budget was exhausted before a single aggregate could be produced."])
+        section["summary_aggregate"] = None
+
+
 def add_model_assisted_result(
     state: dict[str, Any],
     mode: str,
@@ -1023,6 +1507,9 @@ def add_model_assisted_result(
     max_model_records: int,
 ) -> None:
     validate_result_shape(mode, result, chunk.chunk_id)
+    if mode == "summarize":
+        add_summary_result(state, chunk, result, max_model_records)
+        return
     if mode == "extract_facts":
         section = state.setdefault("extract_facts", initial_extract_facts_state())
         if not isinstance(section, dict):
@@ -1114,6 +1601,8 @@ def initial_streaming_state(
         "token_count": initial_token_count_state(),
         "extract_facts": initial_extract_facts_state(),
         "classify": initial_classify_state(),
+        "summarize": initial_summarize_state(),
+        "summarized_ranges": [],
         "validation_warnings": [],
         "failed_ranges": [],
         "quality_label": "insufficient_evidence",
@@ -1158,6 +1647,15 @@ def coverage_from_state(
     chunk_ranges = raw_chunk_ranges if isinstance(raw_chunk_ranges, list) else []
     raw_failed_ranges = state.get("failed_ranges", [])
     failed_ranges = raw_failed_ranges if isinstance(raw_failed_ranges, list) else []
+    raw_summarized_ranges = state.get("summarized_ranges", [])
+    summarized_ranges = raw_summarized_ranges if isinstance(raw_summarized_ranges, list) else []
+    summarized_bytes = 0
+    for item in summarized_ranges:
+        if not isinstance(item, dict):
+            continue
+        byte_range = parse_int_pair(item.get("byte_range"))
+        if byte_range is not None:
+            summarized_bytes += max(0, byte_range[1] - byte_range[0])
     reviewed_ranges = []
     if reviewed_bytes > 0:
         reviewed_ranges.append(
@@ -1182,13 +1680,13 @@ def coverage_from_state(
         "file_bytes": file_size,
         "reviewed_bytes": reviewed_bytes,
         "skipped_bytes": skipped_bytes,
-        "summarized_bytes": 0,
+        "summarized_bytes": summarized_bytes,
         "reviewed_chunks": reviewed_chunks,
         "failed_chunks": failed_chunks,
         "reviewed_ranges": reviewed_ranges,
         "reviewed_chunk_ranges": chunk_ranges,
         "skipped_ranges": skipped_ranges,
-        "summarized_ranges": [],
+        "summarized_ranges": summarized_ranges,
         "failed_ranges": failed_ranges,
         "review_complete": reviewed_bytes >= file_size,
         "stop_reason": stop_reason,
@@ -1223,6 +1721,19 @@ def mode_quality_label(state: dict[str, Any], mode: str, coverage: dict[str, Any
                     records.extend(values)
             if any(isinstance(record, dict) and record.get("quality_label") == "source_verified" for record in records):
                 return "source_verified"
+        return "insufficient_evidence"
+    if mode == "summarize":
+        section = state.get("summarize", {})
+        if isinstance(section, dict):
+            aggregate = section.get("summary_aggregate")
+            if isinstance(aggregate, dict) and aggregate.get("quality_label") == SUMMARY_DERIVED_QUALITY_LABEL:
+                return SUMMARY_DERIVED_QUALITY_LABEL
+            summaries = section.get("chunk_summaries", [])
+            if isinstance(summaries, list) and any(
+                isinstance(record, dict) and record.get("quality_label") == SUMMARY_DERIVED_QUALITY_LABEL
+                for record in summaries
+            ):
+                return SUMMARY_DERIVED_QUALITY_LABEL
         return "insufficient_evidence"
     if mode == "outline":
         outline = state.get("outline", {})
@@ -1576,6 +2087,31 @@ def build_streaming_report(
             "class_counts": class_counts,
             "records_omitted": int(section.get("records_omitted", 0) or 0),
         }
+    elif mode == "summarize":
+        section = state.get("summarize", initial_summarize_state())
+        if not isinstance(section, dict):
+            section = initial_summarize_state()
+        report["summarize"] = {
+            "lossy": True,
+            "caveats": section.get("caveats", list(SUMMARY_CAVEATS))
+            if isinstance(section.get("caveats"), list)
+            else list(SUMMARY_CAVEATS),
+            "summary_aggregate": section.get("summary_aggregate"),
+            "summary_derived": section.get("chunk_summaries", [])
+            if isinstance(section.get("chunk_summaries"), list)
+            else [],
+            "summary_frontier": section.get("summary_frontier", [])
+            if isinstance(section.get("summary_frontier"), list)
+            else [],
+            "summary_reductions": section.get("summary_reductions", [])
+            if isinstance(section.get("summary_reductions"), list)
+            else [],
+            "summary_depth": int(section.get("summary_depth", 0) or 0),
+            "source_verified_records": section.get("source_verified_records", [])
+            if isinstance(section.get("source_verified_records"), list)
+            else [],
+            "records_omitted": int(section.get("records_omitted", 0) or 0),
+        }
     return report
 
 
@@ -1596,6 +2132,8 @@ def build_resume_key(
     max_output_tokens: int,
     max_model_records: int,
     classification_labels: list[str],
+    max_summaries: int,
+    max_summary_depth: int,
 ) -> dict[str, Any]:
     return {
         "repo_root": str(repo_root),
@@ -1614,6 +2152,8 @@ def build_resume_key(
         "max_output_tokens": max_output_tokens if mode in MODEL_ASSISTED_MODES else None,
         "max_model_records": max_model_records if mode in MODEL_ASSISTED_MODES else None,
         "classification_labels": classification_labels if mode == "classify" else [],
+        "max_summaries": max_summaries if mode == "summarize" else None,
+        "max_summary_depth": max_summary_depth if mode == "summarize" else None,
     }
 
 
@@ -1633,6 +2173,8 @@ def validate_run_args(
     max_output_tokens: int,
     max_model_records: int,
     classification_labels: list[str],
+    max_summaries: int,
+    max_summary_depth: int,
 ) -> None:
     if mode not in STREAMING_MODES:
         raise StreamingDocumenterError(f"Unknown streaming mode: {mode}")
@@ -1669,6 +2211,10 @@ def validate_run_args(
         raise StreamingDocumenterError("--classification-label must provide at least one label for classify.")
     if any(not isinstance(label, str) or not label.strip() for label in classification_labels):
         raise StreamingDocumenterError("--classification-label values cannot be empty.")
+    if max_summaries < 2:
+        raise StreamingDocumenterError("--max-summaries must be at least 2.")
+    if max_summary_depth < 0:
+        raise StreamingDocumenterError("--max-summary-depth cannot be negative.")
 
 
 def run_streaming_mode(
@@ -1693,6 +2239,8 @@ def run_streaming_mode(
     max_output_tokens: int = DEFAULT_MODEL_OUTPUT_TOKENS,
     max_model_records: int = DEFAULT_MAX_MODEL_RECORDS,
     classification_labels: list[str] | None = None,
+    max_summaries: int = DEFAULT_MAX_SUMMARIES,
+    max_summary_depth: int = DEFAULT_MAX_SUMMARY_DEPTH,
 ) -> tuple[dict[str, Any], Path, Path]:
     repo_root = repo_root.resolve()
     doc_id = normalize_repo_path(repo_root, doc_id)
@@ -1715,6 +2263,8 @@ def run_streaming_mode(
         max_output_tokens,
         max_model_records,
         active_classification_labels,
+        max_summaries,
+        max_summary_depth,
     )
     path = (repo_root / doc_id).resolve()
     file_size = path.stat().st_size
@@ -1737,6 +2287,8 @@ def run_streaming_mode(
         max_output_tokens,
         max_model_records,
         active_classification_labels,
+        max_summaries,
+        max_summary_depth,
     )
 
     if resume_state_path is not None:
@@ -1855,6 +2407,17 @@ def run_streaming_mode(
                     classification_labels=active_classification_labels,
                     max_model_records=max_model_records,
                 )
+                if mode == "summarize":
+                    reduce_summary_frontier(
+                        state=state,
+                        doc_id=doc_id,
+                        role_base_url=role_base_url,
+                        model=model,
+                        max_output_tokens=max_output_tokens,
+                        timeout=timeout,
+                        max_summaries=max_summaries,
+                        max_summary_depth=max_summary_depth,
+                    )
             except StreamingDocumenterError:
                 state["failed_chunks"] = int(state.get("failed_chunks", 0) or 0) + 1
                 failed_ranges = state_list(state, "failed_ranges")
@@ -1947,6 +2510,26 @@ def run_streaming_mode(
             state["status"] = "paused"
     elif state.get("status") != "paused":
         state["status"] = "paused" if stop_reason != "complete" else "running"
+    if mode == "summarize" and state.get("status") == "completed":
+        if role_base_url is None or model is None:
+            raise StreamingDocumenterError("--role-base-url and --model are required for summarize.")
+        try:
+            reduce_summary_frontier(
+                state=state,
+                doc_id=doc_id,
+                role_base_url=role_base_url,
+                model=model,
+                max_output_tokens=max_output_tokens,
+                timeout=timeout,
+                max_summaries=max_summaries,
+                max_summary_depth=max_summary_depth,
+                final=True,
+            )
+        except StreamingDocumenterError:
+            state["status"] = "failed"
+            state["updated_at"] = utc_now()
+            write_json(state_path, state)
+            raise
     state["updated_at"] = utc_now()
     state["coverage"] = coverage_from_state(state, doc_id, file_size, stop_reason, max_read_block_seen, chunk_bytes)
     state["quality_label"] = mode_quality_label(state, mode, state["coverage"])

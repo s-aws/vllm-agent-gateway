@@ -148,7 +148,7 @@ python scripts/run_streaming_documenter.py --target-root . --doc README.md \
 
 Implemented deterministic modes are `context_presence`, `token_count`, `coverage`, and `outline`. They do not call vLLM. They stream bounded byte chunks and return source-backed ranges plus coverage totals.
 
-Implemented model-assisted modes are `extract_facts` and `classify`. They call a role endpoint one chunk at a time, then the controller validates evidence refs before accepting any record as `source_verified`.
+Implemented model-assisted modes are `extract_facts`, `classify`, and `summarize`. They call a role endpoint one chunk at a time, then the controller validates evidence refs before accepting records. `summarize` is explicitly lossy: summaries are labeled `summary_derived`, not `source_verified`.
 
 Examples:
 
@@ -162,6 +162,10 @@ python scripts/run_streaming_documenter.py --target-root . --doc README.md --mod
   --role-base-url http://127.0.0.1:8205/v1 \
   --classification-label installation \
   --classification-label runtime
+python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode summarize \
+  --role-base-url http://127.0.0.1:8205/v1 \
+  --max-summaries 8 \
+  --max-summary-depth 3
 ```
 
 Bound large runs explicitly:
@@ -173,7 +177,9 @@ python scripts/run_streaming_documenter.py --target-root /path/to/project --doc 
   --read-block-bytes 8192 \
   --max-bytes 104857600 \
   --max-chunks 1000 \
-  --max-model-records 1000
+  --max-model-records 1000 \
+  --max-summaries 8 \
+  --max-summary-depth 3
 ```
 
 Resume from streaming state:
@@ -184,7 +190,7 @@ python scripts/run_streaming_documenter.py --target-root /path/to/project --doc 
   --resume .agentic_reports/streaming-state-<target>-<doc>-<run-id>.json
 ```
 
-Streaming artifacts are written as `streaming-manifest-*.json`, `streaming-state-*.json`, and `streaming-<mode>-*.json`. Model-assisted reports include `validation_warnings` whenever a record is low-confidence, unsupported, outside the chunk source range, or uses a disallowed classification label. See `docs/STREAMING_DOCUMENT_MODES.md`.
+Streaming artifacts are written as `streaming-manifest-*.json`, `streaming-state-*.json`, and `streaming-<mode>-*.json`. Model-assisted reports include `validation_warnings` whenever a record is low-confidence, unsupported, outside the chunk source range, or uses a disallowed classification label. Summarize reports also include caveats and keep lossy `summary_derived` records separate from `source_verified_records`. See `docs/STREAMING_DOCUMENT_MODES.md`.
 
 Optional draft artifacts:
 
