@@ -317,6 +317,87 @@ def test_followup_depth_count_limits_and_invalid_rejections_are_recorded(tmp_pat
     assert "depth_limit_reached" in reasons
 
 
+def test_change_plan_groups_validated_findings_and_does_not_modify_target_docs(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    output_dir = tmp_path / "change-plan"
+    original_readme = (target / "README.md").read_text(encoding="utf-8")
+
+    def response(packet: dict[str, Any]) -> dict[str, Any]:
+        if packet.get("task") == "summarize_documentation_review":
+            return {"summary": "fake summary"}
+        return {
+            "chunk_id": packet["chunk_id"],
+            "facts_found": ["Install with Docker is documented."],
+            "criteria_satisfied": ["installation steps documented"],
+            "criteria_remaining": packet.get("criteria_remaining", []),
+            "doc_gaps": ["Runtime port examples need a user decision."],
+            "followup_files": ["docs/config.md"],
+            "confidence": "medium",
+        }
+
+    with FakeEndpoint(response) as endpoint:
+        run_orchestrator(
+            "--target-root",
+            target,
+            "--doc",
+            "README.md",
+            "--mode",
+            "full",
+            "--max-chunks",
+            "1",
+            "--role-base-url",
+            endpoint.base_url,
+            "--output-dir",
+            output_dir,
+        )
+
+    report = load_one_json(output_dir, "documenter-*.json")
+    change_plan_path = Path(report["artifacts"]["doc_change_plan"])
+    change_plan = change_plan_path.read_text(encoding="utf-8")
+
+    assert change_plan_path.exists()
+    assert (target / "README.md").read_text(encoding="utf-8") == original_readme
+    assert "## Safe Documentation Edits" in change_plan
+    assert "## Needs User Decision" in change_plan
+    assert "## Insufficient Evidence" in change_plan
+    assert "CP-0001" in change_plan
+    assert "CP-0002" in change_plan
+    assert "CP-0003" in change_plan
+    assert "Preserve or clarify review-backed fact: Install with Docker is documented." in change_plan
+    assert "Decide how to address reported documentation gap: Runtime port examples need a user decision." in change_plan
+    assert "Validation warning from report field criteria_satisfied" in change_plan
+    assert "### Reported By Documenter" in change_plan
+    assert "- docs/config.md" in change_plan
+
+
+def test_dry_run_change_plan_records_insufficient_evidence_instead_of_safe_edits(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    output_dir = tmp_path / "dry-run-change-plan"
+
+    run_orchestrator(
+        "--target-root",
+        target,
+        "--doc",
+        "README.md",
+        "--mode",
+        "full",
+        "--dry-run",
+        "--max-chunks",
+        "1",
+        "--output-dir",
+        output_dir,
+    )
+
+    report = load_one_json(output_dir, "documenter-*.json")
+    change_plan = Path(report["artifacts"]["doc_change_plan"]).read_text(encoding="utf-8")
+
+    assert "## Safe Documentation Edits" in change_plan
+    assert "## Insufficient Evidence" in change_plan
+    assert "No model-backed review results are available; dry-run produced packets only." in change_plan
+    safe_section = change_plan.split("## Safe Documentation Edits", 1)[1].split("## Needs User Decision", 1)[0]
+    assert "- None recorded." in safe_section
+
+
 def test_draft_artifacts_stay_under_output_dir_and_target_files_are_read_only(tmp_path: Path) -> None:
     target = make_target_repo(tmp_path)
     output_dir = tmp_path / "drafts"

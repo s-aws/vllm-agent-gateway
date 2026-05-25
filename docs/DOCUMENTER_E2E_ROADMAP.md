@@ -43,6 +43,24 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Reduction/query modes | Done | Deterministic streaming modes now include `token_count`, `coverage`, and `outline`; summarization remains a later explicit lossy mode. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
+## Test Coverage Map
+
+Implemented phases must have deterministic regression coverage unless the phase is itself a test-suite milestone. Tests should not require vLLM unless a future smoke-test phase explicitly says so.
+
+| Phase | Coverage Status | Primary Tests | Notes |
+| --- | --- | --- | --- |
+| Phase 1: Manifest-Backed Review Planning | Direct | `test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies`, `test_review_plan_candidate_limits_are_reflected_in_packets` | Covers manifest shape, tracked/all scopes, tool dependencies, review plan limits, and visible candidates. |
+| Phase 2: Source-Aware Follow-Up Review | Direct | `test_followup_depth_count_limits_and_invalid_rejections_are_recorded` | Covers visible-candidate policy, invalid follow-up rejection, depth/count limits, and skip reason codes. |
+| Phase 3: Documentation Change Plan | Direct | `test_change_plan_groups_validated_findings_and_does_not_modify_target_docs`, `test_dry_run_change_plan_records_insufficient_evidence_instead_of_safe_edits` | Covers artifact writing, grouping, validation-warning evidence, dry-run caveat, and read-only target behavior. |
+| Phase 4: Draft Output | Direct | `test_draft_artifacts_stay_under_output_dir_and_target_files_are_read_only` | Covers output containment, metadata paths, and target read-only behavior. |
+| Phase 5: Resume And State | Direct | `test_resume_refuses_incompatible_arguments_and_skips_completed_chunks`, `test_failed_packet_metadata_is_preserved_without_vllm` | Covers compatibility refusal, completed chunk skip, state completion, and failed packet preservation. |
+| Phase 6: Controller Tests | Self-covered | Full `tests/regression/` suite | This phase is the creation of deterministic controller tests, not a separate runtime feature. |
+| Phase 7: Tool Mediation | Direct | `tests/regression/test_tool_mediator.py` | Covers schema generation, tool execution loop, raw tool-call-shaped text rejection, policy blocks, scan files, and test execution capability. |
+| Phase 8: Streaming Core And Context Presence Mode | Direct | `test_context_presence_*`, `test_in_memory_documenter_rejects_oversized_selected_doc_without_override` | Covers bounded reads, source refs, partial coverage, resume offsets, split query boundary, mode registry, and in-memory guard. |
+| Phase 9: Deterministic Reduction Modes | Direct | `test_token_count_mode_reports_file_chunk_section_and_query_counts`, `test_coverage_mode_reports_range_accounting_and_partial_budget`, `test_outline_mode_extracts_headings_and_sections_with_source_ranges`, `test_deterministic_modes_resume_from_saved_streaming_state` | Covers mode schemas, budget behavior, source ranges, outline boundary handling, and resume for each deterministic mode. |
+| Phase 10: Structured Model-Assisted Modes | Not covered | None | Not implemented yet. Tests should be added with fake endpoints before marking done. |
+| Phase 11: Lossy Summarization Mode | Not covered | None | Not implemented yet. Tests should prove summaries are explicit, caveated, and separated from source-verified evidence. |
+
 ## Phase 1: Manifest-Backed Review Planning
 
 Status: Done
