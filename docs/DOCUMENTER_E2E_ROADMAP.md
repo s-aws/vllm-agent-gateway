@@ -39,7 +39,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Resume and state | Done | `run-state-*.json` tracks queue position, completed chunks, follow-ups, failures, artifacts, and compatibility keys for restartable runs. |
 | Controller tests | Done | `tests/regression/test_documenter_orchestrator.py` covers deterministic controller behavior with temp repos and fake endpoints. |
 | Tool mediation | Done | `tool_mediator.py` generates schemas, detects structured tool calls, executes local tools, injects results, and validates final responses. |
-| Streaming core | Planned | Very large repos or single documents need streaming reads, offset state, coverage accounting, and one non-lossy mode before more modes are added. |
+| Streaming core | Done | `context_presence` proves bounded streaming reads, byte/line offsets, coverage accounting, source labels, and resumable state without vLLM. |
 | Reduction/query modes | Planned | Modes are tracked separately after the streaming core; summarization is one lossy mode, not the default. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
@@ -184,34 +184,34 @@ Acceptance criteria:
 
 ## Phase 8: Streaming Core And Context Presence Mode
 
-Status: Planned
+Status: Done
 
 Build the reusable streaming foundation for very large documentation sets and oversized single documents. Prove it with one non-lossy query mode before adding additional modes.
 
-Current non-streaming mode is not suitable for 1GB single-document inputs because it reads full files into memory for manifests, chunking, and some reports.
+Current non-streaming mode is not suitable for 1GB single-document inputs because it reads full files into memory for manifests, chunking, and some reports. It now has an explicit in-memory size guard instead of silently changing behavior.
 
 Streaming is the default target architecture for reading and indexing content. Recursive summarization is not part of this phase.
 
 Deliverables:
 
-- Hard max file size for current in-memory document mode, with an explicit future override or large-content mode flag.
-- Streaming manifest/index that records size, line or byte ranges, sampled headings, and document type without reading full content into memory.
-- Streaming chunk iterator that emits bounded packets by byte and/or line offsets.
-- Minimal reduction mode registry where each mode declares input type, chunking strategy, output schema, lossy/lossless status, source-reference requirements, aggregation rules, and budget limits.
-- `context_presence` mode as the first implemented mode: locate whether and where a concept appears, with file/chunk/line or byte refs.
-- Coverage accounting for reviewed, skipped, summarized, and failed byte/line/chunk ranges.
-- Quality labels on every aggregate claim: `source_verified` or `insufficient_evidence`.
-- Resume state that can continue from byte/line offsets instead of restarting a large file.
-- Regression tests that prove the streaming path does not read a large file fully into memory.
+- Hard max file size for current in-memory document mode, with an explicit future override or large-content mode flag. Done.
+- Streaming manifest/index that records size, line or byte ranges, sampled headings, and document type without reading full content into memory. Done.
+- Streaming chunk iterator that emits bounded packets by byte and/or line offsets. Done.
+- Minimal reduction mode registry where each mode declares input type, chunking strategy, output schema, lossy/lossless status, source-reference requirements, aggregation rules, and budget limits. Done.
+- `context_presence` mode as the first implemented mode: locate whether and where a concept appears, with file/chunk/line or byte refs. Done.
+- Coverage accounting for reviewed, skipped, summarized, and failed byte/line/chunk ranges. Done.
+- Quality labels on every aggregate claim: `source_verified` or `insufficient_evidence`. Done.
+- Resume state that can continue from byte/line offsets instead of restarting a large file. Done.
+- Regression tests that prove the streaming path does not read a large file fully into memory. Done.
 
 Acceptance criteria:
 
-- A very large file is never read fully into memory by the controller's large-content path.
-- A final recommendation cannot be labeled source-verified unless it cites source chunk ranges.
-- `context_presence` results cite exact source ranges or return `insufficient_evidence`.
-- The report shows coverage totals and skipped ranges clearly enough to judge review completeness.
-- The user can bound work by max bytes, max chunks, or max elapsed run budget.
-- Existing normal-document mode remains simple and does not silently switch to lossy summarization.
+- A very large file is never read fully into memory by the controller's large-content path. Done.
+- A final recommendation cannot be labeled source-verified unless it cites source chunk ranges. Done.
+- `context_presence` results cite exact source ranges or return `insufficient_evidence`. Done.
+- The report shows coverage totals and skipped ranges clearly enough to judge review completeness. Done.
+- The user can bound work by max bytes, max chunks, or max elapsed run budget. Done.
+- Existing normal-document mode remains simple and does not silently switch to lossy summarization. Done.
 
 ## Phase 9: Deterministic Reduction Modes
 
@@ -323,7 +323,10 @@ Current artifacts:
 - `doc-change-plan-*.md`: non-mutating documentation change plan from `full` mode.
 - `drafts/<run-id>/...`: optional draft artifact directory from `--write-draft`.
 - `run-state-*.json`: resumable controller state with schema version 1.
+- `streaming-manifest-*.json`: streaming manifest for large-document modes.
+- `streaming-state-*.json`: resumable streaming state with byte/line offsets.
+- `streaming-context-presence-*.json`: deterministic context presence report with source ranges and coverage.
 
 ## Immediate Next Step
 
-Implement Phase 8: streaming core with `context_presence` as the first non-lossy mode. Keep later modes in separate phases so they do not drift into the streaming foundation.
+Implement Phase 9 deterministic reduction modes. Keep `token_count`, `coverage`, and `outline` as explicit modes so recursive summarization does not drift into the streaming foundation.

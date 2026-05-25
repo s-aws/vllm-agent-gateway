@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""Run streaming documenter modes for large single-document inputs."""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+
+SCRIPT_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPT_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_ROOT))
+
+from streaming_documenter import (  # noqa: E402
+    DEFAULT_CHUNK_BYTES,
+    DEFAULT_READ_BLOCK_BYTES,
+    MODE_REGISTRY,
+    StreamingDocumenterError,
+    run_context_presence_stream,
+)
+
+
+DEFAULT_OUTPUT_DIR = ".agentic_reports"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run bounded streaming documenter modes.")
+    parser.add_argument("--target-root", "--repo-root", dest="target_root", default=".")
+    parser.add_argument("--doc", required=True, help="Document path inside --target-root.")
+    parser.add_argument("--mode", choices=sorted(MODE_REGISTRY), default="context_presence")
+    parser.add_argument("--query", required=True, help="Literal query string for context_presence mode.")
+    parser.add_argument(
+        "--output-dir",
+        default=DEFAULT_OUTPUT_DIR,
+        help="Artifact directory. Relative paths are resolved from the current working directory.",
+    )
+    parser.add_argument("--chunk-bytes", type=int, default=DEFAULT_CHUNK_BYTES)
+    parser.add_argument("--read-block-bytes", type=int, default=DEFAULT_READ_BLOCK_BYTES)
+    parser.add_argument("--max-bytes", type=int, default=None, help="Stop after reviewing this many file bytes.")
+    parser.add_argument("--max-chunks", type=int, default=None, help="Stop after reviewing this many chunks.")
+    parser.add_argument(
+        "--max-elapsed-seconds",
+        type=float,
+        default=None,
+        help="Stop after this many elapsed seconds.",
+    )
+    parser.add_argument(
+        "--stop-after-chunks",
+        type=int,
+        default=None,
+        help="Pause after N chunks. Intended for resume smoke testing.",
+    )
+    parser.add_argument("--resume", default=None, help="Resume from a streaming-state JSON artifact.")
+    parser.add_argument(
+        "--resume-allow-arg-changes",
+        action="store_true",
+        help="Allow resume even when compatible controller arguments changed.",
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    target_root = Path(args.target_root).resolve()
+    output_dir = Path(args.output_dir)
+    if not output_dir.is_absolute():
+        output_dir = Path.cwd() / output_dir
+    if args.mode != "context_presence":
+        raise StreamingDocumenterError(f"Mode is registered but not implemented by this runner: {args.mode}")
+    report, report_path, state_path = run_context_presence_stream(
+        repo_root=target_root,
+        doc_id=args.doc,
+        query=args.query,
+        output_dir=output_dir,
+        chunk_bytes=args.chunk_bytes,
+        read_block_bytes=args.read_block_bytes,
+        max_bytes=args.max_bytes,
+        max_chunks=args.max_chunks,
+        max_elapsed_seconds=args.max_elapsed_seconds,
+        stop_after_chunks=args.stop_after_chunks,
+        resume_state_path=Path(args.resume).resolve() if args.resume else None,
+        resume_allow_arg_changes=bool(args.resume_allow_arg_changes),
+    )
+    print(f"Wrote {report_path}")
+    print(f"Wrote {state_path}")
+    print(
+        "quality_label="
+        f"{report['quality_label']} reviewed_bytes={report['coverage']['reviewed_bytes']} "
+        f"skipped_bytes={report['coverage']['skipped_bytes']}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except StreamingDocumenterError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        raise SystemExit(1)

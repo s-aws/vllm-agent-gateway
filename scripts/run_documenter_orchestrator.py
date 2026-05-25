@@ -26,6 +26,7 @@ DEFAULT_ROLE_ID = "documenter/default"
 DEFAULT_OUTPUT_DIR = ".agentic_reports"
 DEFAULT_VISIBLE_CANDIDATE_LIMIT = 12
 DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT = 1200
+DEFAULT_MAX_IN_MEMORY_DOC_BYTES = 64 * 1024 * 1024
 SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
 MODES = {"review", "summarize", "full"}
 CHANGE_PLAN_CATEGORY_TITLES = {
@@ -299,13 +300,26 @@ def select_document(
     return doc_id, docs
 
 
-def read_repo_file(repo_root: Path, assigned_tool_ids: set[str], doc_id: str) -> str:
+def read_repo_file(
+    repo_root: Path,
+    assigned_tool_ids: set[str],
+    doc_id: str,
+    max_in_memory_doc_bytes: int,
+    allow_large_in_memory_docs: bool,
+) -> str:
     require_tool(assigned_tool_ids, "read_file")
     path = (repo_root / doc_id).resolve()
     try:
         path.relative_to(repo_root.resolve())
     except ValueError as exc:
         raise OrchestratorError(f"Refusing to read outside repo root: {doc_id}") from exc
+    size = path.stat().st_size
+    if not allow_large_in_memory_docs and size > max_in_memory_doc_bytes:
+        raise OrchestratorError(
+            f"{doc_id} is {size} bytes, which exceeds --max-in-memory-doc-bytes "
+            f"({max_in_memory_doc_bytes}). Use the streaming documenter for large files, "
+            "or pass --allow-large-in-memory-docs intentionally."
+        )
     return path.read_text(encoding="utf-8", errors="replace")
 
 
@@ -1033,6 +1047,8 @@ def write_draft_artifacts(
     report_path: Path,
     change_plan_path: Path,
     assigned_tool_ids: set[str],
+    max_in_memory_doc_bytes: int,
+    allow_large_in_memory_docs: bool,
 ) -> dict[str, str]:
     output_root = output_dir.resolve()
     run_id = (
@@ -1059,7 +1075,13 @@ def write_draft_artifacts(
             source_path.relative_to(target_root.resolve())
         except ValueError as exc:
             raise OrchestratorError(f"Cannot draft file outside target root: {target_file}") from exc
-        content = read_repo_file(target_root, assigned_tool_ids, target_file)
+        content = read_repo_file(
+            target_root,
+            assigned_tool_ids,
+            target_file,
+            max_in_memory_doc_bytes,
+            allow_large_in_memory_docs,
+        )
         draft_path = draft_path_for_target(draft_files_dir, target_file)
         draft_path.parent.mkdir(parents=True, exist_ok=True)
         draft_items = items_by_target[target_file]
@@ -1139,12 +1161,28 @@ def build_document_manifest(
     document_scope: str,
     seed_doc_id: str,
     discovery_warnings: list[dict[str, str]],
+    max_in_memory_doc_bytes: int,
+    allow_large_in_memory_docs: bool,
 ) -> dict[str, Any]:
     entries: list[dict[str, Any]] = []
     for doc_id in docs:
         path = repo_root / doc_id
         try:
             stat = path.stat()
+            if not allow_large_in_memory_docs and stat.st_size > max_in_memory_doc_bytes:
+                entries.append(
+                    {
+                        "path": doc_id,
+                        "suffix": Path(doc_id).suffix.lower(),
+                        "tracked": doc_id in tracked_file_set,
+                        "selected_seed": doc_id == seed_doc_id,
+                        "readable": False,
+                        "skipped_reason": "exceeds_in_memory_limit",
+                        "bytes": stat.st_size,
+                        "max_in_memory_doc_bytes": max_in_memory_doc_bytes,
+                    }
+                )
+                continue
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError as exc:
             entries.append(
@@ -1186,6 +1224,13 @@ def build_document_manifest(
         "document_count": len(entries),
         "tracked_document_count": sum(1 for entry in entries if entry.get("tracked")),
         "untracked_document_count": sum(1 for entry in entries if not entry.get("tracked")),
+        "oversized_document_count": sum(
+            1 for entry in entries if entry.get("skipped_reason") == "exceeds_in_memory_limit"
+        ),
+        "in_memory_file_policy": {
+            "max_in_memory_doc_bytes": max_in_memory_doc_bytes,
+            "allow_large_in_memory_docs": allow_large_in_memory_docs,
+        },
         "discovery_warnings": discovery_warnings,
         "documents": entries,
     }
@@ -1609,6 +1654,8 @@ def build_resume_key(
         "followup_source_policy": followup_source_policy,
         "criteria_initial": criteria_initial,
         "max_output_tokens": args.max_output_tokens,
+        "max_in_memory_doc_bytes": args.max_in_memory_doc_bytes,
+        "allow_large_in_memory_docs": bool(args.allow_large_in_memory_docs),
     }
 
 
@@ -1806,6 +1853,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dry-run", action="store_true", help="Write packets without calling the role endpoint.")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--max-output-tokens", type=int, default=1000)
+    parser.add_argument(
+        "--max-in-memory-doc-bytes",
+        type=int,
+        default=DEFAULT_MAX_IN_MEMORY_DOC_BYTES,
+        help=(
+            "Maximum selected or manifest document size for the in-memory controller path. "
+            "Use the streaming documenter for larger files."
+        ),
+    )
+    parser.add_argument(
+        "--allow-large-in-memory-docs",
+        action="store_true",
+        help="Intentionally bypass the in-memory document size guard.",
+    )
     return parser.parse_args()
 
 
@@ -1830,6 +1891,8 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
         raise OrchestratorError("--write-draft requires --mode full.")
     if args.stop_after_chunks is not None and args.stop_after_chunks < 1:
         raise OrchestratorError("--stop-after-chunks must be at least 1 when provided.")
+    if args.max_in_memory_doc_bytes < 1:
+        raise OrchestratorError("--max-in-memory-doc-bytes must be at least 1.")
 
     include_followups = bool(args.include_followups or args.followup_depth > 0)
     effective_followup_depth = args.followup_depth if args.followup_depth > 0 else (1 if include_followups else 0)
@@ -1861,6 +1924,8 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
         args.document_scope,
         doc_id,
         discovery_warnings,
+        args.max_in_memory_doc_bytes,
+        bool(args.allow_large_in_memory_docs),
     )
     resume_key = build_resume_key(
         args,
@@ -2038,7 +2103,13 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
     while queue_index < len(target_queue):
         target = target_queue[queue_index]
 
-        content = read_repo_file(target_root, assigned_tool_ids, target.doc_id)
+        content = read_repo_file(
+            target_root,
+            assigned_tool_ids,
+            target.doc_id,
+            args.max_in_memory_doc_bytes,
+            bool(args.allow_large_in_memory_docs),
+        )
         chunks = chunk_document(target.doc_id, content, args.chunk_token_limit, args.chunk_overlap_lines)
         selected_chunks = chunks if max_chunks is None else chunks[:max_chunks]
 
@@ -2235,6 +2306,10 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
         "criteria_remaining": criteria_remaining,
         "chunk_token_limit": args.chunk_token_limit,
         "chunk_overlap_lines": args.chunk_overlap_lines,
+        "in_memory_file_policy": {
+            "max_in_memory_doc_bytes": args.max_in_memory_doc_bytes,
+            "allow_large_in_memory_docs": bool(args.allow_large_in_memory_docs),
+        },
         "max_chunks_per_file": max_chunks,
         "chunks_total": chunks_total,
         "chunks_processed": chunks_processed,
@@ -2265,6 +2340,8 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
                     output_path,
                     change_plan_path,
                     assigned_tool_ids,
+                    args.max_in_memory_doc_bytes,
+                    bool(args.allow_large_in_memory_docs),
                 )
                 report["artifacts"].update(draft_artifacts)
                 print(f"Wrote {draft_artifacts['draft_root']}")

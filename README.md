@@ -10,6 +10,7 @@ It provides:
 - fail-closed rejection for oversized requests
 - a tool catalog used by controllers/runners to authorize deterministic actions
 - resumable controller state for long documenter runs
+- streaming document modes for oversized single-document inputs
 - Linux-first startup and stop scripts
 - a JSON role manifest for ports, prompts, budgets, and client policy
 
@@ -133,6 +134,41 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
 
 The E2E documenter roadmap is tracked in `docs/DOCUMENTER_E2E_ROADMAP.md`. Use it as the control document before adding new documenter workflow behavior.
 
+The normal documenter controller is intentionally an in-memory path for ordinary documentation files. It refuses files larger than `--max-in-memory-doc-bytes` by default instead of silently summarizing or trimming. Use `--allow-large-in-memory-docs` only when you intentionally want that path to read a larger file.
+
+## Streaming Documenter
+
+Use the streaming runner for oversized single-document inputs or literal source-presence checks:
+
+```bash
+python scripts/run_streaming_documenter.py --target-root . --doc README.md \
+  --mode context_presence \
+  --query "runtime ports"
+```
+
+`context_presence` is deterministic and does not call vLLM. It streams bounded byte chunks, searches for the query case-insensitively, and returns either `source_verified` matches with exact byte/line ranges or `insufficient_evidence`.
+
+Bound large runs explicitly:
+
+```bash
+python scripts/run_streaming_documenter.py --target-root /path/to/project --doc huge.md \
+  --query "required phrase" \
+  --chunk-bytes 65536 \
+  --read-block-bytes 8192 \
+  --max-bytes 104857600 \
+  --max-chunks 1000
+```
+
+Resume from streaming state:
+
+```bash
+python scripts/run_streaming_documenter.py --target-root /path/to/project --doc huge.md \
+  --query "required phrase" \
+  --resume .agentic_reports/streaming-state-<target>-<doc>-<run-id>.json
+```
+
+Streaming artifacts are written as `streaming-manifest-*.json`, `streaming-state-*.json`, and `streaming-context-presence-*.json`. See `docs/STREAMING_DOCUMENT_MODES.md`.
+
 Optional draft artifacts:
 
 ```bash
@@ -169,7 +205,7 @@ summarize   summarize an existing JSON report with --report
 full        review chunks and write manifest, review plan, change plan, and final summary artifacts
 ```
 
-Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a run-state JSON artifact, a document manifest JSON artifact, a review plan JSON artifact, a Markdown change plan, and a Markdown summary. With `--write-draft`, it also writes draft artifacts under the configured output directory. The change plan and drafts are generated from validated report fields only; they do not modify target project files. The target project is read only unless you explicitly point `--output-dir` at it.
+Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a run-state JSON artifact, a document manifest JSON artifact, a review plan JSON artifact, a Markdown change plan, and a Markdown summary. With `--write-draft`, it also writes draft artifacts under the configured output directory. The streaming runner writes separate streaming manifest, state, and mode report artifacts. The change plan and drafts are generated from validated report fields only; they do not modify target project files. The target project is read only unless you explicitly point `--output-dir` at it.
 
 ## Tool Policy
 
@@ -264,6 +300,7 @@ runtime/roles.json         active role manifest
 runtime/tools.json         controller/tool mediator catalog
 agent_prompt_proxy.py      OpenAI/Anthropic-compatible role prompt proxy
 llm_gateway.py             token budget and forwarding gateway
+streaming_documenter.py     streaming large-document primitives and mode registry
 scripts/                   controller and smoke-test helpers
 start-agent-prompt-proxies.sh
 stop-agent-prompt-proxies.sh
