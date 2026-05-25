@@ -45,6 +45,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Lossy summarization mode | Done | `summarize` recursively reduces chunk summaries with `summary_derived` labels, caveats, and separate source-verified support records. |
 | Code structure indexes | Planned | Build deterministic AST/symbol/reference indexes so code repos are indexed structurally instead of by naive recursive reading. |
 | Implementation workflow | Planned | Convert approved plans into bounded implementation packets, verification steps, and reversible draft/application controls. |
+| Tool provenance hardening | Nice-to-have | Add artifact/record-level lineage after shipped workflow features exist, unless an earlier phase needs it for correctness. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Test Coverage Map
@@ -66,6 +67,7 @@ Implemented phases must have deterministic regression coverage unless the phase 
 | Phase 11: Lossy Summarization Mode | Direct | `test_summarize_mode_writes_lossy_summary_and_separate_source_records`, `test_summarize_mode_does_not_treat_unsupported_summary_as_evidence`, `test_summarize_mode_resume_and_final_merge`, `test_summarize_mode_registry_declares_lossy_summary_controls` | Covers explicit lossy mode, recursive fake-endpoint merge, `summary_derived` labels, caveats, source-verified support separation, unsupported summary downgrade, resume, and summary budget metadata. |
 | Phase 12: Code Structure Indexes | Not covered | None | Not implemented yet. Tests should prove deterministic AST/symbol/reference index output without vLLM. |
 | Phase 13: Implementation Workflow | Not covered | None | Not implemented yet. Tests should prove bounded implementation packets, read-only default behavior, verification capture, and reversible output/application policy. |
+| Phase 14: Tool Provenance Hardening | Not covered | None | Nice-to-have after core shipped features. Promote earlier only if artifact-level lineage becomes required for Phase 12 or 13 correctness. |
 
 ## Phase 1: Manifest-Backed Review Planning
 
@@ -374,6 +376,32 @@ Acceptance criteria:
 - Resume skips completed packets and refuses incompatible arguments by default.
 - Direct apply, when added, must be explicit, auditable, and reversible through generated metadata or VCS state.
 
+## Phase 14: Tool Provenance Hardening
+
+Status: Nice-to-have
+
+Add deeper audit lineage after the main shipped workflow exists. Run-level tool dependency reporting is already useful; this phase adds artifact-level and record-level provenance so claims, packets, drafts, applied changes, and verification results can be traced back to exact controller actions.
+
+This should not block Phase 12 or Phase 13 unless an implementation detail needs stronger lineage for correctness, replay, or user trust. If that happens, pull forward only the minimal provenance needed by that earlier phase.
+
+Deliverables:
+
+- Artifact-level provenance for manifests, review plans, structure indexes, implementation plans, drafts, and reports.
+- Record-level provenance for findings, summaries, index entries, implementation packets, verification results, and change-plan items.
+- Tool invocation records with tool ID, normalized command/action, working directory, allowed scope, timestamp, exit status, bounded output metadata, and output hashes.
+- Source material fingerprints such as file path, file size, file hash, byte range, line range, and repository commit or working-tree marker when available.
+- Parent/child lineage linking packets to tool outputs, tool outputs to artifacts, artifacts to final reports, and implementation packets to verification records.
+- Redaction/bounding policy so provenance can be useful without storing full sensitive command output by default.
+- Optional replay/check mode that detects when source inputs or tool outputs no longer match recorded hashes.
+
+Acceptance criteria:
+
+- A user can answer which controller action produced a specific artifact record without relying on model narration.
+- Provenance records are deterministic aside from timestamp/run IDs.
+- Sensitive or large outputs are represented by hashes and bounded excerpts unless explicitly configured otherwise.
+- Missing provenance is reported as an audit gap rather than silently ignored.
+- Provenance does not grant new tool permissions and does not change target repo files by itself.
+
 ## Drift Controls
 
 Use these checks before adding or changing documenter workflow behavior:
@@ -412,3 +440,5 @@ Current artifacts:
 ## Immediate Next Step
 
 Implement Phase 12 code structure indexes before Phase 13 implementation workflow. Structure indexes should give implementation packets precise symbol/reference/key-path context instead of broad file chunks.
+
+Keep Phase 14 as a nice-to-have audit hardening phase unless Phase 12 or Phase 13 exposes a concrete need for artifact-level provenance earlier.
