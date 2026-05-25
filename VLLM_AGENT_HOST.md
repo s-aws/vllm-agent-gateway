@@ -261,7 +261,7 @@ Summarize an existing JSON report:
 python scripts/run_documenter_orchestrator.py --mode summarize --report .agentic_reports/example.json
 ```
 
-For oversized single-document inputs, use the streaming runner instead of the in-memory documenter path:
+For oversized single-document inputs and deterministic reductions, use the streaming runner instead of the in-memory documenter path:
 
 ```bash
 python scripts/run_streaming_documenter.py --target-root . --doc README.md \
@@ -269,7 +269,7 @@ python scripts/run_streaming_documenter.py --target-root . --doc README.md \
   --query "runtime ports"
 ```
 
-`context_presence` is deterministic and does not call vLLM. It writes streaming manifest, state, and report artifacts with byte/line source ranges and coverage totals. The normal documenter path refuses oversized files by default through `--max-in-memory-doc-bytes`; it does not silently switch to summarization.
+Streaming modes `context_presence`, `token_count`, `coverage`, and `outline` are deterministic and do not call vLLM. They write streaming manifest, state, and report artifacts with byte/line source ranges and coverage totals. The normal documenter path refuses oversized files by default through `--max-in-memory-doc-bytes`; it does not silently switch to summarization.
 
 Run against another target repo while keeping this repo as the config root:
 

@@ -228,6 +228,210 @@ def test_context_presence_mode_registry_declares_lossless_source_refs() -> None:
     assert "max_bytes" in definition["budget_limits"]
 
 
+def test_token_count_mode_reports_file_chunk_section_and_query_counts(tmp_path: Path) -> None:
+    data = (
+        b"# Intro\n"
+        b"alpha token here\n"
+        b"## Details\n"
+        b"more alpha content\n"
+        b"### Deep\n"
+        b"final line\n"
+    )
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / "token-count"
+
+    run_streaming(
+        "--target-root",
+        target,
+        "--doc",
+        "large.md",
+        "--mode",
+        "token_count",
+        "--query",
+        "alpha",
+        "--chunk-bytes",
+        "24",
+        "--read-block-bytes",
+        "8",
+        "--output-dir",
+        output_dir,
+    )
+
+    report = load_one_json(output_dir, "streaming-token-count-*.json")
+    token_count = report["token_count"]
+
+    assert report["kind"] == "streaming_token_count_report"
+    assert report["quality_label"] == "source_verified"
+    assert token_count["file"]["byte_count"] == len(data)
+    assert token_count["file"]["estimated_tokens"] > 0
+    assert len(token_count["chunks"]) > 1
+    assert all(chunk["byte_range"][0] < chunk["byte_range"][1] for chunk in token_count["chunks"])
+    assert token_count["sections"]
+    assert all(section["quality_label"] == "source_verified" for section in token_count["sections"])
+    assert len(token_count["query_matches"]) == 2
+    assert all(match["query"] == "alpha" for match in token_count["query_matches"])
+    assert all(match["byte_range"][0] < match["byte_range"][1] for match in token_count["query_matches"])
+    assert report["coverage"]["review_complete"] is True
+
+
+def test_coverage_mode_reports_range_accounting_and_partial_budget(tmp_path: Path) -> None:
+    data = b"# Coverage\n" + (b"line\n" * 100)
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / "coverage"
+
+    run_streaming(
+        "--target-root",
+        target,
+        "--doc",
+        "large.md",
+        "--mode",
+        "coverage",
+        "--chunk-bytes",
+        "32",
+        "--read-block-bytes",
+        "8",
+        "--max-bytes",
+        "96",
+        "--output-dir",
+        output_dir,
+    )
+
+    report = load_one_json(output_dir, "streaming-coverage-*.json")
+
+    assert report["kind"] == "streaming_coverage_report"
+    assert report["quality_label"] == "source_verified"
+    assert report["coverage"]["reviewed_bytes"] == 96
+    assert report["coverage"]["skipped_bytes"] == len(data) - 96
+    assert report["coverage"]["stop_reason"] == "max_bytes"
+    assert report["coverage_report"]["reviewed_chunk_ranges"]
+    assert report["coverage_report"]["skipped_ranges"][0]["reason"] == "max_bytes"
+    assert report["coverage"]["summarized_ranges"] == []
+    assert report["coverage"]["failed_ranges"] == []
+
+
+def test_outline_mode_extracts_headings_and_sections_with_source_ranges(tmp_path: Path) -> None:
+    data = (
+        b"# Intro\n"
+        b"intro text\n"
+        b"## Install\n"
+        b"install text\n"
+        b"## Runtime\n"
+        b"runtime text\n"
+    )
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / "outline"
+
+    run_streaming(
+        "--target-root",
+        target,
+        "--doc",
+        "large.md",
+        "--mode",
+        "outline",
+        "--chunk-bytes",
+        "32",
+        "--read-block-bytes",
+        "8",
+        "--output-dir",
+        output_dir,
+    )
+
+    report = load_one_json(output_dir, "streaming-outline-*.json")
+    headings = report["outline"]["headings"]
+    sections = report["outline"]["sections"]
+
+    assert report["kind"] == "streaming_outline_report"
+    assert report["quality_label"] == "source_verified"
+    assert [heading["text"] for heading in headings] == ["Intro", "Install", "Runtime"]
+    assert all(heading["byte_range"][0] < heading["byte_range"][1] for heading in headings)
+    assert all(heading["line_range"][0] >= 1 for heading in headings)
+    assert len(sections) == 3
+    assert all(section["quality_label"] == "source_verified" for section in sections)
+    assert report["coverage"]["review_complete"] is True
+
+
+def test_outline_mode_handles_heading_split_across_byte_chunks(tmp_path: Path) -> None:
+    data = b"# Split Heading\nbody\n"
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / "outline-boundary"
+
+    run_streaming(
+        "--target-root",
+        target,
+        "--doc",
+        "large.md",
+        "--mode",
+        "outline",
+        "--chunk-bytes",
+        "4",
+        "--read-block-bytes",
+        "2",
+        "--output-dir",
+        output_dir,
+    )
+
+    report = load_one_json(output_dir, "streaming-outline-*.json")
+    headings = report["outline"]["headings"]
+    assert [heading["text"] for heading in headings] == ["Split Heading"]
+    assert headings[0]["byte_range"] == [0, 16]
+
+
+@pytest.mark.parametrize("mode", ["token_count", "coverage", "outline"])
+def test_deterministic_modes_resume_from_saved_streaming_state(tmp_path: Path, mode: str) -> None:
+    data = b"# Resume\n" + (b"alpha line\n" * 200) + b"## Final\nlast line\n"
+    target = make_large_doc_repo(tmp_path, data)
+    output_dir = tmp_path / f"{mode}-resume"
+    base_args: list[object] = [
+        "--target-root",
+        target,
+        "--doc",
+        "large.md",
+        "--mode",
+        mode,
+        "--chunk-bytes",
+        "128",
+        "--read-block-bytes",
+        "32",
+    ]
+    if mode == "token_count":
+        base_args.extend(["--query", "alpha"])
+
+    run_streaming(
+        *base_args,
+        "--stop-after-chunks",
+        "1",
+        "--output-dir",
+        output_dir,
+    )
+    state_path = artifact_path(output_dir, "streaming-state-*.json")
+    paused_state = json.loads(state_path.read_text(encoding="utf-8"))
+
+    assert paused_state["status"] == "paused"
+    assert paused_state["next_start_byte"] > 0
+
+    run_streaming(
+        *base_args,
+        "--resume",
+        state_path,
+        "--output-dir",
+        output_dir,
+    )
+
+    completed_state = json.loads(state_path.read_text(encoding="utf-8"))
+    report = load_one_json(output_dir, f"streaming-{mode.replace('_', '-')}*.json")
+    assert completed_state["status"] == "completed"
+    assert report["coverage"]["review_complete"] is True
+
+
+def test_all_deterministic_mode_registry_entries_declare_budget_and_source_refs() -> None:
+    for mode in ("coverage", "outline", "token_count"):
+        definition = MODE_REGISTRY[mode]
+        assert definition["lossy"] is False
+        assert definition["requires_source_refs"] is True
+        assert "byte_range" in definition["source_reference_requirements"]
+        assert "max_bytes" in definition["budget_limits"]
+
+
 def test_in_memory_documenter_rejects_oversized_selected_doc_without_override(tmp_path: Path) -> None:
     target = tmp_path / "tracked"
     target.mkdir()

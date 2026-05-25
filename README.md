@@ -138,7 +138,7 @@ The normal documenter controller is intentionally an in-memory path for ordinary
 
 ## Streaming Documenter
 
-Use the streaming runner for oversized single-document inputs or literal source-presence checks:
+Use the streaming runner for oversized single-document inputs, literal source-presence checks, and deterministic reductions:
 
 ```bash
 python scripts/run_streaming_documenter.py --target-root . --doc README.md \
@@ -146,7 +146,15 @@ python scripts/run_streaming_documenter.py --target-root . --doc README.md \
   --query "runtime ports"
 ```
 
-`context_presence` is deterministic and does not call vLLM. It streams bounded byte chunks, searches for the query case-insensitively, and returns either `source_verified` matches with exact byte/line ranges or `insufficient_evidence`.
+Implemented deterministic modes are `context_presence`, `token_count`, `coverage`, and `outline`. They do not call vLLM. They stream bounded byte chunks and return source-backed ranges plus coverage totals.
+
+Examples:
+
+```bash
+python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode token_count
+python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode coverage
+python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode outline
+```
 
 Bound large runs explicitly:
 
@@ -167,7 +175,7 @@ python scripts/run_streaming_documenter.py --target-root /path/to/project --doc 
   --resume .agentic_reports/streaming-state-<target>-<doc>-<run-id>.json
 ```
 
-Streaming artifacts are written as `streaming-manifest-*.json`, `streaming-state-*.json`, and `streaming-context-presence-*.json`. See `docs/STREAMING_DOCUMENT_MODES.md`.
+Streaming artifacts are written as `streaming-manifest-*.json`, `streaming-state-*.json`, and `streaming-<mode>-*.json`. See `docs/STREAMING_DOCUMENT_MODES.md`.
 
 Optional draft artifacts:
 

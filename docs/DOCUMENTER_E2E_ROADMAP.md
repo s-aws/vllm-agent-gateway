@@ -40,7 +40,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Controller tests | Done | `tests/regression/test_documenter_orchestrator.py` covers deterministic controller behavior with temp repos and fake endpoints. |
 | Tool mediation | Done | `tool_mediator.py` generates schemas, detects structured tool calls, executes local tools, injects results, and validates final responses. |
 | Streaming core | Done | `context_presence` proves bounded streaming reads, byte/line offsets, coverage accounting, source labels, and resumable state without vLLM. |
-| Reduction/query modes | Planned | Modes are tracked separately after the streaming core; summarization is one lossy mode, not the default. |
+| Reduction/query modes | Done | Deterministic streaming modes now include `token_count`, `coverage`, and `outline`; summarization remains a later explicit lossy mode. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -215,28 +215,28 @@ Acceptance criteria:
 
 ## Phase 9: Deterministic Reduction Modes
 
-Status: Planned
+Status: Done
 
 Add reduction/query modes that can be implemented and tested without model calls.
 
 Modes:
 
-- `token_count`: estimate or count tokens by file, section, chunk, or query match.
-- `coverage`: report reviewed, skipped, summarized, and failed ranges.
-- `outline`: heading/section/index extraction without full review.
+- `token_count`: estimate or count tokens by file, section, chunk, or query match. Done.
+- `coverage`: report reviewed, skipped, summarized, and failed ranges. Done.
+- `outline`: heading/section/index extraction without full review. Done.
 
 Deliverables:
 
-- Mode-specific schemas and report sections.
-- Mode-specific budget controls.
-- Mode-specific regression tests using large synthetic files.
-- Aggregation rules that do not rely on hidden state.
+- Mode-specific schemas and report sections. Done.
+- Mode-specific budget controls. Done.
+- Mode-specific regression tests using large synthetic files. Done.
+- Aggregation rules that do not rely on hidden state. Done.
 
 Acceptance criteria:
 
-- Each deterministic mode can run without vLLM.
-- Each deterministic mode reports source ranges and coverage.
-- Each deterministic mode can resume from saved streaming state.
+- Each deterministic mode can run without vLLM. Done.
+- Each deterministic mode reports source ranges and coverage. Done.
+- Each deterministic mode can resume from saved streaming state. Done.
 
 ## Phase 10: Structured Model-Assisted Modes
 
@@ -326,7 +326,10 @@ Current artifacts:
 - `streaming-manifest-*.json`: streaming manifest for large-document modes.
 - `streaming-state-*.json`: resumable streaming state with byte/line offsets.
 - `streaming-context-presence-*.json`: deterministic context presence report with source ranges and coverage.
+- `streaming-token-count-*.json`: deterministic token estimate report with file, chunk, section, and optional query-match ranges.
+- `streaming-coverage-*.json`: deterministic coverage report with reviewed, skipped, summarized, and failed ranges.
+- `streaming-outline-*.json`: deterministic heading and section outline report.
 
 ## Immediate Next Step
 
-Implement Phase 9 deterministic reduction modes. Keep `token_count`, `coverage`, and `outline` as explicit modes so recursive summarization does not drift into the streaming foundation.
+Implement Phase 10 structured model-assisted modes. Keep `extract_facts` and `classify` source-backed and schema-validated; do not add lossy summarization until Phase 11.

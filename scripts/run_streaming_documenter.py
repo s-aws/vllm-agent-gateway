@@ -14,10 +14,12 @@ if str(SCRIPT_ROOT) not in sys.path:
 
 from streaming_documenter import (  # noqa: E402
     DEFAULT_CHUNK_BYTES,
+    DEFAULT_MAX_OUTLINE_ENTRIES,
+    DEFAULT_MAX_QUERY_MATCHES,
     DEFAULT_READ_BLOCK_BYTES,
     MODE_REGISTRY,
     StreamingDocumenterError,
-    run_context_presence_stream,
+    run_streaming_mode,
 )
 
 
@@ -29,7 +31,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--target-root", "--repo-root", dest="target_root", default=".")
     parser.add_argument("--doc", required=True, help="Document path inside --target-root.")
     parser.add_argument("--mode", choices=sorted(MODE_REGISTRY), default="context_presence")
-    parser.add_argument("--query", required=True, help="Literal query string for context_presence mode.")
+    parser.add_argument(
+        "--query",
+        default=None,
+        help="Literal query string. Required for context_presence; optional for token_count query-match output.",
+    )
     parser.add_argument(
         "--output-dir",
         default=DEFAULT_OUTPUT_DIR,
@@ -39,6 +45,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--read-block-bytes", type=int, default=DEFAULT_READ_BLOCK_BYTES)
     parser.add_argument("--max-bytes", type=int, default=None, help="Stop after reviewing this many file bytes.")
     parser.add_argument("--max-chunks", type=int, default=None, help="Stop after reviewing this many chunks.")
+    parser.add_argument(
+        "--max-outline-entries",
+        type=int,
+        default=DEFAULT_MAX_OUTLINE_ENTRIES,
+        help="Maximum heading entries retained by outline-capable modes.",
+    )
+    parser.add_argument(
+        "--max-query-matches",
+        type=int,
+        default=DEFAULT_MAX_QUERY_MATCHES,
+        help="Maximum query match records retained by query-capable modes.",
+    )
     parser.add_argument(
         "--max-elapsed-seconds",
         type=float,
@@ -66,11 +84,10 @@ def main() -> int:
     output_dir = Path(args.output_dir)
     if not output_dir.is_absolute():
         output_dir = Path.cwd() / output_dir
-    if args.mode != "context_presence":
-        raise StreamingDocumenterError(f"Mode is registered but not implemented by this runner: {args.mode}")
-    report, report_path, state_path = run_context_presence_stream(
+    report, report_path, state_path = run_streaming_mode(
         repo_root=target_root,
         doc_id=args.doc,
+        mode=args.mode,
         query=args.query,
         output_dir=output_dir,
         chunk_bytes=args.chunk_bytes,
@@ -81,6 +98,8 @@ def main() -> int:
         stop_after_chunks=args.stop_after_chunks,
         resume_state_path=Path(args.resume).resolve() if args.resume else None,
         resume_allow_arg_changes=bool(args.resume_allow_arg_changes),
+        max_outline_entries=args.max_outline_entries,
+        max_query_matches=args.max_query_matches,
     )
     print(f"Wrote {report_path}")
     print(f"Wrote {state_path}")
