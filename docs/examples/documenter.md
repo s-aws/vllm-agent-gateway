@@ -12,12 +12,29 @@ Run the full workflow against the local documenter role endpoint:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
-Bootstrap scan with all supported docs, including untracked files:
+Bootstrap review with all supported docs, including untracked files:
 
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
   --mode full \
   --document-scope all
+```
+
+Scan all files but review only the selected seed document:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --document-scope all \
+  --review-scope seed
+```
+
+Review every tracked documentation file:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . \
+  --mode full \
+  --review-scope manifest
 ```
 
 Quick one-chunk smoke run. `--max-chunks` is applied per reviewed file:

@@ -221,11 +221,36 @@ def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tm
     assert all_manifest["document_scope"] == "all"
     assert "UNTRACKED.md" in all_paths
     assert all_manifest["untracked_document_count"] >= 1
+    assert all_report["review_scope"] == "manifest"
+    reviewed_doc_ids = {item["doc_id"] for item in all_report["reviewed_files"]}
+    assert {"README.md", "UNTRACKED.md", "docs/config.md", "docs/guide.md"} <= reviewed_doc_ids
     assert all_report["tool_policy"]["controller_tool_dependencies"] == [
         "git_ls_files",
         "read_file",
         "scan_files",
     ]
+
+    seed_only_out = tmp_path / "seed-only-out"
+    run_orchestrator(
+        "--target-root",
+        target,
+        "--doc",
+        "README.md",
+        "--mode",
+        "full",
+        "--dry-run",
+        "--max-chunks",
+        "1",
+        "--document-scope",
+        "all",
+        "--review-scope",
+        "seed",
+        "--output-dir",
+        seed_only_out,
+    )
+    seed_only_report = load_one_json(seed_only_out, "documenter-*.json")
+    assert seed_only_report["review_scope"] == "seed"
+    assert [item["doc_id"] for item in seed_only_report["reviewed_files"]] == ["README.md"]
 
 
 def test_review_plan_candidate_limits_are_reflected_in_packets(tmp_path: Path) -> None:

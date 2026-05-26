@@ -14,6 +14,7 @@ The documenter role receives one bounded packet and returns structured JSON. It 
 - Uses line overlap for local continuity without making the role stateful.
 - Writes a document manifest in `full` mode.
 - Writes a review plan with bounded `visible_followup_candidates`.
+- Can review either the selected seed doc or the full discovered manifest.
 - Optionally expands exact follow-up files within depth/count/scope limits.
 - Writes non-mutating Markdown change plans.
 - Optionally writes draft artifact copies under the configured output directory.
@@ -25,6 +26,14 @@ The documenter role receives one bounded packet and returns structured JSON. It 
 review      write chunk-review JSON only
 summarize   summarize an existing JSON report with --report
 full        review chunks and write manifest, review plan, change plan, and final summary artifacts
+```
+
+`--document-scope` controls discovery. `--review-scope` controls what enters the review queue:
+
+```text
+auto      seed doc by default; full + document-scope all reviews the full manifest
+seed      only the selected document
+manifest  every discovered documentation file
 ```
 
 ## Artifacts
@@ -43,6 +52,7 @@ Reports are written under `.agentic_reports/` by default. The target project is 
 
 - Default document discovery uses tracked files.
 - `--document-scope all` is explicit and skips common generated directories.
+- `--review-scope seed` can force a one-document review even when discovery uses all files.
 - Follow-up expansion is fail-closed by default and limited to packet-visible candidates.
 - The normal path has an in-memory file size guard. Use the streaming workflow for oversized files.
 - Drafts are artifact copies, not applied edits.

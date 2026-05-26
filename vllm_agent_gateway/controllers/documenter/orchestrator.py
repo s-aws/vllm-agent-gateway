@@ -29,6 +29,7 @@ DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT = 1200
 DEFAULT_MAX_IN_MEMORY_DOC_BYTES = 64 * 1024 * 1024
 SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[2]
 MODES = {"review", "summarize", "full"}
+REVIEW_SCOPES = {"auto", "seed", "manifest"}
 CHANGE_PLAN_CATEGORY_TITLES = {
     "safe_documentation_edit": "Safe Documentation Edits",
     "needs_user_decision": "Needs User Decision",
@@ -847,6 +848,7 @@ def build_doc_change_plan(report: dict[str, Any]) -> str:
         f"- Mode: {inline_markdown(report.get('mode', 'unknown'))}",
         f"- Dry run: {str(bool(report.get('dry_run'))).lower()}",
         f"- Document scope: {inline_markdown(report.get('document_scope', 'unknown'))}",
+        f"- Review scope: {inline_markdown(report.get('review_scope', 'unknown'))}",
         f"- Chunks processed: {inline_markdown(report.get('chunks_processed', 'unknown'))} of {inline_markdown(report.get('chunks_total', 'unknown'))}",
         f"- Truncated after chunks: {str(bool(report.get('truncated_after_chunks'))).lower()}",
         f"- Aggregate confidence: {inline_markdown(aggregate.get('confidence', 'unknown'))}",
@@ -1518,6 +1520,7 @@ def build_summary_packet(report: dict[str, Any], aggregate: dict[str, Any]) -> d
         "doc_id": report.get("doc_id"),
         "seed_doc_id": report.get("seed_doc_id"),
         "target_root": report.get("target_root"),
+        "review_scope": report.get("review_scope"),
         "reviewed_files": report.get("reviewed_files"),
         "review_plan": report.get("review_plan"),
         "followup_policy": report.get("followup_policy"),
@@ -1608,6 +1611,29 @@ def review_target_from_state(value: dict[str, Any]) -> ReviewTarget:
     return ReviewTarget(doc_id=doc_id, source=source, depth=depth, parent_doc_id=parent_doc_id)
 
 
+def resolve_review_scope(args: argparse.Namespace) -> str:
+    if args.review_scope != "auto":
+        return args.review_scope
+    if args.mode == "full" and args.document_scope == "all":
+        return "manifest"
+    return "seed"
+
+
+def initial_review_targets(seed_doc_id: str, docs: list[str], review_scope: str) -> list[ReviewTarget]:
+    if review_scope == "seed":
+        return [ReviewTarget(doc_id=seed_doc_id, source="seed", depth=0)]
+    if review_scope != "manifest":
+        raise OrchestratorError(f"Unknown review scope: {review_scope}")
+    return [
+        ReviewTarget(
+            doc_id=doc_id,
+            source="seed" if doc_id == seed_doc_id else "manifest",
+            depth=0,
+        )
+        for doc_id in unique_strings([seed_doc_id, *docs])
+    ]
+
+
 def state_list(value: Any, field_name: str) -> list[Any]:
     if value is None:
         return []
@@ -1635,6 +1661,7 @@ def build_resume_key(
         "target_root": str(target_root),
         "output_dir": str(output_dir.resolve()),
         "document_scope": args.document_scope,
+        "review_scope": resolve_review_scope(args),
         "doc_id": doc_id,
         "allow_untracked_doc": bool(args.allow_untracked_doc),
         "role_id": args.role_id,
@@ -1778,6 +1805,15 @@ def parse_args() -> argparse.Namespace:
         default="tracked",
         help="Use tracked docs by default, or scan all target files for first-run/bootstrap docs.",
     )
+    parser.add_argument(
+        "--review-scope",
+        choices=sorted(REVIEW_SCOPES),
+        default="auto",
+        help=(
+            "Select which discovered docs enter the review queue. auto reviews the selected seed doc, "
+            "except full + document-scope all reviews the full discovered manifest."
+        ),
+    )
     parser.add_argument("--role-id", default=DEFAULT_ROLE_ID)
     parser.add_argument("--role-base-url", default=None, help="Role proxy base URL. Defaults to role port from manifest.")
     parser.add_argument("--model", default=os.environ.get("AGENTIC_GATEWAY_MODEL", DEFAULT_MODEL))
@@ -1902,6 +1938,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
     max_chunks = None if args.all_chunks or args.max_chunks is None else args.max_chunks
     role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
     criteria_initial = args.criteria if args.criteria else list(DEFAULT_CRITERIA)
+    review_scope = resolve_review_scope(args)
 
     known_files, tracked_file_list, discovery_warnings = discover_files_for_scope(
         target_root, assigned_tool_ids, args.document_scope
@@ -2038,8 +2075,8 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
         reviewed_file_reports: list[dict[str, Any]] = []
         accepted_followups: list[dict[str, Any]] = []
         skipped_followups: list[dict[str, Any]] = []
-        target_queue: list[ReviewTarget] = [ReviewTarget(doc_id=doc_id, source="seed", depth=0)]
-        queued_files: set[str] = {doc_id}
+        target_queue = initial_review_targets(doc_id, docs, review_scope)
+        queued_files = {target.doc_id for target in target_queue}
         reviewed_files: set[str] = set()
         completed_chunk_ids: set[str] = set()
         failed_packets: list[dict[str, Any]] = []
@@ -2071,6 +2108,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
             "doc_id": doc_id,
             "seed_doc_id": doc_id,
             "document_scope": args.document_scope,
+            "review_scope": review_scope,
             "criteria_initial": criteria_initial,
             "criteria_remaining": criteria_remaining,
             "chunk_token_limit": args.chunk_token_limit,
@@ -2276,6 +2314,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
             "review_plan_tool_dependencies": review_plan.get("tool_dependencies", []),
         },
         "document_scope": args.document_scope,
+        "review_scope": review_scope,
         "known_files_count": len(known_file_set),
         "tracked_files_count": len(tracked_file_set),
         "docs_discovered": docs,

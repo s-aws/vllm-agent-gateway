@@ -194,13 +194,15 @@ Run the full workflow against the local role endpoint:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
-`full` mode writes a document manifest JSON artifact beside the report. It also writes a `doc-change-plan-*.md` artifact that groups findings by target file into safe edits, user-decision items, insufficient-evidence items, follow-up files, and validation notes. The default manifest source is tracked files. For first-run/bootstrap repositories, use all-file discovery:
+`full` mode writes a document manifest JSON artifact beside the report. It also writes a `doc-change-plan-*.md` artifact that groups findings by target file into safe edits, user-decision items, insufficient-evidence items, follow-up files, and validation notes. The default manifest source is tracked files. For first-run/bootstrap repositories, use all-file discovery. In `full` mode, `--document-scope all` queues the full discovered manifest by default:
 
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
   --mode full \
   --document-scope all
 ```
+
+Use `--review-scope seed` when you want all-file discovery for context, but only want the selected seed document reviewed. Use `--review-scope manifest` to review every discovered documentation file with tracked-file discovery.
 
 The all-file scan is an explicit controller dependency named `scan_files`; it skips common generated directories and is recorded in `tool_policy.controller_tool_dependencies`.
 
