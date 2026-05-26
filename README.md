@@ -1,26 +1,21 @@
 # vLLM Agent Gateway
 
-`vllm-agent-gateway` is a small local runtime for putting stricter controls between agent clients and a vLLM-hosted model.
+`vllm-agent-gateway` is a Linux-first local runtime for putting stricter controls between agent clients and a vLLM-hosted model.
 
 It provides:
 
 - role-specific prompt proxy ports
+- a token-budget gateway that rejects oversized requests and clamps output
 - tiny role/subrole prompt files
-- a budget gateway that counts input tokens and clamps output tokens
-- fail-closed rejection for oversized requests
-- a tool catalog used by controllers/runners to authorize deterministic actions
-- resumable controller state for long documenter runs
-- streaming document modes for oversized single-document inputs
-- deterministic code structure indexes for source symbols, documentation links, and config key paths
-- controlled implementation workflow artifacts with draft/apply policy and verification capture
-- Linux-first startup and stop scripts
-- a JSON role manifest for ports, prompts, budgets, and client policy
+- a role manifest for ports, prompts, budgets, and client policy
+- controller-owned document review, streaming document modes, code structure indexes, and implementation workflow artifacts
+- a tool catalog used by controllers and the tool mediator to authorize deterministic actions
 
-The current implementation is intentionally conservative. It does not silently summarize, trim, or rewrite agent context. Oversized requests are rejected so the caller has to delegate a smaller task or explicitly reduce context.
+The project is intentionally conservative. It does not silently summarize, trim, rewrite, or forward unbounded context. When a request is too large, the gateway or controller rejects it so the caller has to delegate a smaller task or explicitly choose a reduction mode.
 
-## Tested Setup
+## Quick Start
 
-This repository is currently tested on:
+Tested setup:
 
 - Ubuntu 24.04/Linux runtime
 - NVIDIA RTX 6000 PRO 96 GB
@@ -28,119 +23,35 @@ This repository is currently tested on:
 - Model: `Qwen/Qwen3-Coder-30B-A3B-Instruct`
 - vLLM OpenAI-compatible server on `http://127.0.0.1:8000/v1`
 - Python 3 and Bash
-- Claude Code as one tested client, using `--bare` for lower request overhead
+- Claude Code as one tested client, usually with `--bare`
 
-The scripts are Linux-first. Host-specific wrappers, private notes, logs, PID files, and local experiments should live outside this public repo, typically in a sibling `private_agentic_agents` directory.
-
-## Architecture
-
-```text
-client -> role prompt proxy -> llm_gateway.py -> vLLM
-```
-
-Default ports:
-
-```text
-8101 reviewer/code
-8102 tester/code
-8201 architect/default
-8202 dispatcher/default
-8203 implementer/default
-8204 researcher/default
-8205 documenter/default
-8300 LLM gateway
-8000 vLLM upstream
-```
-
-Role endpoints are loaded from `runtime/roles.json`. Add or remove role ports in the manifest, not in the startup script.
-
-## Documenter Orchestrator Demo
-
-The first controller example is intentionally narrow: it reviews a seed documentation file with the `documenter/default` role. It can optionally expand to exact tracked follow-up files reported by the documenter, but the controller owns that decision.
-
-```text
-controller -> documenter role proxy -> LLM gateway -> vLLM
-```
-
-The controller owns repo discovery, file reading, chunking, packet construction, sequencing, validation, and report writing. The documenter role receives one bounded packet and returns one structured JSON delta.
-
-Chunks overlap by default with `--chunk-overlap-lines 8`. This gives the documenter local continuity without making it stateful.
-
-Dry-run packet generation:
+Start vLLM separately, then start the gateway and role prompt proxies:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --dry-run
+bash start-agent-prompt-proxies.sh
 ```
 
-Run the full workflow against the local documenter role endpoint:
+Stop them:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
+bash stop-agent-prompt-proxies.sh
 ```
 
-`full` mode automatically writes a document manifest JSON artifact beside the report. It also writes a non-mutating `doc-change-plan-*.md` artifact that groups review findings by target file into safe documentation edits, items needing a user decision, and insufficient-evidence items. By default the manifest uses tracked files only. For first-run/bootstrap repositories where useful docs may not be tracked yet, scan the target tree:
+Run regression tests:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
-  --mode full \
-  --document-scope all
+pytest tests/regression/ -v
 ```
 
-The all-files scan skips common generated directories such as `.git`, `.venv`, `node_modules`, build outputs, caches, and `.agentic_reports`.
+## Basic Usage
 
-The controller also writes a `doc-review-plan-*.json` artifact before review starts. The plan provides the bounded candidate pool used to populate `visible_followup_candidates` in each packet. Packet candidates are capped by `--visible-candidate-limit` and `--visible-candidate-token-limit` so the documenter sees a small, deterministic list instead of the whole manifest.
-
-Quick one-chunk smoke run. `--max-chunks` is applied per reviewed file:
+Run a one-chunk documenter dry run:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode review --max-chunks 1
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --dry-run --max-chunks 1
 ```
 
-Adjust chunk sizing:
-
-```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
-  --chunk-token-limit 1200 \
-  --chunk-overlap-lines 12
-```
-
-Review a different project while using this repo for gateway configuration:
-
-```bash
-python /path/to/vllm-agent-gateway/scripts/run_documenter_orchestrator.py \
-  --config-root /path/to/vllm-agent-gateway \
-  --target-root /path/to/project \
-  --doc README.md
-```
-
-Bounded follow-up expansion:
-
-```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
-  --mode full \
-  --include-followups \
-  --followup-depth 1 \
-  --max-followup-files 5
-```
-
-Follow-up expansion is fail-closed. By default, the controller only queues exact paths from the packet's `visible_followup_candidates`, and each accepted path must also be in scope, use an allowed text/config/code suffix, have not already been seen, and fit within the configured depth/count limits. Accepted and skipped follow-ups are recorded in the JSON report with reason codes.
-
-Compatibility mode can allow old exact-path behavior for in-scope files that were not visible in the packet:
-
-```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
-  --mode full \
-  --include-followups \
-  --allow-nonvisible-followups
-```
-
-The E2E documenter roadmap is tracked in `docs/DOCUMENTER_E2E_ROADMAP.md`. Use it as the control document before adding new documenter workflow behavior.
-
-The normal documenter controller is intentionally an in-memory path for ordinary documentation files. It refuses files larger than `--max-in-memory-doc-bytes` by default instead of silently summarizing or trimming. Use `--allow-large-in-memory-docs` only when you intentionally want that path to read a larger file.
-
-## Streaming Documenter
-
-Use the streaming runner for oversized single-document inputs, literal source-presence checks, deterministic reductions, and source-validated model-assisted reductions:
+Run a source-presence check without vLLM:
 
 ```bash
 python scripts/run_streaming_documenter.py --target-root . --doc README.md \
@@ -148,285 +59,45 @@ python scripts/run_streaming_documenter.py --target-root . --doc README.md \
   --query "runtime ports"
 ```
 
-Implemented deterministic modes are `context_presence`, `token_count`, `coverage`, and `outline`. They do not call vLLM. They stream bounded byte chunks and return source-backed ranges plus coverage totals.
-
-Implemented model-assisted modes are `extract_facts`, `classify`, and `summarize`. They call a role endpoint one chunk at a time, then the controller validates evidence refs before accepting records. `summarize` is explicitly lossy: summaries are labeled `summary_derived`, not `source_verified`.
-
-Examples:
+Build a deterministic structure index:
 
 ```bash
-python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode token_count
-python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode coverage
-python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode outline
-python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode extract_facts \
-  --role-base-url http://127.0.0.1:8205/v1
-python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode classify \
-  --role-base-url http://127.0.0.1:8205/v1 \
-  --classification-label installation \
-  --classification-label runtime
-python scripts/run_streaming_documenter.py --target-root . --doc README.md --mode summarize \
-  --role-base-url http://127.0.0.1:8205/v1 \
-  --max-summaries 8 \
-  --max-summary-depth 3
+python scripts/run_code_structure_index.py --target-root .
 ```
 
-Bound large runs explicitly:
+Create draft implementation artifacts from explicit packets:
 
 ```bash
-python scripts/run_streaming_documenter.py --target-root /path/to/project --doc huge.md \
-  --query "required phrase" \
-  --chunk-bytes 65536 \
-  --read-block-bytes 8192 \
-  --max-bytes 104857600 \
-  --max-chunks 1000 \
-  --max-model-records 1000 \
-  --max-summaries 8 \
-  --max-summary-depth 3
+python scripts/run_implementation_workflow.py --target-root . \
+  --packet-file implementation-packets.json
 ```
 
-Resume from streaming state:
+## Documentation Map
 
-```bash
-python scripts/run_streaming_documenter.py --target-root /path/to/project --doc huge.md \
-  --query "required phrase" \
-  --resume .agentic_reports/streaming-state-<target>-<doc>-<run-id>.json
-```
+Start with the ordered index: [docs/README.md](docs/README.md).
 
-Streaming artifacts are written as `streaming-manifest-*.json`, `streaming-state-*.json`, and `streaming-<mode>-*.json`. Model-assisted reports include `validation_warnings` whenever a record is low-confidence, unsupported, outside the chunk source range, or uses a disallowed classification label. Summarize reports also include caveats and keep lossy `summary_derived` records separate from `source_verified_records`. See `docs/STREAMING_DOCUMENT_MODES.md`.
+Feature docs:
 
-## Code Structure Indexes
+- [README.gateway.md](README.gateway.md): gateway, role proxies, ports, setup, and client notes
+- [README.documenter.md](README.documenter.md): documenter orchestrator, review plans, follow-ups, drafts, and state
+- [README.streaming.md](README.streaming.md): streaming document modes for oversized files and explicit reductions
+- [README.code-structure-indexes.md](README.code-structure-indexes.md): deterministic source/config/document structure indexes
+- [README.implementation-workflow.md](README.implementation-workflow.md): implementation plans, draft/apply policy, verification, and resume
+- [README.tool-policy.md](README.tool-policy.md): tool catalog, role tool assignment, and mediated tool execution
 
-Use the structure index runner when a target repo needs deterministic code/config/link context before handing work to a role:
-
-```bash
-python scripts/run_code_structure_index.py --target-root /path/to/project
-```
-
-By default it indexes tracked supported files. For first-run/bootstrap scans:
-
-```bash
-python scripts/run_code_structure_index.py --target-root /path/to/project --file-scope all
-```
-
-The runner writes `code-structure-index-*.json` with:
-
-- Python AST records for modules, classes, functions, imports, decorators, docstrings, line ranges, and syntax errors.
-- Markdown/AsciiDoc/reStructuredText heading, anchor, relative-link, unresolved-link, inbound, and outbound reference records.
-- JSON/YAML key-path records with scalar previews, available line ranges, and parse errors.
-
-It never imports or executes target code. Oversized individual files are skipped with indexed status instead of being read unboundedly.
-
-To emit a bounded packet-ready slice instead of handing a role the full index:
-
-```bash
-python scripts/run_code_structure_index.py --target-root /path/to/project \
-  --slice-path pkg/module.py \
-  --slice-symbol Service \
-  --slice-max-records 25
-```
-
-Slice artifacts are written as `code-structure-slice-*.json` and use the packet field name `structure_index_slice`.
-
-## Implementation Workflow
-
-Use the implementation workflow when a reviewed plan is ready to become bounded work packets. The default mode is read-only against the target repo and writes drafts under the output directory:
-
-```bash
-python scripts/run_implementation_workflow.py --target-root /path/to/project \
-  --from-report .agentic_reports/documenter-<run>.json \
-  --approve-all-safe
-```
-
-You can approve individual change-plan items instead:
-
-```bash
-python scripts/run_implementation_workflow.py --target-root /path/to/project \
-  --from-report .agentic_reports/documenter-<run>.json \
-  --approve-change-plan-item CP-0001
-```
-
-Explicit implementation packets are also supported:
-
-```json
-{
-  "schema_version": 1,
-  "packets": [
-    {
-      "id": "IMP-0001",
-      "target_files": ["README.md"],
-      "operation": {
-        "kind": "replace_text",
-        "path": "README.md",
-        "old": "old text",
-        "new": "new text"
-      },
-      "acceptance_criteria": ["README is updated."]
-    }
-  ]
-}
-```
-
-Run the packet file in draft mode:
-
-```bash
-python scripts/run_implementation_workflow.py --target-root /path/to/project \
-  --packet-file implementation-packets.json \
-  --verification-pytest tests
-```
-
-Direct target mutation requires explicit apply mode. Apply mode refuses out-of-scope paths, refuses untracked files, records before/after hashes, and still captures verification:
-
-```bash
-python scripts/run_implementation_workflow.py --target-root /path/to/project \
-  --mode apply \
-  --packet-file implementation-packets.json \
-  --verification-pytest tests
-```
-
-The workflow writes `implementation-plan-*.json`, `implementation-state-*.json`, `implementation-report-*.json`, and default draft artifacts under `implementation-drafts/<run-id>/`. Resume from state or report:
-
-```bash
-python scripts/run_implementation_workflow.py --target-root /path/to/project \
-  --output-dir .agentic_reports \
-  --resume .agentic_reports/implementation-state-<target>-<run-id>.json
-```
-
-Optional draft artifacts:
-
-```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
-  --mode full \
-  --write-draft
-```
-
-`--write-draft` writes artifact copies under `.agentic_reports/drafts/<run-id>/` by default. Each draft file copies the reviewed target file and appends controller-generated draft notes mapped to change-plan item IDs. The draft directory also contains `draft-metadata.json` and an index README that map every draft back to the source document, JSON report, and change plan. Target repository files are not overwritten.
-
-Resumable state:
-
-```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
-  --mode full \
-  --dry-run \
-  --max-chunks 1 \
-  --stop-after-chunks 1
-
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
-  --mode full \
-  --dry-run \
-  --max-chunks 1 \
-  --resume .agentic_reports/run-state-agentic_agents-README.md-<run-id>.json
-```
-
-The controller writes `run-state-*.json` while it works. On resume, completed chunk IDs are skipped, accepted follow-ups are restored from the saved queue, and incompatible arguments are refused unless `--resume-allow-arg-changes` is provided. Failed packet metadata is preserved in the state artifact. The state schema is versioned in `docs/DOCUMENTER_RUN_STATE.md`.
-
-Modes:
-
-```text
-review      write chunk-review JSON only
-summarize   summarize an existing JSON report with --report
-full        review chunks and write manifest, review plan, change plan, and final summary artifacts
-```
-
-Reports are written under `.agentic_reports/` in the config repo by default, which is ignored by git. Full mode writes a JSON report, a run-state JSON artifact, a document manifest JSON artifact, a review plan JSON artifact, a Markdown change plan, and a Markdown summary. With `--write-draft`, it also writes draft artifacts under the configured output directory. The streaming runner writes separate streaming manifest, state, and mode report artifacts. The change plan and drafts are generated from validated report fields only; they do not modify target project files. The target project is read only unless you explicitly point `--output-dir` at it.
-
-## Tool Policy
-
-`runtime/tools.json` is the tool catalog. `runtime/roles.json` assigns tool IDs to each role with `tool_ids`.
-
-In this version, tool IDs authorize deterministic controller behavior. They are not synthetic model tools yet. For example, the documenter orchestrator requires `git_ls_files` and `read_file` before it can discover tracked docs and read selected documents. First-run all-file discovery also requires `scan_files`.
-
-Controller reports include `tool_policy.controller_tool_dependencies` so runs can be audited against the role's assigned `tool_ids`.
-
-`tool_mediator.py` provides the first real execution loop for model-mediated tools:
-
-```text
-tool schema -> model tool call -> local execution -> tool result -> final model answer
-```
-
-It generates OpenAI-compatible tool schemas from `runtime/tools.json`, executes only allowed catalog-backed tools, injects `role: tool` result messages, and rejects raw tool-call-shaped assistant text as incomplete tool execution. See `docs/TOOL_MEDIATION.md`.
-
-## Tests
-
-Controller regression tests do not require vLLM. They build temporary target repos and use fake HTTP endpoints where model behavior is not the subject under test.
-
-```bash
-pytest tests/regression/ -v
-```
-
-## Start
-
-Start vLLM separately, then run:
-
-```bash
-bash start-agent-prompt-proxies.sh
-```
-
-Stop the gateway and prompt proxy:
-
-```bash
-bash stop-agent-prompt-proxies.sh
-```
-
-The startup script prints local and network role endpoints generated from `runtime/roles.json`.
-
-## Gateway Defaults
-
-```text
-MODEL_LIMIT=65536
-TARGET_INPUT_LIMIT=24000
-SAFETY_BUFFER=1000
-DEFAULT_MAX_OUTPUT=4000
-MIN_AVAILABLE_OUTPUT=512
-```
-
-Routing defaults:
-
-```text
-VLLM_BASE_URL=http://127.0.0.1:8000
-GATEWAY_BIND_HOST=127.0.0.1
-GATEWAY_PORT=8300
-GATEWAY_CONNECT_HOST=<normalized GATEWAY_BIND_HOST>
-GATEWAY_BASE_URL=http://$GATEWAY_CONNECT_HOST:8300
-TARGET_BASE_URL=$GATEWAY_BASE_URL
-HOST_ADDRESS=0.0.0.0
-```
-
-Example override:
-
-```bash
-TARGET_INPUT_LIMIT=18000 DEFAULT_MAX_OUTPUT=3000 bash start-agent-prompt-proxies.sh
-```
-
-## Client Notes
-
-Anthropic-compatible clients such as Claude Code usually want the base URL without `/v1`:
-
-```bash
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8205
-claude -p --bare --tools "Read,Grep,Glob" --model Qwen/Qwen3-Coder-30B-A3B-Instruct "What is your role name?"
-```
-
-OpenAI-compatible clients usually want `/v1`:
-
-```text
-http://127.0.0.1:8205/v1
-```
-
-For details on the verified vLLM launch command, gateway behavior, and Claude Code tool restrictions, see `VLLM_AGENT_HOST.md`.
+Examples live under [docs/examples/](docs/examples/).
 
 ## Repository Layout
 
 ```text
-roles/                    role and subrole prompt files
-runtime/roles.json         active role manifest
-runtime/tools.json         controller/tool mediator catalog
-agent_prompt_proxy.py      OpenAI/Anthropic-compatible role prompt proxy
-llm_gateway.py             token budget and forwarding gateway
-streaming_documenter.py     streaming large-document primitives and mode registry
-code_structure_index.py     deterministic code/document/config indexer
-implementation_workflow.py   controlled implementation packet workflow
-scripts/                   controller and smoke-test helpers
-start-agent-prompt-proxies.sh
-stop-agent-prompt-proxies.sh
-VLLM_AGENT_HOST.md         setup and operating notes
+roles/                       role and subrole prompt files
+runtime/roles.json            active role manifest
+runtime/tools.json            controller/tool mediator catalog
+agent_prompt_proxy.py         OpenAI/Anthropic-compatible role prompt proxy
+llm_gateway.py                token budget and forwarding gateway
+streaming_documenter.py        streaming large-document primitives and mode registry
+code_structure_index.py        deterministic code/document/config indexer
+implementation_workflow.py     controlled implementation packet workflow
+scripts/                      controller and smoke-test helpers
+docs/                         ordered reference docs, roadmaps, and examples
 ```
