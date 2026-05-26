@@ -26,7 +26,7 @@ from vllm_agent_gateway.structure_index.indexer import (
     build_index_slice,
     write_index_artifact,
 )
-from vllm_agent_gateway.documenter.orchestrator import collect_change_plan_items
+from vllm_agent_gateway.controllers.documenter.orchestrator import collect_change_plan_items
 
 
 SCHEMA_VERSION = 1

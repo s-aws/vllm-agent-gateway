@@ -94,7 +94,8 @@ roles/                       role and subrole prompt files
 runtime/roles.json            active role manifest
 runtime/tools.json            controller/tool mediator catalog
 vllm_agent_gateway/gateway/    prompt proxy and token budget gateway
-vllm_agent_gateway/documenter/ documenter orchestrator and streaming modes
+vllm_agent_gateway/controllers/
+                              stateful workflow controllers, including documenter
 vllm_agent_gateway/structure_index/
                               deterministic code/document/config indexer
 vllm_agent_gateway/implementation/

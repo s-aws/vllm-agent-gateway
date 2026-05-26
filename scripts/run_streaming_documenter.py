@@ -13,7 +13,7 @@ SCRIPT_ROOT = Path(__file__).resolve().parents[1]
 if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
 
-from vllm_agent_gateway.documenter.streaming import (  # noqa: E402
+from vllm_agent_gateway.controllers.documenter.streaming import (  # noqa: E402
     DEFAULT_CHUNK_BYTES,
     DEFAULT_CLASSIFICATION_LABELS,
     DEFAULT_MAX_MODEL_RECORDS,

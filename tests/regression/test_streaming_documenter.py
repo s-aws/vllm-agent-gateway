@@ -10,7 +10,7 @@ from typing import Any, Callable
 
 import pytest
 
-from vllm_agent_gateway.documenter.streaming import MODE_REGISTRY
+from vllm_agent_gateway.controllers.documenter.streaming import MODE_REGISTRY
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

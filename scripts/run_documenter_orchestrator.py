@@ -11,7 +11,7 @@ SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
 if str(SCRIPT_CONFIG_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_CONFIG_ROOT))
 
-from vllm_agent_gateway.documenter.orchestrator import main  # noqa: E402
+from vllm_agent_gateway.controllers.documenter.orchestrator import main  # noqa: E402
 
 
 if __name__ == "__main__":
