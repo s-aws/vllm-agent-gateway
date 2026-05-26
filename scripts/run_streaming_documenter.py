@@ -21,16 +21,17 @@ from vllm_agent_gateway.controllers.documenter.streaming import (  # noqa: E402
     DEFAULT_MAX_QUERY_MATCHES,
     DEFAULT_MAX_SUMMARIES,
     DEFAULT_MAX_SUMMARY_DEPTH,
+    DEFAULT_MODEL,
     DEFAULT_MODEL_OUTPUT_TOKENS,
     DEFAULT_READ_BLOCK_BYTES,
     MODE_REGISTRY,
     StreamingDocumenterError,
-    run_streaming_mode,
+    StreamingDocumenterInvocationRequest,
+    invoke_streaming_documenter,
 )
 
 
 DEFAULT_OUTPUT_DIR = ".agentic_reports"
-DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 
 
 def parse_args() -> argparse.Namespace:
@@ -128,42 +129,11 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    target_root = Path(args.target_root).resolve()
-    output_dir = Path(args.output_dir)
-    if not output_dir.is_absolute():
-        output_dir = Path.cwd() / output_dir
-    report, report_path, state_path = run_streaming_mode(
-        repo_root=target_root,
-        doc_id=args.doc,
-        mode=args.mode,
-        query=args.query,
-        output_dir=output_dir,
-        chunk_bytes=args.chunk_bytes,
-        read_block_bytes=args.read_block_bytes,
-        max_bytes=args.max_bytes,
-        max_chunks=args.max_chunks,
-        max_elapsed_seconds=args.max_elapsed_seconds,
-        stop_after_chunks=args.stop_after_chunks,
-        resume_state_path=Path(args.resume).resolve() if args.resume else None,
-        resume_allow_arg_changes=bool(args.resume_allow_arg_changes),
-        max_outline_entries=args.max_outline_entries,
-        max_query_matches=args.max_query_matches,
-        role_base_url=args.role_base_url,
-        model=args.model,
-        timeout=args.timeout,
-        max_output_tokens=args.max_output_tokens,
-        max_model_records=args.max_model_records,
-        classification_labels=args.classification_label or list(DEFAULT_CLASSIFICATION_LABELS),
-        max_summaries=args.max_summaries,
-        max_summary_depth=args.max_summary_depth,
-    )
-    print(f"Wrote {report_path}")
-    print(f"Wrote {state_path}")
-    print(
-        "quality_label="
-        f"{report['quality_label']} reviewed_bytes={report['coverage']['reviewed_bytes']} "
-        f"skipped_bytes={report['coverage']['skipped_bytes']}"
-    )
+    result = invoke_streaming_documenter(StreamingDocumenterInvocationRequest.from_namespace(args))
+    print(f"Wrote {result.artifact_paths['streaming_report']}")
+    print(f"Wrote {result.artifact_paths['streaming_state']}")
+    if result.summary_text:
+        print(result.summary_text)
     return 0
 
 

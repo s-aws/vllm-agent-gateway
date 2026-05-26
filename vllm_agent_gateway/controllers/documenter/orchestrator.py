@@ -14,11 +14,19 @@ import json
 import os
 import re
 import subprocess
-from dataclasses import dataclass
+import sys
+from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
+
+from vllm_agent_gateway.invocation import (
+    InvocationResult,
+    WorkflowStatus,
+    list_failures,
+    string_artifact_paths,
+)
 
 
 DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
@@ -110,6 +118,11 @@ class OrchestratorError(RuntimeError):
 class OrchestratorPaused(RuntimeError):
     """Raised after writing a resumable pause state."""
 
+    def __init__(self, run_state_path: Path | None = None, status: str = "paused"):
+        super().__init__(status)
+        self.run_state_path = run_state_path
+        self.status = status
+
 
 @dataclass(frozen=True)
 class Chunk:
@@ -127,6 +140,53 @@ class ReviewTarget:
     source: str
     depth: int
     parent_doc_id: str | None = None
+
+
+@dataclass(frozen=True)
+class DocumenterInvocationRequest:
+    mode: str = "full"
+    config_root: Path | str | None = None
+    target_root: Path | str = "."
+    doc: str | None = None
+    document_scope: str = "tracked"
+    review_scope: str = "auto"
+    role_id: str = DEFAULT_ROLE_ID
+    role_base_url: str | None = None
+    model: str = field(default_factory=lambda: os.environ.get("AGENTIC_GATEWAY_MODEL", DEFAULT_MODEL))
+    chunk_token_limit: int = 1000
+    chunk_overlap_lines: int = 8
+    visible_candidate_limit: int = DEFAULT_VISIBLE_CANDIDATE_LIMIT
+    visible_candidate_token_limit: int = DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT
+    max_chunks: int | None = None
+    all_chunks: bool = False
+    include_followups: bool = False
+    followup_depth: int = 0
+    max_followup_files: int = 5
+    allow_nonvisible_followups: bool = False
+    criteria: list[str] | None = None
+    output_dir: Path | str = DEFAULT_OUTPUT_DIR
+    allow_untracked_doc: bool = False
+    list_docs: bool = False
+    report: Path | str | None = None
+    resume: Path | str | None = None
+    resume_allow_arg_changes: bool = False
+    summary_output: Path | str | None = None
+    write_draft: bool = False
+    stop_after_chunks: int | None = None
+    stop_requested_path: Path | str | None = None
+    dry_run: bool = False
+    timeout: int = 600
+    max_output_tokens: int = 1000
+    max_in_memory_doc_bytes: int = DEFAULT_MAX_IN_MEMORY_DOC_BYTES
+    allow_large_in_memory_docs: bool = False
+
+    @classmethod
+    def from_namespace(cls, args: argparse.Namespace) -> "DocumenterInvocationRequest":
+        names = {item.name for item in fields(cls)}
+        return cls(**{name: getattr(args, name) for name in names if hasattr(args, name)})
+
+    def to_namespace(self) -> argparse.Namespace:
+        return argparse.Namespace(**{item.name: getattr(self, item.name) for item in fields(self)})
 
 
 def utc_now() -> str:
@@ -1929,6 +1989,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
         raise OrchestratorError("--stop-after-chunks must be at least 1 when provided.")
     if args.max_in_memory_doc_bytes < 1:
         raise OrchestratorError("--max-in-memory-doc-bytes must be at least 1.")
+    stop_requested_path = Path(args.stop_requested_path).resolve() if getattr(args, "stop_requested_path", None) else None
 
     include_followups = bool(args.include_followups or args.followup_depth > 0)
     effective_followup_depth = args.followup_depth if args.followup_depth > 0 else (1 if include_followups else 0)
@@ -2276,7 +2337,17 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
             if args.stop_after_chunks is not None and newly_processed_chunks >= args.stop_after_chunks:
                 persist_state("paused")
                 print(f"Paused after {newly_processed_chunks} newly processed chunk(s). Resume with {run_state_path}")
-                raise OrchestratorPaused()
+                raise OrchestratorPaused(run_state_path, "paused")
+            if stop_requested_path is not None and stop_requested_path.exists():
+                cancel_record = {
+                    "failed_at": utc_now(),
+                    "stage": "stop_after_current_packet",
+                    "reason": "controller_service_stop_requested",
+                    "stop_requested_path": str(stop_requested_path),
+                }
+                persist_state("canceled", cancel_record)
+                print(f"Stopped after current packet. Run state: {run_state_path}")
+                raise OrchestratorPaused(run_state_path, "canceled")
 
         reviewed_file_reports.append(
             {
@@ -2419,8 +2490,65 @@ def run_summary(
     return summary_path
 
 
-def main() -> int:
-    args = parse_args()
+def list_discovered_docs(args: argparse.Namespace) -> list[str]:
+    if args.mode == "summarize":
+        raise OrchestratorError("--list-docs cannot be combined with --mode summarize.")
+    config_root = Path(args.config_root).resolve() if args.config_root else SCRIPT_CONFIG_ROOT
+    manifest = read_json(config_root / "runtime" / "roles.json")
+    tool_catalog = read_json(config_root / "runtime" / "tools.json")
+    role = load_role(manifest, args.role_id)
+    assigned_tool_ids = role_tool_ids(role, load_tool_ids(tool_catalog))
+    target_root = Path(args.target_root).resolve()
+    known_files, _, _ = discover_files_for_scope(target_root, assigned_tool_ids, args.document_scope)
+    return doc_paths_from_files(known_files)
+
+
+def documenter_invocation_result(
+    workflow: str,
+    status: WorkflowStatus,
+    report: dict[str, Any] | None = None,
+    report_path: Path | None = None,
+    run_state_path: Path | None = None,
+    summary_text: str | None = None,
+    failures: list[dict[str, Any]] | None = None,
+) -> InvocationResult:
+    artifact_paths = string_artifact_paths(report.get("artifacts") if isinstance(report, dict) else {})
+    if report_path is not None:
+        artifact_paths.setdefault("json_report", str(report_path))
+    if run_state_path is not None:
+        artifact_paths.setdefault("run_state", str(run_state_path))
+    resume_key: dict[str, Any] | None = None
+    run_id: str | None = None
+    detected_failures = list(failures) if failures is not None else []
+    if run_state_path is not None and run_state_path.exists():
+        state = read_json(run_state_path)
+        raw_resume_key = state.get("resume_key")
+        resume_key = raw_resume_key if isinstance(raw_resume_key, dict) else None
+        raw_run_id = state.get("run_id")
+        run_id = raw_run_id if isinstance(raw_run_id, str) else None
+        if isinstance(state.get("failure"), dict):
+            detected_failures.append(state["failure"])
+    if isinstance(report, dict):
+        detected_failures = [
+            *detected_failures,
+            *list_failures(report.get("failed_packets")),
+        ]
+        if isinstance(report.get("failure"), dict):
+            detected_failures.append(report["failure"])
+    return InvocationResult(
+        workflow=workflow,
+        status=status,
+        artifact_paths=artifact_paths,
+        summary_text=summary_text,
+        failures=detected_failures,
+        resume_key=resume_key,
+        report=report,
+        run_id=run_id,
+    )
+
+
+def invoke_documenter(request: DocumenterInvocationRequest) -> InvocationResult:
+    args = request.to_namespace()
     if args.write_draft and args.mode != "full":
         raise OrchestratorError("--write-draft requires --mode full.")
     if args.resume and args.mode == "summarize":
@@ -2433,15 +2561,13 @@ def main() -> int:
     role_base_url = args.role_base_url or f"http://127.0.0.1:{role['port']}/v1"
 
     if args.list_docs:
-        if args.mode == "summarize":
-            raise OrchestratorError("--list-docs cannot be combined with --mode summarize.")
-        tool_catalog = read_json(config_root / "runtime" / "tools.json")
-        assigned_tool_ids = role_tool_ids(role, load_tool_ids(tool_catalog))
-        target_root = Path(args.target_root).resolve()
-        known_files, _, _ = discover_files_for_scope(target_root, assigned_tool_ids, args.document_scope)
-        for path in doc_paths_from_files(known_files):
-            print(path)
-        return 0
+        docs = list_discovered_docs(args)
+        return InvocationResult(
+            workflow="documenter.list_docs",
+            status=WorkflowStatus.COMPLETED,
+            summary_text="\n".join(docs),
+            report={"kind": "documenter_list_docs", "docs": docs},
+        )
 
     if args.mode == "summarize":
         if not args.report:
@@ -2460,12 +2586,25 @@ def main() -> int:
             args.timeout,
             args.summary_output,
         )
-        return 0
+        summary_path = string_artifact_paths(report.get("artifacts")).get("markdown_summary")
+        summary_text = Path(summary_path).read_text(encoding="utf-8") if summary_path else None
+        return documenter_invocation_result(
+            "documenter.summarize",
+            WorkflowStatus.COMPLETED,
+            report,
+            report_path,
+            summary_text=summary_text,
+        )
 
     try:
         report, report_path, run_state_path = run_review(args)
-    except OrchestratorPaused:
-        return 0
+    except OrchestratorPaused as exc:
+        status = WorkflowStatus.CANCELED if exc.status == "canceled" else WorkflowStatus.PAUSED
+        return documenter_invocation_result(
+            "documenter.review",
+            status,
+            run_state_path=exc.run_state_path,
+        )
     try:
         if args.mode == "full" and not args.dry_run:
             run_summary(
@@ -2488,6 +2627,32 @@ def main() -> int:
         )
         raise
     mark_run_state_completed(run_state_path, report)
+    summary_text: str | None = None
+    artifacts = string_artifact_paths(report.get("artifacts"))
+    summary_path = artifacts.get("markdown_summary")
+    if summary_path and Path(summary_path).exists():
+        summary_text = Path(summary_path).read_text(encoding="utf-8")
+    return documenter_invocation_result(
+        "documenter.review",
+        WorkflowStatus.COMPLETED,
+        report,
+        report_path,
+        run_state_path,
+        summary_text=summary_text,
+    )
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        result = invoke_documenter(DocumenterInvocationRequest.from_namespace(args))
+    except OrchestratorError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    if args.list_docs and result.summary_text:
+        print(result.summary_text)
+    if result.status == WorkflowStatus.FAILED:
+        return 1
     return 0
 
 

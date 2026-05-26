@@ -41,6 +41,12 @@ GATEWAY_BASE_URL="${GATEWAY_BASE_URL:-http://${GATEWAY_CONNECT_HOST}:${GATEWAY_P
 TARGET_BASE_URL="${TARGET_BASE_URL:-$GATEWAY_BASE_URL}"
 HOST_ADDRESS="${HOST_ADDRESS:-0.0.0.0}"
 ROLE_CONNECT_HOST="${ROLE_CONNECT_HOST:-$(url_host_for_bind_host "$HOST_ADDRESS")}"
+CONTROLLER_BIND_HOST="${CONTROLLER_BIND_HOST:-127.0.0.1}"
+CONTROLLER_PORT="${CONTROLLER_PORT:-8400}"
+CONTROLLER_CONNECT_HOST="${CONTROLLER_CONNECT_HOST:-$(url_host_for_bind_host "$CONTROLLER_BIND_HOST")}"
+CONTROLLER_BASE_URL="${CONTROLLER_BASE_URL:-http://${CONTROLLER_CONNECT_HOST}:${CONTROLLER_PORT}}"
+CONTROLLER_OUTPUT_ROOT="${CONTROLLER_OUTPUT_ROOT:-$STATE_ROOT/controller-artifacts}"
+CONTROLLER_ALLOWED_TARGET_ROOTS="${CONTROLLER_ALLOWED_TARGET_ROOTS:-$ROOT}"
 MODEL_LIMIT="${MODEL_LIMIT:-65536}"
 TARGET_INPUT_LIMIT="${TARGET_INPUT_LIMIT:-24000}"
 SAFETY_BUFFER="${SAFETY_BUFFER:-1000}"
@@ -49,6 +55,9 @@ MIN_AVAILABLE_OUTPUT="${MIN_AVAILABLE_OUTPUT:-512}"
 GATEWAY_PID_FILE="$STATE_ROOT/llm-gateway.pid"
 GATEWAY_LOG_FILE="$STATE_ROOT/llm-gateway.log"
 GATEWAY_ERR_FILE="$STATE_ROOT/llm-gateway.err.log"
+CONTROLLER_PID_FILE="$STATE_ROOT/controller-service.pid"
+CONTROLLER_LOG_FILE="$STATE_ROOT/controller-service.log"
+CONTROLLER_ERR_FILE="$STATE_ROOT/controller-service.err.log"
 PID_FILE="$STATE_ROOT/agent-prompt-proxy.pid"
 LOG_FILE="$STATE_ROOT/agent-prompt-proxy.log"
 ERR_FILE="$STATE_ROOT/agent-prompt-proxy.err.log"
@@ -92,35 +101,89 @@ if [[ ! -f "$GATEWAY_PID_FILE" ]]; then
     echo "Started LLM gateway PID $gateway_pid"
 fi
 
+proxy_running=0
 if [[ -f "$PID_FILE" ]]; then
     existing_pid="$(cat "$PID_FILE" 2>/dev/null || true)"
     if [[ -n "$existing_pid" ]] && kill -0 "$existing_pid" 2>/dev/null; then
         echo "Agent prompt proxy is already running as PID $existing_pid"
-        exit 0
+        proxy_running=1
+    else
+        rm -f "$PID_FILE"
     fi
-    rm -f "$PID_FILE"
 fi
 
-AGENT_PROMPT_PROXY_DEBUG_LOG="${AGENT_PROMPT_PROXY_DEBUG_LOG:-$STATE_ROOT/agent-prompt-proxy.debug.jsonl}" \
-nohup python3 -u -m vllm_agent_gateway.gateway.prompt_proxy \
-    --target-base-url "$TARGET_BASE_URL" \
-    --host "$HOST_ADDRESS" \
-    >"$LOG_FILE" 2>"$ERR_FILE" &
+if [[ "$proxy_running" != "1" ]]; then
+    AGENT_PROMPT_PROXY_DEBUG_LOG="${AGENT_PROMPT_PROXY_DEBUG_LOG:-$STATE_ROOT/agent-prompt-proxy.debug.jsonl}" \
+    nohup python3 -u -m vllm_agent_gateway.gateway.prompt_proxy \
+        --target-base-url "$TARGET_BASE_URL" \
+        --host "$HOST_ADDRESS" \
+        >"$LOG_FILE" 2>"$ERR_FILE" &
 
-proxy_pid="$!"
-echo "$proxy_pid" > "$PID_FILE"
-sleep 2
+    proxy_pid="$!"
+    echo "$proxy_pid" > "$PID_FILE"
+    sleep 2
 
-if ! kill -0 "$proxy_pid" 2>/dev/null; then
-    rm -f "$PID_FILE"
-    echo "Agent prompt proxy exited during startup." >&2
-    echo "stderr:" >&2
-    cat "$ERR_FILE" >&2 || true
-    exit 1
+    if ! kill -0 "$proxy_pid" 2>/dev/null; then
+        rm -f "$PID_FILE"
+        echo "Agent prompt proxy exited during startup." >&2
+        echo "stderr:" >&2
+        cat "$ERR_FILE" >&2 || true
+        exit 1
+    fi
+
+    echo "Started agent prompt proxy PID $proxy_pid"
 fi
 
-echo "Started agent prompt proxy PID $proxy_pid"
+controller_running=0
+if [[ -f "$CONTROLLER_PID_FILE" ]]; then
+    existing_controller_pid="$(cat "$CONTROLLER_PID_FILE" 2>/dev/null || true)"
+    if [[ -n "$existing_controller_pid" ]] && kill -0 "$existing_controller_pid" 2>/dev/null; then
+        echo "Controller service is already running as PID $existing_controller_pid"
+        controller_running=1
+    else
+        rm -f "$CONTROLLER_PID_FILE"
+    fi
+fi
+
+if [[ "$controller_running" != "1" ]]; then
+    IFS=':' read -r -a controller_allowed_roots <<< "$CONTROLLER_ALLOWED_TARGET_ROOTS"
+    controller_allowed_args=()
+    for allowed_root in "${controller_allowed_roots[@]}"; do
+        if [[ -n "$allowed_root" ]]; then
+            controller_allowed_args+=(--allowed-target-root "$allowed_root")
+        fi
+    done
+    controller_role_args=()
+    if [[ -n "${CONTROLLER_DEFAULT_ROLE_BASE_URL:-}" ]]; then
+        controller_role_args+=(--default-role-base-url "$CONTROLLER_DEFAULT_ROLE_BASE_URL")
+    fi
+
+    nohup python3 -u -m vllm_agent_gateway.controller_service.server \
+        --config-root "$ROOT" \
+        --output-root "$CONTROLLER_OUTPUT_ROOT" \
+        --host "$CONTROLLER_BIND_HOST" \
+        --port "$CONTROLLER_PORT" \
+        "${controller_allowed_args[@]}" \
+        "${controller_role_args[@]}" \
+        >"$CONTROLLER_LOG_FILE" 2>"$CONTROLLER_ERR_FILE" &
+
+    controller_pid="$!"
+    echo "$controller_pid" > "$CONTROLLER_PID_FILE"
+    sleep 2
+
+    if ! kill -0 "$controller_pid" 2>/dev/null; then
+        rm -f "$CONTROLLER_PID_FILE"
+        echo "Controller service exited during startup." >&2
+        echo "stderr:" >&2
+        cat "$CONTROLLER_ERR_FILE" >&2 || true
+        exit 1
+    fi
+
+    echo "Started controller service PID $controller_pid"
+fi
+
 echo "llm gateway: ${GATEWAY_BASE_URL} -> ${VLLM_BASE_URL}"
+echo "controller service: ${CONTROLLER_BASE_URL}"
 echo "local role endpoints:"
 print_role_endpoints "$ROLE_CONNECT_HOST"
 
@@ -132,4 +195,5 @@ if command -v hostname >/dev/null 2>&1; then
     fi
 fi
 echo "Gateway logs: ${STATE_DISPLAY_ROOT}/$(basename "$GATEWAY_LOG_FILE")"
+echo "Controller logs: ${STATE_DISPLAY_ROOT}/$(basename "$CONTROLLER_LOG_FILE")"
 echo "Logs: ${STATE_DISPLAY_ROOT}/$(basename "$LOG_FILE")"

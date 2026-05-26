@@ -14,11 +14,17 @@ import os
 import re
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from vllm_agent_gateway.invocation import (
+    InvocationResult,
+    WorkflowStatus,
+    list_failures,
+    string_artifact_paths,
+)
 from vllm_agent_gateway.structure_index.indexer import (
     DEFAULT_MAX_FILE_BYTES as DEFAULT_STRUCTURE_MAX_FILE_BYTES,
     StructureIndexError,
@@ -50,6 +56,37 @@ class WorkflowPaths:
     plan_path: Path
     state_path: Path
     report_path: Path
+
+
+@dataclass(frozen=True)
+class ImplementationWorkflowInvocationRequest:
+    target_root: Path | str = "."
+    output_dir: Path | str = DEFAULT_OUTPUT_DIR
+    mode: str = "draft"
+    packet_file: Path | str | None = None
+    from_report: Path | str | None = None
+    approve_change_plan_item: list[str] = field(default_factory=list)
+    approve_all_safe: bool = False
+    verification_commands: list[dict[str, Any]] = field(default_factory=list)
+    verification_timeout_seconds: int = DEFAULT_VERIFICATION_TIMEOUT_SECONDS
+    max_context_tokens: int = DEFAULT_MAX_CONTEXT_TOKENS
+    structure_slice_records: int = DEFAULT_STRUCTURE_SLICE_RECORDS
+    structure_max_file_bytes: int = DEFAULT_STRUCTURE_MAX_FILE_BYTES
+    no_structure_index: bool = False
+    resume: Path | str | None = None
+    resume_allow_arg_changes: bool = False
+    stop_after_packets: int | None = None
+
+    @classmethod
+    def from_namespace(
+        cls,
+        args: Any,
+        verification_commands: list[dict[str, Any]] | None = None,
+    ) -> "ImplementationWorkflowInvocationRequest":
+        names = {item.name for item in fields(cls)}
+        values = {name: getattr(args, name) for name in names if hasattr(args, name)}
+        values["verification_commands"] = verification_commands if verification_commands is not None else []
+        return cls(**values)
 
 
 def utc_now() -> str:
@@ -995,3 +1032,56 @@ def run_implementation_workflow(
     state.setdefault("artifacts", {})["implementation_report"] = str(paths.report_path)
     write_state(paths.state_path, state)
     return report, paths
+
+
+def implementation_status_from_report(report: dict[str, Any]) -> WorkflowStatus:
+    raw_status = report.get("status")
+    if raw_status == "completed":
+        return WorkflowStatus.COMPLETED
+    if raw_status == "failed":
+        return WorkflowStatus.FAILED
+    return WorkflowStatus.PAUSED
+
+
+def invoke_implementation_workflow(request: ImplementationWorkflowInvocationRequest) -> InvocationResult:
+    report, paths = run_implementation_workflow(
+        target_root=Path(request.target_root),
+        output_dir=Path(request.output_dir),
+        mode=request.mode,
+        packet_file=Path(request.packet_file) if request.packet_file else None,
+        report_path=Path(request.from_report) if request.from_report else None,
+        approved_item_ids=request.approve_change_plan_item,
+        approve_all_safe=bool(request.approve_all_safe),
+        verification_commands=request.verification_commands,
+        max_context_tokens=request.max_context_tokens,
+        build_structure_index_enabled=not request.no_structure_index,
+        structure_slice_records=request.structure_slice_records,
+        structure_max_file_bytes=request.structure_max_file_bytes,
+        resume_path=Path(request.resume) if request.resume else None,
+        resume_allow_arg_changes=bool(request.resume_allow_arg_changes),
+        stop_after_packets=request.stop_after_packets,
+    )
+    state = read_json(paths.state_path)
+    artifact_paths = string_artifact_paths(report.get("artifacts"))
+    artifact_paths.setdefault("implementation_plan", str(paths.plan_path))
+    artifact_paths.setdefault("implementation_state", str(paths.state_path))
+    artifact_paths.setdefault("implementation_report", str(paths.report_path))
+    raw_resume_key = state.get("resume_key")
+    raw_run_id = state.get("run_id")
+    failures = list_failures(report.get("failed_packets"))
+    if isinstance(report.get("failure"), dict):
+        failures.append(report["failure"])
+    return InvocationResult(
+        workflow="implementation.workflow",
+        status=implementation_status_from_report(report),
+        artifact_paths=artifact_paths,
+        summary_text=(
+            f"status={report.get('status')} "
+            f"completed_packets={len(report.get('completed_packets', []))} "
+            f"failed_packets={len(report.get('failed_packets', []))}"
+        ),
+        failures=failures,
+        resume_key=raw_resume_key if isinstance(raw_resume_key, dict) else None,
+        report=report,
+        run_id=raw_run_id if isinstance(raw_run_id, str) else None,
+    )

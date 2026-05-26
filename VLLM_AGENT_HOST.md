@@ -66,10 +66,11 @@ Private local roadmap and notes live outside the public repo under sibling direc
 
 ## LLM Gateway
 
-The Linux startup script runs a strict budget gateway between the role prompt proxies and vLLM:
+The Linux startup script runs a strict budget gateway between the role prompt proxies and vLLM, plus a separate explicit controller service for stateful workflows:
 
 ```text
 client -> role prompt proxy -> gateway server:8300 -> vLLM:8000
+client -> controller service:8400 -> workflow controller -> bounded role/model calls
 ```
 
 The gateway does not summarize, trim, or chunk automatically. Version 1 fails closed:
@@ -100,6 +101,10 @@ GATEWAY_PORT=8300
 GATEWAY_CONNECT_HOST=<normalized GATEWAY_BIND_HOST>
 GATEWAY_BASE_URL=http://$GATEWAY_CONNECT_HOST:8300
 TARGET_BASE_URL=$GATEWAY_BASE_URL
+CONTROLLER_BIND_HOST=127.0.0.1
+CONTROLLER_PORT=8400
+CONTROLLER_OUTPUT_ROOT=<private runtime state>/controller-artifacts
+CONTROLLER_ALLOWED_TARGET_ROOTS=<repo root>
 ```
 
 `VLLM_BASE_URL` is the upstream vLLM server and may be local or remote. `GATEWAY_BIND_HOST` is only the gateway listener address. The startup script derives `GATEWAY_CONNECT_HOST` from `GATEWAY_BIND_HOST`, normalizing wildcard binds such as `0.0.0.0` to `127.0.0.1` for local proxy-to-gateway calls. Override `GATEWAY_CONNECT_HOST`, `GATEWAY_BASE_URL`, or `TARGET_BASE_URL` only when the prompt proxy must reach the gateway through a different hostname.
@@ -114,6 +119,12 @@ Gateway diagnostics:
 
 ```text
 http://127.0.0.1:8300/__gateway/health
+```
+
+Controller service diagnostics:
+
+```text
+http://127.0.0.1:8400/health
 ```
 
 Gateway budget logs are content-free. They record route, byte count, token count, token-count source, and forward/reject decision, but not prompt text. By default, logs and PID files are written under `private_agentic_agents/runtime-state`.
@@ -316,7 +327,7 @@ From the public repo:
 bash start-agent-prompt-proxies.sh
 ```
 
-Stop the proxies:
+Stop the gateway, controller service, and proxies:
 
 ```bash
 bash stop-agent-prompt-proxies.sh

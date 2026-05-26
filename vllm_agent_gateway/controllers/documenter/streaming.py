@@ -8,11 +8,18 @@ import json
 import os
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 from urllib.parse import urlsplit
+
+from vllm_agent_gateway.invocation import (
+    InvocationResult,
+    WorkflowStatus,
+    list_failures,
+    string_artifact_paths,
+)
 
 
 STREAMING_SCHEMA_VERSION = 1
@@ -25,6 +32,7 @@ DEFAULT_MAX_MODEL_RECORDS = 1000
 DEFAULT_MODEL_OUTPUT_TOKENS = 2000
 DEFAULT_MAX_SUMMARIES = 8
 DEFAULT_MAX_SUMMARY_DEPTH = 3
+DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 SUMMARY_DERIVED_QUALITY_LABEL = "summary_derived"
 SUMMARY_CAVEATS = (
     "Summaries are lossy orientation, not evidence by themselves.",
@@ -278,6 +286,38 @@ class StreamingChunk:
     data: bytes
     read_operations: int
     max_read_block_bytes: int
+
+
+@dataclass(frozen=True)
+class StreamingDocumenterInvocationRequest:
+    target_root: Path | str = "."
+    doc: str = ""
+    mode: str = "context_presence"
+    query: str | None = None
+    output_dir: Path | str = ".agentic_reports"
+    chunk_bytes: int = DEFAULT_CHUNK_BYTES
+    read_block_bytes: int = DEFAULT_READ_BLOCK_BYTES
+    max_bytes: int | None = None
+    max_chunks: int | None = None
+    max_elapsed_seconds: float | None = None
+    stop_after_chunks: int | None = None
+    resume: Path | str | None = None
+    resume_allow_arg_changes: bool = False
+    max_outline_entries: int = DEFAULT_MAX_OUTLINE_ENTRIES
+    max_query_matches: int = DEFAULT_MAX_QUERY_MATCHES
+    role_base_url: str | None = None
+    model: str = field(default_factory=lambda: os.environ.get("AGENTIC_GATEWAY_MODEL", DEFAULT_MODEL))
+    timeout: int = 600
+    max_output_tokens: int = DEFAULT_MODEL_OUTPUT_TOKENS
+    max_model_records: int = DEFAULT_MAX_MODEL_RECORDS
+    classification_label: list[str] | None = None
+    max_summaries: int = DEFAULT_MAX_SUMMARIES
+    max_summary_depth: int = DEFAULT_MAX_SUMMARY_DEPTH
+
+    @classmethod
+    def from_namespace(cls, args: Any) -> "StreamingDocumenterInvocationRequest":
+        names = {item.name for item in fields(cls)}
+        return cls(**{name: getattr(args, name) for name in names})
 
 
 def utc_now() -> str:
@@ -2547,6 +2587,71 @@ def run_streaming_mode(
     )
     write_json(report_path, report)
     return report, report_path, state_path
+
+
+def streaming_status_from_state(state: dict[str, Any]) -> WorkflowStatus:
+    raw_status = state.get("status")
+    if raw_status == "completed":
+        return WorkflowStatus.COMPLETED
+    if raw_status == "failed":
+        return WorkflowStatus.FAILED
+    return WorkflowStatus.PAUSED
+
+
+def invoke_streaming_documenter(request: StreamingDocumenterInvocationRequest) -> InvocationResult:
+    if not request.doc:
+        raise StreamingDocumenterError("--doc is required.")
+    target_root = Path(request.target_root).resolve()
+    output_dir = Path(request.output_dir)
+    if not output_dir.is_absolute():
+        output_dir = Path.cwd() / output_dir
+    report, report_path, state_path = run_streaming_mode(
+        repo_root=target_root,
+        doc_id=request.doc,
+        mode=request.mode,
+        query=request.query,
+        output_dir=output_dir,
+        chunk_bytes=request.chunk_bytes,
+        read_block_bytes=request.read_block_bytes,
+        max_bytes=request.max_bytes,
+        max_chunks=request.max_chunks,
+        max_elapsed_seconds=request.max_elapsed_seconds,
+        stop_after_chunks=request.stop_after_chunks,
+        resume_state_path=Path(request.resume).resolve() if request.resume else None,
+        resume_allow_arg_changes=bool(request.resume_allow_arg_changes),
+        max_outline_entries=request.max_outline_entries,
+        max_query_matches=request.max_query_matches,
+        role_base_url=request.role_base_url,
+        model=request.model,
+        timeout=request.timeout,
+        max_output_tokens=request.max_output_tokens,
+        max_model_records=request.max_model_records,
+        classification_labels=request.classification_label or list(DEFAULT_CLASSIFICATION_LABELS),
+        max_summaries=request.max_summaries,
+        max_summary_depth=request.max_summary_depth,
+    )
+    state = read_json(state_path)
+    failures = list_failures(report.get("failed_ranges"))
+    failures.extend(list_failures(report.get("validation_warnings")))
+    raw_resume_key = state.get("resume_key")
+    raw_run_id = state.get("run_id")
+    artifact_paths = string_artifact_paths(report.get("artifacts"))
+    artifact_paths.setdefault("streaming_report", str(report_path))
+    artifact_paths.setdefault("streaming_state", str(state_path))
+    return InvocationResult(
+        workflow=f"streaming_documenter.{request.mode}",
+        status=streaming_status_from_state(state),
+        artifact_paths=artifact_paths,
+        summary_text=(
+            f"quality_label={report.get('quality_label')} "
+            f"reviewed_bytes={report.get('coverage', {}).get('reviewed_bytes')} "
+            f"skipped_bytes={report.get('coverage', {}).get('skipped_bytes')}"
+        ),
+        failures=failures,
+        resume_key=raw_resume_key if isinstance(raw_resume_key, dict) else None,
+        report=report,
+        run_id=raw_run_id if isinstance(raw_run_id, str) else None,
+    )
 
 
 def run_context_presence_stream(

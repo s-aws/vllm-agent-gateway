@@ -8,6 +8,12 @@ from typing import Any
 
 import pytest
 
+from vllm_agent_gateway.implementation.workflow import (
+    ImplementationWorkflowInvocationRequest,
+    invoke_implementation_workflow,
+)
+from vllm_agent_gateway.invocation import WorkflowStatus
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "scripts" / "run_implementation_workflow.py"
@@ -112,6 +118,42 @@ def write_documenter_report(path: Path, target: Path) -> None:
 
 def write_packet_file(path: Path, packets: list[dict[str, Any]], verification_commands: list[dict[str, Any]] | None = None) -> None:
     write_json(path, {"schema_version": 1, "packets": packets, "verification_commands": verification_commands or []})
+
+
+def test_implementation_invocation_contract_runs_without_shelling_out(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    output_dir = tmp_path / "contract"
+    packet_file = tmp_path / "packets.json"
+    write_packet_file(
+        packet_file,
+        [
+            {
+                "id": "IMP-0001",
+                "target_files": ["README.md"],
+                "operation": {"kind": "append_text", "path": "README.md", "content": "\nDraft note.\n"},
+                "acceptance_criteria": ["README draft exists."],
+                "max_context_tokens": 2000,
+            }
+        ],
+    )
+
+    result = invoke_implementation_workflow(
+        ImplementationWorkflowInvocationRequest(
+            target_root=target,
+            output_dir=output_dir,
+            packet_file=packet_file,
+            no_structure_index=True,
+        )
+    )
+
+    assert result.status == WorkflowStatus.COMPLETED
+    assert result.workflow == "implementation.workflow"
+    assert "implementation_plan" in result.artifact_paths
+    assert "implementation_state" in result.artifact_paths
+    assert "implementation_report" in result.artifact_paths
+    assert result.resume_key is not None
+    assert result.report is not None
+    assert result.report["kind"] == "implementation_report"
 
 
 def test_implementation_from_report_writes_draft_without_mutating_target(tmp_path: Path) -> None:

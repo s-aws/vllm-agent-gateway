@@ -8,7 +8,12 @@ from typing import Any
 
 import pytest
 
-from vllm_agent_gateway.structure_index.indexer import build_index_slice
+from vllm_agent_gateway.invocation import WorkflowStatus
+from vllm_agent_gateway.structure_index.indexer import (
+    CodeStructureIndexInvocationRequest,
+    build_index_slice,
+    invoke_code_structure_index,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -126,6 +131,28 @@ def file_by_path(index: dict[str, Any], path: str) -> dict[str, Any]:
     matches = [item for item in index["files"] if item["path"] == path]
     assert len(matches) == 1
     return matches[0]
+
+
+def test_code_structure_index_invocation_contract_runs_without_shelling_out(tmp_path: Path) -> None:
+    target = make_structure_repo(tmp_path)
+    output_dir = tmp_path / "contract"
+
+    result = invoke_code_structure_index(
+        CodeStructureIndexInvocationRequest(
+            target_root=target,
+            output_dir=output_dir,
+            slice_path=["README.md"],
+            slice_max_records=5,
+        )
+    )
+
+    assert result.status == WorkflowStatus.COMPLETED
+    assert result.workflow == "code_structure.index"
+    assert "code_structure_index" in result.artifact_paths
+    assert "code_structure_slice" in result.artifact_paths
+    assert result.report is not None
+    assert result.report["kind"] == "code_structure_index"
+    assert Path(result.artifact_paths["code_structure_index"]).exists()
 
 
 def test_code_structure_index_generates_static_python_indexes(tmp_path: Path) -> None:

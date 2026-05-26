@@ -14,11 +14,13 @@ import os
 import re
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlsplit
+
+from vllm_agent_gateway.invocation import InvocationResult, WorkflowStatus
 
 
 SCHEMA_VERSION = 1
@@ -65,6 +67,24 @@ class FileSelection:
     tracked_files: list[str]
     warnings: list[dict[str, Any]]
     tool_dependencies: list[dict[str, Any]]
+
+
+@dataclass(frozen=True)
+class CodeStructureIndexInvocationRequest:
+    target_root: Path | str = "."
+    file_scope: str = "tracked"
+    output_dir: Path | str = DEFAULT_OUTPUT_DIR
+    max_file_bytes: int = DEFAULT_MAX_FILE_BYTES
+    slice_path: list[str] | None = None
+    slice_symbol: str | None = None
+    slice_key_path: str | None = None
+    slice_reference_target: str | None = None
+    slice_max_records: int = 50
+
+    @classmethod
+    def from_namespace(cls, args: Any) -> "CodeStructureIndexInvocationRequest":
+        names = {item.name for item in fields(cls)}
+        return cls(**{name: getattr(args, name) for name in names})
 
 
 def utc_now() -> str:
@@ -850,3 +870,42 @@ def write_slice_artifact(output_dir: Path, target_label: str, index_slice: dict[
     path = output_dir / f"code-structure-slice-{sanitize_filename(target_label)}-{artifact_timestamp()}.json"
     path.write_text(json.dumps(index_slice, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
     return path
+
+
+def invoke_code_structure_index(request: CodeStructureIndexInvocationRequest) -> InvocationResult:
+    target_root = Path(request.target_root).resolve()
+    output_dir = Path(request.output_dir)
+    if not output_dir.is_absolute():
+        output_dir = Path.cwd() / output_dir
+    slice_paths = request.slice_path or []
+    index = build_code_structure_index(
+        target_root=target_root,
+        file_scope=request.file_scope,
+        max_file_bytes=request.max_file_bytes,
+    )
+    index_path = write_index_artifact(output_dir, target_root.name, index)
+    index["artifact_path"] = str(index_path)
+    index_path.write_text(json.dumps(index, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+    artifact_paths = {"code_structure_index": str(index_path)}
+    summary_text = (
+        f"selected_files={index.get('selected_file_count')} "
+        f"indexed_files={index.get('summary', {}).get('indexed_file_count')}"
+    )
+    if slice_paths or request.slice_symbol or request.slice_key_path or request.slice_reference_target:
+        index_slice = build_index_slice(
+            index,
+            paths=slice_paths or None,
+            symbol_query=request.slice_symbol,
+            key_path_prefix=request.slice_key_path,
+            reference_target=request.slice_reference_target,
+            max_records=request.slice_max_records,
+        )
+        slice_path = write_slice_artifact(output_dir, target_root.name, index_slice)
+        artifact_paths["code_structure_slice"] = str(slice_path)
+    return InvocationResult(
+        workflow="code_structure.index",
+        status=WorkflowStatus.COMPLETED,
+        artifact_paths=artifact_paths,
+        summary_text=summary_text,
+        report=index,
+    )

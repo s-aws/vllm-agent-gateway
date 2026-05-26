@@ -10,6 +10,12 @@ from typing import Any, Callable
 
 import pytest
 
+from vllm_agent_gateway.controllers.documenter.orchestrator import (
+    DocumenterInvocationRequest,
+    invoke_documenter,
+)
+from vllm_agent_gateway.invocation import WorkflowStatus
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "scripts" / "run_documenter_orchestrator.py"
@@ -166,6 +172,32 @@ def default_result(packet: dict[str, Any], followups: list[str] | None = None) -
         "followup_files": followups or [],
         "confidence": "medium",
     }
+
+
+def test_documenter_invocation_contract_runs_without_shelling_out(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    output_dir = tmp_path / "contract"
+
+    result = invoke_documenter(
+        DocumenterInvocationRequest(
+            config_root=REPO_ROOT,
+            target_root=target,
+            output_dir=output_dir,
+            doc="README.md",
+            mode="full",
+            dry_run=True,
+            max_chunks=1,
+        )
+    )
+
+    assert result.status == WorkflowStatus.COMPLETED
+    assert result.workflow == "documenter.review"
+    assert "json_report" in result.artifact_paths
+    assert "run_state" in result.artifact_paths
+    assert result.resume_key is not None
+    assert result.report is not None
+    assert result.report["kind"] == "documenter_orchestrator_report"
+    assert Path(result.artifact_paths["json_report"]).exists()
 
 
 def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tmp_path: Path) -> None:

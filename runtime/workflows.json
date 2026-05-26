@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "workflows": [
+    {
+      "id": "documenter.review",
+      "description": "Bounded document review through the controller service.",
+      "default_role_id": "documenter/default",
+      "allowed_role_ids": [
+        "documenter/default"
+      ],
+      "controller_tool_ids": [
+        "git_ls_files",
+        "read_file"
+      ],
+      "conditional_controller_tool_ids": [
+        {
+          "when": {
+            "document_scope": "all"
+          },
+          "tool_ids": [
+            "scan_files"
+          ]
+        }
+      ],
+      "controller_actions": [
+        {
+          "tool_id": "git_ls_files",
+          "action": "discover_tracked_files",
+          "scope": "target_root",
+          "result_artifacts": [
+            "document_manifest",
+            "review_plan",
+            "json_report"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "read_reviewed_documents",
+          "scope": "target_root",
+          "result_artifacts": [
+            "json_report",
+            "run_state"
+          ]
+        },
+        {
+          "tool_id": "scan_files",
+          "action": "discover_all_files",
+          "scope": "target_root",
+          "result_artifacts": [
+            "document_manifest",
+            "review_plan",
+            "json_report"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    }
+  ]
+}

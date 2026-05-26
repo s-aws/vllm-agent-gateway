@@ -44,5 +44,6 @@ Default local endpoints:
 8204 researcher/default
 8205 documenter/default
 8300 LLM gateway
+8400 controller service
 8000 vLLM upstream
 ```

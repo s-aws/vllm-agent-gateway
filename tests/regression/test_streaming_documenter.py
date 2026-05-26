@@ -10,7 +10,12 @@ from typing import Any, Callable
 
 import pytest
 
-from vllm_agent_gateway.controllers.documenter.streaming import MODE_REGISTRY
+from vllm_agent_gateway.controllers.documenter.streaming import (
+    MODE_REGISTRY,
+    StreamingDocumenterInvocationRequest,
+    invoke_streaming_documenter,
+)
+from vllm_agent_gateway.invocation import WorkflowStatus
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -117,6 +122,30 @@ def make_large_doc_repo(tmp_path: Path, data: bytes) -> Path:
     target.mkdir()
     write_bytes(target / "large.md", data)
     return target
+
+
+def test_streaming_invocation_contract_runs_without_shelling_out(tmp_path: Path) -> None:
+    target = make_large_doc_repo(tmp_path, b"# Large\nneedle here\n")
+    output_dir = tmp_path / "contract"
+
+    result = invoke_streaming_documenter(
+        StreamingDocumenterInvocationRequest(
+            target_root=target,
+            doc="large.md",
+            query="needle",
+            output_dir=output_dir,
+            chunk_bytes=16,
+            read_block_bytes=8,
+        )
+    )
+
+    assert result.status == WorkflowStatus.COMPLETED
+    assert result.workflow == "streaming_documenter.context_presence"
+    assert "streaming_report" in result.artifact_paths
+    assert "streaming_state" in result.artifact_paths
+    assert result.resume_key is not None
+    assert result.report is not None
+    assert result.report["kind"] == "streaming_context_presence_report"
 
 
 def test_context_presence_streaming_uses_bounded_reads_and_source_refs(tmp_path: Path) -> None:

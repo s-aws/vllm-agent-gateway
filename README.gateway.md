@@ -27,6 +27,7 @@ Default ports:
 8204 researcher/default
 8205 documenter/default
 8300 LLM gateway
+8400 controller service
 8000 vLLM upstream
 ```
 
@@ -52,6 +53,10 @@ GATEWAY_CONNECT_HOST=<normalized GATEWAY_BIND_HOST>
 GATEWAY_BASE_URL=http://$GATEWAY_CONNECT_HOST:8300
 TARGET_BASE_URL=$GATEWAY_BASE_URL
 HOST_ADDRESS=0.0.0.0
+CONTROLLER_BIND_HOST=127.0.0.1
+CONTROLLER_PORT=8400
+CONTROLLER_OUTPUT_ROOT=<private runtime state>/controller-artifacts
+CONTROLLER_ALLOWED_TARGET_ROOTS=<repo root>
 ```
 
 The gateway counts input tokens with vLLM `/tokenize` when possible, rejects inputs above the target budget, and clamps requested output tokens based on remaining context.
@@ -69,3 +74,5 @@ Claude Code was tested with `--bare` because it reduces fixed request overhead s
 For the verified vLLM launch command, gateway behavior, and Claude Code notes, see [VLLM_AGENT_HOST.md](VLLM_AGENT_HOST.md).
 
 Examples: [docs/examples/gateway.md](docs/examples/gateway.md).
+
+Controller service details: [README.controller-service.md](README.controller-service.md).

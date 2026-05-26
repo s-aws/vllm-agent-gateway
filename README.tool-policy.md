@@ -2,7 +2,7 @@
 
 Tool policy separates what a prompt says from what the runtime can actually execute.
 
-`runtime/tools.json` defines available local capabilities. `runtime/roles.json` assigns tool IDs to roles. Controllers and the tool mediator enforce those assignments.
+`runtime/tools.json` defines available local capabilities. `runtime/roles.json` assigns tool IDs to roles. `runtime/workflows.json` defines which tools each workflow can enable. Controllers and the tool mediator enforce those assignments.
 
 ## Tool Catalog
 
@@ -20,9 +20,29 @@ Roles declare `tool_ids` in `runtime/roles.json`.
 
 For example, `documenter/default` can use controller-authorized discovery and read tools, while tester/implementer roles can also use test execution policy.
 
+## Workflow Assignment
+
+Workflows declare `controller_tool_ids`, optional conditional controller tools, allowed role IDs, model-visible tool IDs, and controller action audit records in `runtime/workflows.json`.
+
+The controller resolves the workflow and role policy together at request time. The enabled tool set must be allowed by both:
+
+```text
+enabled tools = workflow tools constrained by role tools
+```
+
+Denied role/tool combinations fail before the workflow creates artifacts.
+
 ## Controller Tool Dependencies
 
 Controller reports include tool dependency records so runs can be audited against the role's assigned tools.
+
+Controller service run records also include a `tool_policy` audit record with:
+
+- workflow and role IDs
+- controller tool IDs enabled for the run
+- model-visible tool IDs enabled for the run
+- denied tool IDs, when a request fails policy resolution
+- controller action records tying tool IDs to result artifact areas
 
 Examples:
 
@@ -40,6 +60,8 @@ tool schema -> model tool call -> local execution -> tool result -> final model 
 ```
 
 It generates OpenAI-compatible tool schemas from `runtime/tools.json`, executes only allowed catalog-backed tools, injects tool results, and rejects raw tool-call-shaped assistant text as incomplete tool execution.
+
+The controller service uses the mediator schema generator during policy resolution to ensure every enabled controller or model-visible tool ID maps to an executable local capability.
 
 Reference: [docs/TOOL_MEDIATION.md](docs/TOOL_MEDIATION.md)
 

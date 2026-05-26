@@ -19,10 +19,11 @@ from vllm_agent_gateway.implementation.workflow import (  # noqa: E402
     DEFAULT_STRUCTURE_SLICE_RECORDS,
     DEFAULT_VERIFICATION_TIMEOUT_SECONDS,
     IMPLEMENTATION_MODES,
+    ImplementationWorkflowInvocationRequest,
     ImplementationWorkflowError,
+    invoke_implementation_workflow,
     normalize_verification_commands,
     pytest_verification_command,
-    run_implementation_workflow,
 )
 
 
@@ -86,27 +87,13 @@ def main() -> int:
         pytest_verification_command(path, args.verification_timeout_seconds)
         for path in args.verification_pytest
     )
-    report, paths = run_implementation_workflow(
-        target_root=Path(args.target_root),
-        output_dir=Path(args.output_dir),
-        mode=args.mode,
-        packet_file=Path(args.packet_file) if args.packet_file else None,
-        report_path=Path(args.from_report) if args.from_report else None,
-        approved_item_ids=args.approve_change_plan_item,
-        approve_all_safe=bool(args.approve_all_safe),
-        verification_commands=commands,
-        max_context_tokens=args.max_context_tokens,
-        build_structure_index_enabled=not args.no_structure_index,
-        structure_slice_records=args.structure_slice_records,
-        structure_max_file_bytes=args.structure_max_file_bytes,
-        resume_path=Path(args.resume) if args.resume else None,
-        resume_allow_arg_changes=bool(args.resume_allow_arg_changes),
-        stop_after_packets=args.stop_after_packets,
+    result = invoke_implementation_workflow(
+        ImplementationWorkflowInvocationRequest.from_namespace(args, verification_commands=commands)
     )
-    print(f"Wrote {paths.plan_path}")
-    print(f"Wrote {paths.state_path}")
-    print(f"Wrote {paths.report_path}")
-    if report.get("status") == "failed":
+    print(f"Wrote {result.artifact_paths['implementation_plan']}")
+    print(f"Wrote {result.artifact_paths['implementation_state']}")
+    print(f"Wrote {result.artifact_paths['implementation_report']}")
+    if result.status.value == "failed":
         return 1
     return 0
 

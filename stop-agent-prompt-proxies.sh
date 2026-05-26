@@ -8,6 +8,7 @@ PRIVATE_ROOT="${PRIVATE_AGENTIC_AGENTS_ROOT:-$ROOT_PARENT/private_agentic_agents
 STATE_ROOT="${AGENTIC_AGENTS_STATE_ROOT:-$PRIVATE_ROOT/runtime-state}"
 PID_FILE="$STATE_ROOT/agent-prompt-proxy.pid"
 GATEWAY_PID_FILE="$STATE_ROOT/llm-gateway.pid"
+CONTROLLER_PID_FILE="$STATE_ROOT/controller-service.pid"
 
 stop_pid_file() {
     local label="$1"
@@ -41,4 +42,5 @@ stop_pid_file() {
 }
 
 stop_pid_file "agent prompt proxy" "$PID_FILE"
+stop_pid_file "controller service" "$CONTROLLER_PID_FILE"
 stop_pid_file "LLM gateway" "$GATEWAY_PID_FILE"

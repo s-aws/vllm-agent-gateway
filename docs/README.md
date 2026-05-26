@@ -6,6 +6,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 
 - [Project README](../README.md): what this project is, tested setup, quick start, basic usage, and repository layout.
 - [Gateway Feature README](../README.gateway.md): runtime architecture, vLLM gateway behavior, role prompt proxies, ports, and client connection notes.
+- [Controller Service README](../README.controller-service.md): explicit HTTP workflow service, end-to-end documenter service example, allowlisted target roots, and run lookup.
 
 ## 2. Main Workflows
 
@@ -22,6 +23,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 ## 4. Examples
 
 - [Gateway Examples](examples/gateway.md)
+- [Controller Service Examples](examples/controller-service.md)
 - [Documenter Examples](examples/documenter.md)
 - [Streaming Examples](examples/streaming.md)
 - [Code Structure Index Examples](examples/code-structure-indexes.md)
@@ -33,6 +35,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Documenter Run State](DOCUMENTER_RUN_STATE.md): `run-state-*.json` schema and resume behavior.
 - [Streaming Document Modes](STREAMING_DOCUMENT_MODES.md): mode details, output labels, artifacts, and limits.
 - [Documenter E2E Roadmap](DOCUMENTER_E2E_ROADMAP.md): shipped phases, remaining nice-to-have work, artifact inventory, and drift controls.
+- [Controller Service Roadmap](CONTROLLER_SERVICE_ROADMAP.md): planned explicit harness-to-controller service path without adding agent-framework dependencies yet.
 
 ## Navigation Rule
 

@@ -6,6 +6,7 @@ It provides:
 
 - role-specific prompt proxy ports
 - a token-budget gateway that rejects oversized requests and clamps output
+- an explicit local controller service for bounded workflow requests
 - tiny role/subrole prompt files
 - a role manifest for ports, prompts, budgets, and client policy
 - controller-owned document review, streaming document modes, code structure indexes, and implementation workflow artifacts
@@ -25,7 +26,7 @@ Tested setup:
 - Python 3 and Bash
 - Claude Code as one tested client, usually with `--bare`
 
-Start vLLM separately, then start the gateway and role prompt proxies:
+Start vLLM separately, then start the gateway, controller service, and role prompt proxies:
 
 ```bash
 bash start-agent-prompt-proxies.sh
@@ -49,6 +50,12 @@ Run a one-chunk documenter dry run:
 
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --dry-run --max-chunks 1
+```
+
+Run the same workflow through the controller service:
+
+```bash
+python scripts/run_documenter_service_example.py --target-root . --case seed --max-chunks 1
 ```
 
 Run a source-presence check without vLLM:
@@ -79,6 +86,7 @@ Start with the ordered index: [docs/README.md](docs/README.md).
 Feature docs:
 
 - [README.gateway.md](README.gateway.md): gateway, role proxies, ports, setup, and client notes
+- [README.controller-service.md](README.controller-service.md): explicit HTTP controller workflow service and run lookup
 - [README.documenter.md](README.documenter.md): documenter orchestrator, review plans, follow-ups, drafts, and state
 - [README.streaming.md](README.streaming.md): streaming document modes for oversized files and explicit reductions
 - [README.code-structure-indexes.md](README.code-structure-indexes.md): deterministic source/config/document structure indexes
@@ -93,7 +101,10 @@ Examples live under [docs/examples/](docs/examples/).
 roles/                       role and subrole prompt files
 runtime/roles.json            active role manifest
 runtime/tools.json            controller/tool mediator catalog
+runtime/workflows.json        controller workflow tool policy
 vllm_agent_gateway/gateway/    prompt proxy and token budget gateway
+vllm_agent_gateway/controller_service/
+                              explicit HTTP controller workflow service
 vllm_agent_gateway/controllers/
                               stateful workflow controllers, including documenter
 vllm_agent_gateway/structure_index/
