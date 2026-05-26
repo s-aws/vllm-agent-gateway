@@ -3,15 +3,15 @@
 The gateway path is:
 
 ```text
-client -> role prompt proxy -> llm_gateway.py -> vLLM
+client -> role prompt proxy -> gateway server -> vLLM
 ```
 
 The gateway is responsible for transport and budget enforcement. Workflow control belongs in controllers such as the documenter orchestrator, streaming runner, structure indexer, and implementation workflow.
 
 ## Runtime Pieces
 
-- `agent_prompt_proxy.py`: role-specific OpenAI/Anthropic-compatible prompt proxy.
-- `llm_gateway.py`: token budget and forwarding gateway.
+- `vllm_agent_gateway/gateway/prompt_proxy.py`: role-specific OpenAI/Anthropic-compatible prompt proxy.
+- `vllm_agent_gateway/gateway/server.py`: token budget and forwarding gateway.
 - `runtime/roles.json`: role IDs, ports, prompt files, expected role names, budgets, and client policy.
 - `runtime/tools.json`: controller/tool mediator tool catalog.
 - `roles/<role>/<subrole>.md`: small role prompt files.

@@ -69,7 +69,7 @@ Private local roadmap and notes live outside the public repo under sibling direc
 The Linux startup script runs a strict budget gateway between the role prompt proxies and vLLM:
 
 ```text
-client -> role prompt proxy -> llm_gateway.py:8300 -> vLLM:8000
+client -> role prompt proxy -> gateway server:8300 -> vLLM:8000
 ```
 
 The gateway does not summarize, trim, or chunk automatically. Version 1 fails closed:
@@ -161,7 +161,7 @@ tool_count=1 tool_names=Bash
 
 In testing, `claude --bare -p --tools git_ls_files ...` produced `tool_count=0` and the model emitted raw tool-call-shaped JSON. That means `git_ls_files` was not an executable Claude Code tool schema in the request. The restricted Bash pattern produced `tool_count=1 tool_names=Bash` and returned real `git ls-files` output.
 
-For controller/client paths that need synthetic model-visible tools, use `tool_mediator.py` rather than prompt text. It generates schemas from `runtime/tools.json`, executes only allowed catalog-backed tools, injects tool result messages, and rejects raw tool-call-shaped text as incomplete execution. See `docs/TOOL_MEDIATION.md`.
+For controller/client paths that need synthetic model-visible tools, use `vllm_agent_gateway/tools/mediator.py` rather than prompt text. It generates schemas from `runtime/tools.json`, executes only allowed catalog-backed tools, injects tool result messages, and rejects raw tool-call-shaped text as incomplete execution. See `docs/TOOL_MEDIATION.md`.
 
 ## Controller Demo
 

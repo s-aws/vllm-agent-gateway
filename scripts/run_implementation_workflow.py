@@ -12,7 +12,7 @@ SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
 if str(SCRIPT_CONFIG_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_CONFIG_ROOT))
 
-from implementation_workflow import (  # noqa: E402
+from vllm_agent_gateway.implementation.workflow import (  # noqa: E402
     DEFAULT_MAX_CONTEXT_TOKENS,
     DEFAULT_OUTPUT_DIR,
     DEFAULT_STRUCTURE_MAX_FILE_BYTES,

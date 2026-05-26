@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from tool_mediator import (
+from vllm_agent_gateway.tools.mediator import (
     SUPPORTED_TOOL_IDS,
     ToolCall,
     ToolMediationError,

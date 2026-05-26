@@ -13,7 +13,7 @@ SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[1]
 if str(SCRIPT_CONFIG_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_CONFIG_ROOT))
 
-from code_structure_index import (  # noqa: E402
+from vllm_agent_gateway.structure_index.indexer import (  # noqa: E402
     DEFAULT_MAX_FILE_BYTES,
     DEFAULT_OUTPUT_DIR,
     FILE_SCOPES,

@@ -93,11 +93,13 @@ Examples live under [docs/examples/](docs/examples/).
 roles/                       role and subrole prompt files
 runtime/roles.json            active role manifest
 runtime/tools.json            controller/tool mediator catalog
-agent_prompt_proxy.py         OpenAI/Anthropic-compatible role prompt proxy
-llm_gateway.py                token budget and forwarding gateway
-streaming_documenter.py        streaming large-document primitives and mode registry
-code_structure_index.py        deterministic code/document/config indexer
-implementation_workflow.py     controlled implementation packet workflow
+vllm_agent_gateway/gateway/    prompt proxy and token budget gateway
+vllm_agent_gateway/documenter/ documenter orchestrator and streaming modes
+vllm_agent_gateway/structure_index/
+                              deterministic code/document/config indexer
+vllm_agent_gateway/implementation/
+                              controlled implementation packet workflow
+vllm_agent_gateway/tools/      mediated local tool execution
 scripts/                      controller and smoke-test helpers
 docs/                         ordered reference docs, roadmaps, and examples
 ```

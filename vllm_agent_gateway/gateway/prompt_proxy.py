@@ -500,7 +500,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run role-specific prompt proxies for vLLM.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--target-base-url", default="http://127.0.0.1:8000")
-    parser.add_argument("--prompt-dir", default=str(Path(__file__).resolve().parent))
+    parser.add_argument("--prompt-dir", default=str(Path(__file__).resolve().parents[2]))
     parser.add_argument("--manifest", default=None)
     return parser.parse_args()
 

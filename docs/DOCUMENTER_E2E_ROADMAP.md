@@ -38,7 +38,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Draft output | Done | `--write-draft` writes reversible draft artifact copies and metadata under the configured output directory. |
 | Resume and state | Done | `run-state-*.json` tracks queue position, completed chunks, follow-ups, failures, artifacts, and compatibility keys for restartable runs. |
 | Controller tests | Done | `tests/regression/test_documenter_orchestrator.py` covers deterministic controller behavior with temp repos and fake endpoints. |
-| Tool mediation | Done | `tool_mediator.py` generates schemas, detects structured tool calls, executes local tools, injects results, and validates final responses. |
+| Tool mediation | Done | `vllm_agent_gateway/tools/mediator.py` generates schemas, detects structured tool calls, executes local tools, injects results, and validates final responses. |
 | Streaming core | Done | `context_presence` proves bounded streaming reads, byte/line offsets, coverage accounting, source labels, and resumable state without vLLM. |
 | Reduction/query modes | Done | Deterministic streaming modes now include `token_count`, `coverage`, and `outline`. |
 | Structured model-assisted modes | Done | `extract_facts` and `classify` call a role endpoint chunk-by-chunk and controller-validate evidence refs before accepting source-backed records. |

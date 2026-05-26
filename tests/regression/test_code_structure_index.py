@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from code_structure_index import build_index_slice
+from vllm_agent_gateway.structure_index.indexer import build_index_slice
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]

@@ -67,7 +67,7 @@ if [[ -f "$GATEWAY_PID_FILE" ]]; then
 fi
 
 if [[ ! -f "$GATEWAY_PID_FILE" ]]; then
-    nohup python3 -u llm_gateway.py \
+    nohup python3 -u -m vllm_agent_gateway.gateway.server \
         --target-base-url "$VLLM_BASE_URL" \
         --host "$GATEWAY_BIND_HOST" \
         --port "$GATEWAY_PORT" \
@@ -102,7 +102,7 @@ if [[ -f "$PID_FILE" ]]; then
 fi
 
 AGENT_PROMPT_PROXY_DEBUG_LOG="${AGENT_PROMPT_PROXY_DEBUG_LOG:-$STATE_ROOT/agent-prompt-proxy.debug.jsonl}" \
-nohup python3 -u agent_prompt_proxy.py \
+nohup python3 -u -m vllm_agent_gateway.gateway.prompt_proxy \
     --target-base-url "$TARGET_BASE_URL" \
     --host "$HOST_ADDRESS" \
     >"$LOG_FILE" 2>"$ERR_FILE" &

@@ -2,7 +2,7 @@
 
 Tool mediation is the executable layer between a model-visible tool schema and local tool execution. Prompt text may describe policy, but enforcement happens in code.
 
-`tool_mediator.py` provides:
+`vllm_agent_gateway/tools/mediator.py` provides:
 
 - OpenAI-compatible tool schema generation from `runtime/tools.json`
 - model tool-call detection from structured `message.tool_calls`
@@ -29,7 +29,7 @@ If a role exposes a tool ID that is missing from the catalog or lacks an executa
 ```python
 from pathlib import Path
 
-from tool_mediator import ToolMediator, load_tool_catalog
+from vllm_agent_gateway.tools.mediator import ToolMediator, load_tool_catalog
 
 catalog = load_tool_catalog(Path("."))
 mediator = ToolMediator(

@@ -33,7 +33,7 @@ Examples:
 
 ## Tool Mediation
 
-`tool_mediator.py` provides a model-mediated tool loop:
+`vllm_agent_gateway/tools/mediator.py` provides a model-mediated tool loop:
 
 ```text
 tool schema -> model tool call -> local execution -> tool result -> final model answer
