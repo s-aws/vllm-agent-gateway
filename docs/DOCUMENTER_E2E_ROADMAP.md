@@ -44,7 +44,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Structured model-assisted modes | Done | `extract_facts` and `classify` call a role endpoint chunk-by-chunk and controller-validate evidence refs before accepting source-backed records. |
 | Lossy summarization mode | Done | `summarize` recursively reduces chunk summaries with `summary_derived` labels, caveats, and separate source-verified support records. |
 | Code structure indexes | Done | Deterministic Python AST, Markdown/reference, and JSON/YAML key-path indexes are available through `scripts/run_code_structure_index.py`. |
-| Implementation workflow | Planned | Convert approved plans into bounded implementation packets, verification steps, and reversible draft/application controls. |
+| Implementation workflow | Done | Approved change-plan items or explicit packets now produce bounded implementation plans, resumable state, draft/apply controls, and verification capture. |
 | Tool provenance hardening | Nice-to-have | Add artifact/record-level lineage after shipped workflow features exist, unless an earlier phase needs it for correctness. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
 
@@ -66,7 +66,7 @@ Implemented phases must have deterministic regression coverage unless the phase 
 | Phase 10: Structured Model-Assisted Modes | Direct | `test_extract_facts_mode_source_validates_model_records`, `test_classify_mode_validates_labels_risks_and_source_refs`, `test_model_assisted_modes_resume_from_saved_streaming_state`, `test_model_assisted_mode_requires_role_base_url`, `test_model_assisted_invalid_result_schema_records_failed_range`, `test_model_assisted_mode_registry_entries_declare_budget_and_source_refs` | Covers fake-endpoint model calls, strict top-level result fields, failed schema state, evidence validation, low-confidence downgrade, disallowed labels, invalid risk severity, required endpoint config, registry metadata, and resume. |
 | Phase 11: Lossy Summarization Mode | Direct | `test_summarize_mode_writes_lossy_summary_and_separate_source_records`, `test_summarize_mode_does_not_treat_unsupported_summary_as_evidence`, `test_summarize_mode_resume_and_final_merge`, `test_summarize_mode_registry_declares_lossy_summary_controls` | Covers explicit lossy mode, recursive fake-endpoint merge, `summary_derived` labels, caveats, source-verified support separation, unsupported summary downgrade, resume, and summary budget metadata. |
 | Phase 12: Code Structure Indexes | Direct | `tests/regression/test_code_structure_index.py` | Covers Python AST symbols/imports/syntax errors, Markdown link graph/unresolved links, JSON/YAML key paths and parse errors, tracked/all file scopes, and bounded packet-ready slices without vLLM. |
-| Phase 13: Implementation Workflow | Not covered | None | Not implemented yet. Tests should prove bounded implementation packets, read-only default behavior, verification capture, and reversible output/application policy. |
+| Phase 13: Implementation Workflow | Direct | `tests/regression/test_implementation_workflow.py` | Covers report-derived and explicit packets, draft read-only default, bounded structure slices, resume, verification capture/failure, verification command policy, apply refusal, and explicit apply hash metadata. |
 | Phase 14: Tool Provenance Hardening | Not covered | None | Nice-to-have after core shipped features. Promote earlier only if artifact-level lineage becomes required for Phase 12 or 13 correctness. |
 
 ## Phase 1: Manifest-Backed Review Planning
@@ -345,7 +345,7 @@ Acceptance criteria:
 
 ## Phase 13: Implementation Workflow
 
-Status: Planned
+Status: Done
 
 Add a controlled path from validated plans to bounded implementation work. This should not make the documenter an implementer; it should hand off approved, source-backed work packets to an implementation controller or role.
 
@@ -358,23 +358,23 @@ Scope:
 
 Deliverables:
 
-- `implementation-plan-*.json` artifact derived from approved change-plan items or explicit user-approved work packets.
-- `implementation-state-*.json` artifact with queued packets, completed packets, failed packets, changed artifacts, verification results, and resume keys.
-- Bounded implementation packets with exact target files, allowed operations, relevant source refs, acceptance criteria, and max context budget.
-- Default draft mode that writes proposed changes under the configured output directory without mutating the target repo.
-- Explicit apply mode that refuses untracked or out-of-scope writes unless a future unsafe option is added deliberately.
-- Verification capture for command, working directory, timeout, exit code, stdout/stderr hashes or bounded excerpts, and associated changed files.
-- Rollback/review metadata that maps every draft or applied change back to packet ID, source refs, and verification result.
-- Regression tests with temp repos proving draft containment, packet bounds, resume behavior, verification capture, and refusal of out-of-scope writes.
+- `implementation-plan-*.json` artifact derived from approved change-plan items or explicit user-approved work packets. Done.
+- `implementation-state-*.json` artifact with queued packets, completed packets, failed packets, changed artifacts, verification results, and resume keys. Done.
+- Bounded implementation packets with exact target files, allowed operations, relevant source refs, acceptance criteria, and max context budget. Done.
+- Default draft mode that writes proposed changes under the configured output directory without mutating the target repo. Done.
+- Explicit apply mode that refuses untracked or out-of-scope writes unless a future unsafe option is added deliberately. Done.
+- Verification capture for command, working directory, timeout, exit code, stdout/stderr hashes or bounded excerpts, and associated changed files. Done.
+- Rollback/review metadata that maps every draft or applied change back to packet ID, source refs, and verification result. Done.
+- Regression tests with temp repos proving draft containment, packet bounds, resume behavior, verification capture, and refusal of out-of-scope writes. Done.
 
 Acceptance criteria:
 
-- The default implementation workflow is read-only against the target repo.
-- No packet can edit files outside its explicit target set.
-- No implementation result can be marked complete without a recorded verification decision.
-- Failed verification is preserved in state and final artifacts.
-- Resume skips completed packets and refuses incompatible arguments by default.
-- Direct apply, when added, must be explicit, auditable, and reversible through generated metadata or VCS state.
+- The default implementation workflow is read-only against the target repo. Done.
+- No packet can edit files outside its explicit target set. Done.
+- No implementation result can be marked complete without a recorded verification decision. Done.
+- Failed verification is preserved in state and final artifacts. Done.
+- Resume skips completed packets and refuses incompatible arguments by default. Done.
+- Direct apply, when added, must be explicit, auditable, and reversible through generated metadata or VCS state. Done.
 
 ## Phase 14: Tool Provenance Hardening
 
@@ -438,9 +438,11 @@ Current artifacts:
 - `streaming-summarize-*.json`: lossy summary aggregate, chunk summaries, recursive merge rounds, caveats, and separate source-verified support records.
 - `code-structure-index-*.json`: deterministic Python AST, Markdown/reference, and JSON/YAML key-path index for a target repo.
 - `code-structure-slice-*.json`: optional bounded `structure_index_slice` records intended for future role packets.
+- `implementation-plan-*.json`: bounded implementation packets, write policy, source, verification commands, and optional structure slices.
+- `implementation-state-*.json`: resumable implementation state with completed/failed packets, changed artifacts, verification results, and resume keys.
+- `implementation-report-*.json`: final implementation workflow report with artifacts, write policy, packet results, and verification decisions.
+- `implementation-drafts/<run-id>/...`: default draft output directory for generated implementation artifacts.
 
 ## Immediate Next Step
 
-Implement Phase 13 implementation workflow. Use Phase 12 structure indexes to give implementation packets precise symbol/reference/key-path context instead of broad file chunks.
-
-Keep Phase 14 as a nice-to-have audit hardening phase unless Phase 12 or Phase 13 exposes a concrete need for artifact-level provenance earlier.
+Phase 14 remains nice-to-have audit hardening. The next shipped feature should either pull forward minimal provenance needed by real usage, or start a new roadmap phase only after a concrete workflow gap appears.

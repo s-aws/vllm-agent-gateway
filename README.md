@@ -12,6 +12,7 @@ It provides:
 - resumable controller state for long documenter runs
 - streaming document modes for oversized single-document inputs
 - deterministic code structure indexes for source symbols, documentation links, and config key paths
+- controlled implementation workflow artifacts with draft/apply policy and verification capture
 - Linux-first startup and stop scripts
 - a JSON role manifest for ports, prompts, budgets, and client policy
 
@@ -226,6 +227,70 @@ python scripts/run_code_structure_index.py --target-root /path/to/project \
 
 Slice artifacts are written as `code-structure-slice-*.json` and use the packet field name `structure_index_slice`.
 
+## Implementation Workflow
+
+Use the implementation workflow when a reviewed plan is ready to become bounded work packets. The default mode is read-only against the target repo and writes drafts under the output directory:
+
+```bash
+python scripts/run_implementation_workflow.py --target-root /path/to/project \
+  --from-report .agentic_reports/documenter-<run>.json \
+  --approve-all-safe
+```
+
+You can approve individual change-plan items instead:
+
+```bash
+python scripts/run_implementation_workflow.py --target-root /path/to/project \
+  --from-report .agentic_reports/documenter-<run>.json \
+  --approve-change-plan-item CP-0001
+```
+
+Explicit implementation packets are also supported:
+
+```json
+{
+  "schema_version": 1,
+  "packets": [
+    {
+      "id": "IMP-0001",
+      "target_files": ["README.md"],
+      "operation": {
+        "kind": "replace_text",
+        "path": "README.md",
+        "old": "old text",
+        "new": "new text"
+      },
+      "acceptance_criteria": ["README is updated."]
+    }
+  ]
+}
+```
+
+Run the packet file in draft mode:
+
+```bash
+python scripts/run_implementation_workflow.py --target-root /path/to/project \
+  --packet-file implementation-packets.json \
+  --verification-pytest tests
+```
+
+Direct target mutation requires explicit apply mode. Apply mode refuses out-of-scope paths, refuses untracked files, records before/after hashes, and still captures verification:
+
+```bash
+python scripts/run_implementation_workflow.py --target-root /path/to/project \
+  --mode apply \
+  --packet-file implementation-packets.json \
+  --verification-pytest tests
+```
+
+The workflow writes `implementation-plan-*.json`, `implementation-state-*.json`, `implementation-report-*.json`, and default draft artifacts under `implementation-drafts/<run-id>/`. Resume from state or report:
+
+```bash
+python scripts/run_implementation_workflow.py --target-root /path/to/project \
+  --output-dir .agentic_reports \
+  --resume .agentic_reports/implementation-state-<target>-<run-id>.json
+```
+
 Optional draft artifacts:
 
 ```bash
@@ -359,6 +424,7 @@ agent_prompt_proxy.py      OpenAI/Anthropic-compatible role prompt proxy
 llm_gateway.py             token budget and forwarding gateway
 streaming_documenter.py     streaming large-document primitives and mode registry
 code_structure_index.py     deterministic code/document/config indexer
+implementation_workflow.py   controlled implementation packet workflow
 scripts/                   controller and smoke-test helpers
 start-agent-prompt-proxies.sh
 stop-agent-prompt-proxies.sh
