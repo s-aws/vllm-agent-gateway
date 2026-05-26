@@ -43,7 +43,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Reduction/query modes | Done | Deterministic streaming modes now include `token_count`, `coverage`, and `outline`. |
 | Structured model-assisted modes | Done | `extract_facts` and `classify` call a role endpoint chunk-by-chunk and controller-validate evidence refs before accepting source-backed records. |
 | Lossy summarization mode | Done | `summarize` recursively reduces chunk summaries with `summary_derived` labels, caveats, and separate source-verified support records. |
-| Code structure indexes | Planned | Build deterministic AST/symbol/reference indexes so code repos are indexed structurally instead of by naive recursive reading. |
+| Code structure indexes | Done | Deterministic Python AST, Markdown/reference, and JSON/YAML key-path indexes are available through `scripts/run_code_structure_index.py`. |
 | Implementation workflow | Planned | Convert approved plans into bounded implementation packets, verification steps, and reversible draft/application controls. |
 | Tool provenance hardening | Nice-to-have | Add artifact/record-level lineage after shipped workflow features exist, unless an earlier phase needs it for correctness. |
 | Tool dependency audit | Partial | Reports include `tool_policy.controller_tool_dependencies`; deeper per-artifact provenance is still needed. |
@@ -65,7 +65,7 @@ Implemented phases must have deterministic regression coverage unless the phase 
 | Phase 9: Deterministic Reduction Modes | Direct | `test_token_count_mode_reports_file_chunk_section_and_query_counts`, `test_coverage_mode_reports_range_accounting_and_partial_budget`, `test_outline_mode_extracts_headings_and_sections_with_source_ranges`, `test_deterministic_modes_resume_from_saved_streaming_state` | Covers mode schemas, budget behavior, source ranges, outline boundary handling, and resume for each deterministic mode. |
 | Phase 10: Structured Model-Assisted Modes | Direct | `test_extract_facts_mode_source_validates_model_records`, `test_classify_mode_validates_labels_risks_and_source_refs`, `test_model_assisted_modes_resume_from_saved_streaming_state`, `test_model_assisted_mode_requires_role_base_url`, `test_model_assisted_invalid_result_schema_records_failed_range`, `test_model_assisted_mode_registry_entries_declare_budget_and_source_refs` | Covers fake-endpoint model calls, strict top-level result fields, failed schema state, evidence validation, low-confidence downgrade, disallowed labels, invalid risk severity, required endpoint config, registry metadata, and resume. |
 | Phase 11: Lossy Summarization Mode | Direct | `test_summarize_mode_writes_lossy_summary_and_separate_source_records`, `test_summarize_mode_does_not_treat_unsupported_summary_as_evidence`, `test_summarize_mode_resume_and_final_merge`, `test_summarize_mode_registry_declares_lossy_summary_controls` | Covers explicit lossy mode, recursive fake-endpoint merge, `summary_derived` labels, caveats, source-verified support separation, unsupported summary downgrade, resume, and summary budget metadata. |
-| Phase 12: Code Structure Indexes | Not covered | None | Not implemented yet. Tests should prove deterministic AST/symbol/reference index output without vLLM. |
+| Phase 12: Code Structure Indexes | Direct | `tests/regression/test_code_structure_index.py` | Covers Python AST symbols/imports/syntax errors, Markdown link graph/unresolved links, JSON/YAML key paths and parse errors, tracked/all file scopes, and bounded packet-ready slices without vLLM. |
 | Phase 13: Implementation Workflow | Not covered | None | Not implemented yet. Tests should prove bounded implementation packets, read-only default behavior, verification capture, and reversible output/application policy. |
 | Phase 14: Tool Provenance Hardening | Not covered | None | Nice-to-have after core shipped features. Promote earlier only if artifact-level lineage becomes required for Phase 12 or 13 correctness. |
 
@@ -313,7 +313,7 @@ Acceptance criteria:
 
 ## Phase 12: Code Structure Indexes
 
-Status: Planned
+Status: Done
 
 For code repositories, prefer deterministic structure indexes when structure is available instead of naive recursive reading or lossy summarization.
 
@@ -325,23 +325,23 @@ Initial target:
 
 Deliverables:
 
-- `code-structure-index-*.json` artifact with schema version, target root, selected files, parser versions, and per-file index status.
-- Python index records for modules, classes, functions, imports, decorators, docstrings, line ranges, and syntax errors.
-- Markdown link/reference graph records for headings, anchors, relative links, unresolved links, and inbound/outbound edges.
-- JSON/YAML key-path records for config files, including dotted paths, scalar previews, line ranges where available, and parse errors.
-- Controller selection policy that decides when to prefer a structure index over raw chunk review.
-- Packet fields that expose only the relevant index slice to a role, not the full index by default.
-- Tool dependency records for parsers/scanners used to build each index artifact.
-- Regression tests using small temp repos with valid files, syntax errors, unresolved links, and malformed config.
+- `code-structure-index-*.json` artifact with schema version, target root, selected files, parser versions, and per-file index status. Done.
+- Python index records for modules, classes, functions, imports, decorators, docstrings, line ranges, and syntax errors. Done.
+- Markdown link/reference graph records for headings, anchors, relative links, unresolved links, and inbound/outbound edges. Done.
+- JSON/YAML key-path records for config files, including dotted paths, scalar previews, line ranges where available, and parse errors. Done.
+- Controller selection policy that decides when to prefer a structure index over raw chunk review. Done.
+- Packet fields that expose only the relevant index slice to a role, not the full index by default. Done.
+- Tool dependency records for parsers/scanners used to build each index artifact. Done.
+- Regression tests using small temp repos with valid files, syntax errors, unresolved links, and malformed config. Done.
 
 Acceptance criteria:
 
-- Index generation is deterministic for the same repo state and arguments.
-- Parser failures are represented as indexed errors, not silent skips.
-- Every indexed symbol/reference/key path has a file path and line range when the parser can provide it.
-- Role packets can request bounded slices by symbol, file, reference edge, or key path.
-- Indexes remain read-only and do not execute target code.
-- The controller can fall back to existing document/chunk paths when no suitable structural index exists.
+- Index generation is deterministic for the same repo state and arguments. Done.
+- Parser failures are represented as indexed errors, not silent skips. Done.
+- Every indexed symbol/reference/key path has a file path and line range when the parser can provide it. Done.
+- Role packets can request bounded slices by symbol, file, reference edge, or key path. Done.
+- Indexes remain read-only and do not execute target code. Done.
+- The controller can fall back to existing document/chunk paths when no suitable structural index exists. Done.
 
 ## Phase 13: Implementation Workflow
 
@@ -436,9 +436,11 @@ Current artifacts:
 - `streaming-extract-facts-*.json`: model-assisted facts and gaps with source-validated evidence refs and validation warnings.
 - `streaming-classify-*.json`: model-assisted classifications, risks, class counts, source-validated evidence refs, and validation warnings.
 - `streaming-summarize-*.json`: lossy summary aggregate, chunk summaries, recursive merge rounds, caveats, and separate source-verified support records.
+- `code-structure-index-*.json`: deterministic Python AST, Markdown/reference, and JSON/YAML key-path index for a target repo.
+- `code-structure-slice-*.json`: optional bounded `structure_index_slice` records intended for future role packets.
 
 ## Immediate Next Step
 
-Implement Phase 12 code structure indexes before Phase 13 implementation workflow. Structure indexes should give implementation packets precise symbol/reference/key-path context instead of broad file chunks.
+Implement Phase 13 implementation workflow. Use Phase 12 structure indexes to give implementation packets precise symbol/reference/key-path context instead of broad file chunks.
 
 Keep Phase 14 as a nice-to-have audit hardening phase unless Phase 12 or Phase 13 exposes a concrete need for artifact-level provenance earlier.

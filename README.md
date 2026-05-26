@@ -11,6 +11,7 @@ It provides:
 - a tool catalog used by controllers/runners to authorize deterministic actions
 - resumable controller state for long documenter runs
 - streaming document modes for oversized single-document inputs
+- deterministic code structure indexes for source symbols, documentation links, and config key paths
 - Linux-first startup and stop scripts
 - a JSON role manifest for ports, prompts, budgets, and client policy
 
@@ -192,6 +193,39 @@ python scripts/run_streaming_documenter.py --target-root /path/to/project --doc 
 
 Streaming artifacts are written as `streaming-manifest-*.json`, `streaming-state-*.json`, and `streaming-<mode>-*.json`. Model-assisted reports include `validation_warnings` whenever a record is low-confidence, unsupported, outside the chunk source range, or uses a disallowed classification label. Summarize reports also include caveats and keep lossy `summary_derived` records separate from `source_verified_records`. See `docs/STREAMING_DOCUMENT_MODES.md`.
 
+## Code Structure Indexes
+
+Use the structure index runner when a target repo needs deterministic code/config/link context before handing work to a role:
+
+```bash
+python scripts/run_code_structure_index.py --target-root /path/to/project
+```
+
+By default it indexes tracked supported files. For first-run/bootstrap scans:
+
+```bash
+python scripts/run_code_structure_index.py --target-root /path/to/project --file-scope all
+```
+
+The runner writes `code-structure-index-*.json` with:
+
+- Python AST records for modules, classes, functions, imports, decorators, docstrings, line ranges, and syntax errors.
+- Markdown/AsciiDoc/reStructuredText heading, anchor, relative-link, unresolved-link, inbound, and outbound reference records.
+- JSON/YAML key-path records with scalar previews, available line ranges, and parse errors.
+
+It never imports or executes target code. Oversized individual files are skipped with indexed status instead of being read unboundedly.
+
+To emit a bounded packet-ready slice instead of handing a role the full index:
+
+```bash
+python scripts/run_code_structure_index.py --target-root /path/to/project \
+  --slice-path pkg/module.py \
+  --slice-symbol Service \
+  --slice-max-records 25
+```
+
+Slice artifacts are written as `code-structure-slice-*.json` and use the packet field name `structure_index_slice`.
+
 Optional draft artifacts:
 
 ```bash
@@ -324,6 +358,7 @@ runtime/tools.json         controller/tool mediator catalog
 agent_prompt_proxy.py      OpenAI/Anthropic-compatible role prompt proxy
 llm_gateway.py             token budget and forwarding gateway
 streaming_documenter.py     streaming large-document primitives and mode registry
+code_structure_index.py     deterministic code/document/config indexer
 scripts/                   controller and smoke-test helpers
 start-agent-prompt-proxies.sh
 stop-agent-prompt-proxies.sh
