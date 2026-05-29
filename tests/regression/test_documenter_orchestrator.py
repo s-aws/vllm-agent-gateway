@@ -681,10 +681,35 @@ def test_change_plan_groups_validated_findings_and_does_not_modify_target_docs(t
 
     report = load_one_json(output_dir, "documenter-*.json")
     change_plan_path = Path(report["artifacts"]["doc_change_plan"])
+    change_plan_index_path = Path(report["artifacts"]["doc_change_plan_index"])
+    change_plan_dir = Path(report["artifacts"]["doc_change_plan_dir"])
+    change_plan_evidence_path = Path(report["artifacts"]["doc_change_plan_evidence"])
+    change_plan_manifest_path = Path(report["artifacts"]["doc_change_plan_manifest"])
     change_plan = change_plan_path.read_text(encoding="utf-8")
+    change_plan_index = change_plan_index_path.read_text(encoding="utf-8")
+    first_plan_path = change_plan_dir / "0001-update-readme-setup-and-documentation-index.md"
+    first_plan = first_plan_path.read_text(encoding="utf-8")
 
     assert change_plan_path.exists()
+    assert change_plan_index_path.exists()
+    assert change_plan_dir.is_dir()
+    assert first_plan_path.exists()
+    assert change_plan_evidence_path.exists()
+    assert change_plan_manifest_path.exists()
     assert (target / "README.md").read_text(encoding="utf-8") == original_readme
+    assert "# Documentation Change Plan Index" in change_plan_index
+    assert (
+        f"[PC-0001: Update README setup and documentation index]"
+        f"({change_plan_dir.name}/0001-update-readme-setup-and-documentation-index.md)"
+    ) in change_plan_index
+    assert f"[Raw evidence appendix]({change_plan_dir.name}/evidence.md)" in change_plan_index
+    assert "Treat `evidence.md` and the compatibility plan as traceability material" in change_plan_index
+    assert "# PC-0001: Update README setup and documentation index" in first_plan
+    assert "## Patch Items" in first_plan
+    assert "ADD: README.md section `Setup`" in first_plan
+    assert "# Documentation Change Plan Evidence" in change_plan_evidence_path.read_text(encoding="utf-8")
+    manifest = json.loads(change_plan_manifest_path.read_text(encoding="utf-8"))
+    assert manifest["plans"][0]["id"] == "PC-0001"
     assert "## Safe Documentation Edits" in change_plan
     assert "## Needs User Decision" in change_plan
     assert "## Insufficient Evidence" in change_plan

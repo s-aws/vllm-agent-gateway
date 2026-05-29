@@ -56,6 +56,9 @@ Each chunk packet tells the model to return one JSON object and includes `output
 - `document-manifest-*.json`: document manifest from `full` mode.
 - `doc-review-plan-*.json`: review plan and candidate pool.
 - `doc-change-plan-*.md`: non-mutating documentation change plan.
+- `doc-change-plan-*.index.md`: short implementation index for generated per-contract plans.
+- `doc-change-plan-*/000N-*.md`: one executable documentation update plan per patch contract.
+- `doc-change-plan-*/evidence.md`: raw findings and legacy work package traceability; not an implementation queue.
 - `drafts/<run-id>/...`: optional draft artifact directory from `--write-draft`.
 - `run-state-*.json`: resumable controller state.
 
@@ -63,7 +66,9 @@ Reports are written under `.agentic_reports/` by default. The target project is 
 
 ## Change Plan Execution
 
-The change plan starts with an agent execution contract and a `Patch Contracts` queue. Each patch contract names the phase, target files, required source files, explicit `ADD` / `REPLACE` / `SKIP` / `DO NOT TOUCH` instructions, expected output, and a stop condition. Raw `CP-*` findings and legacy work packages remain below that queue as traceability evidence, not as a second backlog.
+The preferred implementation entry point is `doc-change-plan-*.index.md`. It links one numbered plan file per patch contract and keeps raw evidence in `evidence.md`. The compatibility `doc-change-plan-*.md` still contains the complete plan, but local agents should use the index and execute one numbered plan file at a time.
+
+Each patch contract names the phase, target files, required source files, explicit `ADD` / `REPLACE` / `SKIP` / `DO NOT TOUCH` instructions, expected output, and a stop condition. Raw `CP-*` findings and legacy work packages remain below that queue as traceability evidence, not as a second backlog.
 
 Downstream agents should:
 

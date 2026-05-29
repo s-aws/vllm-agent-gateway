@@ -1664,6 +1664,130 @@ def append_patch_contracts(lines: list[str], contracts: list[dict[str, Any]]) ->
         lines.append("")
 
 
+def build_patch_contracts_for_report(report: dict[str, Any]) -> list[dict[str, Any]]:
+    change_plan_items = collect_change_plan_items(report)
+    work_packages, _evidence_only_records = build_change_plan_work_packages(change_plan_items, report)
+    return build_change_plan_patch_contracts(work_packages, change_plan_items)
+
+
+def patch_contract_filename(contract: dict[str, Any], index: int) -> str:
+    phase = sanitize_filename(inline_markdown(contract.get("phase", "plan"))).lower()
+    return f"{index:04d}-{phase}.md"
+
+
+def render_patch_contract_file(contract: dict[str, Any], report: dict[str, Any]) -> str:
+    lines: list[str] = [
+        f"# {inline_markdown(contract.get('id', 'PC-????'))}: {inline_markdown(contract.get('phase', 'Documentation Plan'))}",
+        "",
+        "This file is the executable documentation update plan. It is intentionally bounded; complete this file, report the result, and stop.",
+        "",
+        "## Run Context",
+        "",
+        f"- Target root: {inline_markdown(report.get('target_root', 'unknown'))}",
+        f"- Seed document: {inline_markdown(report.get('seed_doc_id') or report.get('doc_id') or 'unknown')}",
+        f"- Source work package: {inline_markdown(contract.get('work_package_id', 'unknown'))}",
+        "",
+        "## Target Files",
+        "",
+    ]
+    for target in contract.get("target_files", []):
+        lines.append(f"- {inline_markdown(target)}")
+    lines.extend(["", "## Required Source Files", ""])
+    for source in contract.get("required_source_files", []):
+        lines.append(f"- {inline_markdown(source.get('path', 'unknown'))}: {inline_markdown(source.get('reason', ''))}")
+    lines.extend(["", "## Patch Items", ""])
+    for item in contract.get("patch_items", []):
+        section = item.get("section")
+        section_text = f" section `{inline_markdown(section)}`" if section else ""
+        cp_item = item.get("cp_item")
+        cp_text = f" ({inline_markdown(cp_item)})" if cp_item else ""
+        source_ref = item.get("source_ref")
+        source_text = f" Source: {inline_markdown(source_ref)}." if source_ref else ""
+        lines.append(
+            f"- {inline_markdown(item.get('action', 'ADD'))}{cp_text}: "
+            f"{inline_markdown(item.get('target_file', 'unknown'))}{section_text}. "
+            f"{inline_markdown(item.get('instruction', ''))}{source_text}"
+        )
+        skip_condition = item.get("skip_condition")
+        if skip_condition:
+            lines.append(f"- SKIP: {inline_markdown(skip_condition)}")
+    lines.extend(["", "## Do Not Touch", ""])
+    for path in contract.get("do_not_touch", []):
+        lines.append(f"- {inline_markdown(path)}")
+    lines.extend(["", "## Expected Output", ""])
+    for item in contract.get("expected_output", []):
+        lines.append(f"- {inline_markdown(item)}")
+    lines.extend(
+        [
+            "",
+            "## Verification",
+            "",
+            "- Run the target repository's required documentation or regression verification after editing, or report the exact reason it was not run.",
+            "- Do not use raw evidence files as a source for new claims unless a required source file independently proves the claim.",
+            "",
+            "## Stop Condition",
+            "",
+            f"- {inline_markdown(contract.get('stop_condition', 'Stop after completing this contract.'))}",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def render_change_plan_index(
+    report: dict[str, Any],
+    contracts: list[dict[str, Any]],
+    contract_filenames: list[str],
+    plan_dir_name: str,
+    evidence_filename: str,
+    compatibility_filename: str,
+) -> str:
+    lines: list[str] = [
+        "# Documentation Change Plan Index",
+        "",
+        "Use this index as the entry point for implementation agents. Execute one plan file at a time; do not browse the raw evidence unless a plan file is blocked.",
+        "",
+        "## Run Context",
+        "",
+        f"- Generated at: {inline_markdown(report.get('generated_at', 'unknown'))}",
+        f"- Target root: {inline_markdown(report.get('target_root', 'unknown'))}",
+        f"- Seed document: {inline_markdown(report.get('seed_doc_id') or report.get('doc_id') or 'unknown')}",
+        f"- Mode: {inline_markdown(report.get('mode', 'unknown'))}",
+        f"- Document scope: {inline_markdown(report.get('document_scope', 'unknown'))}",
+        f"- Review scope: {inline_markdown(report.get('review_scope', 'unknown'))}",
+        "",
+        "## Execution Order",
+        "",
+    ]
+    if not contracts:
+        lines.append("- No executable plan files were generated.")
+    for contract, filename in zip(contracts, contract_filenames):
+        targets = ", ".join(inline_markdown(path) for path in contract.get("target_files", []))
+        plan_link = f"{plan_dir_name}/{filename}"
+        lines.append(
+            f"- [{inline_markdown(contract.get('id', 'PC-????'))}: {inline_markdown(contract.get('phase', 'Documentation Plan'))}]({plan_link})"
+            f" - target files: {targets or '(none)'}"
+        )
+    lines.extend(
+        [
+            "",
+            "## Rules",
+            "",
+            "- Execute only the linked plan file for the current step.",
+            "- Edit only target files listed in that plan file.",
+            "- Stop after that plan file's stop condition.",
+            "- Treat `evidence.md` and the compatibility plan as traceability material, not as an implementation backlog.",
+            "",
+            "## Supporting Files",
+            "",
+            f"- [Raw evidence appendix]({plan_dir_name}/{evidence_filename})",
+            f"- [Compatibility single-file plan]({compatibility_filename})",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def append_executable_work_packages(
     lines: list[str],
     packages: list[dict[str, Any]],
@@ -2741,6 +2865,76 @@ def write_change_plan(output_dir: Path, target_label: str, doc_id: str, change_p
     return path
 
 
+def write_change_plan_directory(
+    output_dir: Path,
+    change_plan_path: Path,
+    report: dict[str, Any],
+    change_plan: str,
+) -> dict[str, str]:
+    plan_dir = output_dir / change_plan_path.stem
+    plan_dir.mkdir(parents=True, exist_ok=True)
+
+    contracts = build_patch_contracts_for_report(report)
+    contract_filenames: list[str] = []
+    for index, contract in enumerate(contracts, start=1):
+        filename = patch_contract_filename(contract, index)
+        contract_filenames.append(filename)
+        (plan_dir / filename).write_text(render_patch_contract_file(contract, report), encoding="utf-8")
+
+    evidence_filename = "evidence.md"
+    evidence_section = change_plan.split("## Executable Work Packages", 1)
+    evidence_body = "## Executable Work Packages" + evidence_section[1] if len(evidence_section) == 2 else change_plan
+    evidence = "\n".join(
+        [
+            "# Documentation Change Plan Evidence",
+            "",
+            "This file is traceability evidence, not an implementation queue. Start from the generated `.index.md` file and the numbered plan files.",
+            "",
+            evidence_body,
+        ]
+    )
+    (plan_dir / evidence_filename).write_text(evidence, encoding="utf-8")
+
+    index_path = output_dir / f"{change_plan_path.stem}.index.md"
+    index_path.write_text(
+        render_change_plan_index(
+            report,
+            contracts,
+            contract_filenames,
+            plan_dir.name,
+            evidence_filename,
+            change_plan_path.name,
+        ),
+        encoding="utf-8",
+    )
+
+    manifest = {
+        "schema_version": 1,
+        "kind": "documenter_change_plan_directory",
+        "index": str(index_path),
+        "plan_dir": str(plan_dir),
+        "compatibility_plan": str(change_plan_path),
+        "evidence": str(plan_dir / evidence_filename),
+        "plans": [
+            {
+                "id": inline_markdown(contract.get("id", "PC-????")),
+                "phase": inline_markdown(contract.get("phase", "Documentation Plan")),
+                "path": str(plan_dir / filename),
+                "target_files": [inline_markdown(path) for path in contract.get("target_files", [])],
+            }
+            for contract, filename in zip(contracts, contract_filenames)
+        ],
+    }
+    manifest_path = plan_dir / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+    return {
+        "doc_change_plan_index": str(index_path),
+        "doc_change_plan_dir": str(plan_dir),
+        "doc_change_plan_evidence": str(plan_dir / evidence_filename),
+        "doc_change_plan_manifest": str(manifest_path),
+    }
+
+
 def write_document_manifest(output_dir: Path, target_label: str, manifest: dict[str, Any]) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     timestamp = artifact_timestamp()
@@ -3674,7 +3868,11 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
             change_plan = build_doc_change_plan(report)
             change_plan_path = write_change_plan(output_dir, target_root.name, doc_id, change_plan)
             report["artifacts"]["doc_change_plan"] = str(change_plan_path)
+            report["artifacts"].update(
+                write_change_plan_directory(output_dir, change_plan_path, report, change_plan)
+            )
             print(f"Wrote {change_plan_path}")
+            print(f"Wrote {report['artifacts']['doc_change_plan_index']}")
             if args.write_draft:
                 draft_artifacts = write_draft_artifacts(
                     output_dir,

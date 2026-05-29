@@ -101,10 +101,10 @@ python scripts/run_documenter_orchestrator.py --target-root . --seed-doc README.
 Use a generated change plan as input for a documentation implementation agent:
 
 ```text
-Execute Patch Contract PC-0001 in <path-to-doc-change-plan-*.md> for <target-repo>.
+Execute the first linked plan in <path-to-doc-change-plan-*.index.md> for <target-repo>.
 ```
 
-The plan carries the implementation contract, target files, required source files, explicit patch items, `DO NOT TOUCH` scope, expected output, and stop condition. A longer prompt should not be necessary unless the patch contract is blocked and needs a user decision.
+The index points to one numbered plan file per patch contract, for example `doc-change-plan-<run>/0001-update-readme-setup-and-documentation-index.md`. Each plan file carries the target files, required source files, explicit patch items, `DO NOT TOUCH` scope, expected output, and stop condition. A longer prompt should not be necessary unless the patch contract is blocked and needs a user decision.
 
 For repository-wide setup/configuration/runtime/tested-environment gaps, the generated patch contract should target entry-point docs such as `README.md` and `docs/README.md`. Do not spread those generic gaps across feature reference files.
 
