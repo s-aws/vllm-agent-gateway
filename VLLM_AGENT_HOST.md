@@ -186,7 +186,7 @@ For controller/client paths that need synthetic model-visible tools, use `vllm_a
 - reads one selected doc file
 - chunks it deterministically
 - overlaps chunks by line count for local continuity
-- sends one bounded packet at a time to the documenter role endpoint
+- sends bounded packets to the documenter role endpoint
 - validates the returned JSON delta
 - writes versioned run state and can resume interrupted runs
 - writes a non-mutating documentation change plan from validated report fields
@@ -223,6 +223,15 @@ Quick one-chunk smoke run. `--max-chunks` is applied per reviewed file:
 
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode review --max-chunks 1
+```
+
+Use bounded parallelism for live model review when vLLM is underutilized:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+  --mode full \
+  --review-scope manifest \
+  --parallelism 2
 ```
 
 Default chunk overlap is `--chunk-overlap-lines 8`.

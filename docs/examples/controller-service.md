@@ -56,7 +56,7 @@ python scripts/run_documenter_service_example.py \
   --max-chunks 1
 ```
 
-The example runner defaults to `dry_run` so it verifies controller behavior and artifacts without requiring a model call. Add `--live` when the documenter role endpoint and vLLM are running and you want actual model-reviewed chunks.
+The example runner defaults to `dry_run` so it verifies controller behavior and artifacts without requiring a model call. Add `--live` when the documenter role endpoint and vLLM are running and you want actual model-reviewed chunks. Add `--parallelism 2` or another bounded value to send concurrent chunk review requests.
 
 Run a bounded documenter dry run with curl:
 
@@ -89,6 +89,22 @@ curl -s http://127.0.0.1:8400/v1/controller/documenter/reviews \
     "dry_run": true,
     "budgets": {
       "max_chunks": 1
+    }
+  }'
+```
+
+Run live model review with bounded parallel chunk requests:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/documenter/reviews \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "workflow": "documenter.review",
+    "target_root": "/repo/agentic_agents",
+    "mode": "full",
+    "review_scope": "manifest",
+    "budgets": {
+      "parallelism": 2
     }
   }'
 ```

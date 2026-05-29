@@ -45,6 +45,15 @@ python scripts/run_documenter_orchestrator.py --target-root . --seed-doc README.
   --max-chunks 1
 ```
 
+Run live model reviews with bounded parallel chunk requests:
+
+```bash
+python scripts/run_documenter_orchestrator.py --target-root . --seed-doc README.md \
+  --mode full \
+  --review-scope manifest \
+  --parallelism 2
+```
+
 Adjust chunk sizing:
 
 ```bash

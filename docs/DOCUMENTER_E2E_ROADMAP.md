@@ -33,6 +33,7 @@ target repo -> controller manifest -> review plan -> bounded chunk packets -> do
 | Follow-up queue | Done | Optional exact-file follow-up expansion has depth/count bounds. |
 | Document manifest | Done | `full` mode writes a manifest artifact; default scope is tracked files, with `--document-scope all` for bootstrap scans. |
 | Review planning | Done | Review plan artifacts feed bounded `visible_followup_candidates` into packets. |
+| Parallel chunk review | Done | `--parallelism` sends independent chunk packets concurrently while applying results in deterministic target/chunk order. |
 | Source-aware follow-up review | Done | Follow-up expansion defaults to packet-visible candidates and records skip reason codes. |
 | Documentation change plan | Done | `full` mode writes a non-mutating Markdown change plan grouped by target file, evidence class, follow-ups, validation notes, and caveats. |
 | Draft output | Done | `--write-draft` writes reversible draft artifact copies and metadata under the configured output directory. |
@@ -67,7 +68,8 @@ Implemented phases must have deterministic regression coverage unless the phase 
 | Phase 11: Lossy Summarization Mode | Direct | `test_summarize_mode_writes_lossy_summary_and_separate_source_records`, `test_summarize_mode_does_not_treat_unsupported_summary_as_evidence`, `test_summarize_mode_resume_and_final_merge`, `test_summarize_mode_registry_declares_lossy_summary_controls` | Covers explicit lossy mode, recursive fake-endpoint merge, `summary_derived` labels, caveats, source-verified support separation, unsupported summary downgrade, resume, and summary budget metadata. |
 | Phase 12: Code Structure Indexes | Direct | `tests/regression/test_code_structure_index.py` | Covers Python AST symbols/imports/syntax errors, Markdown link graph/unresolved links, JSON/YAML key paths and parse errors, tracked/all file scopes, and bounded packet-ready slices without vLLM. |
 | Phase 13: Implementation Workflow | Direct | `tests/regression/test_implementation_workflow.py` | Covers report-derived and explicit packets, draft read-only default, bounded structure slices, resume, verification capture/failure, verification command policy, apply refusal, and explicit apply hash metadata. |
-| Phase 14: Tool Provenance Hardening | Not covered | None | Nice-to-have after core shipped features. Promote earlier only if artifact-level lineage becomes required for Phase 12 or 13 correctness. |
+| Phase 14: Parallel Chunk Review | Direct | `test_parallelism_reviews_chunks_concurrently_and_preserves_report_order`, `test_controller_service_runs_documenter_review_and_persists_status` | Covers bounded concurrent endpoint calls, deterministic report order, persisted parallelism, and controller-service budget routing. |
+| Phase 15: Tool Provenance Hardening | Not covered | None | Nice-to-have after core shipped features. Promote earlier only if artifact-level lineage becomes required for earlier phases. |
 
 ## Phase 1: Manifest-Backed Review Planning
 

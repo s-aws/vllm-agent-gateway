@@ -64,6 +64,7 @@ DOCUMENT_REVIEW_FIELDS = {
     "chunk_overlap_lines",
     "visible_candidate_limit",
     "visible_candidate_token_limit",
+    "parallelism",
     "max_chunks",
     "all_chunks",
     "include_followups",
@@ -85,7 +86,7 @@ DOCUMENT_REVIEW_FIELDS = {
     "budgets",
     "async",
 }
-DOCUMENT_REVIEW_BUDGET_FIELDS = {"max_chunks", "stop_after_chunks"}
+DOCUMENT_REVIEW_BUDGET_FIELDS = {"max_chunks", "parallelism", "stop_after_chunks"}
 
 
 class ControllerServiceError(RuntimeError):
@@ -605,6 +606,7 @@ def build_documenter_review(payload: dict[str, Any], config: ControllerServiceCo
             "visible_candidate_token_limit",
             DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT,
         ),
+        parallelism=int_with_default(merged, "parallelism", 1),
         max_chunks=optional_int(merged, "max_chunks"),
         all_chunks=optional_bool(merged, "all_chunks", False),
         include_followups=optional_bool(merged, "include_followups", False),

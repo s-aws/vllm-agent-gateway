@@ -39,6 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--live", action="store_true", help="Call the documenter role endpoint instead of dry-run mode.")
     parser.add_argument("--async-run", action="store_true", help="Create an async controller run and poll it.")
     parser.add_argument("--max-chunks", type=int, default=1, help="Bounded demo max_chunks budget.")
+    parser.add_argument("--parallelism", type=int, default=1, help="Bounded concurrent chunk review budget.")
     parser.add_argument("--chunk-token-limit", type=int, default=1000)
     parser.add_argument("--timeout", type=float, default=30.0, help="HTTP timeout in seconds.")
     parser.add_argument("--poll-timeout", type=float, default=60.0, help="Async polling timeout in seconds.")
@@ -89,7 +90,7 @@ def documenter_request(args: argparse.Namespace) -> dict[str, Any]:
         "target_root": target_root,
         "mode": "full",
         "chunk_token_limit": args.chunk_token_limit,
-        "budgets": {"max_chunks": args.max_chunks},
+        "budgets": {"max_chunks": args.max_chunks, "parallelism": args.parallelism},
     }
     if not args.live:
         request["dry_run"] = True

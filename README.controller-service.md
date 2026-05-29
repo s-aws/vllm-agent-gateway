@@ -109,7 +109,7 @@ Bootstrap all-docs request:
 }
 ```
 
-The `budgets` object supports `max_chunks` and `stop_after_chunks`. Use `stop_after_chunks` for deterministic pause/resume testing, and use `"async": true` for long runs that should survive client disconnects.
+The `budgets` object supports `max_chunks`, `parallelism`, and `stop_after_chunks`. Use `parallelism` for bounded concurrent chunk review, `stop_after_chunks` for deterministic pause/resume testing, and `"async": true` for long runs that should survive client disconnects.
 
 Async request:
 

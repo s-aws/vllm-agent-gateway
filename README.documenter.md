@@ -15,6 +15,7 @@ The documenter role receives one bounded packet and returns structured JSON. It 
 - Writes a document manifest in `full` mode.
 - Writes a review plan with bounded `visible_followup_candidates`.
 - Can review either the selected seed doc or the full discovered manifest.
+- Can send independent chunk review packets with bounded parallelism.
 - Optionally expands exact follow-up files within depth/count/scope limits.
 - Writes non-mutating Markdown change plans.
 - Optionally writes draft artifact copies under the configured output directory.
@@ -37,6 +38,12 @@ manifest  every discovered documentation file
 ```
 
 Use `--seed-doc` to name the selected seed document. The older `--doc` alias is still accepted for compatibility.
+
+## Parallel Review
+
+`--parallelism N` runs up to `N` chunk review requests at the same time. The default is `1`, preserving the original sequential behavior. Completed results are applied in target/chunk order, so reports, follow-up acceptance, run state, and change plans stay deterministic.
+
+Use bounded values that match the vLLM server capacity. For the documented local setup, start with `--parallelism 2` and compare vLLM `Running`, `Waiting`, throughput, timeout, and KV-cache metrics before trying `4`.
 
 ## Model Output Contract
 

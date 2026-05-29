@@ -15,6 +15,7 @@ import os
 import re
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
 from pathlib import Path
@@ -173,6 +174,24 @@ class ReviewTarget:
 
 
 @dataclass(frozen=True)
+class ChunkReviewTask:
+    target: ReviewTarget
+    chunk: Chunk
+    visible_followup_candidates: list[dict[str, Any]]
+    visible_followup_candidate_by_path: dict[str, dict[str, Any]]
+    packet: dict[str, Any]
+    entry: dict[str, Any]
+    criteria_remaining: list[str]
+
+
+@dataclass(frozen=True)
+class ChunkReviewOutcome:
+    task: ChunkReviewTask
+    result: dict[str, Any] | None = None
+    error: str | None = None
+
+
+@dataclass(frozen=True)
 class DocumenterInvocationRequest:
     mode: str = "full"
     config_root: Path | str | None = None
@@ -187,6 +206,7 @@ class DocumenterInvocationRequest:
     chunk_overlap_lines: int = 8
     visible_candidate_limit: int = DEFAULT_VISIBLE_CANDIDATE_LIMIT
     visible_candidate_token_limit: int = DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT
+    parallelism: int = 1
     max_chunks: int | None = None
     all_chunks: bool = False
     include_followups: bool = False
@@ -2194,6 +2214,12 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT,
         help="Maximum estimated tokens for visible follow-up candidate metadata in each packet.",
     )
+    parser.add_argument(
+        "--parallelism",
+        type=int,
+        default=1,
+        help="Maximum concurrent documenter chunk requests. Defaults to sequential execution.",
+    )
     parser.add_argument("--max-chunks", type=int, default=None, help="Maximum chunks to process. Defaults to all chunks.")
     parser.add_argument("--all-chunks", action="store_true", help="Process all chunks. This is the default.")
     parser.add_argument(
@@ -2286,6 +2312,8 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
         raise OrchestratorError("--visible-candidate-limit cannot be negative.")
     if args.visible_candidate_token_limit < 0:
         raise OrchestratorError("--visible-candidate-token-limit cannot be negative.")
+    if args.parallelism < 1:
+        raise OrchestratorError("--parallelism must be at least 1.")
     if args.write_draft and args.mode != "full":
         raise OrchestratorError("--write-draft requires --mode full.")
     if args.stop_after_chunks is not None and args.stop_after_chunks < 1:
@@ -2477,6 +2505,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
             "criteria_remaining": criteria_remaining,
             "chunk_token_limit": args.chunk_token_limit,
             "chunk_overlap_lines": args.chunk_overlap_lines,
+            "parallelism": args.parallelism,
             "max_chunks_per_file": max_chunks,
             "include_followups": include_followups,
             "followup_depth": effective_followup_depth,
@@ -2502,9 +2531,14 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
 
     persist_state("running")
     newly_processed_chunks = 0
-    while queue_index < len(target_queue):
-        target = target_queue[queue_index]
+    parallelism = int(args.parallelism)
 
+    target_chunk_cache: dict[str, tuple[list[Chunk], list[Chunk]]] = {}
+
+    def chunks_for_target(target: ReviewTarget) -> tuple[list[Chunk], list[Chunk]]:
+        cached = target_chunk_cache.get(target.doc_id)
+        if cached is not None:
+            return cached
         content = read_repo_file(
             target_root,
             assigned_tool_ids,
@@ -2514,158 +2548,257 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
         )
         chunks = chunk_document(target.doc_id, content, args.chunk_token_limit, args.chunk_overlap_lines)
         selected_chunks = chunks if max_chunks is None else chunks[:max_chunks]
+        target_chunk_cache[target.doc_id] = (chunks, selected_chunks)
+        return chunks, selected_chunks
 
-        for chunk in selected_chunks:
-            if chunk.chunk_id in completed_chunk_ids:
-                continue
-            visible_followup_candidates = select_visible_followup_candidates(
-                review_plan,
-                target,
-                chunk,
-                reviewed_files | {target.doc_id},
-                args.visible_candidate_limit,
-                args.visible_candidate_token_limit,
-            )
-            visible_followup_candidate_by_path = {
-                candidate["path"]: candidate
-                for candidate in visible_followup_candidates
-                if isinstance(candidate.get("path"), str)
-            }
-            packet = build_packet(target, chunk, criteria_remaining, visible_followup_candidates)
-            entry: dict[str, Any] = {
-                "doc_id": target.doc_id,
-                "source": target.source,
-                "depth": target.depth,
-                "parent_doc_id": target.parent_doc_id,
-                "chunk_id": chunk.chunk_id,
-                "lines": [chunk.start_line, chunk.end_line],
-                "overlap_previous_lines": chunk.overlap_previous_lines,
-                "input_token_estimate": chunk.token_estimate,
-                "visible_followup_candidates": visible_followup_candidates,
-                "packet": packet if args.dry_run else {"criteria_remaining": criteria_remaining},
-            }
-            if not args.dry_run:
-                try:
-                    result = call_documenter(role_base_url, args.model, packet, args.max_output_tokens, args.timeout)
-                except OrchestratorError as exc:
-                    failed_packet = {
-                        "failed_at": utc_now(),
+    def build_chunk_review_task(
+        target: ReviewTarget,
+        chunk: Chunk,
+        reviewed_context: set[str],
+    ) -> ChunkReviewTask:
+        criteria_snapshot = list(criteria_remaining)
+        visible_followup_candidates = select_visible_followup_candidates(
+            review_plan,
+            target,
+            chunk,
+            reviewed_context,
+            args.visible_candidate_limit,
+            args.visible_candidate_token_limit,
+        )
+        visible_followup_candidate_by_path = {
+            candidate["path"]: candidate
+            for candidate in visible_followup_candidates
+            if isinstance(candidate.get("path"), str)
+        }
+        packet = build_packet(target, chunk, criteria_snapshot, visible_followup_candidates)
+        entry: dict[str, Any] = {
+            "doc_id": target.doc_id,
+            "source": target.source,
+            "depth": target.depth,
+            "parent_doc_id": target.parent_doc_id,
+            "chunk_id": chunk.chunk_id,
+            "lines": [chunk.start_line, chunk.end_line],
+            "overlap_previous_lines": chunk.overlap_previous_lines,
+            "input_token_estimate": chunk.token_estimate,
+            "visible_followup_candidates": visible_followup_candidates,
+            "packet": packet if args.dry_run else {"criteria_remaining": criteria_snapshot},
+        }
+        return ChunkReviewTask(
+            target=target,
+            chunk=chunk,
+            visible_followup_candidates=visible_followup_candidates,
+            visible_followup_candidate_by_path=visible_followup_candidate_by_path,
+            packet=packet,
+            entry=entry,
+            criteria_remaining=criteria_snapshot,
+        )
+
+    def run_chunk_review_task(task: ChunkReviewTask) -> ChunkReviewOutcome:
+        try:
+            result = call_documenter(role_base_url, args.model, task.packet, args.max_output_tokens, args.timeout)
+        except OrchestratorError as exc:
+            return ChunkReviewOutcome(task=task, error=str(exc))
+        return ChunkReviewOutcome(task=task, result=result)
+
+    def execute_chunk_review_tasks(tasks: list[ChunkReviewTask]) -> list[ChunkReviewOutcome]:
+        if args.dry_run:
+            return [ChunkReviewOutcome(task=task) for task in tasks]
+        if parallelism == 1 or len(tasks) == 1:
+            return [run_chunk_review_task(task) for task in tasks]
+        with ThreadPoolExecutor(max_workers=min(parallelism, len(tasks))) as executor:
+            return list(executor.map(run_chunk_review_task, tasks))
+
+    def failed_packet_from_outcome(outcome: ChunkReviewOutcome) -> dict[str, Any]:
+        task = outcome.task
+        target = task.target
+        chunk = task.chunk
+        return {
+            "failed_at": utc_now(),
+            "doc_id": target.doc_id,
+            "source": target.source,
+            "depth": target.depth,
+            "parent_doc_id": target.parent_doc_id,
+            "chunk_id": chunk.chunk_id,
+            "lines": [chunk.start_line, chunk.end_line],
+            "overlap_previous_lines": chunk.overlap_previous_lines,
+            "input_token_estimate": chunk.token_estimate,
+            "criteria_remaining": list(task.criteria_remaining),
+            "visible_followup_candidates": task.visible_followup_candidates,
+            "packet_summary": {
+                "role": task.packet.get("role"),
+                "task": task.packet.get("task"),
+                "doc_id": task.packet.get("doc_id"),
+                "chunk_id": task.packet.get("chunk_id"),
+                "source": task.packet.get("source"),
+                "followup_depth": task.packet.get("followup_depth"),
+            },
+            "error": outcome.error or "unknown documenter error",
+        }
+
+    def cancel_if_requested(stage: str) -> None:
+        if stop_requested_path is None or not stop_requested_path.exists():
+            return
+        cancel_record = {
+            "failed_at": utc_now(),
+            "stage": stage,
+            "reason": "controller_service_stop_requested",
+            "stop_requested_path": str(stop_requested_path),
+        }
+        persist_state("canceled", cancel_record)
+        print(f"Stopped after current packet. Run state: {run_state_path}")
+        raise OrchestratorPaused(run_state_path, "canceled")
+
+    def advance_completed_targets() -> None:
+        nonlocal queue_index
+        advanced = False
+        while queue_index < len(target_queue):
+            target = target_queue[queue_index]
+            chunks, selected_chunks = chunks_for_target(target)
+            selected_chunk_ids = {chunk.chunk_id for chunk in selected_chunks}
+            if not selected_chunk_ids.issubset(completed_chunk_ids):
+                break
+            if target.doc_id not in reviewed_files:
+                reviewed_file_reports.append(
+                    {
                         "doc_id": target.doc_id,
                         "source": target.source,
                         "depth": target.depth,
                         "parent_doc_id": target.parent_doc_id,
-                        "chunk_id": chunk.chunk_id,
-                        "lines": [chunk.start_line, chunk.end_line],
-                        "overlap_previous_lines": chunk.overlap_previous_lines,
-                        "input_token_estimate": chunk.token_estimate,
-                        "criteria_remaining": list(criteria_remaining),
-                        "visible_followup_candidates": visible_followup_candidates,
-                        "packet_summary": {
-                            "role": packet.get("role"),
-                            "task": packet.get("task"),
-                            "doc_id": packet.get("doc_id"),
-                            "chunk_id": packet.get("chunk_id"),
-                            "source": packet.get("source"),
-                            "followup_depth": packet.get("followup_depth"),
-                        },
-                        "error": str(exc),
+                        "chunks_total": len(chunks),
+                        "chunks_processed": len(selected_chunks),
+                        "truncated_after_chunks": len(selected_chunks) < len(chunks),
                     }
-                    failed_packets.append(failed_packet)
-                    persist_state("failed", failed_packet)
-                    raise
-                warnings = normalize_result_policy(result, known_file_set, criteria_remaining)
-                satisfied = {item for item in result["criteria_satisfied"] if isinstance(item, str)}
-                criteria_remaining = [item for item in criteria_remaining if item not in satisfied]
-                entry["result"] = result
-                if warnings:
-                    entry["validation_warnings"] = warnings
-
-                for followup_file in unique_strings(result["followup_files"]):
-                    candidate_depth = target.depth + 1
-                    followup_record = {
-                        "path": followup_file,
-                        "source_doc_id": target.doc_id,
-                        "source_chunk_id": chunk.chunk_id,
-                        "candidate_depth": candidate_depth,
-                        "visible_candidate": followup_file in visible_followup_candidate_by_path,
-                        "candidate_reasons": visible_followup_candidate_by_path.get(
-                            followup_file, review_plan_candidates.get(followup_file, {})
-                        ).get("reasons", []),
-                        "source_policy": followup_source_policy,
-                    }
-                    if not include_followups:
-                        skipped_followups.append({**followup_record, "reason": "followups_disabled"})
-                        continue
-                    if target.depth >= effective_followup_depth:
-                        skipped_followups.append({**followup_record, "reason": "depth_limit_reached"})
-                        continue
-                    if followup_file not in known_file_set:
-                        skipped_followups.append({**followup_record, "reason": "not_in_document_scope"})
-                        continue
-                    if Path(followup_file).suffix.lower() not in FOLLOWUP_SUFFIXES:
-                        skipped_followups.append({**followup_record, "reason": "unsupported_extension"})
-                        continue
-                    if (
-                        followup_file not in visible_followup_candidate_by_path
-                        and not args.allow_nonvisible_followups
-                    ):
-                        skipped_followups.append({**followup_record, "reason": "not_visible_to_packet"})
-                        continue
-                    if followup_file in reviewed_files or followup_file in queued_files:
-                        skipped_followups.append({**followup_record, "reason": "already_seen"})
-                        continue
-                    if len(accepted_followups) >= args.max_followup_files:
-                        skipped_followups.append({**followup_record, "reason": "max_followup_files_reached"})
-                        continue
-
-                    accepted_via = (
-                        "visible_followup_candidates"
-                        if followup_file in visible_followup_candidate_by_path
-                        else "known_files_compatibility"
-                    )
-                    accepted_followups.append({**followup_record, "accepted_via": accepted_via})
-                    target_queue.append(
-                        ReviewTarget(
-                            doc_id=followup_file,
-                            source="followup",
-                            depth=candidate_depth,
-                            parent_doc_id=target.doc_id,
-                        )
-                    )
-                    queued_files.add(followup_file)
-            chunk_reports.append(entry)
-            completed_chunk_ids.add(chunk.chunk_id)
-            newly_processed_chunks += 1
+                )
+                reviewed_files.add(target.doc_id)
+            queue_index += 1
+            advanced = True
+        if advanced:
             persist_state("running")
-            if args.stop_after_chunks is not None and newly_processed_chunks >= args.stop_after_chunks:
-                persist_state("paused")
-                print(f"Paused after {newly_processed_chunks} newly processed chunk(s). Resume with {run_state_path}")
-                raise OrchestratorPaused(run_state_path, "paused")
-            if stop_requested_path is not None and stop_requested_path.exists():
-                cancel_record = {
-                    "failed_at": utc_now(),
-                    "stage": "stop_after_current_packet",
-                    "reason": "controller_service_stop_requested",
-                    "stop_requested_path": str(stop_requested_path),
-                }
-                persist_state("canceled", cancel_record)
-                print(f"Stopped after current packet. Run state: {run_state_path}")
-                raise OrchestratorPaused(run_state_path, "canceled")
 
-        reviewed_file_reports.append(
-            {
-                "doc_id": target.doc_id,
-                "source": target.source,
-                "depth": target.depth,
-                "parent_doc_id": target.parent_doc_id,
-                "chunks_total": len(chunks),
-                "chunks_processed": len(selected_chunks),
-                "truncated_after_chunks": len(selected_chunks) < len(chunks),
-            }
-        )
-        reviewed_files.add(target.doc_id)
-        queue_index += 1
+    def build_next_chunk_review_batch() -> list[ChunkReviewTask]:
+        if args.stop_after_chunks is not None:
+            batch_limit = min(parallelism, args.stop_after_chunks - newly_processed_chunks)
+        else:
+            batch_limit = parallelism
+        if batch_limit < 1:
+            return []
+
+        tasks: list[ChunkReviewTask] = []
+        prior_targets = set(reviewed_files)
+        scan_index = queue_index
+        while scan_index < len(target_queue) and len(tasks) < batch_limit:
+            target = target_queue[scan_index]
+            _, selected_chunks = chunks_for_target(target)
+            pending_chunks = [chunk for chunk in selected_chunks if chunk.chunk_id not in completed_chunk_ids]
+            if not pending_chunks:
+                prior_targets.add(target.doc_id)
+                scan_index += 1
+                continue
+            reviewed_context = prior_targets | {target.doc_id}
+            for chunk in pending_chunks:
+                tasks.append(build_chunk_review_task(target, chunk, reviewed_context))
+                if len(tasks) >= batch_limit:
+                    break
+            if len(tasks) >= batch_limit:
+                break
+            prior_targets.add(target.doc_id)
+            scan_index += 1
+        return tasks
+
+    def apply_chunk_review_outcome(outcome: ChunkReviewOutcome) -> None:
+        nonlocal criteria_remaining, newly_processed_chunks
+        task = outcome.task
+        if outcome.error:
+            failed_packet = failed_packet_from_outcome(outcome)
+            failed_packets.append(failed_packet)
+            persist_state("failed", failed_packet)
+            raise OrchestratorError(outcome.error)
+
+        entry = task.entry
+        if outcome.result is not None:
+            result = outcome.result
+            warnings = normalize_result_policy(result, known_file_set, task.criteria_remaining)
+            satisfied = {item for item in result["criteria_satisfied"] if isinstance(item, str)}
+            criteria_remaining = [item for item in criteria_remaining if item not in satisfied]
+            entry["result"] = result
+            if warnings:
+                entry["validation_warnings"] = warnings
+
+            for followup_file in unique_strings(result["followup_files"]):
+                candidate_depth = task.target.depth + 1
+                followup_record = {
+                    "path": followup_file,
+                    "source_doc_id": task.target.doc_id,
+                    "source_chunk_id": task.chunk.chunk_id,
+                    "candidate_depth": candidate_depth,
+                    "visible_candidate": followup_file in task.visible_followup_candidate_by_path,
+                    "candidate_reasons": task.visible_followup_candidate_by_path.get(
+                        followup_file, review_plan_candidates.get(followup_file, {})
+                    ).get("reasons", []),
+                    "source_policy": followup_source_policy,
+                }
+                if not include_followups:
+                    skipped_followups.append({**followup_record, "reason": "followups_disabled"})
+                    continue
+                if task.target.depth >= effective_followup_depth:
+                    skipped_followups.append({**followup_record, "reason": "depth_limit_reached"})
+                    continue
+                if followup_file not in known_file_set:
+                    skipped_followups.append({**followup_record, "reason": "not_in_document_scope"})
+                    continue
+                if Path(followup_file).suffix.lower() not in FOLLOWUP_SUFFIXES:
+                    skipped_followups.append({**followup_record, "reason": "unsupported_extension"})
+                    continue
+                if (
+                    followup_file not in task.visible_followup_candidate_by_path
+                    and not args.allow_nonvisible_followups
+                ):
+                    skipped_followups.append({**followup_record, "reason": "not_visible_to_packet"})
+                    continue
+                if followup_file in reviewed_files or followup_file in queued_files:
+                    skipped_followups.append({**followup_record, "reason": "already_seen"})
+                    continue
+                if len(accepted_followups) >= args.max_followup_files:
+                    skipped_followups.append({**followup_record, "reason": "max_followup_files_reached"})
+                    continue
+
+                accepted_via = (
+                    "visible_followup_candidates"
+                    if followup_file in task.visible_followup_candidate_by_path
+                    else "known_files_compatibility"
+                )
+                accepted_followups.append({**followup_record, "accepted_via": accepted_via})
+                target_queue.append(
+                    ReviewTarget(
+                        doc_id=followup_file,
+                        source="followup",
+                        depth=candidate_depth,
+                        parent_doc_id=task.target.doc_id,
+                    )
+                )
+                queued_files.add(followup_file)
+
+        chunk_reports.append(entry)
+        completed_chunk_ids.add(task.chunk.chunk_id)
+        newly_processed_chunks += 1
+        advance_completed_targets()
         persist_state("running")
+        if args.stop_after_chunks is not None and newly_processed_chunks >= args.stop_after_chunks:
+            persist_state("paused")
+            print(f"Paused after {newly_processed_chunks} newly processed chunk(s). Resume with {run_state_path}")
+            raise OrchestratorPaused(run_state_path, "paused")
+        cancel_if_requested("stop_after_current_packet")
+
+    while queue_index < len(target_queue):
+        advance_completed_targets()
+        if queue_index >= len(target_queue):
+            break
+        cancel_if_requested("before_next_batch")
+        tasks = build_next_chunk_review_batch()
+        if not tasks:
+            raise OrchestratorError("No pending chunks were available while the review queue was incomplete.")
+        for outcome in execute_chunk_review_tasks(tasks):
+            apply_chunk_review_outcome(outcome)
 
     chunks_total = sum(item["chunks_total"] for item in reviewed_file_reports)
     chunks_processed = sum(item["chunks_processed"] for item in reviewed_file_reports)
@@ -2719,6 +2852,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
         "criteria_remaining": criteria_remaining,
         "chunk_token_limit": args.chunk_token_limit,
         "chunk_overlap_lines": args.chunk_overlap_lines,
+        "parallelism": args.parallelism,
         "in_memory_file_policy": {
             "max_in_memory_doc_bytes": args.max_in_memory_doc_bytes,
             "allow_large_in_memory_docs": bool(args.allow_large_in_memory_docs),

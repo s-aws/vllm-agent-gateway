@@ -257,7 +257,7 @@ def test_controller_service_runs_documenter_review_and_persists_status(tmp_path:
                 "document_scope": "all",
                 "review_scope": "manifest",
                 "dry_run": True,
-                "budgets": {"max_chunks": 1},
+                "budgets": {"max_chunks": 1, "parallelism": 2},
             },
         )
 
@@ -270,6 +270,8 @@ def test_controller_service_runs_documenter_review_and_persists_status(tmp_path:
         assert "document_manifest" in body["artifacts"]
         assert "review_plan" in body["artifacts"]
         assert Path(body["artifacts"]["json_report"]).exists()
+        report = json.loads(Path(body["artifacts"]["json_report"]).read_text(encoding="utf-8"))
+        assert report["parallelism"] == 2
 
         status, run_body = request_json(host, port, "GET", f"/v1/controller/runs/{body['run_id']}")
 

@@ -4,6 +4,7 @@ import json
 import subprocess
 import sys
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
@@ -553,6 +554,55 @@ def test_followup_depth_count_limits_and_invalid_rejections_are_recorded(tmp_pat
     assert "unsupported_extension" in reasons
     assert "not_visible_to_packet" in reasons
     assert "depth_limit_reached" in reasons
+
+
+def test_parallelism_reviews_chunks_concurrently_and_preserves_report_order(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    output_dir = tmp_path / "parallel"
+    active_requests = 0
+    max_active_requests = 0
+    lock = threading.Lock()
+
+    def response(packet: dict[str, Any]) -> dict[str, Any]:
+        nonlocal active_requests, max_active_requests
+        with lock:
+            active_requests += 1
+            max_active_requests = max(max_active_requests, active_requests)
+        try:
+            time.sleep(0.05)
+            return default_result(packet)
+        finally:
+            with lock:
+                active_requests -= 1
+
+    with FakeEndpoint(response) as endpoint:
+        run_orchestrator(
+            "--target-root",
+            target,
+            "--doc",
+            "README.md",
+            "--mode",
+            "review",
+            "--review-scope",
+            "manifest",
+            "--parallelism",
+            "3",
+            "--role-base-url",
+            endpoint.base_url,
+            "--output-dir",
+            output_dir,
+        )
+
+    report = load_one_json(output_dir, "documenter-*.json")
+    state = load_one_json(output_dir, "run-state-*.json")
+    chunk_ids = [item["chunk_id"] for item in report["chunks"]]
+
+    assert report["parallelism"] == 3
+    assert state["parallelism"] == 3
+    assert len(chunk_ids) >= 3
+    assert chunk_ids == sorted(chunk_ids)
+    assert {"README.md:0001", "docs/config.md:0001", "docs/guide.md:0001"} <= set(chunk_ids)
+    assert max_active_requests >= 2
 
 
 def test_change_plan_groups_validated_findings_and_does_not_modify_target_docs(tmp_path: Path) -> None:
