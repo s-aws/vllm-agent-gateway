@@ -94,7 +94,7 @@ The full chunk text is not duplicated in `failed_packets`; the chunk can be rebu
 Pause after one newly processed chunk for a controlled resume smoke test:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+python scripts/run_documenter_orchestrator.py --target-root . --seed-doc README.md \
   --mode full \
   --dry-run \
   --max-chunks 1 \
@@ -104,7 +104,7 @@ python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
 Resume from a state artifact:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \
+python scripts/run_documenter_orchestrator.py --target-root . --seed-doc README.md \
   --mode full \
   --dry-run \
   --max-chunks 1 \

@@ -36,6 +36,12 @@ seed      only the selected document
 manifest  every discovered documentation file
 ```
 
+Use `--seed-doc` to name the selected seed document. The older `--doc` alias is still accepted for compatibility.
+
+## Model Output Contract
+
+Each chunk packet tells the model to return one JSON object and includes `output_limits` for maximum array sizes and string length. The controller validates the JSON, trims oversized valid fields into the bounded contract, and fails the packet when the model returns malformed or truncated JSON. The final Markdown summary also uses a compact, counted summary packet instead of sending the full report aggregate back through the model. Detailed evidence remains in the JSON report and change-plan artifacts. The default `--max-output-tokens` is `2000`; increase it only when the model is consistently cut off after the output has already been constrained.
+
 ## Artifacts
 
 - `documenter-*.json`: main controller report.
@@ -51,7 +57,7 @@ Reports are written under `.agentic_reports/` by default. The target project is 
 ## Safety Model
 
 - Default document discovery uses tracked files.
-- `--document-scope all` is explicit and skips common generated directories.
+- `--document-scope all` is explicit and skips common generated directories such as virtual environments, `.agentic_reports`, and `test_runtime`.
 - `--review-scope seed` can force a one-document review even when discovery uses all files.
 - Follow-up expansion is fail-closed by default and limited to packet-visible candidates.
 - The normal path has an in-memory file size guard. Use the streaming workflow for oversized files.

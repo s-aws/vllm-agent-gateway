@@ -252,7 +252,7 @@ def test_controller_service_runs_documenter_review_and_persists_status(tmp_path:
             {
                 "workflow": "documenter.review",
                 "target_root": str(target),
-                "doc": "README.md",
+                "seed_doc": "README.md",
                 "mode": "full",
                 "document_scope": "all",
                 "review_scope": "manifest",
@@ -277,6 +277,7 @@ def test_controller_service_runs_documenter_review_and_persists_status(tmp_path:
     assert run_body["kind"] == "controller_run_record"
     assert run_body["run_id"] == body["run_id"]
     assert run_body["artifacts"]["json_report"] == body["artifacts"]["json_report"]
+    assert body["review_summary"]["seed_doc_id"] == "README.md"
 
 
 def test_controller_service_records_resolved_workflow_tool_policy(tmp_path: Path) -> None:
@@ -421,6 +422,36 @@ def test_controller_service_rejects_unsupported_budget_before_workflow(tmp_path:
     assert status == 400
     assert body["error"]["code"] == "bad_request"
     assert "max_elapsed_seconds" in body["error"]["message"]
+    assert not (config.output_root / ".agentic_reports").exists()
+
+
+def test_controller_service_rejects_conflicting_seed_aliases(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/documenter/reviews",
+            {
+                "workflow": "documenter.review",
+                "target_root": str(target),
+                "seed_doc": "README.md",
+                "doc": "docs/config.md",
+                "dry_run": True,
+            },
+        )
+
+    assert status == 400
+    assert body["error"]["code"] == "bad_request"
+    assert "must not specify different values" in body["error"]["message"]
     assert not (config.output_root / ".agentic_reports").exists()
 
 
@@ -726,6 +757,8 @@ def test_documenter_service_example_script_runs_tracked_and_harness_cases(tmp_pa
                 str(target),
                 "--case",
                 "harness",
+                "--seed-doc",
+                "README.md",
                 "--max-chunks",
                 "1",
             ],

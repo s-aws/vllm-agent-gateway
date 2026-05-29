@@ -29,13 +29,29 @@ from vllm_agent_gateway.invocation import (
 )
 
 
+def default_config_root(anchor: Path) -> Path:
+    for candidate in anchor.parents:
+        if (candidate / "runtime" / "roles.json").is_file() and (candidate / "runtime" / "tools.json").is_file():
+            return candidate
+    parents = list(anchor.parents)
+    return parents[3] if len(parents) > 3 else parents[-1]
+
+
 DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 DEFAULT_ROLE_ID = "documenter/default"
 DEFAULT_OUTPUT_DIR = ".agentic_reports"
 DEFAULT_VISIBLE_CANDIDATE_LIMIT = 12
 DEFAULT_VISIBLE_CANDIDATE_TOKEN_LIMIT = 1200
+DEFAULT_MAX_OUTPUT_TOKENS = 2000
 DEFAULT_MAX_IN_MEMORY_DOC_BYTES = 64 * 1024 * 1024
-SCRIPT_CONFIG_ROOT = Path(__file__).resolve().parents[2]
+SUMMARY_FACT_LIMIT = 30
+SUMMARY_GAP_LIMIT = 30
+SUMMARY_FOLLOWUP_LIMIT = 30
+SUMMARY_REVIEWED_FILE_LIMIT = 80
+SUMMARY_VALIDATION_WARNING_LIMIT = 20
+SUMMARY_FOLLOWUP_EXAMPLE_LIMIT = 20
+SUMMARY_STRING_LIMIT = 240
+SCRIPT_CONFIG_ROOT = default_config_root(Path(__file__).resolve())
 MODES = {"review", "summarize", "full"}
 REVIEW_SCOPES = {"auto", "seed", "manifest"}
 CHANGE_PLAN_CATEGORY_TITLES = {
@@ -59,8 +75,15 @@ IGNORED_SCAN_DIRS = {
     "build",
     "dist",
     "node_modules",
+    "test_runtime",
     "venv",
 }
+
+
+def is_ignored_scan_dir(name: str) -> bool:
+    return name in IGNORED_SCAN_DIRS or name.startswith(".venv")
+
+
 FOLLOWUP_SUFFIXES = {
     ".adoc",
     ".cfg",
@@ -107,6 +130,12 @@ REQUIRED_RESULT_FIELDS = {
     "followup_files": list,
     "confidence": str,
 }
+RESULT_ARRAY_LIMITS = {
+    "facts_found": 5,
+    "doc_gaps": 5,
+    "followup_files": 5,
+}
+RESULT_STRING_LIMIT = 240
 RUN_STATE_SCHEMA_VERSION = 1
 RESUMABLE_RUN_STATUSES = {"running", "failed", "paused", "review_complete"}
 
@@ -176,7 +205,7 @@ class DocumenterInvocationRequest:
     stop_requested_path: Path | str | None = None
     dry_run: bool = False
     timeout: int = 600
-    max_output_tokens: int = 1000
+    max_output_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS
     max_in_memory_doc_bytes: int = DEFAULT_MAX_IN_MEMORY_DOC_BYTES
     allow_large_in_memory_docs: bool = False
 
@@ -283,7 +312,7 @@ def scan_repo_files(repo_root: Path, assigned_tool_ids: set[str]) -> list[str]:
         dirnames[:] = [
             name
             for name in dirnames
-            if name not in IGNORED_SCAN_DIRS and not name.endswith(".egg-info") and not name.endswith(".dist-info")
+            if not is_ignored_scan_dir(name) and not name.endswith(".egg-info") and not name.endswith(".dist-info")
         ]
         current_path = Path(current_root)
         for filename in filenames:
@@ -462,6 +491,15 @@ def build_packet(
             "followup_files": ["string"],
             "confidence": "low|medium|high",
         },
+        "output_limits": {
+            "max_items": {
+                **RESULT_ARRAY_LIMITS,
+                "criteria_satisfied": len(criteria_remaining),
+                "criteria_remaining": len(criteria_remaining),
+            },
+            "max_string_chars": RESULT_STRING_LIMIT,
+            "instruction": "Keep arrays concise and omit low-value items instead of expanding the response.",
+        },
         "chunk": chunk.text,
     }
 
@@ -470,6 +508,7 @@ def packet_prompt(packet: dict[str, Any]) -> str:
     return (
         "Review exactly one documentation task packet. "
         "Use only the packet content. Return exactly one JSON object matching required_output. "
+        "Respect output_limits strictly. Prefer fewer, higher-value findings over long lists. "
         "No markdown, no prose, no raw tool calls.\n\n"
         f"{json.dumps(packet, ensure_ascii=True, indent=2)}"
     )
@@ -584,7 +623,17 @@ def parse_result(content: str, expected_chunk_id: str) -> dict[str, Any]:
     try:
         result = json.loads(text)
     except json.JSONDecodeError as exc:
-        raise OrchestratorError(f"Documenter did not return valid JSON: {content[:1000]}") from exc
+        truncation_note = ""
+        if not text.endswith("}"):
+            truncation_note = (
+                " Response appears truncated before the closing JSON object; "
+                "increase --max-output-tokens or reduce --chunk-token-limit if this persists."
+            )
+        raise OrchestratorError(
+            "Documenter did not return valid JSON "
+            f"for {expected_chunk_id}: {exc.msg} at character {exc.pos}.{truncation_note} "
+            f"Response prefix: {content[:1000]}"
+        ) from exc
     if not isinstance(result, dict):
         raise OrchestratorError("Documenter result must be a JSON object.")
     for field, expected_type in REQUIRED_RESULT_FIELDS.items():
@@ -617,7 +666,39 @@ def normalize_result_policy(
                     "removed_count": len(original) - len(filtered),
                 }
             )
-        result[field] = filtered
+        trimmed: list[str] = []
+        trimmed_strings = 0
+        for item in filtered:
+            if len(item) > RESULT_STRING_LIMIT:
+                trimmed.append(item[: RESULT_STRING_LIMIT - 3].rstrip() + "...")
+                trimmed_strings += 1
+            else:
+                trimmed.append(item)
+        if trimmed_strings:
+            warnings.append(
+                {
+                    "field": field,
+                    "reason": "trimmed_long_strings",
+                    "trimmed_count": trimmed_strings,
+                    "max_string_chars": RESULT_STRING_LIMIT,
+                }
+            )
+        limit = (
+            len(allowed_criteria)
+            if field in {"criteria_satisfied", "criteria_remaining"}
+            else RESULT_ARRAY_LIMITS.get(field)
+        )
+        if limit is not None and len(trimmed) > limit:
+            warnings.append(
+                {
+                    "field": field,
+                    "reason": "trimmed_to_output_limit",
+                    "removed_count": len(trimmed) - limit,
+                    "max_items": limit,
+                }
+            )
+            trimmed = trimmed[:limit]
+        result[field] = trimmed
 
     allowed = set(allowed_criteria)
     invalid_satisfied = [item for item in result["criteria_satisfied"] if item not in allowed]
@@ -1573,22 +1654,160 @@ def aggregate_report(report: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_summary_packet(report: dict[str, Any], aggregate: dict[str, Any]) -> dict[str, Any]:
+def bounded_summary_string(value: Any, limit: int = SUMMARY_STRING_LIMIT) -> str:
+    text = str(value)
+    return text if len(text) <= limit else text[: limit - 3].rstrip() + "..."
+
+
+def compact_string_list(values: Any, limit: int) -> dict[str, Any]:
+    items = [bounded_summary_string(item) for item in values if isinstance(item, str)] if isinstance(values, list) else []
     return {
+        "items": items[:limit],
+        "total_count": len(items),
+        "truncated": len(items) > limit,
+        "retained_count": min(len(items), limit),
+    }
+
+
+def compact_validation_warnings(values: Any, limit: int = SUMMARY_VALIDATION_WARNING_LIMIT) -> dict[str, Any]:
+    warnings = [item for item in values if isinstance(item, dict)] if isinstance(values, list) else []
+    compact: list[dict[str, Any]] = []
+    for warning in warnings[:limit]:
+        compact.append(
+            {
+                "chunk_id": bounded_summary_string(warning.get("chunk_id", "unknown")),
+                "field": bounded_summary_string(warning.get("field", "unknown")),
+                "reason": bounded_summary_string(warning.get("reason", "unknown")),
+                "removed_count": warning.get("removed_count"),
+                "trimmed_count": warning.get("trimmed_count"),
+            }
+        )
+    return {
+        "items": compact,
+        "total_count": len(warnings),
+        "truncated": len(warnings) > limit,
+        "retained_count": len(compact),
+    }
+
+
+def compact_reviewed_files(values: Any, limit: int = SUMMARY_REVIEWED_FILE_LIMIT) -> dict[str, Any]:
+    reviewed = [item for item in values if isinstance(item, dict)] if isinstance(values, list) else []
+    compact: list[dict[str, Any]] = []
+    for item in reviewed[:limit]:
+        compact.append(
+            {
+                "doc_id": bounded_summary_string(item.get("doc_id", "unknown")),
+                "source": item.get("source"),
+                "depth": item.get("depth"),
+                "chunks_total": item.get("chunks_total"),
+                "chunks_processed": item.get("chunks_processed"),
+                "truncated_after_chunks": bool(item.get("truncated_after_chunks")),
+            }
+        )
+    return {
+        "items": compact,
+        "total_count": len(reviewed),
+        "truncated": len(reviewed) > limit,
+        "retained_count": len(compact),
+    }
+
+
+def compact_followup_records(values: Any, limit: int = SUMMARY_FOLLOWUP_EXAMPLE_LIMIT) -> dict[str, Any]:
+    records = [item for item in values if isinstance(item, dict)] if isinstance(values, list) else []
+    compact: list[dict[str, Any]] = []
+    for item in records[:limit]:
+        compact.append(
+            {
+                "path": bounded_summary_string(item.get("path", "unknown")),
+                "source_doc_id": bounded_summary_string(item.get("source_doc_id", "unknown")),
+                "source_chunk_id": bounded_summary_string(item.get("source_chunk_id", "unknown")),
+                "reason": item.get("reason"),
+                "visible_candidate": item.get("visible_candidate"),
+            }
+        )
+    return {
+        "items": compact,
+        "total_count": len(records),
+        "truncated": len(records) > limit,
+        "retained_count": len(compact),
+    }
+
+
+def count_followup_skip_reasons(values: Any) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    if not isinstance(values, list):
+        return counts
+    for item in values:
+        if not isinstance(item, dict):
+            continue
+        reason = item.get("reason")
+        if isinstance(reason, str):
+            counts[reason] = counts.get(reason, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def compact_followup_policy(value: Any) -> dict[str, Any]:
+    policy = value if isinstance(value, dict) else {}
+    accepted = policy.get("accepted_followups", [])
+    skipped = policy.get("skipped_followups", [])
+    return {
+        "include_followups": bool(policy.get("include_followups")),
+        "followup_depth": policy.get("followup_depth"),
+        "max_followup_files": policy.get("max_followup_files"),
+        "source_policy": policy.get("source_policy"),
+        "allow_nonvisible_followups": bool(policy.get("allow_nonvisible_followups")),
+        "accepted_followups": compact_followup_records(accepted),
+        "skipped_followups": compact_followup_records(skipped),
+        "skipped_reason_counts": count_followup_skip_reasons(skipped),
+    }
+
+
+def compact_aggregate_for_summary(aggregate: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "facts_found": compact_string_list(aggregate.get("facts_found"), SUMMARY_FACT_LIMIT),
+        "criteria_satisfied": compact_string_list(aggregate.get("criteria_satisfied"), len(DEFAULT_CRITERIA)),
+        "criteria_remaining": compact_string_list(aggregate.get("criteria_remaining"), len(DEFAULT_CRITERIA)),
+        "doc_gaps": compact_string_list(aggregate.get("doc_gaps"), SUMMARY_GAP_LIMIT),
+        "followup_files": compact_string_list(aggregate.get("followup_files"), SUMMARY_FOLLOWUP_LIMIT),
+        "reported_followup_files": compact_string_list(
+            aggregate.get("reported_followup_files"), SUMMARY_FOLLOWUP_LIMIT
+        ),
+        "accepted_followup_files": compact_string_list(
+            aggregate.get("accepted_followup_files"), SUMMARY_FOLLOWUP_LIMIT
+        ),
+        "validation_warnings": compact_validation_warnings(aggregate.get("validation_warnings")),
+        "confidence_counts": aggregate.get("confidence_counts"),
+        "confidence": aggregate.get("confidence"),
+    }
+
+
+def build_summary_packet(report: dict[str, Any], aggregate: dict[str, Any]) -> dict[str, Any]:
+    packet = {
         "role": "documenter",
         "task": "summarize_documentation_review",
         "doc_id": report.get("doc_id"),
         "seed_doc_id": report.get("seed_doc_id"),
         "target_root": report.get("target_root"),
+        "document_scope": report.get("document_scope"),
         "review_scope": report.get("review_scope"),
-        "reviewed_files": report.get("reviewed_files"),
+        "reviewed_files": compact_reviewed_files(report.get("reviewed_files")),
         "review_plan": report.get("review_plan"),
-        "followup_policy": report.get("followup_policy"),
+        "followup_policy": compact_followup_policy(report.get("followup_policy")),
         "chunks_processed": report.get("chunks_processed"),
         "chunks_total": report.get("chunks_total"),
         "truncated_after_chunks": report.get("truncated_after_chunks"),
         "criteria_initial": report.get("criteria_initial"),
-        "aggregate": aggregate,
+        "aggregate": compact_aggregate_for_summary(aggregate),
+        "summary_input_policy": {
+            "detail_artifacts_are_authoritative": True,
+            "reviewed_file_limit": SUMMARY_REVIEWED_FILE_LIMIT,
+            "fact_limit": SUMMARY_FACT_LIMIT,
+            "gap_limit": SUMMARY_GAP_LIMIT,
+            "followup_limit": SUMMARY_FOLLOWUP_LIMIT,
+            "validation_warning_limit": SUMMARY_VALIDATION_WARNING_LIMIT,
+            "followup_example_limit": SUMMARY_FOLLOWUP_EXAMPLE_LIMIT,
+            "string_limit": SUMMARY_STRING_LIMIT,
+        },
         "required_output": {
             "format": "markdown",
             "headings": [
@@ -1601,6 +1820,10 @@ def build_summary_packet(report: dict[str, Any], aggregate: dict[str, Any]) -> d
             ],
         },
     }
+    packet["summary_input_policy"]["estimated_packet_tokens"] = estimate_tokens(
+        json.dumps(packet, ensure_ascii=True, separators=(",", ":"))
+    )
+    return packet
 
 
 def sanitize_filename(value: str) -> str:
@@ -1858,7 +2081,14 @@ def parse_args() -> argparse.Namespace:
         default=".",
         help="Target repository whose docs should be reviewed.",
     )
-    parser.add_argument("--doc", default=None, help="Documentation file to review. Defaults to README.md.")
+    parser.add_argument(
+        "--seed-doc",
+        "--seed",
+        "--doc",
+        dest="doc",
+        default=None,
+        help="Seed documentation file. Defaults to README.md when present.",
+    )
     parser.add_argument(
         "--document-scope",
         choices=sorted(DOCUMENT_SCOPES),
@@ -1948,7 +2178,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--dry-run", action="store_true", help="Write packets without calling the role endpoint.")
     parser.add_argument("--timeout", type=int, default=600)
-    parser.add_argument("--max-output-tokens", type=int, default=1000)
+    parser.add_argument("--max-output-tokens", type=int, default=DEFAULT_MAX_OUTPUT_TOKENS)
     parser.add_argument(
         "--max-in-memory-doc-bytes",
         type=int,

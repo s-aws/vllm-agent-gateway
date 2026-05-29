@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+import warnings
 from dataclasses import dataclass, fields
 from datetime import datetime, timezone
 from pathlib import Path
@@ -228,8 +229,21 @@ def decorator_name(node: ast.AST) -> str:
 
 def index_python_file(path: str, text: str) -> dict[str, Any]:
     line_count = len(text.splitlines()) or 1
+    parse_warnings: list[dict[str, Any]] = []
     try:
-        tree = ast.parse(text, filename=path)
+        with warnings.catch_warnings(record=True) as caught_warnings:
+            warnings.simplefilter("always", SyntaxWarning)
+            tree = ast.parse(text, filename=path)
+        parse_warnings = [
+            {
+                "message": str(warning.message),
+                "category": warning.category.__name__,
+                "line": warning.lineno,
+                "filename": warning.filename,
+            }
+            for warning in caught_warnings
+            if issubclass(warning.category, SyntaxWarning)
+        ]
     except SyntaxError as exc:
         return {
             "parser": "python_ast",
@@ -237,6 +251,7 @@ def index_python_file(path: str, text: str) -> dict[str, Any]:
             "language": "python",
             "symbols": [],
             "imports": [],
+            "parse_warnings": parse_warnings,
             "parse_errors": [
                 {
                     "message": exc.msg,
@@ -332,6 +347,7 @@ def index_python_file(path: str, text: str) -> dict[str, Any]:
         "language": "python",
         "symbols": symbols,
         "imports": imports,
+        "parse_warnings": parse_warnings,
         "parse_errors": [],
     }
 

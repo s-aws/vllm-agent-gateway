@@ -68,7 +68,7 @@ curl -s http://127.0.0.1:8400/v1/controller/documenter/reviews \
   -d '{
     "workflow": "documenter.review",
     "target_root": "/repo/agentic_agents",
-    "doc": "README.md",
+    "seed_doc": "README.md",
     "mode": "full",
     "model_visible_tool_ids": ["read_file"],
     "dry_run": true

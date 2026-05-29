@@ -60,7 +60,7 @@ If a request selects a role that is not allowed for the workflow, or asks for mo
 Use the CLI when developing or debugging a workflow locally:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --dry-run --max-chunks 1
+python scripts/run_documenter_orchestrator.py --target-root . --seed-doc README.md --dry-run --max-chunks 1
 ```
 
 Use the direct role prompt port for ordinary bounded chat with a role. It does not traverse the repo, build manifests, or manage state.
@@ -85,7 +85,7 @@ Minimal dry-run request:
 {
   "workflow": "documenter.review",
   "target_root": "/path/to/repo",
-  "doc": "README.md",
+  "seed_doc": "README.md",
   "mode": "full",
   "dry_run": true,
   "budgets": {
@@ -117,7 +117,7 @@ Async request:
 {
   "workflow": "documenter.review",
   "target_root": "/path/to/repo",
-  "doc": "README.md",
+  "seed_doc": "README.md",
   "mode": "full",
   "async": true,
   "budgets": {
@@ -155,7 +155,7 @@ Resume a paused run by sending another documenter review request with the `resum
 {
   "workflow": "documenter.review",
   "target_root": "/path/to/repo",
-  "doc": "README.md",
+  "seed_doc": "README.md",
   "mode": "full",
   "resume": ".../run-state-target-README.md-<run-id>.json"
 }
@@ -228,7 +228,7 @@ The request must contain exactly one explicit envelope:
   "messages": [
     {
       "role": "user",
-      "content": "{\"agentic_controller_request\":{\"workflow\":\"documenter.review\",\"target_root\":\"/path/to/repo\",\"doc\":\"README.md\",\"mode\":\"full\",\"dry_run\":true,\"budgets\":{\"max_chunks\":1}}}"
+      "content": "{\"agentic_controller_request\":{\"workflow\":\"documenter.review\",\"target_root\":\"/path/to/repo\",\"seed_doc\":\"README.md\",\"mode\":\"full\",\"dry_run\":true,\"budgets\":{\"max_chunks\":1}}}"
     }
   ]
 }
@@ -242,7 +242,7 @@ Top-level envelopes are also accepted for harnesses that support extra JSON fiel
   "agentic_controller_request": {
     "workflow": "documenter.review",
     "target_root": "/path/to/repo",
-    "doc": "README.md",
+    "seed_doc": "README.md",
     "mode": "full",
     "dry_run": true,
     "budgets": {

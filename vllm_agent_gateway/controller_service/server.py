@@ -24,6 +24,7 @@ from vllm_agent_gateway.controllers.documenter.orchestrator import (
     DOCUMENT_SCOPES,
     MODES,
     REVIEW_SCOPES,
+    DEFAULT_MAX_OUTPUT_TOKENS,
     DEFAULT_MAX_IN_MEMORY_DOC_BYTES,
     DEFAULT_OUTPUT_DIR,
     DEFAULT_ROLE_ID,
@@ -49,6 +50,8 @@ TERMINAL_STATUSES = {"completed", "failed", "canceled"}
 DOCUMENT_REVIEW_FIELDS = {
     "workflow",
     "target_root",
+    "seed_doc",
+    "seed",
     "doc",
     "mode",
     "document_scope",
@@ -505,6 +508,19 @@ def optional_string_list(payload: dict[str, Any], key: str) -> list[str] | None:
     return value
 
 
+def optional_seed_doc(payload: dict[str, Any]) -> str | None:
+    values = {
+        key: optional_string(payload, key)
+        for key in ("seed_doc", "seed", "doc")
+        if payload.get(key) is not None
+    }
+    non_empty = {key: value for key, value in values.items() if value}
+    unique = set(non_empty.values())
+    if len(unique) > 1:
+        raise ControllerServiceError("seed_doc, seed, and doc must not specify different values.")
+    return next(iter(unique), None)
+
+
 def build_documenter_review(payload: dict[str, Any], config: ControllerServiceConfig) -> BuiltDocumenterReview:
     unknown = sorted(set(payload) - DOCUMENT_REVIEW_FIELDS)
     if unknown:
@@ -571,7 +587,7 @@ def build_documenter_review(payload: dict[str, Any], config: ControllerServiceCo
         mode=mode,
         config_root=config.config_root,
         target_root=target_root,
-        doc=optional_string(merged, "doc"),
+        doc=optional_seed_doc(merged),
         document_scope=document_scope,
         review_scope=review_scope,
         role_id=role_id,
@@ -607,7 +623,7 @@ def build_documenter_review(payload: dict[str, Any], config: ControllerServiceCo
         stop_after_chunks=optional_int(merged, "stop_after_chunks"),
         dry_run=optional_bool(merged, "dry_run", False),
         timeout=int_with_default(merged, "timeout", 600),
-        max_output_tokens=int_with_default(merged, "max_output_tokens", 1000),
+        max_output_tokens=int_with_default(merged, "max_output_tokens", DEFAULT_MAX_OUTPUT_TOKENS),
         max_in_memory_doc_bytes=int_with_default(
             merged,
             "max_in_memory_doc_bytes",

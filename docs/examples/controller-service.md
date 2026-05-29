@@ -25,7 +25,7 @@ Run a bounded single-document seed review through the example runner:
 python scripts/run_documenter_service_example.py \
   --target-root /repo/agentic_agents \
   --case seed \
-  --doc README.md \
+  --seed-doc README.md \
   --max-chunks 1
 ```
 
@@ -66,7 +66,7 @@ curl -s http://127.0.0.1:8400/v1/controller/documenter/reviews \
   -d '{
     "workflow": "documenter.review",
     "target_root": "/repo/agentic_agents",
-    "doc": "README.md",
+    "seed_doc": "README.md",
     "mode": "full",
     "dry_run": true,
     "budgets": {
@@ -156,7 +156,7 @@ curl -s http://127.0.0.1:8400/v1/controller/documenter/reviews \
   -d '{
     "workflow": "documenter.review",
     "target_root": "/repo/agentic_agents",
-    "doc": "README.md",
+    "seed_doc": "README.md",
     "mode": "full",
     "model_visible_tool_ids": ["read_file"],
     "dry_run": true
@@ -179,7 +179,7 @@ curl -i -s http://127.0.0.1:8400/v1/controller/documenter/reviews \
   -d '{
     "workflow": "documenter.review",
     "target_root": "/repo/agentic_agents",
-    "doc": "README.md",
+    "seed_doc": "README.md",
     "mode": "full",
     "async": true,
     "budgets": {
@@ -212,7 +212,7 @@ curl -s http://127.0.0.1:8400/v1/controller/documenter/reviews \
   -d '{
     "workflow": "documenter.review",
     "target_root": "/repo/agentic_agents",
-    "doc": "README.md",
+    "seed_doc": "README.md",
     "mode": "full",
     "dry_run": true,
     "chunk_token_limit": 128,
@@ -230,7 +230,7 @@ curl -s http://127.0.0.1:8400/v1/controller/documenter/reviews \
   -d '{
     "workflow": "documenter.review",
     "target_root": "/repo/agentic_agents",
-    "doc": "README.md",
+    "seed_doc": "README.md",
     "mode": "full",
     "dry_run": true,
     "chunk_token_limit": 128,
@@ -261,7 +261,7 @@ curl -s http://127.0.0.1:8400/v1/controller/harness/chat/completions \
     "messages": [
       {
         "role": "user",
-        "content": "{\"agentic_controller_request\":{\"workflow\":\"documenter.review\",\"target_root\":\"/repo/agentic_agents\",\"doc\":\"README.md\",\"mode\":\"full\",\"dry_run\":true,\"budgets\":{\"max_chunks\":1}}}"
+        "content": "{\"agentic_controller_request\":{\"workflow\":\"documenter.review\",\"target_root\":\"/repo/agentic_agents\",\"seed_doc\":\"README.md\",\"mode\":\"full\",\"dry_run\":true,\"budgets\":{\"max_chunks\":1}}}"
       }
     ]
   }'
@@ -277,7 +277,7 @@ curl -s http://127.0.0.1:8400/v1/controller/harness/chat/completions \
     "agentic_controller_request": {
       "workflow": "documenter.review",
       "target_root": "/repo/agentic_agents",
-      "doc": "README.md",
+      "seed_doc": "README.md",
       "mode": "full",
       "dry_run": true,
       "budgets": {

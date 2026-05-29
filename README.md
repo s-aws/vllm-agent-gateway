@@ -49,7 +49,7 @@ pytest tests/regression/ -v
 Run a one-chunk documenter dry run:
 
 ```bash
-python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --dry-run --max-chunks 1
+python scripts/run_documenter_orchestrator.py --target-root . --seed-doc README.md --dry-run --max-chunks 1
 ```
 
 Run the same workflow through the controller service:

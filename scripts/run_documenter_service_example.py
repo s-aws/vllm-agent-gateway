@@ -28,7 +28,14 @@ def parse_args() -> argparse.Namespace:
         default="seed",
         help="Example request shape to send.",
     )
-    parser.add_argument("--doc", default=None, help="Seed document. Defaults to README.md for seed/harness examples.")
+    parser.add_argument(
+        "--seed-doc",
+        "--seed",
+        "--doc",
+        dest="seed_doc",
+        default=None,
+        help="Seed document. Defaults to README.md for seed/harness examples.",
+    )
     parser.add_argument("--live", action="store_true", help="Call the documenter role endpoint instead of dry-run mode.")
     parser.add_argument("--async-run", action="store_true", help="Create an async controller run and poll it.")
     parser.add_argument("--max-chunks", type=int, default=1, help="Bounded demo max_chunks budget.")
@@ -89,15 +96,15 @@ def documenter_request(args: argparse.Namespace) -> dict[str, Any]:
     if args.async_run:
         request["async"] = True
     if args.case in {"seed", "harness"}:
-        request.update({"doc": args.doc or "README.md", "document_scope": "tracked", "review_scope": "seed"})
+        request.update({"seed_doc": args.seed_doc or "README.md", "document_scope": "tracked", "review_scope": "seed"})
     elif args.case == "tracked":
         request.update({"document_scope": "tracked", "review_scope": "manifest"})
-        if args.doc:
-            request["doc"] = args.doc
+        if args.seed_doc:
+            request["seed_doc"] = args.seed_doc
     elif args.case == "all":
         request.update({"document_scope": "all", "review_scope": "manifest"})
-        if args.doc:
-            request["doc"] = args.doc
+        if args.seed_doc:
+            request["seed_doc"] = args.seed_doc
     return request
 
 

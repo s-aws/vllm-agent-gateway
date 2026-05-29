@@ -83,6 +83,7 @@ def make_structure_repo(tmp_path: Path) -> Path:
         ),
     )
     write_text(target / "pkg" / "broken.py", "def broken(:\n    pass\n")
+    write_text(target / "pkg" / "warn_escape.py", 'PATTERN = "\\."\n')
     write_text(
         target / "README.md",
         "\n".join(
@@ -115,6 +116,7 @@ def make_structure_repo(tmp_path: Path) -> Path:
             "add",
             "pkg/mod.py",
             "pkg/broken.py",
+            "pkg/warn_escape.py",
             "README.md",
             "docs/setup.md",
             "config/settings.json",
@@ -159,10 +161,12 @@ def test_code_structure_index_generates_static_python_indexes(tmp_path: Path) ->
     target = make_structure_repo(tmp_path)
     output_dir = tmp_path / "reports"
 
-    run_index("--target-root", target, "--output-dir", output_dir)
+    result = run_index("--target-root", target, "--output-dir", output_dir)
+    assert "SyntaxWarning" not in result.stderr
     index = load_one_json(output_dir, "code-structure-index-*.json")
     module = file_by_path(index, "pkg/mod.py")
     broken = file_by_path(index, "pkg/broken.py")
+    warn_escape = file_by_path(index, "pkg/warn_escape.py")
 
     assert index["schema_version"] == 1
     assert index["kind"] == "code_structure_index"
@@ -184,6 +188,9 @@ def test_code_structure_index_generates_static_python_indexes(tmp_path: Path) ->
     assert symbols["pkg.mod.Service.run"]["decorators"] == ["decorator"]
     assert broken["status"] == "parse_error"
     assert broken["parse_errors"][0]["message"]
+    assert warn_escape["status"] == "indexed"
+    assert warn_escape["parse_errors"] == []
+    assert warn_escape["parse_warnings"][0]["category"] == "SyntaxWarning"
 
 
 def test_code_structure_index_records_markdown_graph_and_config_key_paths(tmp_path: Path) -> None:

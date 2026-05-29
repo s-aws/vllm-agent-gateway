@@ -11,8 +11,15 @@ from typing import Any, Callable
 import pytest
 
 from vllm_agent_gateway.controllers.documenter.orchestrator import (
+    Chunk,
     DocumenterInvocationRequest,
+    ReviewTarget,
+    build_packet,
+    build_summary_packet,
+    estimate_tokens,
     invoke_documenter,
+    normalize_result_policy,
+    parse_result,
 )
 from vllm_agent_gateway.invocation import WorkflowStatus
 
@@ -200,8 +207,178 @@ def test_documenter_invocation_contract_runs_without_shelling_out(tmp_path: Path
     assert Path(result.artifact_paths["json_report"]).exists()
 
 
+def test_documenter_cli_uses_repo_config_root_by_default(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    output_dir = tmp_path / "reports"
+
+    result = run_command(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--target-root",
+            str(target),
+            "--doc",
+            "README.md",
+            "--mode",
+            "full",
+            "--dry-run",
+            "--max-chunks",
+            "1",
+            "--output-dir",
+            str(output_dir),
+        ],
+        REPO_ROOT,
+    )
+
+    assert "Missing JSON file" not in result.stderr
+    assert "Wrote" in result.stdout
+    report = load_one_json(output_dir, "documenter-*.json")
+    assert report["role_id"] == "documenter/default"
+
+
+def test_seed_doc_cli_alias_selects_seed_document(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    output_dir = tmp_path / "seed-doc-alias"
+
+    run_orchestrator(
+        "--target-root",
+        target,
+        "--seed-doc",
+        "README.md",
+        "--mode",
+        "full",
+        "--dry-run",
+        "--max-chunks",
+        "1",
+        "--output-dir",
+        output_dir,
+    )
+
+    report = load_one_json(output_dir, "documenter-*.json")
+    assert report["seed_doc_id"] == "README.md"
+    assert report["doc_id"] == "README.md"
+
+
+def test_packet_contract_includes_bounded_output_limits() -> None:
+    packet = build_packet(
+        ReviewTarget(doc_id="README.md", source="seed", depth=0),
+        Chunk(
+            chunk_id="README.md:0001",
+            start_line=1,
+            end_line=1,
+            text="# Title\n",
+            token_estimate=2,
+            overlap_previous_lines=0,
+        ),
+        ["installation steps documented"],
+        [],
+    )
+
+    assert packet["output_limits"]["max_items"]["facts_found"] == 5
+    assert packet["output_limits"]["max_items"]["doc_gaps"] == 5
+    assert packet["output_limits"]["max_string_chars"] == 240
+
+
+def test_parse_result_reports_likely_truncated_json() -> None:
+    with pytest.raises(Exception) as exc_info:
+        parse_result('{"chunk_id":"README.md:0001","facts_found":["unterminated', "README.md:0001")
+
+    message = str(exc_info.value)
+    assert "README.md:0001" in message
+    assert "appears truncated" in message
+    assert "--max-output-tokens" in message
+
+
+def test_result_policy_trims_model_output_to_contract_limits() -> None:
+    result = {
+        "chunk_id": "README.md:0001",
+        "facts_found": [f"fact {index}" for index in range(8)],
+        "criteria_satisfied": ["installation steps documented"],
+        "criteria_remaining": ["configuration documented"],
+        "doc_gaps": ["x" * 260],
+        "followup_files": [f"docs/{index}.md" for index in range(8)],
+        "confidence": "medium",
+    }
+
+    warnings = normalize_result_policy(
+        result,
+        {f"docs/{index}.md" for index in range(8)},
+        ["installation steps documented", "configuration documented"],
+    )
+
+    assert len(result["facts_found"]) == 5
+    assert len(result["followup_files"]) == 5
+    assert result["doc_gaps"][0].endswith("...")
+    assert {warning["reason"] for warning in warnings} >= {"trimmed_to_output_limit", "trimmed_long_strings"}
+
+
+def test_summary_packet_is_bounded_for_large_manifest_reports() -> None:
+    reviewed_files = [
+        {
+            "doc_id": f"test_runtime/public-candidate-{index}/docs/architecture.md",
+            "source": "manifest",
+            "depth": 0,
+            "chunks_total": 4,
+            "chunks_processed": 4,
+            "truncated_after_chunks": False,
+        }
+        for index in range(500)
+    ]
+    skipped_followups = [
+        {
+            "path": f"docs/generated/{index}.md",
+            "source_doc_id": f"docs/source-{index}.md",
+            "source_chunk_id": f"docs/source-{index}.md:0001",
+            "reason": "followups_disabled",
+            "visible_candidate": True,
+        }
+        for index in range(500)
+    ]
+    report = {
+        "doc_id": "AGENTS.md",
+        "seed_doc_id": "AGENTS.md",
+        "target_root": "/repo",
+        "document_scope": "all",
+        "review_scope": "manifest",
+        "reviewed_files": reviewed_files,
+        "review_plan": {"candidate_pool_count": 5000},
+        "followup_policy": {"include_followups": False, "skipped_followups": skipped_followups},
+        "chunks_processed": 2500,
+        "chunks_total": 2500,
+        "truncated_after_chunks": False,
+        "criteria_initial": ["installation steps documented"],
+    }
+    aggregate = {
+        "facts_found": [f"fact {index} " + ("x" * 300) for index in range(500)],
+        "criteria_satisfied": ["installation steps documented"],
+        "criteria_remaining": [],
+        "doc_gaps": [f"gap {index} " + ("x" * 300) for index in range(500)],
+        "followup_files": [f"docs/{index}.md" for index in range(500)],
+        "reported_followup_files": [f"docs/{index}.md" for index in range(500)],
+        "accepted_followup_files": [],
+        "validation_warnings": [
+            {"chunk_id": f"docs/{index}.md:0001", "field": "facts_found", "reason": "trimmed_to_output_limit"}
+            for index in range(500)
+        ],
+        "confidence_counts": {"low": 1, "medium": 2, "high": 3},
+        "confidence": "low",
+    }
+
+    packet = build_summary_packet(report, aggregate)
+    packet_tokens = estimate_tokens(json.dumps(packet, ensure_ascii=True, separators=(",", ":")))
+
+    assert packet["reviewed_files"]["total_count"] == 500
+    assert packet["reviewed_files"]["retained_count"] == 80
+    assert packet["aggregate"]["facts_found"]["retained_count"] == 30
+    assert packet["aggregate"]["doc_gaps"]["retained_count"] == 30
+    assert packet["followup_policy"]["skipped_followups"]["retained_count"] == 20
+    assert packet_tokens < 24000
+
+
 def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tmp_path: Path) -> None:
     target = make_target_repo(tmp_path)
+    write_text(target / ".venv-1" / "Lib" / "site-packages" / "vendor" / "README.md", "# Vendor\n")
+    write_text(target / "test_runtime" / "candidate" / "README.md", "# Generated\n")
 
     tracked_out = tmp_path / "tracked-out"
     run_orchestrator(
@@ -252,6 +429,8 @@ def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tm
 
     assert all_manifest["document_scope"] == "all"
     assert "UNTRACKED.md" in all_paths
+    assert ".venv-1/Lib/site-packages/vendor/README.md" not in all_paths
+    assert "test_runtime/candidate/README.md" not in all_paths
     assert all_manifest["untracked_document_count"] >= 1
     assert all_report["review_scope"] == "manifest"
     reviewed_doc_ids = {item["doc_id"] for item in all_report["reviewed_files"]}
