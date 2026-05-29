@@ -54,10 +54,22 @@ Each chunk packet tells the model to return one JSON object and includes `output
 
 Reports are written under `.agentic_reports/` by default. The target project is read-only unless the caller intentionally points `--output-dir` into it.
 
+## Change Plan Execution
+
+The change plan is an evidence index for a later documentation pass, not a patch script. It now includes an agent execution contract with scope warnings, required workflow, and a completion checklist.
+
+Downstream agents should:
+
+- read the target repo instructions and ordered documentation index before editing
+- verify every new setup, port, command, environment variable, or tested-environment claim from source files
+- collapse duplicate `CP-*` items into coherent documentation work instead of making one tiny edit per item
+- keep feature details in feature READMEs, examples in `docs/examples/`, and navigation in `docs/README.md`
+- treat `Needs User Decision` and `Insufficient Evidence` items as blockers unless local evidence resolves them
+
 ## Safety Model
 
 - Default document discovery uses tracked files.
-- `--document-scope all` is explicit and skips common generated directories such as virtual environments, `.agentic_reports`, and `test_runtime`.
+- `--document-scope all` is explicit and skips common generated directories such as virtual environments, `.agentic_reports`, `.tmp_pytest`, and `test_runtime`.
 - `--review-scope seed` can force a one-document review even when discovery uses all files.
 - Follow-up expansion is fail-closed by default and limited to packet-visible candidates.
 - The normal path has an in-memory file size guard. Use the streaming workflow for oversized files.

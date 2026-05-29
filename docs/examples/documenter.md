@@ -89,6 +89,20 @@ python scripts/run_documenter_orchestrator.py --target-root . --seed-doc README.
   --write-draft
 ```
 
+Use a generated change plan as input for a documentation implementation agent:
+
+```text
+Based on this documentation change plan:
+<path-to-doc-change-plan-*.md>
+
+Update the documentation for <target-repo>.
+
+Follow the "Agent Execution Contract" in the plan. Verify every new claim from
+target repository sources, keep the root README as an entry point, update the
+relevant feature README/examples/docs index together, report skipped CP items
+with reasons, and run the repository-required checks before reporting done.
+```
+
 Pause and resume:
 
 ```bash

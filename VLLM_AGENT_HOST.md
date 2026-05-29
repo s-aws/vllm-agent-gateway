@@ -205,7 +205,7 @@ Run the full workflow against the local role endpoint:
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md --mode full
 ```
 
-`full` mode writes a document manifest JSON artifact beside the report. It also writes a `doc-change-plan-*.md` artifact that groups findings by target file into safe edits, user-decision items, insufficient-evidence items, follow-up files, and validation notes. The default manifest source is tracked files. For first-run/bootstrap repositories, use all-file discovery. In `full` mode, `--document-scope all` queues the full discovered manifest by default:
+`full` mode writes a document manifest JSON artifact beside the report. It also writes a `doc-change-plan-*.md` artifact that groups findings by target file into safe edits, user-decision items, insufficient-evidence items, follow-up files, validation notes, and an agent execution contract. The default manifest source is tracked files. For first-run/bootstrap repositories, use all-file discovery. In `full` mode, `--document-scope all` queues the full discovered manifest by default:
 
 ```bash
 python scripts/run_documenter_orchestrator.py --target-root . --doc README.md \

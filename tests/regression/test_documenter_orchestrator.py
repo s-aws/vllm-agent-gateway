@@ -378,6 +378,7 @@ def test_summary_packet_is_bounded_for_large_manifest_reports() -> None:
 def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tmp_path: Path) -> None:
     target = make_target_repo(tmp_path)
     write_text(target / ".venv-1" / "Lib" / "site-packages" / "vendor" / "README.md", "# Vendor\n")
+    write_text(target / ".tmp_pytest" / "candidate" / "README.md", "# Pytest Artifact\n")
     write_text(target / "test_runtime" / "candidate" / "README.md", "# Generated\n")
 
     tracked_out = tmp_path / "tracked-out"
@@ -430,6 +431,7 @@ def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tm
     assert all_manifest["document_scope"] == "all"
     assert "UNTRACKED.md" in all_paths
     assert ".venv-1/Lib/site-packages/vendor/README.md" not in all_paths
+    assert ".tmp_pytest/candidate/README.md" not in all_paths
     assert "test_runtime/candidate/README.md" not in all_paths
     assert all_manifest["untracked_document_count"] >= 1
     assert all_report["review_scope"] == "manifest"
@@ -599,7 +601,13 @@ def test_change_plan_groups_validated_findings_and_does_not_modify_target_docs(t
     assert "CP-0001" in change_plan
     assert "CP-0002" in change_plan
     assert "CP-0003" in change_plan
-    assert "Preserve or clarify review-backed fact: Install with Docker is documented." in change_plan
+    assert "## Agent Execution Contract" in change_plan
+    assert "This artifact is an evidence index, not a patch." in change_plan
+    assert "Do not make one tiny edit per CP item." in change_plan
+    assert (
+        "Check whether the current documentation already preserves this source-backed fact; "
+        "edit only if it is missing, contradicted, or buried: Install with Docker is documented."
+    ) in change_plan
     assert "Decide how to address reported documentation gap: Runtime port examples need a user decision." in change_plan
     assert "Validation warning from report field criteria_satisfied" in change_plan
     assert "### Reported By Documenter" in change_plan
@@ -629,6 +637,7 @@ def test_dry_run_change_plan_records_insufficient_evidence_instead_of_safe_edits
 
     assert "## Safe Documentation Edits" in change_plan
     assert "## Insufficient Evidence" in change_plan
+    assert "Dry run produced no model-backed edits" in change_plan
     assert "No model-backed review results are available; dry-run produced packets only." in change_plan
     safe_section = change_plan.split("## Safe Documentation Edits", 1)[1].split("## Needs User Decision", 1)[0]
     assert "- None recorded." in safe_section

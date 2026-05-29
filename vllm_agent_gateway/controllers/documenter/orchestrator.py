@@ -67,6 +67,7 @@ IGNORED_SCAN_DIRS = {
     ".hg",
     ".mypy_cache",
     ".pytest_cache",
+    ".tmp_pytest",
     ".ruff_cache",
     ".svn",
     ".tox",
@@ -842,7 +843,10 @@ def collect_change_plan_items(report: dict[str, Any]) -> list[dict[str, Any]]:
             category = "safe_documentation_edit" if confidence in {"medium", "high"} else "insufficient_evidence"
             for fact in facts_found:
                 if category == "safe_documentation_edit":
-                    text = f"Preserve or clarify review-backed fact: {fact}"
+                    text = (
+                        "Check whether the current documentation already preserves this "
+                        f"source-backed fact; edit only if it is missing, contradicted, or buried: {fact}"
+                    )
                 else:
                     text = f"Verify low-confidence fact before proposing an edit: {fact}"
                 append_change_plan_item(items, category, doc_id, source, confidence, "facts_found", text, chunk)
@@ -913,6 +917,73 @@ def group_change_plan_items(items: list[dict[str, Any]], category: str) -> dict[
         target_file = inline_markdown(item.get("target_file", "unknown"))
         grouped.setdefault(target_file, []).append(item)
     return grouped
+
+
+def change_plan_scope_warnings(report: dict[str, Any], aggregate: dict[str, Any]) -> list[str]:
+    warnings: list[str] = []
+    if report.get("dry_run"):
+        warnings.append("Dry run produced no model-backed edits; use this artifact only as a packet/scope check.")
+    if inline_markdown(aggregate.get("confidence", "unknown")) == "low":
+        warnings.append("Aggregate confidence is low; treat this plan as a review index, not an implementation spec.")
+    if report.get("truncated_after_chunks"):
+        warnings.append("The run stopped before all selected chunks were processed.")
+    chunks_processed = report.get("chunks_processed")
+    chunks_total = report.get("chunks_total")
+    if (
+        isinstance(chunks_processed, int)
+        and isinstance(chunks_total, int)
+        and chunks_processed < chunks_total
+    ):
+        warnings.append(f"Only {chunks_processed} of {chunks_total} selected chunks were processed.")
+    if report.get("discovery_warnings"):
+        warnings.append("File discovery recorded warnings; inspect Validation Notes before editing.")
+    return warnings
+
+
+def append_change_plan_execution_contract(
+    lines: list[str],
+    report: dict[str, Any],
+    aggregate: dict[str, Any],
+) -> None:
+    lines.extend(
+        [
+            "## Agent Execution Contract",
+            "",
+            "This artifact is an evidence index, not a patch. An implementation agent must translate it into repo-shaped documentation changes and verify every new claim from target repository sources before editing.",
+            "",
+            "### Scope Warnings",
+            "",
+        ]
+    )
+    warnings = change_plan_scope_warnings(report, aggregate)
+    if warnings:
+        for warning in warnings:
+            lines.append(f"- {inline_markdown(warning)}")
+    else:
+        lines.append("- No run-level scope warnings recorded.")
+    lines.extend(
+        [
+            "",
+            "### Required Workflow",
+            "",
+            "1. Read the target repository instructions and the ordered documentation index before editing.",
+            "2. Open the current target file and any source files needed to prove the claim, such as scripts, runtime config, feature READMEs, or examples.",
+            "3. Collapse duplicate change-plan items into coherent documentation work. Do not make one tiny edit per CP item.",
+            "4. Keep the documentation shape intact: root README stays an entry point; feature details belong in feature READMEs; examples belong under `docs/examples/`; the ordered docs index must link the result.",
+            "5. Do not add setup steps, environment variables, ports, commands, policy claims, or tested-environment claims unless the target repo source proves them.",
+            "6. Treat `Safe Documentation Edits` as source-backed facts to check against current docs; skip items that are already clear.",
+            "7. Treat `Needs User Decision` and `Insufficient Evidence` as blockers unless you can verify them locally or ask the user.",
+            "8. Report skipped items with the reason, not just completed edits.",
+            "",
+            "### Completion Checklist",
+            "",
+            "- Relevant feature README, examples, and ordered docs index were updated together when the edit changed a feature surface.",
+            "- New documentation claims cite or match concrete repository sources, not generic assumptions.",
+            "- Generated, cache, test-output, and artifact directories were not treated as product documentation.",
+            "- Repository-required verification was run, or the final report states exactly why it was not run.",
+            "",
+        ]
+    )
 
 
 def append_grouped_change_section(
@@ -1005,10 +1076,12 @@ def build_doc_change_plan(report: dict[str, Any]) -> str:
         lines.append("- None recorded.")
     lines.append("")
 
+    append_change_plan_execution_contract(lines, report, aggregate)
+
     append_grouped_change_section(
         lines,
         "Safe Documentation Edits",
-        "These items are backed by medium- or high-confidence facts found in reviewed chunks. They should still be reviewed, but they do not require inventing new source material.",
+        "These items are backed by medium- or high-confidence facts found in reviewed chunks. They are prompts to verify and improve the current docs, not permission to invent new source material.",
         safe_edits,
     )
     append_grouped_change_section(

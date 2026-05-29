@@ -10,7 +10,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 
 ## 2. Main Workflows
 
-- [Documenter README](../README.documenter.md): bounded document review, manifests, review plans, follow-ups, change plans, drafts, and resumable state.
+- [Documenter README](../README.documenter.md): bounded document review, manifests, review plans, follow-ups, agent-executable change plans, drafts, and resumable state.
 - [Streaming README](../README.streaming.md): streaming modes for oversized files and explicit reductions.
 - [Code Structure Indexes README](../README.code-structure-indexes.md): deterministic Python AST, Markdown/reference, and JSON/YAML key-path indexes.
 - [Implementation Workflow README](../README.implementation-workflow.md): bounded implementation packets, draft/apply policy, verification capture, and resume.
