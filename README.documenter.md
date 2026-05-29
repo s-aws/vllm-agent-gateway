@@ -76,7 +76,7 @@ Downstream agents should:
 ## Safety Model
 
 - Default document discovery uses tracked files.
-- `--document-scope all` is explicit and skips common generated directories such as virtual environments, `.agentic_reports`, `.tmp_pytest`, and `test_runtime`.
+- `--document-scope all` is explicit and skips common generated directories such as virtual environments, `.agentic_reports`, `.tmp_pytest`, `runtime-output`, and `test_runtime`.
 - `--review-scope seed` can force a one-document review even when discovery uses all files.
 - Follow-up expansion is fail-closed by default and limited to packet-visible candidates.
 - The normal path has an in-memory file size guard. Use the streaming workflow for oversized files.

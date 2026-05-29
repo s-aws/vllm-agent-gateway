@@ -77,6 +77,7 @@ IGNORED_SCAN_DIRS = {
     "build",
     "dist",
     "node_modules",
+    "runtime-output",
     "test_runtime",
     "venv",
 }

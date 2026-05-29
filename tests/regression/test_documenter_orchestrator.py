@@ -380,6 +380,7 @@ def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tm
     target = make_target_repo(tmp_path)
     write_text(target / ".venv-1" / "Lib" / "site-packages" / "vendor" / "README.md", "# Vendor\n")
     write_text(target / ".tmp_pytest" / "candidate" / "README.md", "# Pytest Artifact\n")
+    write_text(target / "docs" / "archive" / "v2" / "runtime-output" / "startup_output.txt", "ticker log\n" * 200)
     write_text(target / "test_runtime" / "candidate" / "README.md", "# Generated\n")
 
     tracked_out = tmp_path / "tracked-out"
@@ -433,6 +434,7 @@ def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tm
     assert "UNTRACKED.md" in all_paths
     assert ".venv-1/Lib/site-packages/vendor/README.md" not in all_paths
     assert ".tmp_pytest/candidate/README.md" not in all_paths
+    assert "docs/archive/v2/runtime-output/startup_output.txt" not in all_paths
     assert "test_runtime/candidate/README.md" not in all_paths
     assert all_manifest["untracked_document_count"] >= 1
     assert all_report["review_scope"] == "manifest"
