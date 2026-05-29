@@ -70,6 +70,7 @@ Downstream agents should:
 - read the target repo instructions and ordered documentation index before editing
 - verify every new setup, port, command, environment variable, or tested-environment claim from source files
 - use the work package `target_files`, `change_plan_items`, required actions, and acceptance criteria as the implementation queue
+- treat setup/configuration/runtime/tested-environment criteria as repository entry-point work, not as missing sections to paste into every feature or reference document
 - keep feature details in feature READMEs, examples in `docs/examples/`, and navigation in `docs/README.md`
 - treat `Needs User Decision` and `Insufficient Evidence` items as blockers unless local evidence resolves them
 

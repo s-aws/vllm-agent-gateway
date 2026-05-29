@@ -106,6 +106,8 @@ Resolve the Executable Work Packages in <path-to-doc-change-plan-*.md> for <targ
 
 The plan carries the implementation contract, target files, source `CP-*` item ids, required actions, and acceptance criteria. A longer prompt should not be necessary unless the work package is blocked and needs a user decision.
 
+For repository-wide setup/configuration/runtime/tested-environment gaps, the generated work package should target entry-point docs such as `README.md` and `docs/README.md`. Do not spread those generic gaps across feature reference files.
+
 Pause and resume:
 
 ```bash

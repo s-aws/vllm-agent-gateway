@@ -53,6 +53,7 @@ SUMMARY_VALIDATION_WARNING_LIMIT = 20
 SUMMARY_FOLLOWUP_EXAMPLE_LIMIT = 20
 SUMMARY_STRING_LIMIT = 240
 WORK_PACKAGE_TARGET_LIMIT = 40
+WORK_PACKAGE_ITEM_LIMIT = 40
 SCRIPT_CONFIG_ROOT = default_config_root(Path(__file__).resolve())
 MODES = {"review", "summarize", "full"}
 REVIEW_SCOPES = {"auto", "seed", "manifest"}
@@ -85,11 +86,46 @@ IGNORED_SCAN_DIRS = {
 IGNORED_DOCUMENT_FILENAMES = {
     ".aider.chat.history.md",
 }
+AGENT_CONTEXT_DOCUMENT_FILENAMES = {
+    "AGENTS.md",
+    "CLAUDE.md",
+    "agent.md",
+    "ai-context.md",
+}
 EVIDENCE_ONLY_DOCUMENT_DIRS = {
     "archive",
     "archives",
     "genai_data",
     "genai_tools",
+}
+RUN_CRITERIA_DOCUMENT_FILENAMES = {
+    "CONFIGURATION.md",
+    "INSTALLATION.md",
+    "QUICK_START.md",
+    "README.md",
+    "SETUP.md",
+}
+RUN_CRITERIA_DOCUMENT_PATHS = {
+    "docs/README.md",
+    "docs/SETUP.md",
+}
+PRIMARY_DOCUMENT_TARGETS = [
+    "README.md",
+    "docs/README.md",
+]
+GLOBAL_GAP_KEYWORDS = {
+    "configuration",
+    "config",
+    "default value",
+    "dependency",
+    "dependencies",
+    "environment",
+    "installation",
+    "install",
+    "port",
+    "runtime",
+    "setup",
+    "tested",
 }
 
 
@@ -108,6 +144,40 @@ def is_ignored_document_path(path: str) -> bool:
 
 def is_documentation_path(path: str) -> bool:
     return Path(path).suffix.lower() in DOC_SUFFIXES and not is_ignored_document_path(path)
+
+
+def is_agent_context_document_path(path: str) -> bool:
+    path_obj = Path(path)
+    if path_obj.name in AGENT_CONTEXT_DOCUMENT_FILENAMES and len(path_obj.parts) == 1:
+        return True
+    return path.lower().startswith(".claude/")
+
+
+def is_run_criteria_document_path(path: str) -> bool:
+    normalized = Path(path).as_posix()
+    path_obj = Path(normalized)
+    if normalized in RUN_CRITERIA_DOCUMENT_PATHS:
+        return True
+    if len(path_obj.parts) == 1 and path_obj.name.lower() in {name.lower() for name in RUN_CRITERIA_DOCUMENT_FILENAMES}:
+        return True
+    lower = normalized.lower()
+    return lower.endswith("runbook.md") or lower.endswith("quickstart.md") or lower.endswith("quick-start.md")
+
+
+def is_global_criteria_gap(text: str) -> bool:
+    lower = text.lower()
+    if not any(keyword in lower for keyword in GLOBAL_GAP_KEYWORDS):
+        return False
+    gap_markers = (
+        "missing",
+        "no ",
+        "not documented",
+        "not specified",
+        "not listed",
+        "not provided",
+        "lacks",
+    )
+    return any(marker in lower for marker in gap_markers)
 
 
 FOLLOWUP_SUFFIXES = {
@@ -525,12 +595,24 @@ def build_packet(
         "lines": [chunk.start_line, chunk.end_line],
         "overlap_previous_lines": chunk.overlap_previous_lines,
         "criteria_remaining": criteria_remaining,
+        "criteria_policy": {
+            "scope": "run_level",
+            "applies_to_this_doc": is_run_criteria_document_path(target.doc_id),
+            "instruction": (
+                "criteria_remaining are repository-level coverage objectives, not mandatory sections for every file. "
+                "Only report criteria_satisfied, criteria_remaining, or global setup/config/port/tested-environment "
+                "doc_gaps when applies_to_this_doc is true. For feature, reference, test, archive, and agent-context "
+                "docs, leave criteria_satisfied and criteria_remaining empty unless the chunk is explicitly an entry "
+                "point or setup guide; report only feature-local gaps."
+            ),
+        },
         "visible_followup_candidates": visible_followup_candidates,
         "followup_file_policy": "Prefer exact paths from visible_followup_candidates. Use an empty array when no visible candidate is relevant.",
         "review_rules": [
             "Report durable project behavior, setup, architecture, policy, or workflow facts only.",
             "Do not report chat-history, runtime-output, generated-artifact, cache, archive, or transient log details as product documentation facts.",
             "Phrase doc_gaps as actionable documentation problems in the current doc or an obvious visible documentation target.",
+            "Do not say every feature or reference doc lacks installation, configuration, runtime ports, or tested environment details; those are run-level criteria for entry-point docs.",
             "Prefer no finding over low-value inventory facts such as files were added to chat, model names, token warnings, timestamps, or raw output sizes.",
         ],
         "required_output": {
@@ -703,6 +785,7 @@ def normalize_result_policy(
     result: dict[str, Any],
     known_files: set[str],
     allowed_criteria: list[str],
+    doc_id: str | None = None,
 ) -> list[dict[str, Any]]:
     warnings: list[dict[str, Any]] = []
 
@@ -773,6 +856,36 @@ def normalize_result_policy(
             }
         )
         result["criteria_remaining"] = [item for item in result["criteria_remaining"] if item in allowed]
+
+    if doc_id is not None and not is_run_criteria_document_path(doc_id):
+        if result["criteria_satisfied"]:
+            warnings.append(
+                {
+                    "field": "criteria_satisfied",
+                    "reason": "removed_run_level_criteria_from_non_entrypoint_doc",
+                    "values": result["criteria_satisfied"],
+                }
+            )
+            result["criteria_satisfied"] = []
+        if result["criteria_remaining"]:
+            warnings.append(
+                {
+                    "field": "criteria_remaining",
+                    "reason": "removed_run_level_criteria_from_non_entrypoint_doc",
+                    "values": result["criteria_remaining"],
+                }
+            )
+            result["criteria_remaining"] = []
+        global_gaps = [item for item in result["doc_gaps"] if is_global_criteria_gap(item)]
+        if global_gaps:
+            warnings.append(
+                {
+                    "field": "doc_gaps",
+                    "reason": "removed_global_criteria_gaps_from_non_entrypoint_doc",
+                    "values": global_gaps,
+                }
+            )
+            result["doc_gaps"] = [item for item in result["doc_gaps"] if item not in set(global_gaps)]
 
     if result["doc_gaps"] and result["criteria_satisfied"]:
         warnings.append(
@@ -972,6 +1085,8 @@ def group_change_plan_items(items: list[dict[str, Any]], category: str) -> dict[
 def is_evidence_only_change_plan_target(path: str) -> bool:
     if not is_documentation_path(path):
         return True
+    if is_agent_context_document_path(path):
+        return True
     parts = [part.lower() for part in Path(path).parts]
     if any(part in EVIDENCE_ONLY_DOCUMENT_DIRS for part in parts[:-1]):
         return True
@@ -1015,6 +1130,89 @@ def sorted_targets(targets: set[str], seed_doc_id: str) -> list[str]:
     return sorted(targets, key=lambda path: target_priority(path, seed_doc_id))
 
 
+def reviewed_document_paths(report: dict[str, Any]) -> set[str]:
+    paths: set[str] = set()
+    for field_name in ("reviewed_files", "chunks"):
+        for item in report.get(field_name, []):
+            if not isinstance(item, dict):
+                continue
+            doc_id = item.get("doc_id")
+            if isinstance(doc_id, str):
+                paths.add(doc_id)
+    return paths
+
+
+def primary_document_targets_for_report(report: dict[str, Any]) -> list[str]:
+    existing = reviewed_document_paths(report)
+    targets = list(PRIMARY_DOCUMENT_TARGETS)
+    for candidate in ("INSTALLATION.md", "QUICK_START.md", "CONFIGURATION.md"):
+        if candidate in existing:
+            targets.append(candidate)
+    return unique_strings(targets)
+
+
+def primary_source_refs_for_report(report: dict[str, Any]) -> list[str]:
+    aggregate = report.get("aggregate", {})
+    if not isinstance(aggregate, dict):
+        aggregate = {}
+    candidates: list[str] = []
+    for field_name in ("reported_followup_files", "followup_files", "accepted_followup_files"):
+        for item in aggregate.get(field_name, []):
+            if isinstance(item, str):
+                candidates.append(item)
+    seed_doc = report.get("seed_doc_id") or report.get("doc_id")
+    if isinstance(seed_doc, str):
+        candidates.append(seed_doc)
+
+    refs: list[str] = []
+    for path in unique_strings(candidates):
+        suffix = Path(path).suffix.lower()
+        if is_evidence_only_change_plan_target(path) and suffix in DOC_SUFFIXES:
+            continue
+        if path.startswith(".") and not path.startswith((".agents/", ".github/workflows/")):
+            continue
+        if suffix in {".cfg", ".ini", ".json", ".md", ".py", ".toml", ".yaml", ".yml"}:
+            refs.append(path)
+    return refs[:20]
+
+
+def base_work_group(area: str) -> dict[str, Any]:
+    return {
+        "area": area,
+        "target_files": set(),
+        "source_refs": set(),
+        "safe_documentation_edit": [],
+        "needs_user_decision": [],
+        "run_criteria": [],
+    }
+
+
+def add_evidence_record(evidence_only: dict[str, dict[str, Any]], target_file: str, item: dict[str, Any]) -> None:
+    record = evidence_only.setdefault(
+        target_file,
+        {
+            "target_file": target_file,
+            "item_count": 0,
+            "change_plan_items": [],
+        },
+    )
+    record["item_count"] += 1
+    record["change_plan_items"].append(inline_markdown(item.get("id", "CP-????")))
+
+
+def add_item_to_group(group: dict[str, Any], item: dict[str, Any], category: str, target_file: str) -> None:
+    group["target_files"].add(target_file)
+    group["source_refs"].add(inline_markdown(item.get("source", "unknown")))
+    if len(group[category]) < WORK_PACKAGE_ITEM_LIMIT:
+        group[category].append(inline_markdown(item.get("id", "CP-????")))
+
+
+def change_plan_item_is_global_gap(item: dict[str, Any]) -> bool:
+    if item.get("basis") != "doc_gaps":
+        return False
+    return is_global_criteria_gap(inline_markdown(item.get("text", "")))
+
+
 def build_change_plan_work_packages(
     change_plan_items: list[dict[str, Any]],
     report: dict[str, Any],
@@ -1022,41 +1220,40 @@ def build_change_plan_work_packages(
     seed_doc_id = inline_markdown(report.get("seed_doc_id") or report.get("doc_id") or "unknown")
     grouped: dict[str, dict[str, Any]] = {}
     evidence_only: dict[str, dict[str, Any]] = {}
+    primary_targets = primary_document_targets_for_report(report)
+    primary_group = base_work_group("primary documentation")
+    for target in primary_targets:
+        primary_group["target_files"].add(target)
+    criteria_remaining = [item for item in report.get("criteria_remaining", []) if isinstance(item, str)]
+    if criteria_remaining:
+        primary_group["run_criteria"].extend(criteria_remaining)
+        primary_group["source_refs"].update(primary_source_refs_for_report(report))
 
     for item in change_plan_items:
         category = inline_markdown(item.get("category", "unknown"))
         if category not in {"safe_documentation_edit", "needs_user_decision"}:
             continue
         target_file = inline_markdown(item.get("target_file", "unknown"))
+        is_global_gap = change_plan_item_is_global_gap(item)
         if is_evidence_only_change_plan_target(target_file):
-            record = evidence_only.setdefault(
-                target_file,
-                {
-                    "target_file": target_file,
-                    "item_count": 0,
-                    "change_plan_items": [],
-                },
-            )
-            record["item_count"] += 1
-            record["change_plan_items"].append(inline_markdown(item.get("id", "CP-????")))
+            add_evidence_record(evidence_only, target_file, item)
+            continue
+
+        if is_global_gap and not is_run_criteria_document_path(target_file):
+            add_evidence_record(evidence_only, target_file, item)
+            continue
+
+        if category == "safe_documentation_edit" and not is_run_criteria_document_path(target_file):
+            add_evidence_record(evidence_only, target_file, item)
             continue
 
         area = change_plan_work_area(target_file)
-        group = grouped.setdefault(
-            area,
-            {
-                "area": area,
-                "target_files": set(),
-                "source_refs": set(),
-                "safe_documentation_edit": [],
-                "needs_user_decision": [],
-            },
-        )
-        group["target_files"].add(target_file)
-        group["source_refs"].add(inline_markdown(item.get("source", "unknown")))
-        group[category].append(inline_markdown(item.get("id", "CP-????")))
+        group = grouped.setdefault(area, base_work_group(area))
+        add_item_to_group(group, item, category, target_file)
 
     packages: list[dict[str, Any]] = []
+    if primary_group["run_criteria"] or primary_group["needs_user_decision"]:
+        grouped = {"primary documentation": primary_group, **grouped}
     sorted_groups = sorted(
         grouped.values(),
         key=lambda group: (
@@ -1076,12 +1273,14 @@ def build_change_plan_work_packages(
                 "needs_user_decision": group["needs_user_decision"],
                 "safe_documentation_edit": group["safe_documentation_edit"],
             },
+            "run_criteria": unique_strings(group.get("run_criteria", [])),
             "source_refs": sorted(group["source_refs"])[:20],
             "required_actions": [
                 "Open the listed target docs and the cited source refs before editing.",
                 "Apply documentation changes directly; do not create a separate implementation plan.",
                 "Resolve Needs User Decision items from local source evidence when possible, otherwise record them as skipped with a reason.",
-                "Check Safe Documentation Edit items against the current docs and edit only when the claim is missing, contradicted, or buried.",
+                "For primary documentation, create missing target docs when needed and cover setup, configuration, runtime, and tested-environment criteria from source evidence.",
+                "Check Safe Documentation Edit items only as supporting evidence; do not make summary inserts for facts already clear in their source docs.",
                 "Update the ordered docs index or examples in the same package when navigation or workflow content changes.",
             ],
             "acceptance_criteria": [
@@ -1128,6 +1327,7 @@ def append_executable_work_packages(
         for package in packages:
             needs_count = len(package["change_plan_items"]["needs_user_decision"])
             safe_count = len(package["change_plan_items"]["safe_documentation_edit"])
+            criteria_count = len(package.get("run_criteria", []))
             omitted = int(package.get("omitted_target_file_count", 0))
             omitted_text = f" ({omitted} additional target files omitted from this summary)" if omitted else ""
             lines.extend(
@@ -1135,6 +1335,7 @@ def append_executable_work_packages(
                     f"### {inline_markdown(package['id'])}: {inline_markdown(package['area'])}",
                     "",
                     f"- Target files: {', '.join(inline_markdown(path) for path in package['target_files'])}{omitted_text}",
+                    f"- Run criteria: {criteria_count}",
                     f"- Needs User Decision items: {needs_count}",
                     f"- Safe Documentation Edit items: {safe_count}",
                     "- Required action: edit the target docs directly, verify claims from repository sources, and report any skipped CP items with reasons.",
@@ -2944,7 +3145,7 @@ def run_review(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
         entry = task.entry
         if outcome.result is not None:
             result = outcome.result
-            warnings = normalize_result_policy(result, known_file_set, task.criteria_remaining)
+            warnings = normalize_result_policy(result, known_file_set, task.criteria_remaining, task.target.doc_id)
             satisfied = {item for item in result["criteria_satisfied"] if isinstance(item, str)}
             criteria_remaining = [item for item in criteria_remaining if item not in satisfied]
             entry["result"] = result

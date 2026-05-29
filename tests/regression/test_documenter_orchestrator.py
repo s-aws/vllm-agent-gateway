@@ -281,6 +281,8 @@ def test_packet_contract_includes_bounded_output_limits() -> None:
     assert packet["output_limits"]["max_items"]["facts_found"] == 5
     assert packet["output_limits"]["max_items"]["doc_gaps"] == 5
     assert packet["output_limits"]["max_string_chars"] == 240
+    assert packet["criteria_policy"]["scope"] == "run_level"
+    assert packet["criteria_policy"]["applies_to_this_doc"] is True
 
 
 def test_parse_result_reports_likely_truncated_json() -> None:
@@ -314,6 +316,36 @@ def test_result_policy_trims_model_output_to_contract_limits() -> None:
     assert len(result["followup_files"]) == 5
     assert result["doc_gaps"][0].endswith("...")
     assert {warning["reason"] for warning in warnings} >= {"trimmed_to_output_limit", "trimmed_long_strings"}
+
+
+def test_result_policy_filters_run_level_gaps_from_feature_docs() -> None:
+    result = {
+        "chunk_id": "api_reference/README.md:0001",
+        "facts_found": ["API schemas are grouped by category."],
+        "criteria_satisfied": ["installation steps documented"],
+        "criteria_remaining": ["configuration documented"],
+        "doc_gaps": [
+            "No explicit installation steps documented for using the API reference library",
+            "Endpoint category examples should mention account and order schemas.",
+        ],
+        "followup_files": [],
+        "confidence": "medium",
+    }
+
+    warnings = normalize_result_policy(
+        result,
+        set(),
+        ["installation steps documented", "configuration documented"],
+        "api_reference/README.md",
+    )
+
+    assert result["criteria_satisfied"] == []
+    assert result["criteria_remaining"] == []
+    assert result["doc_gaps"] == ["Endpoint category examples should mention account and order schemas."]
+    assert {warning["reason"] for warning in warnings} >= {
+        "removed_run_level_criteria_from_non_entrypoint_doc",
+        "removed_global_criteria_gaps_from_non_entrypoint_doc",
+    }
 
 
 def test_summary_packet_is_bounded_for_large_manifest_reports() -> None:
@@ -665,7 +697,7 @@ def test_change_plan_groups_validated_findings_and_does_not_modify_target_docs(t
     assert "This artifact contains an executable work queue followed by raw evidence." in change_plan
     assert "Apply documentation changes directly; do not create a separate implementation plan." in change_plan
     assert '"id": "WP-0001"' in change_plan
-    assert '"target_files": [\n        "README.md"\n      ]' in change_plan
+    assert '"target_files": [\n        "README.md",\n        "docs/README.md"\n      ]' in change_plan
     assert (
         "Check whether the current documentation already preserves this source-backed fact; "
         "edit only if it is missing, contradicted, or buried: Install with Docker is documented."
@@ -727,6 +759,49 @@ def test_change_plan_work_packages_exclude_chat_history_sources() -> None:
     assert '"target_files": [\n        "README.md"\n      ]' in work_section
     assert ".aider.chat.history.md: 2 CP items" in work_section
     assert '"target_files": [\n        ".aider.chat.history.md"\n      ]' not in work_section
+
+
+def test_change_plan_routes_agent_context_global_gaps_to_primary_docs() -> None:
+    report = {
+        "generated_at": "2026-05-29T00:00:00Z",
+        "target_root": "/repo",
+        "seed_doc_id": "AGENTS.md",
+        "doc_id": "AGENTS.md",
+        "mode": "full",
+        "dry_run": False,
+        "document_scope": "all",
+        "review_scope": "manifest",
+        "chunks_processed": 1,
+        "chunks_total": 1,
+        "truncated_after_chunks": False,
+        "criteria_remaining": ["installation steps documented", "configuration documented"],
+        "reviewed_files": [{"doc_id": "AGENTS.md"}],
+        "chunks": [
+            {
+                "doc_id": "AGENTS.md",
+                "chunk_id": "AGENTS.md:0001",
+                "lines": [1, 40],
+                "result": {
+                    "chunk_id": "AGENTS.md:0001",
+                    "facts_found": ["Project requires Windows 11 and VS Code."],
+                    "criteria_satisfied": [],
+                    "criteria_remaining": [],
+                    "doc_gaps": ["No clear installation steps for the project beyond OS and IDE requirements."],
+                    "followup_files": [],
+                    "confidence": "high",
+                },
+            }
+        ],
+    }
+
+    change_plan = build_doc_change_plan(report)
+    work_section = change_plan.split("## Executable Work Packages", 1)[1].split("## Safe Documentation Edits", 1)[0]
+
+    assert "### WP-0001: primary documentation" in work_section
+    assert '"target_files": [\n        "README.md",\n        "docs/README.md"\n      ]' in work_section
+    assert '"run_criteria": [\n        "installation steps documented",\n        "configuration documented"\n      ]' in work_section
+    assert "AGENTS.md: 2 CP items" in work_section
+    assert '"target_files": [\n        "AGENTS.md"\n      ]' not in work_section
 
 
 def test_dry_run_change_plan_records_insufficient_evidence_instead_of_safe_edits(tmp_path: Path) -> None:
