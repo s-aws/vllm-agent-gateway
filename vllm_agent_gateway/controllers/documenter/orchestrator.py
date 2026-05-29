@@ -1432,6 +1432,129 @@ def patch_contract_source_entries(
     return entries
 
 
+def source_ref_document_path(source_ref: str) -> str:
+    clean_ref = inline_markdown(source_ref)
+    match = re.match(r"^(?P<path>.+?):\d{4}(?:\s+lines\s+\d+-\d+)?$", clean_ref)
+    if match:
+        return match.group("path")
+    return clean_ref
+
+
+def is_independent_evidence_path(path: str, target_file: str) -> bool:
+    clean_path = source_ref_document_path(path)
+    if clean_path == target_file:
+        return False
+    suffix = Path(clean_path).suffix.lower()
+    if clean_path.startswith(".github/workflows/"):
+        return True
+    if suffix in {".cfg", ".ini", ".json", ".lock", ".py", ".toml", ".yaml", ".yml"}:
+        return True
+    return clean_path in {"AGENTS.md", "CLAUDE.md", "agent.md", "ai-context.md"}
+
+
+def inferred_evidence_sources(target_file: str, fact: str) -> list[str]:
+    lower = f"{target_file} {fact}".lower()
+    if (
+        "external" in lower
+        and ("test" in lower or "sandbox" in lower or "coinbase" in lower or "websocket" in lower)
+    ):
+        return [
+            "tests/external/test_coinbase_api.py",
+            "pytest.ini",
+            "pyproject.toml",
+            ".github/workflows/public-agent-checks.yml",
+        ]
+    if (
+        "anchored" in lower
+        or "repricing" in lower
+        or "distance mode" in lower
+        or ("percentage" in lower and "absolute" in lower)
+    ):
+        return [
+            "tests/**",
+            "core/stealth_order_manager.py",
+            "bridges/stealth_order_bridge.py",
+            "dashboard_server.py",
+            "configuration.py",
+        ]
+    if "runtime" in lower or "port" in lower or "websocket" in lower:
+        return ["main.py", "dashboard_server.py", "configuration.py", ".github/workflows/public-agent-checks.yml"]
+    if "environment" in lower or "configuration" in lower or "coinbase_api" in lower or "api key" in lower:
+        return ["configuration.py", "pyproject.toml", "pytest.ini", ".github/workflows/public-agent-checks.yml"]
+    if "client_order_id" in lower or "order_id" in lower:
+        return ["core/order_engine.py", "dashboard_server.py", "database/**", "tests/**"]
+    return []
+
+
+def patch_item_evidence_sources(package: dict[str, Any], target_file: str, fact: str) -> list[str]:
+    candidates: list[str] = []
+    for source_ref in package.get("source_refs", []):
+        source_path = source_ref_document_path(inline_markdown(source_ref))
+        if is_independent_evidence_path(source_path, target_file):
+            candidates.append(source_path)
+    candidates.extend(inferred_evidence_sources(target_file, fact))
+    return [source for source in unique_strings(candidates) if source_ref_document_path(source) != target_file]
+
+
+def evidence_source_text(evidence_sources: list[str], target_file: str) -> str:
+    source_text = " OR ".join(evidence_sources)
+    if not source_text:
+        source_text = "implementation file OR test file OR runtime config OR workflow file"
+    return f"{source_text}; not {target_file}"
+
+
+def action_for_doc_gap(gap_text: str) -> str:
+    lower = gap_text.lower()
+    if any(keyword in lower for keyword in ("remove ", "delete ", "obsolete", "deprecated")):
+        return "DELETE"
+    if any(keyword in lower for keyword in ("missing", "lack", "lacks", "no ", "not documented", "example")):
+        return "ADD"
+    return "REPLACE"
+
+
+def gap_requires_exact_examples(gap_text: str) -> bool:
+    lower = gap_text.lower()
+    return "example" in lower or ("percentage" in lower and "absolute" in lower)
+
+
+def patch_contract_required_source_entries(
+    package: dict[str, Any],
+    target_files: list[str],
+    patch_items: list[dict[str, Any]],
+) -> list[dict[str, str]]:
+    entries: list[dict[str, str]] = []
+    seen: set[str] = set()
+
+    def add_entry(path: str, reason: str) -> None:
+        clean_path = inline_markdown(path)
+        if clean_path in seen:
+            return
+        seen.add(clean_path)
+        entries.append({"path": clean_path, "reason": inline_markdown(reason)})
+
+    for target in target_files:
+        add_entry(target, "target baseline for NO-OP detection before editing; not independent evidence")
+
+    for source_ref in package.get("source_refs", []):
+        source_path = source_ref_document_path(inline_markdown(source_ref))
+        if source_path in target_files:
+            continue
+        reason = (
+            "independent evidence candidate from reviewed source refs"
+            if any(is_independent_evidence_path(source_path, target) for target in target_files)
+            else "reviewed source anchor; verify independently before using as evidence"
+        )
+        add_entry(source_path, reason)
+
+    for item in patch_items:
+        for source in item.get("evidence_sources", []):
+            reason = "independent evidence candidate required by a patch item"
+            if "*" in source:
+                reason = "source-controlled file pattern; use a matching test or implementation file if present"
+            add_entry(source, reason)
+    return entries
+
+
 def primary_patch_contract_source_entries() -> list[dict[str, str]]:
     entries: list[dict[str, str]] = []
     seen: set[str] = set()
@@ -1455,10 +1578,17 @@ def primary_patch_contract_items(package: dict[str, Any]) -> list[dict[str, str]
                     "action": "ADD",
                     "target_file": "README.md",
                     "section": "Project Notes",
-                    "instruction": (
-                        f"Address run criterion `{criterion_text}` only when the required source files prove the claim."
+                    "detection_rule": (
+                        f"Search README.md for existing coverage of `{criterion_text}`. If equivalent coverage exists, "
+                        "report NO-OP and do not edit."
                     ),
-                    "skip_condition": "Skip this criterion when local source evidence does not prove a concrete documentation change.",
+                    "evidence_source": "required source files listed in this contract; not README.md alone",
+                    "edit_rule": (
+                        f"Add only the missing `{criterion_text}` content when the required source files prove it."
+                    ),
+                    "failure_mode": (
+                        "Skip this criterion when local source evidence does not prove a concrete documentation change."
+                    ),
                 }
             )
             continue
@@ -1467,8 +1597,13 @@ def primary_patch_contract_items(package: dict[str, Any]) -> list[dict[str, str]
                 "action": "ADD",
                 "target_file": "README.md",
                 "section": inline_markdown(spec["section"]),
-                "instruction": inline_markdown(spec["instruction"]),
-                "skip_condition": inline_markdown(spec["skip_condition"]),
+                "detection_rule": (
+                    f"Search README.md for a `{inline_markdown(spec['section'])}` section that covers "
+                    f"`{criterion_text}`. If equivalent coverage exists, report NO-OP and do not edit."
+                ),
+                "evidence_source": "required source files listed in this contract; not README.md alone",
+                "edit_rule": inline_markdown(spec["instruction"]),
+                "failure_mode": inline_markdown(spec["skip_condition"]),
             }
         )
 
@@ -1478,11 +1613,16 @@ def primary_patch_contract_items(package: dict[str, Any]) -> list[dict[str, str]
                 "action": "ADD",
                 "target_file": "docs/README.md",
                 "section": "ordered documentation index",
-                "instruction": (
+                "detection_rule": (
+                    "Search docs/README.md for links to README.md and any document changed by this contract. "
+                    "If those links already exist in the ordered index, report NO-OP and do not edit."
+                ),
+                "evidence_source": "target files changed by this contract and the existing docs/README.md index",
+                "edit_rule": (
                     "Add or update the ordered documentation index so it links the entry point and any "
                     "feature, example, runbook, or reference document changed by this contract."
                 ),
-                "skip_condition": "Skip unrelated links and do not turn docs/README.md into a feature manual.",
+                "failure_mode": "Skip unrelated links and do not turn docs/README.md into a feature manual.",
             }
         )
     return items
@@ -1498,33 +1638,62 @@ def patch_contract_items_for_package(
             item = change_plan_item_by_id.get(item_id)
             if not item:
                 continue
-            action = "ADD" if category == "safe_documentation_edit" else "REPLACE"
             target_file = inline_markdown(item.get("target_file", "unknown"))
             source_ref = inline_markdown(item.get("source", "unknown"))
             fact = remove_change_plan_prompt_prefix(inline_markdown(item.get("text", "")))
+            evidence_sources = patch_item_evidence_sources(package, target_file, fact)
             if category == "safe_documentation_edit":
-                instruction = (
-                    f"Ensure `{target_file}` clearly states this source-backed fact, using the existing nearest "
-                    f"matching section or a short new subsection only if needed: {fact}"
+                action = "NO-OP"
+                detection_rule = (
+                    f"Open `{target_file}` and search for an equivalent statement of: {fact}. "
+                    "If equivalent text exists, leave the file unchanged and report NO-OP."
                 )
-                skip_condition = (
-                    "Skip if the target file already states the fact clearly or current source evidence contradicts it."
+                edit_rule = (
+                    "Do not edit for a facts_found item. If the target is missing or contradicts independently "
+                    "verified source evidence, SKIP with blocker rather than adding text."
+                )
+                failure_mode = (
+                    "Do not add another sentence if equivalent text already exists. If independent evidence is "
+                    "missing or contradicts the target, SKIP with blocker."
                 )
             else:
-                instruction = (
-                    f"Resolve the reported gap in `{target_file}` only if local source evidence proves the answer: {fact}"
-                )
-                skip_condition = (
-                    "Skip and report a blocker if the answer requires a product decision or is not proven by local source files."
-                )
+                action = action_for_doc_gap(fact)
+                if gap_requires_exact_examples(fact):
+                    detection_rule = (
+                        f"Search `{target_file}` for examples covering the reported gap: {fact}. "
+                        "If equivalent examples already exist, report NO-OP. Otherwise search the evidence source "
+                        "for exact mode names, values, and constraints before editing."
+                    )
+                    edit_rule = (
+                        "Add examples only when exact values, modes, or constraints are found in tests or "
+                        "implementation code. Do not invent sample prices, percentages, distances, or payloads."
+                    )
+                    failure_mode = (
+                        "If no exact examples or valid values exist in source/tests, SKIP with blocker."
+                    )
+                else:
+                    detection_rule = (
+                        f"Search `{target_file}` for content that already resolves: {fact}. "
+                        "If equivalent content exists, report NO-OP. Otherwise edit only after independent "
+                        "evidence proves the exact wording or data."
+                    )
+                    edit_rule = (
+                        "Apply the requested action only with wording and values directly proved by the evidence source."
+                    )
+                    failure_mode = (
+                        "If evidence is absent, ambiguous, or requires a product decision, SKIP with blocker."
+                    )
             items.append(
                 {
                     "action": action,
                     "target_file": target_file,
                     "source_ref": source_ref,
                     "cp_item": item_id,
-                    "instruction": inline_markdown(instruction),
-                    "skip_condition": inline_markdown(skip_condition),
+                    "detection_rule": inline_markdown(detection_rule),
+                    "evidence_sources": evidence_sources,
+                    "evidence_source": inline_markdown(evidence_source_text(evidence_sources, target_file)),
+                    "edit_rule": inline_markdown(edit_rule),
+                    "failure_mode": inline_markdown(failure_mode),
                 }
             )
     return items
@@ -1555,18 +1724,16 @@ def build_change_plan_patch_contracts(
             ]
         else:
             phase = f"Resolve bounded findings for {package_area}"
-            required_source_files = patch_contract_source_entries(
-                [inline_markdown(path) for path in package.get("source_refs", [])],
-                "source anchor cited by the reviewed documentation chunk",
-            )
             patch_items = patch_contract_items_for_package(package, change_plan_item_by_id)
+            required_source_files = patch_contract_required_source_entries(package, target_files, patch_items)
             do_not_touch = [
                 "Any file not listed in target_files for this contract",
                 "Evidence-only, generated, archived, hidden-tooling, cache, and runtime-output sources",
             ]
             expected_output = [
                 "Modified only the target files listed for this contract.",
-                "Report each CP item as addressed or skipped with a concrete source reason.",
+                "Report each CP item as edited, NO-OP, or skipped with a concrete source reason.",
+                "Report the required verification command and result; git diff/status alone is not verification.",
             ]
         if not required_source_files:
             required_source_files = patch_contract_source_entries(
@@ -1576,12 +1743,16 @@ def build_change_plan_patch_contracts(
         if not patch_items:
             patch_items = [
                 {
-                    "action": "SKIP",
+                    "action": "NO-OP",
                     "target_file": ", ".join(target_files) if target_files else "(none)",
-                    "instruction": (
+                    "detection_rule": (
+                        "No concrete ADD, REPLACE, DELETE, or NO-OP item was generated for this contract."
+                    ),
+                    "evidence_source": "none",
+                    "edit_rule": (
                         "No concrete patch item was generated for this contract; do not make cosmetic edits."
                     ),
-                    "skip_condition": "Report that the contract has no executable ADD or REPLACE item.",
+                    "failure_mode": "Report that the contract has no concrete edit item.",
                 }
             ]
         contracts.append(
@@ -1602,12 +1773,44 @@ def build_change_plan_patch_contracts(
     return contracts
 
 
+def patch_item_title(item: dict[str, Any], index: int) -> str:
+    cp_item = item.get("cp_item")
+    if cp_item:
+        return inline_markdown(cp_item)
+    return f"Patch Item {index:02d}"
+
+
+def patch_item_fields(item: dict[str, Any]) -> list[tuple[str, str]]:
+    fields_list: list[tuple[str, str]] = [
+        ("Target", inline_markdown(item.get("target_file", "unknown"))),
+    ]
+    section = item.get("section")
+    if section:
+        fields_list.append(("Section", inline_markdown(section)))
+    fields_list.extend(
+        [
+            ("Action", inline_markdown(item.get("action", "NO-OP"))),
+            ("Detection rule", inline_markdown(item.get("detection_rule", ""))),
+            ("Evidence source", inline_markdown(item.get("evidence_source", ""))),
+            ("Edit rule", inline_markdown(item.get("edit_rule", ""))),
+            ("Failure mode", inline_markdown(item.get("failure_mode", ""))),
+        ]
+    )
+    source_ref = item.get("source_ref")
+    if source_ref:
+        source_path = source_ref_document_path(inline_markdown(source_ref))
+        target_file = inline_markdown(item.get("target_file", "unknown"))
+        role = "target baseline, not independent evidence" if source_path == target_file else "reviewed anchor"
+        fields_list.append(("Reviewed anchor", f"{inline_markdown(source_ref)} ({role})"))
+    return fields_list
+
+
 def append_patch_contracts(lines: list[str], contracts: list[dict[str, Any]]) -> None:
     lines.extend(
         [
             "## Patch Contracts",
             "",
-            "Start here. These contracts are the implementation queue. Execute one contract at a time, edit only the listed target files, and use the raw `CP-*` sections below only as supporting evidence.",
+            "Start here. These contracts are the implementation queue. Execute one contract at a time, edit only the listed target files, and use the raw `CP-*` sections below only as supporting evidence. Each patch item must be handled by its concrete action, detection rule, evidence source, and failure mode.",
             "",
         ]
     )
@@ -1639,21 +1842,10 @@ def append_patch_contracts(lines: list[str], contracts: list[dict[str, Any]]) ->
         for source in contract.get("required_source_files", []):
             lines.append(f"  - {inline_markdown(source['path'])}: {inline_markdown(source['reason'])}")
         lines.extend(["", "- Patch items:"])
-        for item in contract.get("patch_items", []):
-            section = item.get("section")
-            section_text = f" section `{inline_markdown(section)}`" if section else ""
-            cp_item = item.get("cp_item")
-            cp_text = f" ({inline_markdown(cp_item)})" if cp_item else ""
-            source_ref = item.get("source_ref")
-            source_text = f" Source: {inline_markdown(source_ref)}." if source_ref else ""
-            lines.append(
-                f"  - {inline_markdown(item.get('action', 'ADD'))}{cp_text}: "
-                f"{inline_markdown(item.get('target_file', 'unknown'))}{section_text}. "
-                f"{inline_markdown(item.get('instruction', ''))}{source_text}"
-            )
-            skip_condition = item.get("skip_condition")
-            if skip_condition:
-                lines.append(f"  - SKIP: {inline_markdown(skip_condition)}")
+        for index, item in enumerate(contract.get("patch_items", []), start=1):
+            lines.append(f"  - {patch_item_title(item, index)}")
+            for label, value in patch_item_fields(item):
+                lines.append(f"    - {label}: {value}")
         lines.extend(["", "- DO NOT TOUCH:"])
         for path in contract.get("do_not_touch", []):
             lines.append(f"  - {inline_markdown(path)}")
@@ -1696,21 +1888,11 @@ def render_patch_contract_file(contract: dict[str, Any], report: dict[str, Any])
     for source in contract.get("required_source_files", []):
         lines.append(f"- {inline_markdown(source.get('path', 'unknown'))}: {inline_markdown(source.get('reason', ''))}")
     lines.extend(["", "## Patch Items", ""])
-    for item in contract.get("patch_items", []):
-        section = item.get("section")
-        section_text = f" section `{inline_markdown(section)}`" if section else ""
-        cp_item = item.get("cp_item")
-        cp_text = f" ({inline_markdown(cp_item)})" if cp_item else ""
-        source_ref = item.get("source_ref")
-        source_text = f" Source: {inline_markdown(source_ref)}." if source_ref else ""
-        lines.append(
-            f"- {inline_markdown(item.get('action', 'ADD'))}{cp_text}: "
-            f"{inline_markdown(item.get('target_file', 'unknown'))}{section_text}. "
-            f"{inline_markdown(item.get('instruction', ''))}{source_text}"
-        )
-        skip_condition = item.get("skip_condition")
-        if skip_condition:
-            lines.append(f"- SKIP: {inline_markdown(skip_condition)}")
+    for index, item in enumerate(contract.get("patch_items", []), start=1):
+        lines.extend([f"### {patch_item_title(item, index)}", ""])
+        for label, value in patch_item_fields(item):
+            lines.append(f"{label}: {value}")
+        lines.append("")
     lines.extend(["", "## Do Not Touch", ""])
     for path in contract.get("do_not_touch", []):
         lines.append(f"- {inline_markdown(path)}")
@@ -1723,6 +1905,7 @@ def render_patch_contract_file(contract: dict[str, Any], report: dict[str, Any])
             "## Verification",
             "",
             "- Run the target repository's required documentation or regression verification after editing, or report the exact reason it was not run.",
+            "- `git diff` and `git status` are inspection commands, not verification.",
             "- Do not use raw evidence files as a source for new claims unless a required source file independently proves the claim.",
             "",
             "## Stop Condition",

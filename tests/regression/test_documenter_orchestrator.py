@@ -706,7 +706,12 @@ def test_change_plan_groups_validated_findings_and_does_not_modify_target_docs(t
     assert "Treat `evidence.md` and the compatibility plan as traceability material" in change_plan_index
     assert "# PC-0001: Update README setup and documentation index" in first_plan
     assert "## Patch Items" in first_plan
-    assert "ADD: README.md section `Setup`" in first_plan
+    assert "### Patch Item 01" in first_plan
+    assert "Target: README.md" in first_plan
+    assert "Section: Setup" in first_plan
+    assert "Action: ADD" in first_plan
+    assert "Detection rule: Search README.md for a `Setup` section" in first_plan
+    assert "`git diff` and `git status` are inspection commands, not verification." in first_plan
     assert "# Documentation Change Plan Evidence" in change_plan_evidence_path.read_text(encoding="utf-8")
     manifest = json.loads(change_plan_manifest_path.read_text(encoding="utf-8"))
     assert manifest["plans"][0]["id"] == "PC-0001"
@@ -830,9 +835,12 @@ def test_change_plan_routes_agent_context_global_gaps_to_primary_docs() -> None:
     work_section = change_plan.split("## Executable Work Packages", 1)[1].split("## Safe Documentation Edits", 1)[0]
 
     assert "### PC-0001: Update README setup and documentation index" in patch_section
-    assert "ADD: README.md section `Setup`" in patch_section
-    assert "ADD: README.md section `Configuration`" in patch_section
-    assert "ADD: docs/README.md section `ordered documentation index`" in patch_section
+    assert "Section: Setup" in patch_section
+    assert "Section: Configuration" in patch_section
+    assert "Target: docs/README.md" in patch_section
+    assert "Section: ordered documentation index" in patch_section
+    assert "Action: ADD" in patch_section
+    assert "Detection rule:" in patch_section
     assert "DO NOT TOUCH:" in patch_section
     assert "AGENTS.md" in patch_section
     assert "api_reference/**" in patch_section
@@ -842,6 +850,75 @@ def test_change_plan_routes_agent_context_global_gaps_to_primary_docs() -> None:
     assert '"run_criteria": [\n        "installation steps documented",\n        "configuration documented"\n      ]' in work_section
     assert "AGENTS.md: 2 CP items" in work_section
     assert '"target_files": [\n        "AGENTS.md"\n      ]' not in work_section
+
+
+def test_patch_contract_items_use_noop_detection_and_independent_evidence() -> None:
+    report = {
+        "generated_at": "2026-05-29T00:00:00Z",
+        "target_root": "/repo",
+        "seed_doc_id": "AGENTS.md",
+        "doc_id": "AGENTS.md",
+        "mode": "full",
+        "dry_run": False,
+        "document_scope": "all",
+        "review_scope": "manifest",
+        "chunks_processed": 2,
+        "chunks_total": 2,
+        "truncated_after_chunks": False,
+        "criteria_remaining": [],
+        "reviewed_files": [],
+        "chunks": [
+            {
+                "doc_id": "docs/EXTERNAL_TESTING_RUNBOOK.md",
+                "chunk_id": "docs/EXTERNAL_TESTING_RUNBOOK.md:0001",
+                "lines": [1, 117],
+                "result": {
+                    "chunk_id": "docs/EXTERNAL_TESTING_RUNBOOK.md:0001",
+                    "facts_found": ["External tests must run in sandbox mode"],
+                    "criteria_satisfied": [],
+                    "criteria_remaining": [],
+                    "doc_gaps": [],
+                    "followup_files": [],
+                    "confidence": "high",
+                },
+            },
+            {
+                "doc_id": "docs/LAST_FILL_ANCHORED_REPRICING_DESIGN.md",
+                "chunk_id": "docs/LAST_FILL_ANCHORED_REPRICING_DESIGN.md:0001",
+                "lines": [1, 98],
+                "result": {
+                    "chunk_id": "docs/LAST_FILL_ANCHORED_REPRICING_DESIGN.md:0001",
+                    "facts_found": [],
+                    "criteria_satisfied": [],
+                    "criteria_remaining": [],
+                    "doc_gaps": ["Lack of specific examples for percentage vs absolute distance modes"],
+                    "followup_files": [],
+                    "confidence": "high",
+                },
+            },
+        ],
+    }
+
+    change_plan = build_doc_change_plan(report)
+    patch_section = change_plan.split("## Patch Contracts", 1)[1].split("## Executable Work Packages", 1)[0]
+
+    assert "Ensure `" not in patch_section
+    assert "clearly states" not in patch_section
+    assert "Resolve the reported gap" not in patch_section
+    assert "Target: docs/EXTERNAL_TESTING_RUNBOOK.md" in patch_section
+    assert "Action: NO-OP" in patch_section
+    assert (
+        "Evidence source: tests/external/test_coinbase_api.py OR pytest.ini OR pyproject.toml "
+        "OR .github/workflows/public-agent-checks.yml; not docs/EXTERNAL_TESTING_RUNBOOK.md"
+    ) in patch_section
+    assert "Do not add another sentence if equivalent text already exists." in patch_section
+    assert "Target: docs/LAST_FILL_ANCHORED_REPRICING_DESIGN.md" in patch_section
+    assert "Action: ADD" in patch_section
+    assert "Add examples only when exact values, modes, or constraints are found in tests or implementation code." in patch_section
+    assert "Do not invent sample prices, percentages, distances, or payloads." in patch_section
+    assert "not docs/LAST_FILL_ANCHORED_REPRICING_DESIGN.md" in patch_section
+    assert "If no exact examples or valid values exist in source/tests, SKIP with blocker." in patch_section
+    assert "target baseline for NO-OP detection before editing; not independent evidence" in patch_section
 
 
 def test_dry_run_change_plan_records_insufficient_evidence_instead_of_safe_edits(tmp_path: Path) -> None:

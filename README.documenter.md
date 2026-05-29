@@ -68,12 +68,13 @@ Reports are written under `.agentic_reports/` by default. The target project is 
 
 The preferred implementation entry point is `doc-change-plan-*.index.md`. It links one numbered plan file per patch contract and keeps raw evidence in `evidence.md`. The compatibility `doc-change-plan-*.md` still contains the complete plan, but local agents should use the index and execute one numbered plan file at a time.
 
-Each patch contract names the phase, target files, required source files, explicit `ADD` / `REPLACE` / `SKIP` / `DO NOT TOUCH` instructions, expected output, and a stop condition. Raw `CP-*` findings and legacy work packages remain below that queue as traceability evidence, not as a second backlog.
+Each patch contract names the phase, target files, files to inspect, and patch items with `Target`, `Action`, `Detection rule`, `Evidence source`, `Edit rule`, and `Failure mode`. Patch item actions are limited to `ADD`, `REPLACE`, `DELETE`, and `NO-OP`; skipping is a failure-mode outcome, not an action. Raw `CP-*` findings and legacy work packages remain below that queue as traceability evidence, not as a second backlog.
 
 Downstream agents should:
 
 - read the target repo instructions and ordered documentation index before editing
 - verify every new setup, port, command, environment variable, or tested-environment claim from source files
+- treat the target document as a baseline for `NO-OP` detection, not as independent evidence for new claims
 - execute one patch contract at a time and stop at its stop condition
 - edit only the patch contract `target_files`
 - treat setup/configuration/runtime/tested-environment criteria as repository entry-point work, not as missing sections to paste into every feature or reference document
