@@ -692,10 +692,13 @@ def test_change_plan_groups_validated_findings_and_does_not_modify_target_docs(t
     assert "CP-0002" in change_plan
     assert "CP-0003" in change_plan
     assert "## Agent Execution Contract" in change_plan
+    assert "## Patch Contracts" in change_plan
     assert "## Executable Work Packages" in change_plan
+    assert change_plan.index("## Patch Contracts") < change_plan.index("## Executable Work Packages")
     assert change_plan.index("## Executable Work Packages") < change_plan.index("## Safe Documentation Edits")
-    assert "This artifact contains an executable work queue followed by raw evidence." in change_plan
-    assert "Apply documentation changes directly; do not create a separate implementation plan." in change_plan
+    assert "This artifact contains patch contracts followed by raw evidence." in change_plan
+    assert "Start with `Patch Contracts`; do not create a second implementation plan unless a contract is blocked." in change_plan
+    assert '"id": "PC-0001"' in change_plan
     assert '"id": "WP-0001"' in change_plan
     assert '"target_files": [\n        "README.md",\n        "docs/README.md"\n      ]' in change_plan
     assert (
@@ -754,8 +757,11 @@ def test_change_plan_work_packages_exclude_chat_history_sources() -> None:
     }
 
     change_plan = build_doc_change_plan(report)
+    patch_section = change_plan.split("## Patch Contracts", 1)[1].split("## Executable Work Packages", 1)[0]
     work_section = change_plan.split("## Executable Work Packages", 1)[1].split("## Safe Documentation Edits", 1)[0]
 
+    assert "PC-0001" in patch_section
+    assert "DO NOT TOUCH" in patch_section
     assert '"target_files": [\n        "README.md"\n      ]' in work_section
     assert ".aider.chat.history.md: 2 CP items" in work_section
     assert '"target_files": [\n        ".aider.chat.history.md"\n      ]' not in work_section
@@ -795,8 +801,17 @@ def test_change_plan_routes_agent_context_global_gaps_to_primary_docs() -> None:
     }
 
     change_plan = build_doc_change_plan(report)
+    patch_section = change_plan.split("## Patch Contracts", 1)[1].split("## Executable Work Packages", 1)[0]
     work_section = change_plan.split("## Executable Work Packages", 1)[1].split("## Safe Documentation Edits", 1)[0]
 
+    assert "### PC-0001: Update README setup and documentation index" in patch_section
+    assert "ADD: README.md section `Setup`" in patch_section
+    assert "ADD: README.md section `Configuration`" in patch_section
+    assert "ADD: docs/README.md section `ordered documentation index`" in patch_section
+    assert "DO NOT TOUCH:" in patch_section
+    assert "AGENTS.md" in patch_section
+    assert "api_reference/**" in patch_section
+    assert "Stop after completing this contract" in patch_section
     assert "### WP-0001: primary documentation" in work_section
     assert '"target_files": [\n        "README.md",\n        "docs/README.md"\n      ]' in work_section
     assert '"run_criteria": [\n        "installation steps documented",\n        "configuration documented"\n      ]' in work_section

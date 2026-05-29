@@ -217,6 +217,112 @@ DEFAULT_CRITERIA = [
     "runtime ports documented",
     "tested environment documented",
 ]
+PRIMARY_PATCH_CONTRACT_SOURCE_FILES = [
+    {
+        "path": "README.md",
+        "reason": "current entry-point documentation and insertion point for setup/orientation edits",
+    },
+    {
+        "path": "docs/README.md",
+        "reason": "ordered documentation index that must link navigation changes",
+    },
+    {
+        "path": "pyproject.toml",
+        "reason": "project metadata, Python version constraints, dependencies, scripts, and test tooling when present",
+    },
+    {
+        "path": "requirements.txt",
+        "reason": "install command evidence when present",
+    },
+    {
+        "path": "requirements-dev.txt",
+        "reason": "development/test dependency evidence when present",
+    },
+    {
+        "path": "configuration.py",
+        "reason": "environment variables, defaults, and runtime configuration values",
+    },
+    {
+        "path": "products.json",
+        "reason": "file-based product/runtime configuration when present",
+    },
+    {
+        "path": "main.py",
+        "reason": "runtime entry point and launched services",
+    },
+    {
+        "path": "dashboard_server.py",
+        "reason": "dashboard transport, host, port, and WebSocket behavior when present",
+    },
+    {
+        "path": "AGENTS.md",
+        "reason": "repository instructions, tested environment, and required verification gate",
+    },
+    {
+        "path": ".github/workflows/public-agent-checks.yml",
+        "reason": "CI verification commands and supported test gate when present",
+    },
+]
+PRIMARY_PATCH_CONTRACT_DO_NOT_TOUCH = [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "agent.md",
+    "ai-context.md",
+    ".agentic_reports/**",
+    ".claude/**",
+    ".github/skills/**",
+    "genai_data/**",
+    "genai_tools/**",
+    "docs/archive/**",
+    "runtime-output/**",
+    "api_reference/**",
+    "websocket_reference/**",
+]
+PRIMARY_RUN_CRITERION_PATCH_ITEMS = {
+    "installation steps documented": {
+        "section": "Setup",
+        "instruction": (
+            "Add or update a `Setup` section in README.md. Include only install or quick-start "
+            "commands proved by pyproject.toml, requirements files, setup scripts, or existing "
+            "source-controlled setup docs. Do not add placeholder repository URLs or generic package-manager commands."
+        ),
+        "skip_condition": (
+            "Skip any command or subsection when no required source file proves the command for this repository."
+        ),
+    },
+    "configuration documented": {
+        "section": "Configuration",
+        "instruction": (
+            "Add or update a `Configuration` section in README.md. List only environment variables, "
+            "config files, and defaults found in configuration.py, products.json, pyproject.toml, or "
+            "existing source-controlled config docs. Do not infer secret names or defaults."
+        ),
+        "skip_condition": (
+            "Skip variables, config files, or defaults that are not present in the required source files."
+        ),
+    },
+    "runtime ports documented": {
+        "section": "Runtime",
+        "instruction": (
+            "Add or update a `Runtime` section in README.md. Include ports, hosts, and runtime "
+            "services only when source files such as main.py, dashboard_server.py, configuration.py, "
+            "or existing runbooks prove them."
+        ),
+        "skip_condition": (
+            "Skip the runtime port claim when no source file proves the port or when the value is configurable without a default."
+        ),
+    },
+    "tested environment documented": {
+        "section": "Tested Environment",
+        "instruction": (
+            "Add or update a `Tested Environment` section in README.md. Include OS, Python version, "
+            "and verification commands only from AGENTS.md, pyproject.toml, CI workflow files, or test docs."
+        ),
+        "skip_condition": (
+            "Skip OS, version, and test-command claims that are not explicitly present in the required source files."
+        ),
+    },
+}
 REQUIRED_RESULT_FIELDS = {
     "chunk_id": str,
     "facts_found": list,
@@ -1299,6 +1405,265 @@ def build_change_plan_work_packages(
     return packages, evidence_records
 
 
+def remove_change_plan_prompt_prefix(text: str) -> str:
+    prefixes = (
+        "Check whether the current documentation already preserves this source-backed fact; edit only if it is missing, contradicted, or buried: ",
+        "Decide how to address reported documentation gap: ",
+        "Verify low-confidence fact before proposing an edit: ",
+    )
+    for prefix in prefixes:
+        if text.startswith(prefix):
+            return text[len(prefix) :]
+    return text
+
+
+def patch_contract_source_entries(
+    paths: list[str],
+    default_reason: str,
+) -> list[dict[str, str]]:
+    entries: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for path in paths:
+        clean_path = inline_markdown(path)
+        if clean_path in seen:
+            continue
+        seen.add(clean_path)
+        entries.append({"path": clean_path, "reason": default_reason})
+    return entries
+
+
+def primary_patch_contract_source_entries() -> list[dict[str, str]]:
+    entries: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for item in PRIMARY_PATCH_CONTRACT_SOURCE_FILES:
+        path = inline_markdown(item["path"])
+        if path in seen:
+            continue
+        seen.add(path)
+        entries.append({"path": path, "reason": inline_markdown(item["reason"])})
+    return entries
+
+
+def primary_patch_contract_items(package: dict[str, Any]) -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    for criterion in package.get("run_criteria", []):
+        criterion_text = inline_markdown(criterion)
+        spec = PRIMARY_RUN_CRITERION_PATCH_ITEMS.get(criterion_text)
+        if spec is None:
+            items.append(
+                {
+                    "action": "ADD",
+                    "target_file": "README.md",
+                    "section": "Project Notes",
+                    "instruction": (
+                        f"Address run criterion `{criterion_text}` only when the required source files prove the claim."
+                    ),
+                    "skip_condition": "Skip this criterion when local source evidence does not prove a concrete documentation change.",
+                }
+            )
+            continue
+        items.append(
+            {
+                "action": "ADD",
+                "target_file": "README.md",
+                "section": inline_markdown(spec["section"]),
+                "instruction": inline_markdown(spec["instruction"]),
+                "skip_condition": inline_markdown(spec["skip_condition"]),
+            }
+        )
+
+    if "docs/README.md" in package.get("target_files", []):
+        items.append(
+            {
+                "action": "ADD",
+                "target_file": "docs/README.md",
+                "section": "ordered documentation index",
+                "instruction": (
+                    "Add or update the ordered documentation index so it links the entry point and any "
+                    "feature, example, runbook, or reference document changed by this contract."
+                ),
+                "skip_condition": "Skip unrelated links and do not turn docs/README.md into a feature manual.",
+            }
+        )
+    return items
+
+
+def patch_contract_items_for_package(
+    package: dict[str, Any],
+    change_plan_item_by_id: dict[str, dict[str, Any]],
+) -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    for category in ("safe_documentation_edit", "needs_user_decision"):
+        for item_id in package.get("change_plan_items", {}).get(category, []):
+            item = change_plan_item_by_id.get(item_id)
+            if not item:
+                continue
+            action = "ADD" if category == "safe_documentation_edit" else "REPLACE"
+            target_file = inline_markdown(item.get("target_file", "unknown"))
+            source_ref = inline_markdown(item.get("source", "unknown"))
+            fact = remove_change_plan_prompt_prefix(inline_markdown(item.get("text", "")))
+            if category == "safe_documentation_edit":
+                instruction = (
+                    f"Ensure `{target_file}` clearly states this source-backed fact, using the existing nearest "
+                    f"matching section or a short new subsection only if needed: {fact}"
+                )
+                skip_condition = (
+                    "Skip if the target file already states the fact clearly or current source evidence contradicts it."
+                )
+            else:
+                instruction = (
+                    f"Resolve the reported gap in `{target_file}` only if local source evidence proves the answer: {fact}"
+                )
+                skip_condition = (
+                    "Skip and report a blocker if the answer requires a product decision or is not proven by local source files."
+                )
+            items.append(
+                {
+                    "action": action,
+                    "target_file": target_file,
+                    "source_ref": source_ref,
+                    "cp_item": item_id,
+                    "instruction": inline_markdown(instruction),
+                    "skip_condition": inline_markdown(skip_condition),
+                }
+            )
+    return items
+
+
+def build_change_plan_patch_contracts(
+    packages: list[dict[str, Any]],
+    change_plan_items: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    change_plan_item_by_id = {
+        inline_markdown(item.get("id", "")): item for item in change_plan_items if isinstance(item, dict)
+    }
+    contracts: list[dict[str, Any]] = []
+    for index, package in enumerate(packages, start=1):
+        package_id = inline_markdown(package.get("id", f"WP-{index:04d}"))
+        package_area = inline_markdown(package.get("area", "documentation"))
+        target_files = [inline_markdown(path) for path in package.get("target_files", [])]
+        is_primary = package_area == "primary documentation" or bool(package.get("run_criteria"))
+        if is_primary:
+            phase = "Update README setup and documentation index"
+            required_source_files = primary_patch_contract_source_entries()
+            patch_items = primary_patch_contract_items(package)
+            do_not_touch = PRIMARY_PATCH_CONTRACT_DO_NOT_TOUCH
+            expected_output = [
+                "Modified README.md and docs/README.md only, unless this contract explicitly lists another target file.",
+                "Report exact commands, environment variables, runtime values, and tested-environment claims added.",
+                "Report each skipped run criterion with the source file reason.",
+            ]
+        else:
+            phase = f"Resolve bounded findings for {package_area}"
+            required_source_files = patch_contract_source_entries(
+                [inline_markdown(path) for path in package.get("source_refs", [])],
+                "source anchor cited by the reviewed documentation chunk",
+            )
+            patch_items = patch_contract_items_for_package(package, change_plan_item_by_id)
+            do_not_touch = [
+                "Any file not listed in target_files for this contract",
+                "Evidence-only, generated, archived, hidden-tooling, cache, and runtime-output sources",
+            ]
+            expected_output = [
+                "Modified only the target files listed for this contract.",
+                "Report each CP item as addressed or skipped with a concrete source reason.",
+            ]
+        if not required_source_files:
+            required_source_files = patch_contract_source_entries(
+                target_files,
+                "target document to compare against before editing",
+            )
+        if not patch_items:
+            patch_items = [
+                {
+                    "action": "SKIP",
+                    "target_file": ", ".join(target_files) if target_files else "(none)",
+                    "instruction": (
+                        "No concrete patch item was generated for this contract; do not make cosmetic edits."
+                    ),
+                    "skip_condition": "Report that the contract has no executable ADD or REPLACE item.",
+                }
+            ]
+        contracts.append(
+            {
+                "id": f"PC-{index:04d}",
+                "work_package_id": package_id,
+                "phase": phase,
+                "target_files": target_files,
+                "required_source_files": required_source_files,
+                "patch_items": patch_items,
+                "do_not_touch": do_not_touch,
+                "expected_output": expected_output,
+                "stop_condition": (
+                    "Stop after completing this contract. Do not continue into raw CP evidence or unrelated files."
+                ),
+            }
+        )
+    return contracts
+
+
+def append_patch_contracts(lines: list[str], contracts: list[dict[str, Any]]) -> None:
+    lines.extend(
+        [
+            "## Patch Contracts",
+            "",
+            "Start here. These contracts are the implementation queue. Execute one contract at a time, edit only the listed target files, and use the raw `CP-*` sections below only as supporting evidence.",
+            "",
+        ]
+    )
+    if not contracts:
+        lines.append("- No executable patch contracts were generated from the validated findings.")
+        lines.append("")
+        return
+
+    lines.extend(
+        [
+            "```json",
+            json.dumps({"patch_contracts": contracts}, ensure_ascii=True, indent=2),
+            "```",
+            "",
+        ]
+    )
+    for contract in contracts:
+        lines.extend(
+            [
+                f"### {inline_markdown(contract['id'])}: {inline_markdown(contract['phase'])}",
+                "",
+                f"- Source work package: {inline_markdown(contract['work_package_id'])}",
+                "- Target files:",
+            ]
+        )
+        for target in contract.get("target_files", []):
+            lines.append(f"  - {inline_markdown(target)}")
+        lines.extend(["", "- Required source files to inspect:"])
+        for source in contract.get("required_source_files", []):
+            lines.append(f"  - {inline_markdown(source['path'])}: {inline_markdown(source['reason'])}")
+        lines.extend(["", "- Patch items:"])
+        for item in contract.get("patch_items", []):
+            section = item.get("section")
+            section_text = f" section `{inline_markdown(section)}`" if section else ""
+            cp_item = item.get("cp_item")
+            cp_text = f" ({inline_markdown(cp_item)})" if cp_item else ""
+            source_ref = item.get("source_ref")
+            source_text = f" Source: {inline_markdown(source_ref)}." if source_ref else ""
+            lines.append(
+                f"  - {inline_markdown(item.get('action', 'ADD'))}{cp_text}: "
+                f"{inline_markdown(item.get('target_file', 'unknown'))}{section_text}. "
+                f"{inline_markdown(item.get('instruction', ''))}{source_text}"
+            )
+            skip_condition = item.get("skip_condition")
+            if skip_condition:
+                lines.append(f"  - SKIP: {inline_markdown(skip_condition)}")
+        lines.extend(["", "- DO NOT TOUCH:"])
+        for path in contract.get("do_not_touch", []):
+            lines.append(f"  - {inline_markdown(path)}")
+        lines.extend(["", "- Expected output:"])
+        for item in contract.get("expected_output", []):
+            lines.append(f"  - {inline_markdown(item)}")
+        lines.append(f"- Stop condition: {inline_markdown(contract['stop_condition'])}")
+        lines.append("")
+
+
 def append_executable_work_packages(
     lines: list[str],
     packages: list[dict[str, Any]],
@@ -1308,7 +1673,7 @@ def append_executable_work_packages(
         [
             "## Executable Work Packages",
             "",
-            "Use this section as the implementation queue. The raw `CP-*` sections below are supporting evidence; do not start by inventing another implementation plan.",
+            "This legacy queue is retained for traceability. Implementation agents should execute the `Patch Contracts` above and use this section only to map contracts back to grouped review findings.",
             "",
         ]
     )
@@ -1390,7 +1755,7 @@ def append_change_plan_execution_contract(
         [
             "## Agent Execution Contract",
             "",
-            "This artifact contains an executable work queue followed by raw evidence. An implementation agent should complete the work packages directly and verify every new claim from target repository sources before editing.",
+            "This artifact contains patch contracts followed by raw evidence. An implementation agent should complete the patch contracts directly and verify every new claim from target repository sources before editing.",
             "",
             "### Scope Warnings",
             "",
@@ -1408,13 +1773,14 @@ def append_change_plan_execution_contract(
             "### Required Workflow",
             "",
             "1. Read the target repository instructions and the ordered documentation index before editing.",
-            "2. Start with `Executable Work Packages`; do not create a second implementation plan unless a work package is blocked.",
-            "3. Open the listed target files and any source files needed to prove the claim, such as scripts, runtime config, feature READMEs, or examples.",
-            "4. Keep the documentation shape intact: root README stays an entry point; feature details belong in feature READMEs; examples belong under `docs/examples/`; the ordered docs index must link the result.",
-            "5. Do not add setup steps, environment variables, ports, commands, policy claims, or tested-environment claims unless the target repo source proves them.",
-            "6. Treat `Safe Documentation Edits` as source-backed facts to check against current docs; skip items that are already clear.",
-            "7. Treat `Needs User Decision` and `Insufficient Evidence` as blockers unless you can verify them locally or ask the user.",
-            "8. Report skipped items with the reason, not just completed edits.",
+            "2. Start with `Patch Contracts`; do not create a second implementation plan unless a contract is blocked.",
+            "3. Complete one patch contract at a time, stop at its stop condition, and edit only its listed target files.",
+            "4. Open the listed target files and required source files before editing.",
+            "5. Keep the documentation shape intact: root README stays an entry point; feature details belong in feature READMEs; examples belong under `docs/examples/`; the ordered docs index must link the result.",
+            "6. Do not add setup steps, environment variables, ports, commands, policy claims, or tested-environment claims unless the target repo source proves them.",
+            "7. Treat raw `Safe Documentation Edits` as an appendix, not as a second implementation queue.",
+            "8. Treat `Needs User Decision` and `Insufficient Evidence` as blockers unless you can verify them locally or ask the user.",
+            "9. Report skipped items with the reason, not just completed edits.",
             "",
             "### Completion Checklist",
             "",
@@ -1466,6 +1832,7 @@ def build_doc_change_plan(report: dict[str, Any]) -> str:
     seed_doc_id = inline_markdown(report.get("seed_doc_id") or report.get("doc_id") or "unknown")
     change_plan_items = collect_change_plan_items(report)
     work_packages, evidence_only_records = build_change_plan_work_packages(change_plan_items, report)
+    patch_contracts = build_change_plan_patch_contracts(work_packages, change_plan_items)
     safe_edits = group_change_plan_items(change_plan_items, "safe_documentation_edit")
     needs_decision = group_change_plan_items(change_plan_items, "needs_user_decision")
     insufficient_evidence = group_change_plan_items(change_plan_items, "insufficient_evidence")
@@ -1519,6 +1886,7 @@ def build_doc_change_plan(report: dict[str, Any]) -> str:
     lines.append("")
 
     append_change_plan_execution_contract(lines, report, aggregate)
+    append_patch_contracts(lines, patch_contracts)
     append_executable_work_packages(lines, work_packages, evidence_only_records)
 
     append_grouped_change_section(

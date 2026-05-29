@@ -63,13 +63,14 @@ Reports are written under `.agentic_reports/` by default. The target project is 
 
 ## Change Plan Execution
 
-The change plan starts with an agent execution contract and an `Executable Work Packages` queue. Raw `CP-*` findings remain below that queue as supporting evidence. A downstream implementation agent should work the packages directly instead of creating a second implementation plan.
+The change plan starts with an agent execution contract and a `Patch Contracts` queue. Each patch contract names the phase, target files, required source files, explicit `ADD` / `REPLACE` / `SKIP` / `DO NOT TOUCH` instructions, expected output, and a stop condition. Raw `CP-*` findings and legacy work packages remain below that queue as traceability evidence, not as a second backlog.
 
 Downstream agents should:
 
 - read the target repo instructions and ordered documentation index before editing
 - verify every new setup, port, command, environment variable, or tested-environment claim from source files
-- use the work package `target_files`, `change_plan_items`, required actions, and acceptance criteria as the implementation queue
+- execute one patch contract at a time and stop at its stop condition
+- edit only the patch contract `target_files`
 - treat setup/configuration/runtime/tested-environment criteria as repository entry-point work, not as missing sections to paste into every feature or reference document
 - keep feature details in feature READMEs, examples in `docs/examples/`, and navigation in `docs/README.md`
 - treat `Needs User Decision` and `Insufficient Evidence` items as blockers unless local evidence resolves them
