@@ -16,6 +16,7 @@ from vllm_agent_gateway.controllers.documenter.orchestrator import (
     DocumenterInvocationRequest,
     ReviewTarget,
     build_packet,
+    build_doc_change_plan,
     build_summary_packet,
     estimate_tokens,
     invoke_documenter,
@@ -85,6 +86,7 @@ def make_target_repo(tmp_path: Path) -> Path:
     write_text(target / "runtime" / "roles.json", '{"roles":[]}\n')
     write_text(target / "start-agent-prompt-proxies.sh", "#!/usr/bin/env bash\n")
     write_text(target / "assets" / "tool.exe", "not a real executable\n")
+    write_text(target / ".aider.chat.history.md", "# Chat History\n\ntransient model session log\n")
     write_text(target / "UNTRACKED.md", "# Untracked\n\nBootstrap-only documentation.\n")
 
     run_command(["git", "init"], target)
@@ -98,6 +100,7 @@ def make_target_repo(tmp_path: Path) -> Path:
             "runtime/roles.json",
             "start-agent-prompt-proxies.sh",
             "assets/tool.exe",
+            ".aider.chat.history.md",
         ],
         target,
     )
@@ -408,6 +411,7 @@ def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tm
     assert tracked_manifest["document_scope"] == "tracked"
     assert "README.md" in tracked_paths
     assert "UNTRACKED.md" not in tracked_paths
+    assert ".aider.chat.history.md" not in tracked_paths
     assert tracked_report["tool_policy"]["controller_tool_dependencies"] == ["git_ls_files", "read_file"]
 
     all_out = tmp_path / "all-out"
@@ -432,6 +436,7 @@ def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tm
 
     assert all_manifest["document_scope"] == "all"
     assert "UNTRACKED.md" in all_paths
+    assert ".aider.chat.history.md" not in all_paths
     assert ".venv-1/Lib/site-packages/vendor/README.md" not in all_paths
     assert ".tmp_pytest/candidate/README.md" not in all_paths
     assert "docs/archive/v2/runtime-output/startup_output.txt" not in all_paths
@@ -440,6 +445,7 @@ def test_tracked_and_all_document_scopes_write_manifest_and_tool_dependencies(tm
     assert all_report["review_scope"] == "manifest"
     reviewed_doc_ids = {item["doc_id"] for item in all_report["reviewed_files"]}
     assert {"README.md", "UNTRACKED.md", "docs/config.md", "docs/guide.md"} <= reviewed_doc_ids
+    assert ".aider.chat.history.md" not in reviewed_doc_ids
     assert all_report["tool_policy"]["controller_tool_dependencies"] == [
         "git_ls_files",
         "read_file",
@@ -654,8 +660,12 @@ def test_change_plan_groups_validated_findings_and_does_not_modify_target_docs(t
     assert "CP-0002" in change_plan
     assert "CP-0003" in change_plan
     assert "## Agent Execution Contract" in change_plan
-    assert "This artifact is an evidence index, not a patch." in change_plan
-    assert "Do not make one tiny edit per CP item." in change_plan
+    assert "## Executable Work Packages" in change_plan
+    assert change_plan.index("## Executable Work Packages") < change_plan.index("## Safe Documentation Edits")
+    assert "This artifact contains an executable work queue followed by raw evidence." in change_plan
+    assert "Apply documentation changes directly; do not create a separate implementation plan." in change_plan
+    assert '"id": "WP-0001"' in change_plan
+    assert '"target_files": [\n        "README.md"\n      ]' in change_plan
     assert (
         "Check whether the current documentation already preserves this source-backed fact; "
         "edit only if it is missing, contradicted, or buried: Install with Docker is documented."
@@ -664,6 +674,59 @@ def test_change_plan_groups_validated_findings_and_does_not_modify_target_docs(t
     assert "Validation warning from report field criteria_satisfied" in change_plan
     assert "### Reported By Documenter" in change_plan
     assert "- docs/config.md" in change_plan
+
+
+def test_change_plan_work_packages_exclude_chat_history_sources() -> None:
+    report = {
+        "generated_at": "2026-05-29T00:00:00Z",
+        "target_root": "/repo",
+        "seed_doc_id": "README.md",
+        "doc_id": "README.md",
+        "mode": "full",
+        "dry_run": False,
+        "document_scope": "all",
+        "review_scope": "manifest",
+        "chunks_processed": 2,
+        "chunks_total": 2,
+        "truncated_after_chunks": False,
+        "chunks": [
+            {
+                "doc_id": ".aider.chat.history.md",
+                "chunk_id": ".aider.chat.history.md:0001",
+                "lines": [1, 10],
+                "result": {
+                    "chunk_id": ".aider.chat.history.md:0001",
+                    "facts_found": ["aider session used a model name"],
+                    "criteria_satisfied": [],
+                    "criteria_remaining": [],
+                    "doc_gaps": ["chat transcript has no product overview"],
+                    "followup_files": [],
+                    "confidence": "high",
+                },
+            },
+            {
+                "doc_id": "README.md",
+                "chunk_id": "README.md:0001",
+                "lines": [1, 8],
+                "result": {
+                    "chunk_id": "README.md:0001",
+                    "facts_found": ["README documents Docker installation"],
+                    "criteria_satisfied": [],
+                    "criteria_remaining": [],
+                    "doc_gaps": [],
+                    "followup_files": [],
+                    "confidence": "high",
+                },
+            },
+        ],
+    }
+
+    change_plan = build_doc_change_plan(report)
+    work_section = change_plan.split("## Executable Work Packages", 1)[1].split("## Safe Documentation Edits", 1)[0]
+
+    assert '"target_files": [\n        "README.md"\n      ]' in work_section
+    assert ".aider.chat.history.md: 2 CP items" in work_section
+    assert '"target_files": [\n        ".aider.chat.history.md"\n      ]' not in work_section
 
 
 def test_dry_run_change_plan_records_insufficient_evidence_instead_of_safe_edits(tmp_path: Path) -> None:

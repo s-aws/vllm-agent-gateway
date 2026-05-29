@@ -17,7 +17,7 @@ The documenter role receives one bounded packet and returns structured JSON. It 
 - Can review either the selected seed doc or the full discovered manifest.
 - Can send independent chunk review packets with bounded parallelism.
 - Optionally expands exact follow-up files within depth/count/scope limits.
-- Writes non-mutating Markdown change plans.
+- Writes non-mutating Markdown change plans with executable work packages.
 - Optionally writes draft artifact copies under the configured output directory.
 - Writes resumable `run-state-*.json` state.
 
@@ -63,13 +63,13 @@ Reports are written under `.agentic_reports/` by default. The target project is 
 
 ## Change Plan Execution
 
-The change plan is an evidence index for a later documentation pass, not a patch script. It now includes an agent execution contract with scope warnings, required workflow, and a completion checklist.
+The change plan starts with an agent execution contract and an `Executable Work Packages` queue. Raw `CP-*` findings remain below that queue as supporting evidence. A downstream implementation agent should work the packages directly instead of creating a second implementation plan.
 
 Downstream agents should:
 
 - read the target repo instructions and ordered documentation index before editing
 - verify every new setup, port, command, environment variable, or tested-environment claim from source files
-- collapse duplicate `CP-*` items into coherent documentation work instead of making one tiny edit per item
+- use the work package `target_files`, `change_plan_items`, required actions, and acceptance criteria as the implementation queue
 - keep feature details in feature READMEs, examples in `docs/examples/`, and navigation in `docs/README.md`
 - treat `Needs User Decision` and `Insufficient Evidence` items as blockers unless local evidence resolves them
 
@@ -77,6 +77,7 @@ Downstream agents should:
 
 - Default document discovery uses tracked files.
 - `--document-scope all` is explicit and skips common generated directories such as virtual environments, `.agentic_reports`, `.tmp_pytest`, `runtime-output`, and `test_runtime`.
+- Documentation discovery ignores transient agent chat history such as `.aider.chat.history.md`; generated, archived, hidden-tooling, and non-documentation sources are excluded from executable work packages even if raw evidence mentions them.
 - `--review-scope seed` can force a one-document review even when discovery uses all files.
 - Follow-up expansion is fail-closed by default and limited to packet-visible candidates.
 - The normal path has an in-memory file size guard. Use the streaming workflow for oversized files.

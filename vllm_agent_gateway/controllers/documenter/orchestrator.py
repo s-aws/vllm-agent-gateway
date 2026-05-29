@@ -52,6 +52,7 @@ SUMMARY_REVIEWED_FILE_LIMIT = 80
 SUMMARY_VALIDATION_WARNING_LIMIT = 20
 SUMMARY_FOLLOWUP_EXAMPLE_LIMIT = 20
 SUMMARY_STRING_LIMIT = 240
+WORK_PACKAGE_TARGET_LIMIT = 40
 SCRIPT_CONFIG_ROOT = default_config_root(Path(__file__).resolve())
 MODES = {"review", "summarize", "full"}
 REVIEW_SCOPES = {"auto", "seed", "manifest"}
@@ -81,10 +82,32 @@ IGNORED_SCAN_DIRS = {
     "test_runtime",
     "venv",
 }
+IGNORED_DOCUMENT_FILENAMES = {
+    ".aider.chat.history.md",
+}
+EVIDENCE_ONLY_DOCUMENT_DIRS = {
+    "archive",
+    "archives",
+    "genai_data",
+    "genai_tools",
+}
 
 
 def is_ignored_scan_dir(name: str) -> bool:
     return name in IGNORED_SCAN_DIRS or name.startswith(".venv")
+
+
+def path_has_ignored_scan_dir(path: str) -> bool:
+    return any(is_ignored_scan_dir(part) for part in Path(path).parts[:-1])
+
+
+def is_ignored_document_path(path: str) -> bool:
+    path_obj = Path(path)
+    return path_obj.name.lower() in IGNORED_DOCUMENT_FILENAMES or path_has_ignored_scan_dir(path)
+
+
+def is_documentation_path(path: str) -> bool:
+    return Path(path).suffix.lower() in DOC_SUFFIXES and not is_ignored_document_path(path)
 
 
 FOLLOWUP_SUFFIXES = {
@@ -323,7 +346,7 @@ def tracked_files(repo_root: Path, assigned_tool_ids: set[str]) -> list[str]:
 
 
 def tracked_docs(repo_root: Path, assigned_tool_ids: set[str]) -> list[str]:
-    return [path for path in tracked_files(repo_root, assigned_tool_ids) if Path(path).suffix.lower() in DOC_SUFFIXES]
+    return [path for path in tracked_files(repo_root, assigned_tool_ids) if is_documentation_path(path)]
 
 
 def scan_repo_files(repo_root: Path, assigned_tool_ids: set[str]) -> list[str]:
@@ -372,7 +395,7 @@ def discover_files_for_scope(
 
 
 def doc_paths_from_files(files: list[str]) -> list[str]:
-    return [path for path in files if Path(path).suffix.lower() in DOC_SUFFIXES]
+    return [path for path in files if is_documentation_path(path)]
 
 
 def normalize_repo_path(repo_root: Path, value: str) -> str:
@@ -405,7 +428,7 @@ def select_document(
             allow_untracked_doc
             and candidate.exists()
             and candidate.is_file()
-            and candidate.suffix.lower() in DOC_SUFFIXES
+            and is_documentation_path(doc_id)
         ):
             return doc_id, docs
         raise OrchestratorError(f"Selected document is not in the discovered documentation manifest: {doc_id}")
@@ -504,6 +527,12 @@ def build_packet(
         "criteria_remaining": criteria_remaining,
         "visible_followup_candidates": visible_followup_candidates,
         "followup_file_policy": "Prefer exact paths from visible_followup_candidates. Use an empty array when no visible candidate is relevant.",
+        "review_rules": [
+            "Report durable project behavior, setup, architecture, policy, or workflow facts only.",
+            "Do not report chat-history, runtime-output, generated-artifact, cache, archive, or transient log details as product documentation facts.",
+            "Phrase doc_gaps as actionable documentation problems in the current doc or an obvious visible documentation target.",
+            "Prefer no finding over low-value inventory facts such as files were added to chat, model names, token warnings, timestamps, or raw output sizes.",
+        ],
         "required_output": {
             "chunk_id": "string",
             "facts_found": ["string"],
@@ -940,6 +969,196 @@ def group_change_plan_items(items: list[dict[str, Any]], category: str) -> dict[
     return grouped
 
 
+def is_evidence_only_change_plan_target(path: str) -> bool:
+    if not is_documentation_path(path):
+        return True
+    parts = [part.lower() for part in Path(path).parts]
+    if any(part in EVIDENCE_ONLY_DOCUMENT_DIRS for part in parts[:-1]):
+        return True
+    return any(part.startswith(".") for part in parts[:-1])
+
+
+def change_plan_work_area(path: str) -> str:
+    parts = Path(path).parts
+    if len(parts) <= 1:
+        return "root documentation"
+    first = parts[0].lower()
+    if first == "docs":
+        if len(parts) > 1 and parts[1].lower() in {"agents", "examples"}:
+            return f"docs/{parts[1]}"
+        return "docs"
+    if first == "tools" and len(parts) > 1:
+        return f"tools/{parts[1]}"
+    return parts[0]
+
+
+def target_priority(path: str, seed_doc_id: str) -> tuple[int, str]:
+    lower = path.lower()
+    if path == seed_doc_id:
+        return (0, lower)
+    if lower == "readme.md":
+        return (1, lower)
+    if lower == "docs/readme.md":
+        return (2, lower)
+    if lower.endswith("/readme.md"):
+        return (3, lower)
+    if lower.startswith("docs/examples/"):
+        return (4, lower)
+    if lower.startswith("docs/agents/"):
+        return (5, lower)
+    if lower.startswith("docs/"):
+        return (6, lower)
+    return (7, lower)
+
+
+def sorted_targets(targets: set[str], seed_doc_id: str) -> list[str]:
+    return sorted(targets, key=lambda path: target_priority(path, seed_doc_id))
+
+
+def build_change_plan_work_packages(
+    change_plan_items: list[dict[str, Any]],
+    report: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    seed_doc_id = inline_markdown(report.get("seed_doc_id") or report.get("doc_id") or "unknown")
+    grouped: dict[str, dict[str, Any]] = {}
+    evidence_only: dict[str, dict[str, Any]] = {}
+
+    for item in change_plan_items:
+        category = inline_markdown(item.get("category", "unknown"))
+        if category not in {"safe_documentation_edit", "needs_user_decision"}:
+            continue
+        target_file = inline_markdown(item.get("target_file", "unknown"))
+        if is_evidence_only_change_plan_target(target_file):
+            record = evidence_only.setdefault(
+                target_file,
+                {
+                    "target_file": target_file,
+                    "item_count": 0,
+                    "change_plan_items": [],
+                },
+            )
+            record["item_count"] += 1
+            record["change_plan_items"].append(inline_markdown(item.get("id", "CP-????")))
+            continue
+
+        area = change_plan_work_area(target_file)
+        group = grouped.setdefault(
+            area,
+            {
+                "area": area,
+                "target_files": set(),
+                "source_refs": set(),
+                "safe_documentation_edit": [],
+                "needs_user_decision": [],
+            },
+        )
+        group["target_files"].add(target_file)
+        group["source_refs"].add(inline_markdown(item.get("source", "unknown")))
+        group[category].append(inline_markdown(item.get("id", "CP-????")))
+
+    packages: list[dict[str, Any]] = []
+    sorted_groups = sorted(
+        grouped.values(),
+        key=lambda group: (
+            min(target_priority(path, seed_doc_id) for path in group["target_files"]),
+            str(group["area"]).lower(),
+        ),
+    )
+    for index, group in enumerate(sorted_groups, start=1):
+        targets = sorted_targets(group["target_files"], seed_doc_id)
+        omitted_targets = max(0, len(targets) - WORK_PACKAGE_TARGET_LIMIT)
+        package = {
+            "id": f"WP-{index:04d}",
+            "area": group["area"],
+            "target_files": targets[:WORK_PACKAGE_TARGET_LIMIT],
+            "omitted_target_file_count": omitted_targets,
+            "change_plan_items": {
+                "needs_user_decision": group["needs_user_decision"],
+                "safe_documentation_edit": group["safe_documentation_edit"],
+            },
+            "source_refs": sorted(group["source_refs"])[:20],
+            "required_actions": [
+                "Open the listed target docs and the cited source refs before editing.",
+                "Apply documentation changes directly; do not create a separate implementation plan.",
+                "Resolve Needs User Decision items from local source evidence when possible, otherwise record them as skipped with a reason.",
+                "Check Safe Documentation Edit items against the current docs and edit only when the claim is missing, contradicted, or buried.",
+                "Update the ordered docs index or examples in the same package when navigation or workflow content changes.",
+            ],
+            "acceptance_criteria": [
+                "Every listed CP item is either addressed in a target doc or explicitly skipped with a concrete reason.",
+                "New claims match target repository source files, commands, schemas, tests, or existing docs.",
+                "No evidence-only, generated, archive, chat-history, or runtime-output facts are copied without independent source verification.",
+                "Repository-required verification is run, or the final report states exactly why it was not run.",
+            ],
+        }
+        packages.append(package)
+
+    evidence_records = sorted(
+        evidence_only.values(),
+        key=lambda item: (-int(item["item_count"]), str(item["target_file"]).lower()),
+    )
+    return packages, evidence_records
+
+
+def append_executable_work_packages(
+    lines: list[str],
+    packages: list[dict[str, Any]],
+    evidence_only_records: list[dict[str, Any]],
+) -> None:
+    lines.extend(
+        [
+            "## Executable Work Packages",
+            "",
+            "Use this section as the implementation queue. The raw `CP-*` sections below are supporting evidence; do not start by inventing another implementation plan.",
+            "",
+        ]
+    )
+    if not packages:
+        lines.append("- No executable documentation work packages were generated from the validated findings.")
+        lines.append("")
+    else:
+        lines.extend(
+            [
+                "```json",
+                json.dumps({"work_packages": packages}, ensure_ascii=True, indent=2),
+                "```",
+                "",
+            ]
+        )
+        for package in packages:
+            needs_count = len(package["change_plan_items"]["needs_user_decision"])
+            safe_count = len(package["change_plan_items"]["safe_documentation_edit"])
+            omitted = int(package.get("omitted_target_file_count", 0))
+            omitted_text = f" ({omitted} additional target files omitted from this summary)" if omitted else ""
+            lines.extend(
+                [
+                    f"### {inline_markdown(package['id'])}: {inline_markdown(package['area'])}",
+                    "",
+                    f"- Target files: {', '.join(inline_markdown(path) for path in package['target_files'])}{omitted_text}",
+                    f"- Needs User Decision items: {needs_count}",
+                    f"- Safe Documentation Edit items: {safe_count}",
+                    "- Required action: edit the target docs directly, verify claims from repository sources, and report any skipped CP items with reasons.",
+                    "",
+                ]
+            )
+
+    lines.extend(["### Evidence-Only Sources", ""])
+    if not evidence_only_records:
+        lines.append("- None recorded.")
+    else:
+        lines.append(
+            "These sources were excluded from executable work packages because they are ignored, hidden tooling, generated, archived, non-documentation, or runtime-output sources. Use them only as clues for finding independent source evidence."
+        )
+        lines.append("")
+        for record in evidence_only_records[:30]:
+            lines.append(
+                f"- {inline_markdown(record['target_file'])}: {inline_markdown(record['item_count'])} CP items"
+            )
+        if len(evidence_only_records) > 30:
+            lines.append(f"- ... {len(evidence_only_records) - 30} additional evidence-only sources omitted.")
+    lines.append("")
+
+
 def change_plan_scope_warnings(report: dict[str, Any], aggregate: dict[str, Any]) -> list[str]:
     warnings: list[str] = []
     if report.get("dry_run"):
@@ -970,7 +1189,7 @@ def append_change_plan_execution_contract(
         [
             "## Agent Execution Contract",
             "",
-            "This artifact is an evidence index, not a patch. An implementation agent must translate it into repo-shaped documentation changes and verify every new claim from target repository sources before editing.",
+            "This artifact contains an executable work queue followed by raw evidence. An implementation agent should complete the work packages directly and verify every new claim from target repository sources before editing.",
             "",
             "### Scope Warnings",
             "",
@@ -988,8 +1207,8 @@ def append_change_plan_execution_contract(
             "### Required Workflow",
             "",
             "1. Read the target repository instructions and the ordered documentation index before editing.",
-            "2. Open the current target file and any source files needed to prove the claim, such as scripts, runtime config, feature READMEs, or examples.",
-            "3. Collapse duplicate change-plan items into coherent documentation work. Do not make one tiny edit per CP item.",
+            "2. Start with `Executable Work Packages`; do not create a second implementation plan unless a work package is blocked.",
+            "3. Open the listed target files and any source files needed to prove the claim, such as scripts, runtime config, feature READMEs, or examples.",
             "4. Keep the documentation shape intact: root README stays an entry point; feature details belong in feature READMEs; examples belong under `docs/examples/`; the ordered docs index must link the result.",
             "5. Do not add setup steps, environment variables, ports, commands, policy claims, or tested-environment claims unless the target repo source proves them.",
             "6. Treat `Safe Documentation Edits` as source-backed facts to check against current docs; skip items that are already clear.",
@@ -1045,6 +1264,7 @@ def build_doc_change_plan(report: dict[str, Any]) -> str:
 
     seed_doc_id = inline_markdown(report.get("seed_doc_id") or report.get("doc_id") or "unknown")
     change_plan_items = collect_change_plan_items(report)
+    work_packages, evidence_only_records = build_change_plan_work_packages(change_plan_items, report)
     safe_edits = group_change_plan_items(change_plan_items, "safe_documentation_edit")
     needs_decision = group_change_plan_items(change_plan_items, "needs_user_decision")
     insufficient_evidence = group_change_plan_items(change_plan_items, "insufficient_evidence")
@@ -1098,6 +1318,7 @@ def build_doc_change_plan(report: dict[str, Any]) -> str:
     lines.append("")
 
     append_change_plan_execution_contract(lines, report, aggregate)
+    append_executable_work_packages(lines, work_packages, evidence_only_records)
 
     append_grouped_change_section(
         lines,
@@ -1178,7 +1399,7 @@ def build_doc_change_plan(report: dict[str, Any]) -> str:
             "## Caveats",
             "",
             "- This plan is generated from processed chunks only; it does not imply unprocessed files were reviewed.",
-            "- Proposed changes are grouped by the file whose chunk produced the evidence.",
+            "- Executable work packages are grouped by documentation area; raw CP sections remain grouped by the file whose chunk produced the evidence.",
             "- Safe edits are source-backed facts, not automatic file modifications.",
             "- Low-confidence and validation-warning items require additional verification before drafting.",
             "",
@@ -1456,6 +1677,7 @@ def build_document_manifest(
         "target_root": str(repo_root),
         "document_scope": document_scope,
         "doc_suffixes": sorted(DOC_SUFFIXES),
+        "ignored_document_filenames": sorted(IGNORED_DOCUMENT_FILENAMES),
         "ignored_scan_dirs": sorted(IGNORED_SCAN_DIRS) if document_scope == "all" else [],
         "seed_doc_id": seed_doc_id,
         "document_count": len(entries),
@@ -1507,7 +1729,7 @@ def candidate_base_reasons(path: str, seed_doc_id: str) -> list[str]:
         reasons.append("startup_script")
     if name == "readme.md" or lower_path.endswith("/readme.md"):
         reasons.append("documentation_index")
-    if suffix in DOC_SUFFIXES:
+    if is_documentation_path(path):
         reasons.append("documentation")
     if not reasons:
         reasons.append("in_scope_file")
@@ -1527,6 +1749,10 @@ def metadata_for_candidate(
 ) -> dict[str, Any] | None:
     suffix = Path(path).suffix.lower()
     if suffix not in FOLLOWUP_SUFFIXES:
+        return None
+    if path_has_ignored_scan_dir(path):
+        return None
+    if suffix in DOC_SUFFIXES and not is_documentation_path(path):
         return None
     repo_path = (repo_root / path).resolve()
     try:
