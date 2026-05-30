@@ -32,7 +32,7 @@ DEFAULT_MAX_MODEL_RECORDS = 1000
 DEFAULT_MODEL_OUTPUT_TOKENS = 2000
 DEFAULT_MAX_SUMMARIES = 8
 DEFAULT_MAX_SUMMARY_DEPTH = 3
-DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+DEFAULT_MODEL = "Qwen3-Coder-30B-A3B-Instruct"
 SUMMARY_DERIVED_QUALITY_LABEL = "summary_derived"
 SUMMARY_CAVEATS = (
     "Summaries are lossy orientation, not evidence by themselves.",

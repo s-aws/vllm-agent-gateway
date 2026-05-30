@@ -23,7 +23,7 @@ Use Claude Code against a role prompt proxy. Anthropic-compatible clients usuall
 ```bash
 export ANTHROPIC_BASE_URL=http://127.0.0.1:8205
 claude -p --bare --tools "Read,Grep,Glob" \
-  --model Qwen/Qwen3-Coder-30B-A3B-Instruct \
+  --model Qwen3-Coder-30B-A3B-Instruct \
   "What is your role name?"
 ```
 

@@ -21,7 +21,7 @@ Tested setup:
 - Ubuntu 24.04/Linux runtime
 - NVIDIA RTX 6000 PRO 96 GB
 - NVIDIA vLLM Docker container: `nvcr.io/nvidia/vllm:26.01-py3`
-- Model: `Qwen/Qwen3-Coder-30B-A3B-Instruct`
+- Model: `Qwen3-Coder-30B-A3B-Instruct`
 - vLLM OpenAI-compatible server on `http://127.0.0.1:8000/v1`
 - Python 3 and Bash
 - Claude Code as one tested client, usually with `--bare`

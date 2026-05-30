@@ -38,7 +38,7 @@ def default_config_root(anchor: Path) -> Path:
     return parents[3] if len(parents) > 3 else parents[-1]
 
 
-DEFAULT_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+DEFAULT_MODEL = "Qwen3-Coder-30B-A3B-Instruct"
 DEFAULT_ROLE_ID = "documenter/default"
 DEFAULT_OUTPUT_DIR = ".agentic_reports"
 DEFAULT_VISIBLE_CANDIDATE_LIMIT = 12
