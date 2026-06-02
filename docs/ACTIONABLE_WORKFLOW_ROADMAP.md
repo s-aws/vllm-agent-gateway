@@ -181,6 +181,12 @@ Acceptance criteria:
 4. Add code investigation artifacts that can produce implementation packet candidates.
 5. Compose a `refactor.single_path` workflow from investigation plus the existing implementation workflow.
 
+## Skill Workstream
+
+The workflow work should be supported by narrow execution-planning skills, especially for smaller models that cannot reliably infer the correct planning sequence from broad role prompts.
+
+Start with the skill specs in [Execution Planning Skills](EXECUTION_PLANNING_SKILLS.md). The first skills to create are `request-triage`, `scope-and-assumptions`, `entrypoint-finder`, `context-plan-builder`, and `execution-plan-writer`.
+
 ## Do Not Do Yet
 
 - Do not add a broad external agent framework just to show progress.

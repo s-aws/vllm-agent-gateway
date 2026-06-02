@@ -19,6 +19,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 
 - [Tool Policy README](../README.tool-policy.md): runtime tool catalog, role tool assignment, and synthetic tool mediation.
 - [Tool Mediation Reference](TOOL_MEDIATION.md): model-visible tool schemas, tool-call detection, execution loop, and final response validation.
+- [Execution Planning Skills](EXECUTION_PLANNING_SKILLS.md): skill specs for deterministic planning by smaller models.
 
 ## 4. Examples
 
