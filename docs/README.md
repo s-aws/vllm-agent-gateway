@@ -32,6 +32,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 
 ## 5. State, Modes, And Roadmaps
 
+- [Actionable Workflow Roadmap](ACTIONABLE_WORKFLOW_ROADMAP.md): current founder-testable workflow direction, Mermaid overview, and next shippable increments.
 - [Documenter Run State](DOCUMENTER_RUN_STATE.md): `run-state-*.json` schema and resume behavior.
 - [Streaming Document Modes](STREAMING_DOCUMENT_MODES.md): mode details, output labels, artifacts, and limits.
 - [Documenter E2E Roadmap](DOCUMENTER_E2E_ROADMAP.md): shipped phases, remaining nice-to-have work, artifact inventory, and drift controls.

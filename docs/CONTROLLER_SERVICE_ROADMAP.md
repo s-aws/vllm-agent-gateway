@@ -254,4 +254,4 @@ If any answer is unclear, update this roadmap before implementing the behavior.
 
 ## Immediate Next Step
 
-Phase 6 completed the first service-backed documenter example. The next roadmap phase remains deferred hardening and framework review unless a concrete local-controller limit appears.
+Phase 6 completed the first service-backed documenter example. Current product-facing work is tracked in [Actionable Workflow Roadmap](ACTIONABLE_WORKFLOW_ROADMAP.md); framework hardening remains deferred until a concrete controller limit appears.

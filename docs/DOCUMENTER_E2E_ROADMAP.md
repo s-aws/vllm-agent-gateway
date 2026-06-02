@@ -447,4 +447,4 @@ Current artifacts:
 
 ## Immediate Next Step
 
-Phase 14 remains nice-to-have audit hardening. The next shipped feature should follow the [Controller Service Roadmap](CONTROLLER_SERVICE_ROADMAP.md): first make the documenter workflow callable through a reusable controller invocation API, then expose it through an explicit local controller service.
+Phase 14 remains nice-to-have audit hardening. The controller-service path is already shipped, so current product-facing work is tracked in [Actionable Workflow Roadmap](ACTIONABLE_WORKFLOW_ROADMAP.md).
