@@ -19,6 +19,50 @@ url_host_for_bind_host() {
     esac
 }
 
+openai_base_url() {
+    local base="${1%/}"
+    case "$base" in
+        */v1)
+            printf "%s" "$base"
+            ;;
+        *)
+            printf "%s/v1" "$base"
+            ;;
+    esac
+}
+
+openai_models_url() {
+    printf "%s/models" "$(openai_base_url "$1")"
+}
+
+print_health_status() {
+    local label="$1"
+    local url="$2"
+
+    if ! command -v curl >/dev/null 2>&1; then
+        echo "${label}: not checked; curl is unavailable (${url})"
+        return
+    fi
+
+    if curl -fsS --max-time 10 "$url" >/dev/null 2>&1; then
+        echo "${label}: ok (${url})"
+    else
+        echo "${label}: not ready (${url})"
+    fi
+}
+
+print_allowed_target_roots() {
+    local roots="$1"
+    local root
+
+    IFS=':' read -r -a allowed_roots <<< "$roots"
+    for root in "${allowed_roots[@]}"; do
+        if [[ -n "$root" ]]; then
+            echo "- $root"
+        fi
+    done
+}
+
 print_role_endpoints() {
     local connect_host="$1"
     python3 - "$connect_host" <<'PY'
@@ -45,6 +89,16 @@ CONTROLLER_BIND_HOST="${CONTROLLER_BIND_HOST:-127.0.0.1}"
 CONTROLLER_PORT="${CONTROLLER_PORT:-8400}"
 CONTROLLER_CONNECT_HOST="${CONTROLLER_CONNECT_HOST:-$(url_host_for_bind_host "$CONTROLLER_BIND_HOST")}"
 CONTROLLER_BASE_URL="${CONTROLLER_BASE_URL:-http://${CONTROLLER_CONNECT_HOST}:${CONTROLLER_PORT}}"
+GATEWAY_CONTROLLER_ROUTING="${GATEWAY_CONTROLLER_ROUTING:-explicit_envelope}"
+GATEWAY_CONTROLLER_HARNESS_URL="${GATEWAY_CONTROLLER_HARNESS_URL:-${CONTROLLER_BASE_URL}/v1/controller/harness/chat/completions}"
+WORKFLOW_ROUTER_GATEWAY_ENABLED="${WORKFLOW_ROUTER_GATEWAY_ENABLED:-1}"
+WORKFLOW_ROUTER_GATEWAY_BIND_HOST="${WORKFLOW_ROUTER_GATEWAY_BIND_HOST:-127.0.0.1}"
+WORKFLOW_ROUTER_GATEWAY_PORT="${WORKFLOW_ROUTER_GATEWAY_PORT:-8500}"
+WORKFLOW_ROUTER_GATEWAY_CONNECT_HOST="${WORKFLOW_ROUTER_GATEWAY_CONNECT_HOST:-$(url_host_for_bind_host "$WORKFLOW_ROUTER_GATEWAY_BIND_HOST")}"
+WORKFLOW_ROUTER_GATEWAY_BASE_URL="${WORKFLOW_ROUTER_GATEWAY_BASE_URL:-http://${WORKFLOW_ROUTER_GATEWAY_CONNECT_HOST}:${WORKFLOW_ROUTER_GATEWAY_PORT}}"
+WORKFLOW_ROUTER_GATEWAY_OPENAI_BASE_URL="$(openai_base_url "$WORKFLOW_ROUTER_GATEWAY_BASE_URL")"
+GATEWAY_OPENAI_BASE_URL="$(openai_base_url "$GATEWAY_BASE_URL")"
+WORKFLOW_ROUTER_CONTROLLER_URL="${WORKFLOW_ROUTER_CONTROLLER_URL:-${CONTROLLER_BASE_URL}/v1/controller/workflow-router/chat/completions}"
 CONTROLLER_OUTPUT_ROOT="${CONTROLLER_OUTPUT_ROOT:-$STATE_ROOT/controller-artifacts}"
 CONTROLLER_ALLOWED_TARGET_ROOTS="${CONTROLLER_ALLOWED_TARGET_ROOTS:-$ROOT}"
 MODEL_LIMIT="${MODEL_LIMIT:-65536}"
@@ -55,6 +109,9 @@ MIN_AVAILABLE_OUTPUT="${MIN_AVAILABLE_OUTPUT:-512}"
 GATEWAY_PID_FILE="$STATE_ROOT/llm-gateway.pid"
 GATEWAY_LOG_FILE="$STATE_ROOT/llm-gateway.log"
 GATEWAY_ERR_FILE="$STATE_ROOT/llm-gateway.err.log"
+WORKFLOW_ROUTER_GATEWAY_PID_FILE="$STATE_ROOT/workflow-router-gateway.pid"
+WORKFLOW_ROUTER_GATEWAY_LOG_FILE="$STATE_ROOT/workflow-router-gateway.log"
+WORKFLOW_ROUTER_GATEWAY_ERR_FILE="$STATE_ROOT/workflow-router-gateway.err.log"
 CONTROLLER_PID_FILE="$STATE_ROOT/controller-service.pid"
 CONTROLLER_LOG_FILE="$STATE_ROOT/controller-service.log"
 CONTROLLER_ERR_FILE="$STATE_ROOT/controller-service.err.log"
@@ -80,6 +137,8 @@ if [[ ! -f "$GATEWAY_PID_FILE" ]]; then
         --target-base-url "$VLLM_BASE_URL" \
         --host "$GATEWAY_BIND_HOST" \
         --port "$GATEWAY_PORT" \
+        --controller-routing "$GATEWAY_CONTROLLER_ROUTING" \
+        --controller-harness-url "$GATEWAY_CONTROLLER_HARNESS_URL" \
         --model-limit "$MODEL_LIMIT" \
         --target-input-limit "$TARGET_INPUT_LIMIT" \
         --safety-buffer "$SAFETY_BUFFER" \
@@ -99,6 +158,45 @@ if [[ ! -f "$GATEWAY_PID_FILE" ]]; then
         exit 1
     fi
     echo "Started LLM gateway PID $gateway_pid"
+fi
+
+if [[ "$WORKFLOW_ROUTER_GATEWAY_ENABLED" == "1" ]]; then
+    if [[ -f "$WORKFLOW_ROUTER_GATEWAY_PID_FILE" ]]; then
+        existing_workflow_router_gateway_pid="$(cat "$WORKFLOW_ROUTER_GATEWAY_PID_FILE" 2>/dev/null || true)"
+        if [[ -n "$existing_workflow_router_gateway_pid" ]] && kill -0 "$existing_workflow_router_gateway_pid" 2>/dev/null; then
+            echo "Workflow router gateway is already running as PID $existing_workflow_router_gateway_pid"
+        else
+            rm -f "$WORKFLOW_ROUTER_GATEWAY_PID_FILE"
+        fi
+    fi
+
+    if [[ ! -f "$WORKFLOW_ROUTER_GATEWAY_PID_FILE" ]]; then
+        nohup python3 -u -m vllm_agent_gateway.gateway.server \
+            --target-base-url "$VLLM_BASE_URL" \
+            --host "$WORKFLOW_ROUTER_GATEWAY_BIND_HOST" \
+            --port "$WORKFLOW_ROUTER_GATEWAY_PORT" \
+            --controller-routing workflow_router \
+            --controller-harness-url "$WORKFLOW_ROUTER_CONTROLLER_URL" \
+            --model-limit "$MODEL_LIMIT" \
+            --target-input-limit "$TARGET_INPUT_LIMIT" \
+            --safety-buffer "$SAFETY_BUFFER" \
+            --default-max-output "$DEFAULT_MAX_OUTPUT" \
+            --min-available-output "$MIN_AVAILABLE_OUTPUT" \
+            >"$WORKFLOW_ROUTER_GATEWAY_LOG_FILE" 2>"$WORKFLOW_ROUTER_GATEWAY_ERR_FILE" &
+
+        workflow_router_gateway_pid="$!"
+        echo "$workflow_router_gateway_pid" > "$WORKFLOW_ROUTER_GATEWAY_PID_FILE"
+        sleep 2
+
+        if ! kill -0 "$workflow_router_gateway_pid" 2>/dev/null; then
+            rm -f "$WORKFLOW_ROUTER_GATEWAY_PID_FILE"
+            echo "Workflow router gateway exited during startup." >&2
+            echo "stderr:" >&2
+            cat "$WORKFLOW_ROUTER_GATEWAY_ERR_FILE" >&2 || true
+            exit 1
+        fi
+        echo "Started workflow router gateway PID $workflow_router_gateway_pid"
+    fi
 fi
 
 proxy_running=0
@@ -183,7 +281,16 @@ if [[ "$controller_running" != "1" ]]; then
 fi
 
 echo "llm gateway: ${GATEWAY_BASE_URL} -> ${VLLM_BASE_URL}"
+echo "llm gateway OpenAI base URL: ${GATEWAY_OPENAI_BASE_URL}"
+echo "gateway controller routing: ${GATEWAY_CONTROLLER_ROUTING} -> ${GATEWAY_CONTROLLER_HARNESS_URL}"
+if [[ "$WORKFLOW_ROUTER_GATEWAY_ENABLED" == "1" ]]; then
+    echo "workflow router gateway: ${WORKFLOW_ROUTER_GATEWAY_BASE_URL} -> ${WORKFLOW_ROUTER_CONTROLLER_URL}"
+    echo "AnythingLLM target URL: ${WORKFLOW_ROUTER_GATEWAY_OPENAI_BASE_URL}"
+fi
 echo "controller service: ${CONTROLLER_BASE_URL}"
+echo "controller allowed target roots:"
+print_allowed_target_roots "$CONTROLLER_ALLOWED_TARGET_ROOTS"
+echo "controller artifact root: ${CONTROLLER_OUTPUT_ROOT}"
 echo "local role endpoints:"
 print_role_endpoints "$ROLE_CONNECT_HOST"
 
@@ -194,6 +301,21 @@ if command -v hostname >/dev/null 2>&1; then
         print_role_endpoints "$host_ip"
     fi
 fi
+echo "port status:"
+print_health_status "model 8000" "$(openai_models_url "$VLLM_BASE_URL")"
+print_health_status "llm gateway ${GATEWAY_PORT}" "$(openai_models_url "$GATEWAY_BASE_URL")"
+if [[ "$WORKFLOW_ROUTER_GATEWAY_ENABLED" == "1" ]]; then
+    print_health_status "workflow router gateway ${WORKFLOW_ROUTER_GATEWAY_PORT}" "$(openai_models_url "$WORKFLOW_ROUTER_GATEWAY_BASE_URL")"
+fi
+print_health_status "controller ${CONTROLLER_PORT}" "${CONTROLLER_BASE_URL}/health"
+echo "client targets:"
+echo "- AnythingLLM natural workflow testing: ${WORKFLOW_ROUTER_GATEWAY_OPENAI_BASE_URL}"
+echo "- ordinary OpenAI-compatible model/gateway chat: ${GATEWAY_OPENAI_BASE_URL}"
+echo "- controller HTTP API only, not an OpenAI model endpoint: ${CONTROLLER_BASE_URL}"
+echo "validation note: run live validators from Bash if Windows clients receive headers but time out waiting for body bytes."
 echo "Gateway logs: ${STATE_DISPLAY_ROOT}/$(basename "$GATEWAY_LOG_FILE")"
+if [[ "$WORKFLOW_ROUTER_GATEWAY_ENABLED" == "1" ]]; then
+    echo "Workflow router gateway logs: ${STATE_DISPLAY_ROOT}/$(basename "$WORKFLOW_ROUTER_GATEWAY_LOG_FILE")"
+fi
 echo "Controller logs: ${STATE_DISPLAY_ROOT}/$(basename "$CONTROLLER_LOG_FILE")"
 echo "Logs: ${STATE_DISPLAY_ROOT}/$(basename "$LOG_FILE")"

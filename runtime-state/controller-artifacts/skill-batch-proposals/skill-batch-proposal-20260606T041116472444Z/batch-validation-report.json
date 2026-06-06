@@ -1,0 +1,166 @@
+{
+  "batch_id": "proposed-handler-branch-tracer",
+  "batch_path": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-proposals\\skill-batch-proposal-20260606T041116472444Z\\batch.json",
+  "config_root": "C:\\agentic_agents",
+  "description": "Draft skill batch proposal generated from: Propose the Phase 61 Batch D field-evidence skill expansion. Proposal only. Do not register.",
+  "doc_refs": [
+    "README.skill-registry.md",
+    "docs/SKILL_LIBRARY_SCALING_PLAN.md",
+    "docs/SKILL_SCALING_BATCH_D_PROPOSAL.md"
+  ],
+  "entries": [
+    {
+      "approval_boundary": "none",
+      "eval_case_ids": [
+        "phase61_handler_branch_trace"
+      ],
+      "live_mappings": [
+        {
+          "live_suite": "skill_registry_contract",
+          "reason": "case is validated by catalog and registry contract checks",
+          "status": "metadata_only"
+        }
+      ],
+      "mutation_policy": "no_repository_mutation",
+      "output_artifacts": [
+        "request_flow_map"
+      ],
+      "route_key": "code.handler_branch_trace",
+      "skill_id": "handler-branch-tracer",
+      "status": "ready",
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "approval_boundary": "none",
+      "eval_case_ids": [
+        "phase61_table_schema_only"
+      ],
+      "live_mappings": [
+        {
+          "live_suite": "skill_registry_contract",
+          "reason": "case is validated by catalog and registry contract checks",
+          "status": "metadata_only"
+        }
+      ],
+      "mutation_policy": "no_repository_mutation",
+      "output_artifacts": [
+        "data_model_lookup"
+      ],
+      "route_key": "data.table_schema_only_lookup",
+      "skill_id": "table-schema-isolator",
+      "status": "ready",
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "approval_boundary": "none",
+      "eval_case_ids": [
+        "phase61_runtime_entrypoint_disambiguation"
+      ],
+      "live_mappings": [
+        {
+          "live_suite": "skill_registry_contract",
+          "reason": "case is validated by catalog and registry contract checks",
+          "status": "metadata_only"
+        }
+      ],
+      "mutation_policy": "no_repository_mutation",
+      "output_artifacts": [
+        "cli_entrypoint_lookup"
+      ],
+      "route_key": "code.runtime_entrypoint_disambiguation",
+      "skill_id": "runtime-entrypoint-disambiguator",
+      "status": "ready",
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "approval_boundary": "none",
+      "eval_case_ids": [
+        "phase61_change_boundary_summary"
+      ],
+      "live_mappings": [
+        {
+          "live_suite": "skill_registry_contract",
+          "reason": "case is validated by catalog and registry contract checks",
+          "status": "metadata_only"
+        }
+      ],
+      "mutation_policy": "no_repository_mutation",
+      "output_artifacts": [
+        "change_surface_summary"
+      ],
+      "route_key": "planning.change_boundary_summary",
+      "skill_id": "change-boundary-summarizer",
+      "status": "ready",
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    }
+  ],
+  "errors": [],
+  "eval_cases": [
+    {
+      "expected_artifacts": [
+        "request_flow_map"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "id": "phase61_handler_branch_trace",
+      "live_suite": "skill_registry_contract",
+      "mutation_policy": "no_repository_mutation",
+      "natural_prompt": "In <repo>, follow a named handler branch through the downstream snapshot or service function. Read only. Return handler file, flow steps, evidence refs, and related tests.",
+      "prompt_family": "BatchD-handler-branch-trace"
+    },
+    {
+      "expected_artifacts": [
+        "data_model_lookup"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "id": "phase61_table_schema_only",
+      "live_suite": "skill_registry_contract",
+      "mutation_policy": "no_repository_mutation",
+      "natural_prompt": "In <repo>, find only the named table schema. Read only. Return model files, schema field names, and source refs without mixing runtime dictionary fields.",
+      "prompt_family": "BatchD-table-schema-only"
+    },
+    {
+      "expected_artifacts": [
+        "cli_entrypoint_lookup"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "id": "phase61_runtime_entrypoint_disambiguation",
+      "live_suite": "skill_registry_contract",
+      "mutation_policy": "no_repository_mutation",
+      "natural_prompt": "In <repo>, locate the runtime entrypoint for a named subsystem and distinguish it from adjacent service or UI entrypoints. Read only. Return command, source refs, and exclusions.",
+      "prompt_family": "BatchD-runtime-entrypoint-disambiguation"
+    },
+    {
+      "expected_artifacts": [
+        "change_surface_summary"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "id": "phase61_change_boundary_summary",
+      "live_suite": "skill_registry_contract",
+      "mutation_policy": "no_repository_mutation",
+      "natural_prompt": "In <repo>, identify files to touch and files not to touch for a minimal safe behavior change. Read only and stop before implementation. Return risks, gaps, and verification commands.",
+      "prompt_family": "BatchD-change-boundary-summary"
+    }
+  ],
+  "kind": "skill_batch_validation",
+  "next_action": "review_then_append_batch_skills_and_eval_cases",
+  "report_path": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-proposals\\skill-batch-proposal-20260606T041116472444Z\\batch-validation-report.json",
+  "runtime_behavior_changed": false,
+  "schema_version": 1,
+  "status": "passed",
+  "summary": {
+    "eval_case_count": 4,
+    "live_suite_counts": {
+      "skill_registry_contract": 4
+    },
+    "route_key_count": 4,
+    "skill_count": 4
+  }
+}

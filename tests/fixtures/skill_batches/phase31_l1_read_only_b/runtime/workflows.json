@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "workflows": [
+    {
+      "id": "code_investigation.plan",
+      "controller_actions": [
+        {
+          "tool_id": "git_grep",
+          "action": "bounded_lookup",
+          "result_artifacts": [
+            "investigation_plan",
+            "coverage_gap_summary",
+            "documentation_lookup",
+            "cli_entrypoint_lookup",
+            "configuration_effect_summary",
+            "local_change_summary"
+          ]
+        }
+      ]
+    }
+  ]
+}

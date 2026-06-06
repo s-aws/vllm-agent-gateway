@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "workflows": [
+    {
+      "id": "workflow_router.plan",
+      "description": "Controller-owned plan-only natural-language workflow routing using workflow, tool, and skill registry metadata.",
+      "default_role_id": "dispatcher/default",
+      "allowed_role_ids": [
+        "dispatcher/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "documenter.review",
+      "description": "Bounded document review through the controller service.",
+      "default_role_id": "documenter/default",
+      "allowed_role_ids": [
+        "documenter/default"
+      ],
+      "controller_tool_ids": [
+        "git_ls_files",
+        "read_file"
+      ],
+      "conditional_controller_tool_ids": [
+        {
+          "when": {
+            "document_scope": "all"
+          },
+          "tool_ids": [
+            "scan_files"
+          ]
+        }
+      ],
+      "controller_actions": [
+        {
+          "tool_id": "git_ls_files",
+          "action": "discover_tracked_files",
+          "scope": "target_root",
+          "result_artifacts": [
+            "document_manifest",
+            "review_plan",
+            "json_report"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "read_reviewed_documents",
+          "scope": "target_root",
+          "result_artifacts": [
+            "json_report",
+            "run_state"
+          ]
+        },
+        {
+          "tool_id": "scan_files",
+          "action": "discover_all_files",
+          "scope": "target_root",
+          "result_artifacts": [
+            "document_manifest",
+            "review_plan",
+            "json_report"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "execution_planning.plan",
+      "description": "Controller-owned execution planning through bounded project-local skills.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [
+        {
+          "tool_id": "structure_index",
+          "action": "discover_symbols_and_file_structure",
+          "scope": "target_root",
+          "result_artifacts": [
+            "context_results",
+            "impact_map"
+          ]
+        },
+        {
+          "tool_id": "git_grep",
+          "action": "bounded_exact_string_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "context_results",
+            "impact_map"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "read_selected_context_files",
+          "scope": "target_root",
+          "result_artifacts": [
+            "context_results",
+            "execution_plan"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "code_context.lookup",
+      "description": "Controller-owned read-only code context lookup using deterministic structure index, bounded grep/read operations, and curated relationship queries.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [
+        "structure_index",
+        "git_grep",
+        "read_file",
+        "codegraph_context"
+      ],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [
+        {
+          "tool_id": "structure_index",
+          "action": "bounded_structure_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "lookup_results"
+          ]
+        },
+        {
+          "tool_id": "git_grep",
+          "action": "bounded_exact_string_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "lookup_results"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "read_explicit_lookup_paths",
+          "scope": "target_root",
+          "result_artifacts": [
+            "lookup_results"
+          ]
+        },
+        {
+          "tool_id": "codegraph_context",
+          "action": "run_curated_relationship_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "relationship_results",
+            "lookup_results"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "code_investigation.plan",
+      "description": "Controller-owned read-only code investigation plan using deterministic lookup evidence.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [
+        {
+          "tool_id": "structure_index",
+          "action": "build_bounded_investigation_structure_slice",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_evidence",
+            "investigation_plan"
+          ]
+        },
+        {
+          "tool_id": "git_grep",
+          "action": "gather_bounded_behavior_matches",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_evidence",
+            "investigation_plan"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "read_selected_investigation_files",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_evidence",
+            "investigation_plan"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "refactor.single_path",
+      "description": "Controller-owned single-path refactor orchestration using investigation first and execution-planning draft delegation.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [
+        {
+          "tool_id": "structure_index",
+          "action": "delegate_bounded_investigation_structure",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_plan",
+            "refactor_plan"
+          ]
+        },
+        {
+          "tool_id": "git_grep",
+          "action": "delegate_bounded_behavior_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_plan",
+            "refactor_plan"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "delegate_selected_file_reads",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_plan",
+            "refactor_plan"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "workflow_feedback.record",
+      "description": "Controller-owned workflow feedback capture linked to prior run records and artifacts.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    }
+  ]
+}

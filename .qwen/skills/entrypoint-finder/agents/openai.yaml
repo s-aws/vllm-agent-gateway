@@ -1,0 +1,4 @@
+interface:
+  display_name: "Entrypoint Finder"
+  short_description: "Find the logic starting point safely."
+  default_prompt: "Use this skill after scope-and-assumptions to identify likely behavior, workflow, command, route, class, or function entry points before broader context gathering or execution planning."

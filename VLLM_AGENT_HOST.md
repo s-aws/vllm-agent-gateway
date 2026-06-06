@@ -103,11 +103,16 @@ GATEWAY_BASE_URL=http://$GATEWAY_CONNECT_HOST:8300
 TARGET_BASE_URL=$GATEWAY_BASE_URL
 CONTROLLER_BIND_HOST=127.0.0.1
 CONTROLLER_PORT=8400
+CONTROLLER_CONNECT_HOST=<normalized CONTROLLER_BIND_HOST>
+GATEWAY_CONTROLLER_ROUTING=explicit_envelope
+GATEWAY_CONTROLLER_HARNESS_URL=http://$CONTROLLER_CONNECT_HOST:$CONTROLLER_PORT/v1/controller/harness/chat/completions
 CONTROLLER_OUTPUT_ROOT=<private runtime state>/controller-artifacts
 CONTROLLER_ALLOWED_TARGET_ROOTS=<repo root>
 ```
 
 `VLLM_BASE_URL` is the upstream vLLM server and may be local or remote. `GATEWAY_BIND_HOST` is only the gateway listener address. The startup script derives `GATEWAY_CONNECT_HOST` from `GATEWAY_BIND_HOST`, normalizing wildcard binds such as `0.0.0.0` to `127.0.0.1` for local proxy-to-gateway calls. Override `GATEWAY_CONNECT_HOST`, `GATEWAY_BASE_URL`, or `TARGET_BASE_URL` only when the prompt proxy must reach the gateway through a different hostname.
+
+The full startup script enables explicit controller-envelope routing through the gateway. Ordinary gateway chat still goes to vLLM, but a `/v1/chat/completions` request containing one active `agentic_controller_request` is routed to the controller harness URL and never falls through to model chat. Message-content routing uses the latest message envelope so AnythingLLM workspace history does not make repeated tests ambiguous. This path has been live-validated through direct gateway requests and the AnythingLLM workspace API with AnythingLLM configured as `http://127.0.0.1:8300/v1`.
 
 Override these for a Linux launch by prefixing the start command:
 

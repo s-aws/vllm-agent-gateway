@@ -20,7 +20,15 @@ from pathlib import Path
 from typing import Any, Callable
 
 
-SUPPORTED_TOOL_IDS = {"git_ls_files", "git_grep", "read_file", "scan_files", "run_tests"}
+SUPPORTED_TOOL_IDS = {
+    "git_ls_files",
+    "git_grep",
+    "read_file",
+    "scan_files",
+    "structure_index",
+    "codegraph_context",
+    "run_tests",
+}
 DEFAULT_IGNORED_SCAN_DIRS = {
     ".agentic_reports",
     ".git",
@@ -91,6 +99,9 @@ def schema_for_argument(arg_schema: dict[str, Any]) -> dict[str, Any]:
     if arg_type == "string":
         return {"type": "string"}
     if arg_type == "array":
+        item_type = arg_schema.get("items", "string")
+        if item_type == "object":
+            return {"type": "array", "items": {"type": "object"}}
         return {"type": "array", "items": {"type": "string"}}
     if arg_type == "boolean":
         return {"type": "boolean"}
@@ -262,8 +273,15 @@ def validate_arguments(tool: dict[str, Any], arguments: dict[str, Any]) -> None:
         arg_type = arg_schema.get("type")
         if arg_type == "string" and not isinstance(value, str):
             raise ToolMediationError(f"Tool {tool_id} argument {name} must be a string.")
-        if arg_type == "array" and (not isinstance(value, list) or not all(isinstance(item, str) for item in value)):
-            raise ToolMediationError(f"Tool {tool_id} argument {name} must be an array of strings.")
+        if arg_type == "array":
+            item_type = arg_schema.get("items", "string")
+            if not isinstance(value, list):
+                raise ToolMediationError(f"Tool {tool_id} argument {name} must be an array.")
+            if item_type == "object":
+                if not all(isinstance(item, dict) for item in value):
+                    raise ToolMediationError(f"Tool {tool_id} argument {name} must be an array of objects.")
+            elif not all(isinstance(item, str) for item in value):
+                raise ToolMediationError(f"Tool {tool_id} argument {name} must be an array of strings.")
         if arg_type == "boolean" and not isinstance(value, bool):
             raise ToolMediationError(f"Tool {tool_id} argument {name} must be a boolean.")
         if arg_type == "integer" and not isinstance(value, int):
@@ -296,6 +314,10 @@ class ToolMediator:
             return self._read_file(call.arguments)
         if call.name == "scan_files":
             return self._scan_files(call.arguments)
+        if call.name == "structure_index":
+            return self._structure_index(call.arguments)
+        if call.name == "codegraph_context":
+            return self._codegraph_context(call.arguments)
         if call.name == "run_tests":
             return self._run_tests(call.arguments)
         raise ToolMediationError(f"Tool call has no executable mediator: {call.name}")
@@ -407,6 +429,40 @@ class ToolMediator:
                     continue
                 files.append(rel_path.as_posix())
         return {"ok": True, "ignored_dirs": sorted(ignored_dirs), "files": sorted(files)}
+
+    def _structure_index(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        from vllm_agent_gateway.structure_index.indexer import build_code_structure_index, build_index_slice
+
+        paths = arguments.get("paths", [])
+        max_records = arguments.get("max_records", 50)
+        index = build_code_structure_index(target_root=self.repo_root, file_scope="tracked")
+        index_slice = build_index_slice(
+            index,
+            paths=paths if paths else None,
+            max_records=max_records if isinstance(max_records, int) else 50,
+        )
+        return {
+            "ok": True,
+            "summary": index.get("summary", {}),
+            "selected_file_count": index.get("selected_file_count"),
+            "slice": index_slice,
+        }
+
+    def _codegraph_context(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        from vllm_agent_gateway.controllers.code_context.codegraph_adapter import (
+            CodeGraphContextAdapterError,
+            run_relationship_queries,
+        )
+
+        try:
+            results, warnings = run_relationship_queries(
+                self.repo_root,
+                arguments["relationship_queries"],
+                max_results=arguments.get("max_results", 25),
+            )
+        except CodeGraphContextAdapterError as exc:
+            raise ToolMediationError(str(exc)) from exc
+        return {"ok": True, "relationship_results": results, "warnings": warnings}
 
     def _run_tests(self, arguments: dict[str, Any]) -> dict[str, Any]:
         return self._run_command([sys.executable, "-m", "pytest", *arguments.get("args", [])])

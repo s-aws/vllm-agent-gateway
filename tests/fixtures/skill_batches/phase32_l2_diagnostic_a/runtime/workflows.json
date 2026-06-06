@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "workflows": [
+    {
+      "id": "code_investigation.plan",
+      "controller_actions": [
+        {
+          "tool_id": "git_grep",
+          "action": "bounded_lookup",
+          "result_artifacts": ["investigation_plan"]
+        }
+      ]
+    }
+  ]
+}

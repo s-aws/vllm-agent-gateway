@@ -87,6 +87,14 @@ Implementation verification uses controller-declared pytest commands through:
 run_tests
 ```
 
+Curated code relationship lookup uses:
+
+```text
+codegraph_context
+```
+
+`codegraph_context` accepts bounded `relationship_queries` for `callers`, `callees`, and `imports`. It does not expose raw Cypher, watcher control, package indexing, delete operations, or raw MCP calls.
+
 Run the tool mediator regression tests:
 
 ```bash
@@ -100,3 +108,69 @@ tool schema -> model tool call -> local execution -> tool result -> final model 
 ```
 
 Raw tool-call-shaped assistant text is rejected as incomplete execution; a real local tool call must run before the final answer is accepted.
+
+## Tool Catalog Governance
+
+Validate a proposed tool admission manifest without mutating runtime metadata. In the default project runtime, this `scan_files` example is expected to be rejected because the tool already exists:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/tool-catalog/validations \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "workflow": "tool_catalog.validate",
+    "schema_version": 1,
+    "tool_manifest": {
+      "schema_version": 1,
+      "kind": "tool_admission_manifest",
+      "tool": {
+        "id": "scan_files",
+        "owner": "agentic_agents",
+        "kind": "filesystem_read",
+        "description": "Scan repository files for first-run or bootstrap discovery.",
+        "read_only": true,
+        "args_schema": {
+          "ignored_dirs": {"type": "array", "required": false}
+        },
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "ignored_dirs": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": []
+        },
+        "output_schema": {
+          "type": "object",
+          "properties": {
+            "paths": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["paths"]
+        },
+        "safety_class": "read_only",
+        "mutation_policy": "no_repository_mutation",
+        "allowed_workflows": ["documenter.review"],
+        "allowed_roles": ["documenter/default"]
+      }
+    }
+  }' | python -m json.tool
+```
+
+Expected canonical-runtime marker:
+
+```text
+"tool_already_registered"
+```
+
+Registering a tool requires an explicit approval object and appends only to `runtime/tools.json`. Successful registration is tested against a controlled runtime copy so the canonical project catalog is not damaged.
+
+Expected controlled-copy registration markers from the focused test:
+
+```text
+"registration_status": "installed"
+"changed_runtime_files": ["runtime/tools.json"]
+```
+
+Run the focused governance regression tests:
+
+```bash
+python -m pytest tests/regression/test_tool_catalog.py -q
+```

@@ -1,0 +1,114 @@
+{
+  "approval": {
+    "approval_refs": [
+      "roadmap:phase62_batch_d_registration_approved"
+    ],
+    "runtime_registry_append": true,
+    "scope": [
+      "skill_batch_registration"
+    ],
+    "skill_body_install": true,
+    "status": "approved_for_skill_registration"
+  },
+  "artifact_implementation_checks": [
+    {
+      "eval_case_id": "phase61_handler_branch_trace",
+      "expected_artifacts": [
+        "request_flow_map"
+      ],
+      "status": "passed",
+      "unknown_artifacts": []
+    },
+    {
+      "eval_case_id": "phase61_table_schema_only",
+      "expected_artifacts": [
+        "data_model_lookup"
+      ],
+      "status": "passed",
+      "unknown_artifacts": []
+    },
+    {
+      "eval_case_id": "phase61_runtime_entrypoint_disambiguation",
+      "expected_artifacts": [
+        "cli_entrypoint_lookup"
+      ],
+      "status": "passed",
+      "unknown_artifacts": []
+    },
+    {
+      "eval_case_id": "phase61_change_boundary_summary",
+      "expected_artifacts": [
+        "change_surface_summary"
+      ],
+      "status": "passed",
+      "unknown_artifacts": []
+    }
+  ],
+  "created_at": "2026-06-06T04:11:16Z",
+  "draft_batch_manifest": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-proposals\\skill-batch-proposal-20260606T041116472444Z\\batch.json",
+  "hash_proof": {
+    "after": {
+      ".qwen/skills/change-boundary-summarizer/SKILL.md": "70f74323b3f3bd45564bdde060ab14e90ef5f70d0ea93b2d97dbfdf6ad8585ad",
+      ".qwen/skills/handler-branch-tracer/SKILL.md": "be20ac89a8106992e96773d50500c91d7d84b3747db9b6c93e1ecb8cc7d42d3c",
+      ".qwen/skills/runtime-entrypoint-disambiguator/SKILL.md": "d98ee3d5e91de6d9d5122e2b002d3e1edc7aaca7a02057f120aa350d36f01534",
+      ".qwen/skills/table-schema-isolator/SKILL.md": "0c245e145320cb62cb44fa1ecb722a7977bcabf4b8741686e3fdc4f173b5b6ab",
+      "runtime/skill_evals.json": "1c23f45d60c2efbb4c610223ceb69578caa26b8113a47ff2eceff3f2b3c16282",
+      "runtime/skills.json": "475a7ebe39631e3da47ef09d87fd51c1d29d8507dc54e2dece2fb7277fdbf296"
+    },
+    "before": {
+      "runtime/skill_evals.json": "b9abc83335791d73962614af712476bb56f88904941c2b2ba462dd189ce924ac",
+      "runtime/skills.json": "37d83d65b2a5debb777865b41263334d576d9a6efa7b966f73cb880477332737"
+    },
+    "changed": [
+      ".qwen/skills/change-boundary-summarizer/SKILL.md",
+      ".qwen/skills/handler-branch-tracer/SKILL.md",
+      ".qwen/skills/runtime-entrypoint-disambiguator/SKILL.md",
+      ".qwen/skills/table-schema-isolator/SKILL.md",
+      "runtime/skill_evals.json",
+      "runtime/skills.json"
+    ]
+  },
+  "kind": "skill_batch_registration",
+  "proposal_path": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-proposals\\skill-batch-proposal-20260606T041116472444Z\\skill-batch-proposal.json",
+  "proposal_run_id": "skill-batch-proposal-20260606T041116472444Z",
+  "rollback_instructions": {
+    "kind": "skill_batch_registration_rollback_instructions",
+    "note": "Restore the two runtime JSON backups and remove installed skill files if the registered batch must be reverted.",
+    "remove_installed_skill_files": [
+      ".qwen/skills/handler-branch-tracer/SKILL.md",
+      ".qwen/skills/table-schema-isolator/SKILL.md",
+      ".qwen/skills/runtime-entrypoint-disambiguator/SKILL.md",
+      ".qwen/skills/change-boundary-summarizer/SKILL.md"
+    ],
+    "restore_backups": {
+      "runtime/skill_evals.json": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-registrations\\skill-batch-registration-20260606T041116522680Z\\backups\\skill-evals.before.json",
+      "runtime/skills.json": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-registrations\\skill-batch-registration-20260606T041116522680Z\\backups\\skills.before.json"
+    },
+    "schema_version": 1
+  },
+  "run_id": "skill-batch-registration-20260606T041116522680Z",
+  "schema_version": 1,
+  "status": "installed",
+  "summary": {
+    "batch_validation_status": "passed",
+    "eval_case_count": 4,
+    "installed_eval_case_ids": [
+      "phase61_handler_branch_trace",
+      "phase61_table_schema_only",
+      "phase61_runtime_entrypoint_disambiguation",
+      "phase61_change_boundary_summary"
+    ],
+    "installed_skill_ids": [
+      "handler-branch-tracer",
+      "table-schema-isolator",
+      "runtime-entrypoint-disambiguator",
+      "change-boundary-summarizer"
+    ],
+    "next_action": "run_skill_evals_and_live_suite",
+    "registration_status": "installed",
+    "runtime_registry_changed": true,
+    "skill_count": 4,
+    "target_repository_changed": false
+  },
+  "workflow": "skill_batch.register"
+}

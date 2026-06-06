@@ -71,7 +71,9 @@
       "tool_ids": [
         "git_ls_files",
         "git_grep",
-        "read_file"
+        "read_file",
+        "structure_index",
+        "codegraph_context"
       ],
       "claude_code": {
         "bare": true,

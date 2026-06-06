@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scope And Assumptions"
+  short_description: "Define problem scope before context gathering."
+  default_prompt: "Use this skill after request triage to define the problem, clarify scope, capture assumptions, set goals, and stop unsafe or ambiguous work before context gathering."

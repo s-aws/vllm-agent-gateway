@@ -106,8 +106,165 @@ curl -s http://127.0.0.1:8400/v1/controller/documenter/reviews \
     "budgets": {
       "parallelism": 2
     }
+}'
+```
+
+Run an execution-planning dry run with explicit packet operations:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/execution-planning/plans \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "workflow": "execution_planning.plan",
+    "schema_version": 1,
+    "target_root": "/repo/target",
+    "user_request": "Prepare implementation packet candidates for an approved documentation clarification. Use draft mode only and do not mutate the repository.",
+    "mode": "dry_run",
+    "approval": {
+      "status": "approved_for_packet_design",
+      "scope": "packet_design_only",
+      "apply_allowed": false,
+      "approval_refs": ["user:approved packet design only"]
+    },
+    "packet_operations": [
+      {
+        "kind": "replace_text",
+        "path": "docs/agents/INVARIANTS.md",
+        "old": "exact existing text",
+        "new": "exact proposed text"
+      }
+    ],
+    "budgets": {
+      "max_context_requests": 5,
+      "max_files": 10,
+      "max_records": 50,
+      "max_model_calls": 12,
+      "max_output_tokens": 4600
+    }
   }'
 ```
+
+Use [execution-planning-harness.md](execution-planning-harness.md) for the concrete frozen Coinbase payload and harness envelopes.
+
+Run a read-only code context lookup:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/code-context/lookups \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "workflow": "code_context.lookup",
+    "schema_version": 1,
+    "target_root": "/repo/agentic_agents",
+    "query": "select_latest_controller_envelope",
+    "paths": [
+      "vllm_agent_gateway/controller_envelope.py"
+    ],
+    "max_results": 25,
+    "max_files": 5
+  }'
+```
+
+Use [code-context.md](code-context.md) for harness envelopes and the raw CodeGraphContext rejection example.
+
+Run a read-only code investigation plan:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/code-investigation/plans \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "workflow": "code_investigation.plan",
+    "schema_version": 1,
+    "target_root": "/repo/target",
+    "user_request": "Investigate whether StealthOrderManager.find_stealth_order_by_placed_order_id has one path before planning a refactor.",
+    "behavior": "placed_order_id stealth lookup",
+    "entrypoint_hints": [
+      {
+        "path": "core/stealth_order_manager.py",
+        "symbol": "StealthOrderManager.find_stealth_order_by_placed_order_id",
+        "reason": "Known owner of placed-order lookup behavior."
+      }
+    ],
+    "queries": [
+      "find_stealth_order_by_placed_order_id",
+      "placed_order_id"
+    ],
+    "paths": [
+      "core/stealth_order_manager.py",
+      "tests/unit/test_order_id_and_followup_rules.py",
+      "tests/regression/test_order_id_regression.py"
+    ],
+    "max_results": 50,
+    "max_files": 10
+  }'
+```
+
+Use [code-investigation.md](code-investigation.md) for harness envelopes and the raw CodeGraphContext rejection example.
+
+Run a single-path refactor investigation:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/refactor/single-path \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "workflow": "refactor.single_path",
+    "schema_version": 1,
+    "target_root": "/repo/target",
+    "user_request": "Investigate whether StealthOrderManager.find_stealth_order_by_placed_order_id has one path before planning a refactor.",
+    "behavior": "placed_order_id stealth lookup",
+    "entrypoint_hints": [
+      {
+        "path": "core/stealth_order_manager.py",
+        "symbol": "StealthOrderManager.find_stealth_order_by_placed_order_id",
+        "reason": "Known owner of placed-order lookup behavior."
+      }
+    ],
+    "queries": [
+      "find_stealth_order_by_placed_order_id",
+      "placed_order_id"
+    ],
+    "paths": [
+      "core/stealth_order_manager.py",
+      "tests/unit/test_order_id_and_followup_rules.py",
+      "tests/regression/test_order_id_regression.py"
+    ],
+    "max_results": 50,
+    "max_files": 10
+  }'
+```
+
+Use [refactor-single-path.md](refactor-single-path.md) for approved dry-run payloads and harness envelopes.
+
+Record founder/tester feedback against a prior workflow run:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/workflow-feedback/records \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "workflow": "workflow_feedback.record",
+    "schema_version": 1,
+    "target_workflow": "refactor.single_path",
+    "target_run_id": "refactor-single-path-20260604T031238337959Z",
+    "target_root": "/repo/target",
+    "feedback": {
+      "useful": ["The beginning point was actionable."],
+      "wrong": [],
+      "missing": ["Need clearer verification command source."],
+      "too_slow": [],
+      "too_noisy": [],
+      "notes": "Manual controller-service feedback record."
+    },
+    "tester": {
+      "id": "founder",
+      "surface": "curl"
+    },
+    "request_payload": {
+      "source": "manual-controller-test"
+    },
+    "artifact_refs": {}
+  }'
+```
+
+Use [workflow-feedback.md](workflow-feedback.md) for direct, gateway, and AnythingLLM envelopes.
 
 Run a bootstrap review over all discovered documentation:
 

@@ -1,0 +1,1700 @@
+{
+  "cases": [
+    {
+      "baseline_target": "A read-only beginning-point answer with the first relevant source location, evidence files, related tests, recommended commands, and a confidence statement.",
+      "case_id": "P01",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "expected_rule": "l1_find_behavior_start_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for the entrypoint, evidence files, related tests, and confidence explicitly.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, where does the placed_order_id stealth lookup start? Read only and give me the beginning point, evidence files, related tests, and confidence.",
+      "prompt_risk": "Ambiguous 'start' wording can be interpreted as related-test discovery or a later usage point.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find the first source point that creates or populates the placed_order_id stealth lookup key. Read only. Include evidence files, related tests, and confidence.",
+      "semantic_markers": [
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A function explanation with inputs, outputs, side effects, related tests, and source refs.",
+      "case_id": "P02",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "StealthOrderManager.find_stealth_order_by_placed_order_id",
+        "Inputs:",
+        "Outputs:",
+        "Side effects:",
+        "Related tests:"
+      ],
+      "expected_rule": "l1_explain_code_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Name the function and file, and request inputs, outputs, side effects, and tests.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain find_stealth_order_by_placed_order_id in core/stealth_order_manager.py. I need inputs, return value, side effects, and tests that cover it. Read only.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "StealthOrderManager.find_stealth_order_by_placed_order_id",
+        "Inputs:",
+        "Outputs:",
+        "Side effects:",
+        "Related tests:"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A related-test answer with exact test files and the smallest useful pytest command.",
+      "case_id": "P03",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Related tests:",
+        "Recommended commands:",
+        "python -m pytest"
+      ],
+      "expected_rule": "l1_find_related_tests_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for related tests and the smallest useful pytest command.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, what tests should I look at for placed_order_id stealth lookup? Read only. Include exact test files and the smallest useful pytest command.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Related tests:",
+        "Recommended commands:",
+        "python -m pytest"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A conservative yes/no/unknown behavior-existence answer with evidence and no invented absence claim.",
+      "case_id": "P04",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Result: yes",
+        "Evidence files:"
+      ],
+      "expected_rule": "l1_behavior_exists_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for yes/no/unknown with evidence and keep the request read-only.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, does the repo already have placed_order_id stealth lookup behavior? Read only. Answer yes/no/unknown with evidence.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Result: yes",
+        "Evidence files:"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A usage summary grouped by file, with short explanations and source refs.",
+      "case_id": "P05",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_context.lookup",
+        "Answer:",
+        "Target: find_stealth_order_by_placed_order_id",
+        "Usage count:"
+      ],
+      "expected_rule": "l1_callers_usages_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_context.lookup",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for callers/usages and grouping by file.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find every caller or usage of find_stealth_order_by_placed_order_id and group them by file. Read only.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Target: find_stealth_order_by_placed_order_id",
+        "Usage count:"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A configuration answer showing references and runtime effect without exposing secret values.",
+      "case_id": "P06",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "COINBASE_API_KEY",
+        "Runtime effect:",
+        "configuration.py"
+      ],
+      "expected_rule": "l1_configuration_effect_summary_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for configuration references and runtime effect, plus a no-secret-values constraint.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, where is COINBASE_API_KEY used and what does it affect at runtime? Read only. Do not expose any secret values.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "COINBASE_API_KEY",
+        "Runtime effect:",
+        "configuration.py"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A pasted-failure summary with failed test, primary error, likely cause, and next bounded inspection step.",
+      "case_id": "P07",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Failed tests:",
+        "Primary error: AssertionError",
+        "Likely cause:",
+        "Next steps:"
+      ],
+      "expected_rule": "l1_test_failure_summary_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Include the failing test node, primary error text, and ask for the next bounded inspection step.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, summarize this pytest failure and tell me the next bounded inspection step. Do not edit files. FAILED tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - AssertionError: expected client_order_id index",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Failed tests:",
+        "Primary error: AssertionError",
+        "Likely cause:",
+        "Next steps:"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "An endpoint/handler lookup with handler file, source refs, and related tests.",
+      "case_id": "P08",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target: request_stealth_orders",
+        "Handler files:",
+        "dashboard_server.py"
+      ],
+      "expected_rule": "l1_endpoint_route_lookup_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for handler file, source refs, and related tests.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find the dashboard handler for request_stealth_orders. Read only. Return the handler file, related source refs, and related tests.",
+      "prompt_risk": "Handler prompts can stop at a UI sender unless the handler branch is named.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, follow the request_stealth_orders handler branch through the snapshot function. Read only. Return handler file, source refs, and related tests.",
+      "semantic_markers": [
+        "Target: request_stealth_orders",
+        "Handler files:",
+        "dashboard_server.py"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "An error-message source lookup with source file, line/ref, and role.",
+      "case_id": "P09",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Missing 'type' field in message",
+        "Sources:",
+        "dashboard_server.py"
+      ],
+      "expected_rule": "l1_message_source_lookup_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Quote the exact message and ask for file, line, and why it is raised.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find the source of the error message \"Missing 'type' field in message\". Read only. Return file, line, and why it is raised.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Missing 'type' field in message",
+        "Sources:",
+        "dashboard_server.py"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A module summary with responsibilities, definitions, related tests, and risks.",
+      "case_id": "P10",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target module: core/stealth_order_manager.py",
+        "Responsibilities:",
+        "Definitions:"
+      ],
+      "expected_rule": "l1_module_summary_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Name the target module and ask for responsibilities, definitions, tests, and risks.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, summarize core/stealth_order_manager.py for a new maintainer. Read only. Include responsibilities, important definitions, related tests, and risks.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Target module: core/stealth_order_manager.py",
+        "Responsibilities:",
+        "Definitions:"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A data model/schema lookup with model files, fields, and source refs.",
+      "case_id": "P11",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target model/schema: stealth_orders",
+        "Fields:",
+        "database/order.py"
+      ],
+      "expected_rule": "l1_data_model_lookup_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for schema fields, model files, and source refs.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find the stealth_orders database schema fields. Read only. Return model files, field names, and source refs.",
+      "prompt_risk": "Schema prompts can return runtime dictionary fields instead of table schema.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find only the stealth_orders table schema. Read only. Return model files, schema field names, and source refs.",
+      "semantic_markers": [
+        "Target model/schema: stealth_orders",
+        "Fields:",
+        "database/order.py"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A dependency lookup grouped into imports and internal/local dependencies.",
+      "case_id": "P12",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_context.lookup",
+        "Answer:",
+        "Target: core/stealth_order_manager.py",
+        "Imports:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_dependency_import_lookup_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_context.lookup",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for imports/dependencies and group internal versus external.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, list the imports and local dependencies of core/stealth_order_manager.py. Read only. Group external and internal dependencies.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Target: core/stealth_order_manager.py",
+        "Imports:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A local-change summary that honestly reports non-git limitations and does not invent commit history.",
+      "case_id": "P13",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Local change status:",
+        "Git status:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_local_change_summary_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Mention git status/recent commits and ask it to say directly when the target is not a git repo.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, find recent or local changes. Read only. If this is not a git repo, say that directly and list what can still be inspected.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Local change status:",
+        "Git status:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "non-git-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "baseline_target": "A coverage-gap summary with covered tests, missing scenarios, and verification commands.",
+      "case_id": "P14",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Coverage gaps:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "expected_rule": "l1_coverage_gap_summary_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for covered tests, uncovered scenarios, and verification commands.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify test coverage gaps for placed_order_id stealth lookup. Read only. Include covered tests, missing scenarios, and verification commands.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Coverage gaps:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A documentation lookup with docs, source refs, and explicit gaps.",
+      "case_id": "P15",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Documentation files:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_documentation_lookup_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for documentation files, source refs, and gaps.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find documentation for request_stealth_orders dashboard behavior. Read only. Return docs, source refs, and gaps.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Documentation files:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A CLI entrypoint answer with file, command, and source refs.",
+      "case_id": "P16",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Entrypoints:",
+        "main.py",
+        "python main.py"
+      ],
+      "expected_rule": "l1_cli_entrypoint_lookup_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for CLI/script entrypoint, command, and source refs.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, locate the CLI or script entrypoint for running the trading engine. Read only. Return the command and source refs.",
+      "prompt_risk": "Entrypoint prompts can confuse the trading engine with a dashboard service.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, locate the trading-engine CLI or script entrypoint, not the dashboard-only server. Read only. Return the command and source refs.",
+      "semantic_markers": [
+        "Entrypoints:",
+        "main.py",
+        "python main.py"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A test-selection plan with smallest, medium, and broad commands, rationale, risks, confidence, and gaps.",
+      "case_id": "P17",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Smallest command:",
+        "Medium command:",
+        "Broad command:",
+        "Rationale:",
+        "Covered risks:"
+      ],
+      "expected_rule": "l2_test_selection_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for smallest, medium, and broad commands with rationale and remaining risk.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, choose the smallest, medium, and broad validation commands for placed_order_id stealth lookup. Read only. Explain why each command matters and what risk remains.",
+      "prompt_risk": "Validation prompts can omit shell surface, which matters because live validation should prefer Bash.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, choose the smallest, medium, and broad Bash validation commands for placed_order_id stealth lookup. Read only. Explain why each command matters and what risk remains.",
+      "semantic_markers": [
+        "Smallest command:",
+        "Medium command:",
+        "Broad command:",
+        "Rationale:",
+        "Covered risks:"
+      ],
+      "tags": [
+        "founder-field",
+        "l2",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A runtime-error diagnosis with observed error, likely cause, evidence files, next inspection, risks, gaps, and verification.",
+      "case_id": "P18",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Observed error:",
+        "WebSocketMessageError",
+        "Likely cause:",
+        "Evidence files:"
+      ],
+      "expected_rule": "l2_runtime_error_diagnosis_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Include the stack trace and ask for observed error, likely cause, evidence files, and next inspection.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, diagnose this runtime stack trace for request_stealth_orders. Read only. Traceback (most recent call last): File \"dashboard_server.py\", line 10, in handle_websocket_message core.exceptions.WebSocketMessageError: Missing 'type' field in message",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Observed error:",
+        "WebSocketMessageError",
+        "Likely cause:",
+        "Evidence files:"
+      ],
+      "tags": [
+        "founder-field",
+        "l2",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A request/data-flow map with ordered flow steps, participating files, risks, gaps, and verification.",
+      "case_id": "P19",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target flow:",
+        "request_stealth_orders",
+        "Flow steps:",
+        "Participating files:"
+      ],
+      "expected_rule": "l2_request_flow_map_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for flow steps, participating files, risks, gaps, and verification.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, map the request/data flow for request_stealth_orders from dashboard message to stealth order snapshot. Read only. Include flow steps, participating files, risks, and gaps.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Target flow:",
+        "request_stealth_orders",
+        "Flow steps:",
+        "Participating files:"
+      ],
+      "tags": [
+        "founder-field",
+        "l2",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A code-path comparison with candidate paths, evidence, risks, recommendation if supported, and gaps.",
+      "case_id": "P20",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Comparison target:",
+        "Candidate paths:",
+        "Recommended path:",
+        "Risks:"
+      ],
+      "expected_rule": "l2_code_path_comparison_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for candidate paths, evidence, risks, recommendation, and gaps.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, compare the placed_order_id stealth lookup path with the client_order_id index path. Read only. Return candidate paths, evidence, risks, recommended path if supported, and gaps.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Comparison target:",
+        "Candidate paths:",
+        "Recommended path:",
+        "Risks:"
+      ],
+      "tags": [
+        "founder-field",
+        "l2",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A change-surface summary with files to review, related tests, risk level, gaps, and no implementation.",
+      "case_id": "P21",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Change surface files:",
+        "Risk level:",
+        "Implementation status: not_ready_without_approval"
+      ],
+      "expected_rule": "l2_change_surface_summary_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for minimal safe change surface and explicitly stop before implementation.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify the minimal safe change surface for changing placed_order_id stealth lookup behavior. Read only and stop before implementation.",
+      "prompt_risk": "Change-surface prompts should name both touch and do-not-touch boundaries.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify files to touch and files not to touch for a minimal safe placed_order_id stealth lookup change. Read only and stop before implementation.",
+      "semantic_markers": [
+        "Change surface files:",
+        "Risk level:",
+        "Implementation status: not_ready_without_approval"
+      ],
+      "tags": [
+        "founder-field",
+        "l2",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A task decomposition with work packages, dependencies, approval gates, verification strategy, risks, and uncertainty.",
+      "case_id": "P22",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: task.decompose",
+        "Task Decomposition:",
+        "Work packages:",
+        "Dependencies:",
+        "Approval gates:"
+      ],
+      "expected_rule": "task_decomposition_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "task.decompose",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask to decompose or break down the task and request dependencies, approval gates, verification, and risks.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, break down the work to add a safer placed_order_id lookup change. Do not implement. I want dependencies, approval gates, verification strategy, and risks.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Task Decomposition:",
+        "Work packages:",
+        "Dependencies:",
+        "Approval gates:"
+      ],
+      "tags": [
+        "founder-field",
+        "task-decomposition",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A draft-only implementation proposal with exact file, operation, safety checks, verification command, and no source mutation.",
+      "case_id": "P23",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: execution_planning.plan",
+        "Draft proposal:",
+        "docs/agents/INVARIANTS.md",
+        "Verification:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_small_text_edit_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "execution_planning.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Use 'draft' or 'do not mutate files' and ask for exact proposed change plus verification command.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, draft a small documentation edit to docs/agents/INVARIANTS.md that adds a note saying the stealth manager placed-order index is the authoritative lookup key. Do not mutate files. Show exact proposed change and verification command.",
+      "prompt_risk": "Draft documentation prompts are easier to review when the requested output shape is explicit.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, draft a unified diff only for docs/agents/INVARIANTS.md that adds a note saying the stealth manager placed-order index is the authoritative lookup key. Do not mutate files. Include the verification command.",
+      "semantic_markers": [
+        "Draft proposal:",
+        "docs/agents/INVARIANTS.md",
+        "Verification:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "draft-only",
+        "no-source-mutation",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A draft-only unit-test proposal with target test file, proposed test body/operation, verification command, and no source mutation.",
+      "case_id": "P24",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: execution_planning.plan",
+        "Draft proposal:",
+        "small_unit_test_proposal",
+        "tests/",
+        "python -m pytest",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_small_unit_test_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "execution_planning.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Use 'draft a small unit test' and ask for the proposed test file and pytest command.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, draft a small unit test for sync_exchange_order_id_for_placed_order setting exchange_order_id when it is missing. Do not mutate files. Show the proposed test file and pytest command.",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Draft proposal:",
+        "small_unit_test_proposal",
+        "tests/",
+        "python -m pytest",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "draft-only",
+        "no-source-mutation",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A draft-only simple-fix proposal with exact proposed operation, verification command, and approval gate.",
+      "case_id": "P25",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "selected_workflow: execution_planning.plan",
+        "Draft proposal:",
+        "simple_test_fix_proposal",
+        "core/stealth_order_manager.py",
+        "client_order_id",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_simple_failing_test_fix_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "execution_planning.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Include the failing test output and say draft only; do not apply until approved.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, inspect this failing test and propose the smallest fix. Draft only; do not apply until approved. FAILED tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - AssertionError: expected find_stealth_order_by_placed_order_id docstring to mention client_order_id",
+      "prompt_risk": "",
+      "refined_prompt": "",
+      "semantic_markers": [
+        "Draft proposal:",
+        "simple_test_fix_proposal",
+        "core/stealth_order_manager.py",
+        "client_order_id",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "l1",
+        "draft-only",
+        "no-source-mutation",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A disposable-copy apply proof that mutates only the copy, rolls it back, and reports source_changed false.",
+      "case_id": "P26",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "",
+      "expected_markers": [
+        "workflow_router.plan completed",
+        "downstream_workflow: implementation.workflow",
+        "source_changed: False",
+        "disposable_copy_changed: True"
+      ],
+      "expected_rule": "disposable_apply_terms",
+      "expected_skill_id": "",
+      "expected_workflow": "execution_planning.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True"
+      ],
+      "miss_suggestion": "Say 'approved disposable copy apply only' if the router refuses the less rigid wording.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, apply this exact packet only to a disposable copy and prove the source repo did not change: {\"packet_operations\":[{\"kind\":\"replace_text\",\"path\":\"docs/agents/INVARIANTS.md\",\"old\":\"- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\\n  maps, dashboard references, follow-up claims, fill ledger ownership, and DB\\n  local rows.\",\"new\":\"- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\\n  maps, dashboard references, follow-up claims, fill ledger ownership, DB\\n  local rows, and stealth manager placed-order index keys.\"}]}",
+      "prompt_risk": "Disposable-copy apply prompts need older-client-safe copy-only approval wording.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, approved disposable copy apply only. Apply this exact packet only to a disposable copy and prove source_changed is false: {\"packet_operations\":[{\"kind\":\"replace_text\",\"path\":\"docs/agents/INVARIANTS.md\",\"old\":\"- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\\n  maps, dashboard references, follow-up claims, fill ledger ownership, and DB\\n  local rows.\",\"new\":\"- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\\n  maps, dashboard references, follow-up claims, fill ledger ownership, DB\\n  local rows, and stealth manager placed-order index keys.\"}]}",
+      "semantic_markers": [
+        "workflow_router.plan completed",
+        "downstream_workflow: implementation.workflow",
+        "source_changed: False",
+        "disposable_copy_changed: True"
+      ],
+      "tags": [
+        "founder-field",
+        "disposable-copy",
+        "apply-proof",
+        "coinbase-fixture",
+        "git-enabled-fixture"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A handler-branch trace that selects the Batch D handler skill and returns a request-flow map.",
+      "case_id": "P27",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "downstream_request_flow_map",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target flow:",
+        "request_stealth_orders",
+        "Flow steps:",
+        "Participating files:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l2_request_flow_map_terms",
+      "expected_skill_id": "handler-branch-tracer",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Use 'handler branch trace' and 'downstream snapshot function' when the prompt must select the Batch D handler tracer.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, follow handler branch trace for request_stealth_orders as a request flow through the downstream snapshot function. Read only. Return flow steps, participating files, evidence refs, related tests, risks, gaps, and verification.",
+      "prompt_risk": "Handler prompts can select a generic endpoint lookup unless handler-branch and downstream snapshot language is explicit.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, follow handler branch trace for request_stealth_orders through the downstream snapshot function as a request flow map. Read only. Return flow steps, participating files, evidence refs, related tests, risks, gaps, and verification.",
+      "semantic_markers": [
+        "Target flow:",
+        "request_stealth_orders",
+        "Flow steps:",
+        "Participating files:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "batch-d",
+        "l1-l2",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture",
+        "skill:handler-branch-tracer"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A non-git fixture handler-branch trace that selects the Batch D handler skill and returns a request-flow map.",
+      "case_id": "P28",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "downstream_request_flow_map",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target flow:",
+        "request_stealth_orders",
+        "Flow steps:",
+        "Participating files:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l2_request_flow_map_terms",
+      "expected_skill_id": "handler-branch-tracer",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Use 'handler branch trace' and 'downstream snapshot function' when the prompt must select the Batch D handler tracer.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, follow handler branch trace for request_stealth_orders as a request flow through the downstream snapshot function. Read only. Return flow steps, participating files, evidence refs, related tests, risks, gaps, and verification.",
+      "prompt_risk": "Non-git handler prompts still need explicit handler-branch and downstream snapshot language.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, follow handler branch trace for request_stealth_orders through the downstream snapshot function as a request flow map. Read only. Return flow steps, participating files, evidence refs, related tests, risks, gaps, and verification.",
+      "semantic_markers": [
+        "Target flow:",
+        "request_stealth_orders",
+        "Flow steps:",
+        "Participating files:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "batch-d",
+        "l1-l2",
+        "read-only",
+        "coinbase-fixture",
+        "non-git-fixture",
+        "skill:handler-branch-tracer"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "baseline_target": "A table-schema-only answer that selects the Batch D schema isolator and avoids runtime dictionary fields.",
+      "case_id": "P29",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "downstream_data_model_lookup",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target model/schema:",
+        "stealth_orders",
+        "Fields:",
+        "Model files:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_data_model_lookup_terms",
+      "expected_skill_id": "table-schema-isolator",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Say 'table schema only' and 'exclude runtime fields' when runtime dictionaries are not desired.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find the stealth_orders table schema only. Read only. Return schema field names, model files, and source refs. Exclude runtime fields.",
+      "prompt_risk": "Schema prompts can mix persisted table fields with runtime dictionary fields unless the persisted table boundary is named.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find only the persisted stealth_orders table schema. Read only. Return schema field names, model files, and source refs. Exclude runtime dictionary fields.",
+      "semantic_markers": [
+        "Target model/schema:",
+        "stealth_orders",
+        "Fields:",
+        "Model files:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "batch-d",
+        "l1-l2",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture",
+        "skill:table-schema-isolator"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A non-git fixture table-schema-only answer that selects the Batch D schema isolator and avoids runtime dictionary fields.",
+      "case_id": "P30",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "downstream_data_model_lookup",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target model/schema:",
+        "stealth_orders",
+        "Fields:",
+        "Model files:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_data_model_lookup_terms",
+      "expected_skill_id": "table-schema-isolator",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Say 'table schema only' and 'exclude runtime fields' when runtime dictionaries are not desired.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, find the stealth_orders table schema only. Read only. Return schema field names, model files, and source refs. Exclude runtime fields.",
+      "prompt_risk": "Non-git schema prompts can mix persisted table fields with runtime dictionary fields unless the persisted table boundary is named.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, find only the persisted stealth_orders table schema. Read only. Return schema field names, model files, and source refs. Exclude runtime dictionary fields.",
+      "semantic_markers": [
+        "Target model/schema:",
+        "stealth_orders",
+        "Fields:",
+        "Model files:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "batch-d",
+        "l1-l2",
+        "read-only",
+        "coinbase-fixture",
+        "non-git-fixture",
+        "skill:table-schema-isolator"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "baseline_target": "A runtime-entrypoint answer that selects the Batch D entrypoint disambiguator and excludes adjacent UI services.",
+      "case_id": "P31",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "downstream_cli_entrypoint_lookup",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target entrypoint:",
+        "Entrypoints:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_cli_entrypoint_lookup_terms",
+      "expected_skill_id": "runtime-entrypoint-disambiguator",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Say 'runtime entrypoint' and 'not dashboard server' when the prompt must avoid adjacent UI entrypoints.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, locate the runtime entrypoint for the trading engine entrypoint, not dashboard server. Read only. Return command, source refs, and exclusions.",
+      "prompt_risk": "Entrypoint prompts can select dashboard_server.py unless the runtime subsystem and exclusion are explicit.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, locate the trading-engine runtime entrypoint and exclude the dashboard server path. Read only. Return command, source refs, and excluded adjacent entrypoints.",
+      "semantic_markers": [
+        "Target entrypoint:",
+        "Entrypoints:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "batch-d",
+        "l1-l2",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture",
+        "skill:runtime-entrypoint-disambiguator"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A non-git fixture runtime-entrypoint answer that selects the Batch D entrypoint disambiguator and excludes adjacent UI services.",
+      "case_id": "P32",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "downstream_cli_entrypoint_lookup",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target entrypoint:",
+        "Entrypoints:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l1_cli_entrypoint_lookup_terms",
+      "expected_skill_id": "runtime-entrypoint-disambiguator",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Say 'runtime entrypoint' and 'not dashboard server' when the prompt must avoid adjacent UI entrypoints.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, locate the runtime entrypoint for the trading engine entrypoint, not dashboard server. Read only. Return command, source refs, and exclusions.",
+      "prompt_risk": "Non-git entrypoint prompts can select dashboard_server.py unless the runtime subsystem and exclusion are explicit.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, locate the trading-engine runtime entrypoint and exclude the dashboard server path. Read only. Return command, source refs, and excluded adjacent entrypoints.",
+      "semantic_markers": [
+        "Target entrypoint:",
+        "Entrypoints:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "batch-d",
+        "l1-l2",
+        "read-only",
+        "coinbase-fixture",
+        "non-git-fixture",
+        "skill:runtime-entrypoint-disambiguator"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "baseline_target": "A change-boundary answer that selects the Batch D boundary summarizer and stops before implementation.",
+      "case_id": "P33",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "downstream_change_surface_summary",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Change surface files:",
+        "Risk level:",
+        "Implementation status: not_ready_without_approval",
+        "Verification:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l2_change_surface_summary_terms",
+      "expected_skill_id": "change-boundary-summarizer",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Say 'files to touch', 'files not to touch', and 'change boundary' when the prompt must stay before implementation.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify files to touch and files not to touch for the minimal safe change surface and change boundary for placed_order_id stealth lookup behavior. Read only and stop before implementation. Return risks, gaps, and verification commands.",
+      "prompt_risk": "Change-surface prompts can drift into implementation planning unless the boundary and stop condition are explicit.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, summarize the change boundary for placed_order_id stealth lookup by listing files to touch and files not to touch. Read only and stop before implementation. Return risks, gaps, and verification commands.",
+      "semantic_markers": [
+        "Change surface files:",
+        "Risk level:",
+        "Implementation status: not_ready_without_approval",
+        "Verification:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "batch-d",
+        "l1-l2",
+        "read-only",
+        "coinbase-fixture",
+        "git-enabled-fixture",
+        "skill:change-boundary-summarizer"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "baseline_target": "A non-git fixture change-boundary answer that selects the Batch D boundary summarizer and stops before implementation.",
+      "case_id": "P34",
+      "change_history": [
+        {
+          "date": "2026-06-06",
+          "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
+          "version": "1.0.0"
+        }
+      ],
+      "expected_artifact_key": "downstream_change_surface_summary",
+      "expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Change surface files:",
+        "Risk level:",
+        "Implementation status: not_ready_without_approval",
+        "Verification:",
+        "Source mutation: false"
+      ],
+      "expected_rule": "l2_change_surface_summary_terms",
+      "expected_skill_id": "change-boundary-summarizer",
+      "expected_workflow": "code_investigation.plan",
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Say 'files to touch', 'files not to touch', and 'change boundary' when the prompt must stay before implementation.",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, identify files to touch and files not to touch for the minimal safe change surface and change boundary for placed_order_id stealth lookup behavior. Read only and stop before implementation. Return risks, gaps, and verification commands.",
+      "prompt_risk": "Non-git change-surface prompts can drift into implementation planning unless the boundary and stop condition are explicit.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, summarize the change boundary for placed_order_id stealth lookup by listing files to touch and files not to touch. Read only and stop before implementation. Return risks, gaps, and verification commands.",
+      "semantic_markers": [
+        "Change surface files:",
+        "Risk level:",
+        "Implementation status: not_ready_without_approval",
+        "Verification:",
+        "Source mutation: false"
+      ],
+      "tags": [
+        "founder-field",
+        "batch-d",
+        "l1-l2",
+        "read-only",
+        "coinbase-fixture",
+        "non-git-fixture",
+        "skill:change-boundary-summarizer"
+      ],
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    }
+  ],
+  "catalog_id": "founder_field_v1",
+  "change_history": [
+    {
+      "case_count": 34,
+      "date": "2026-06-06",
+      "summary": "Migrated P01-P34 founder field prompts, classifier rules, semantic markers, and refined prompts from script literals into a versioned fixture.",
+      "version": "1.0.0"
+    }
+  ],
+  "common_forbidden_markers": [
+    "Source mutation: true",
+    "Source mutation: True",
+    "source_changed: true",
+    "source_changed: True"
+  ],
+  "common_format_a_markers": [
+    "I completed workflow_router.plan.",
+    "workflow_router.plan completed",
+    "run_id: workflow-router-",
+    "Result:",
+    "- Selected workflow:",
+    "- Selected skills:",
+    "- Selected tools:",
+    "- Next action:",
+    "- Verification:",
+    "Artifacts:"
+  ],
+  "created_at": "2026-06-06",
+  "description": "Governed founder field prompt catalog for V1 AnythingLLM and prompt-matrix validation.",
+  "kind": "prompt_catalog",
+  "owner": "agentic_agents",
+  "schema_version": 1,
+  "version": "1.0.0"
+}

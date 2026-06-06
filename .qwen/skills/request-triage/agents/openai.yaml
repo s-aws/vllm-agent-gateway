@@ -1,0 +1,4 @@
+interface:
+  display_name: "Request Triage"
+  short_description: "Classify requests before planning or repo traversal."
+  default_prompt: "Use this skill to classify a user request into a bounded planning path before selecting files, tools, workflows, or implementation steps."

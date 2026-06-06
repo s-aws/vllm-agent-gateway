@@ -2,6 +2,73 @@
   "schema_version": 1,
   "workflows": [
     {
+      "id": "workflow_router.plan",
+      "description": "Controller-owned plan-only natural-language workflow routing using workflow, tool, and skill registry metadata.",
+      "default_role_id": "dispatcher/default",
+      "allowed_role_ids": [
+        "dispatcher/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "task.decompose",
+      "description": "Controller-owned read-only multi-step task decomposition using registry metadata and approval gates.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "implementation.workflow",
+      "description": "Controller-owned controlled small-change draft/apply workflow with approval gates, patch previews, verification, and rollback metadata.",
+      "default_role_id": "implementer/default",
+      "allowed_role_ids": [
+        "implementer/default"
+      ],
+      "controller_tool_ids": [
+        "git_ls_files",
+        "read_file",
+        "run_tests"
+      ],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [
+        {
+          "tool_id": "git_ls_files",
+          "action": "confirm_tracked_apply_targets",
+          "scope": "target_root",
+          "result_artifacts": [
+            "implementation_plan",
+            "implementation_report"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "read_packet_target_files",
+          "scope": "target_root",
+          "result_artifacts": [
+            "implementation_plan",
+            "implementation_report"
+          ]
+        },
+        {
+          "tool_id": "run_tests",
+          "action": "run_controller_declared_verification_commands",
+          "scope": "target_root",
+          "result_artifacts": [
+            "implementation_report"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
       "id": "documenter.review",
       "description": "Bounded document review through the controller service.",
       "default_role_id": "documenter/default",
@@ -53,6 +120,345 @@
           ]
         }
       ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "execution_planning.plan",
+      "description": "Controller-owned execution planning through bounded project-local skills.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [
+        {
+          "tool_id": "structure_index",
+          "action": "discover_symbols_and_file_structure",
+          "scope": "target_root",
+          "result_artifacts": [
+            "context_results",
+            "impact_map"
+          ]
+        },
+        {
+          "tool_id": "git_grep",
+          "action": "bounded_exact_string_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "context_results",
+            "impact_map"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "read_selected_context_files",
+          "scope": "target_root",
+          "result_artifacts": [
+            "context_results",
+            "execution_plan"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "code_context.lookup",
+      "description": "Controller-owned read-only code context lookup using deterministic structure index, bounded grep/read operations, and curated relationship queries.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [
+        "structure_index",
+        "git_grep",
+        "read_file",
+        "codegraph_context"
+      ],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [
+        {
+          "tool_id": "structure_index",
+          "action": "bounded_structure_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "lookup_results"
+          ]
+        },
+        {
+          "tool_id": "git_grep",
+          "action": "bounded_exact_string_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "lookup_results"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "read_explicit_lookup_paths",
+          "scope": "target_root",
+          "result_artifacts": [
+            "lookup_results"
+          ]
+        },
+        {
+          "tool_id": "codegraph_context",
+          "action": "run_curated_relationship_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "relationship_results",
+            "lookup_results"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "code_investigation.plan",
+      "description": "Controller-owned read-only code investigation plan using deterministic lookup evidence.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [
+        {
+          "tool_id": "structure_index",
+          "action": "build_bounded_investigation_structure_slice",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_evidence",
+            "investigation_plan"
+          ]
+        },
+        {
+          "tool_id": "git_grep",
+          "action": "gather_bounded_behavior_matches",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_evidence",
+            "investigation_plan"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "read_selected_investigation_files",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_evidence",
+            "investigation_plan"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "refactor.single_path",
+      "description": "Controller-owned single-path refactor orchestration using investigation first and execution-planning draft delegation.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [
+        {
+          "tool_id": "structure_index",
+          "action": "delegate_bounded_investigation_structure",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_plan",
+            "refactor_plan"
+          ]
+        },
+        {
+          "tool_id": "git_grep",
+          "action": "delegate_bounded_behavior_lookup",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_plan",
+            "refactor_plan"
+          ]
+        },
+        {
+          "tool_id": "read_file",
+          "action": "delegate_selected_file_reads",
+          "scope": "target_root",
+          "result_artifacts": [
+            "investigation_plan",
+            "refactor_plan"
+          ]
+        }
+      ],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "workflow_feedback.record",
+      "description": "Controller-owned workflow feedback capture linked to prior run records and artifacts.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill_batch.propose",
+      "description": "Controller-owned artifact-only skill batch proposal workflow with admission and scale validation.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill_batch.register",
+      "description": "Controller-owned approval-gated skill batch registration workflow with registry mutation proof and rollback artifacts.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill_eval.promote",
+      "description": "Controller-owned approval-gated registered skill eval promotion workflow with proof validation and rollback artifacts.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill_lifecycle.audit",
+      "description": "Controller-owned read-only skill lifecycle audit workflow with next-action queue reporting.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill.deprecate",
+      "description": "Controller-owned approval-gated skill deprecation workflow with replacement validation and rollback artifacts.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill.update",
+      "description": "Controller-owned approval-gated skill update workflow with semantic versioning, validation, and rollback artifacts.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill.selection.explain",
+      "description": "Controller-owned read-only skill selection explanation workflow with metadata-only selector proof.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill_pack.validate",
+      "description": "Controller-owned read-only skill pack validation workflow with namespace governance and batch admission checks.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill_pack.install",
+      "description": "Controller-owned approval-gated skill pack installation workflow with registry mutation proof and rollback artifacts.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "skill.scaffold",
+      "description": "Controller-owned artifact-only skill authoring scaffold workflow that generates draft skill bodies, metadata, eval cases, docs refs, and validation checklists.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "tool_catalog.validate",
+      "description": "Controller-owned read-only tool admission validation workflow with mediator, workflow, and role compatibility checks.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "tool_catalog.register",
+      "description": "Controller-owned approval-gated tool catalog registration workflow that appends validated runtime tool metadata only.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
       "model_visible_tool_ids": []
     }
   ]

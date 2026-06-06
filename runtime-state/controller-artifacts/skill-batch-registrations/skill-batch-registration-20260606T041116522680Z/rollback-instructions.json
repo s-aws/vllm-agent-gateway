@@ -1,0 +1,15 @@
+{
+  "kind": "skill_batch_registration_rollback_instructions",
+  "note": "Restore the two runtime JSON backups and remove installed skill files if the registered batch must be reverted.",
+  "remove_installed_skill_files": [
+    ".qwen/skills/handler-branch-tracer/SKILL.md",
+    ".qwen/skills/table-schema-isolator/SKILL.md",
+    ".qwen/skills/runtime-entrypoint-disambiguator/SKILL.md",
+    ".qwen/skills/change-boundary-summarizer/SKILL.md"
+  ],
+  "restore_backups": {
+    "runtime/skill_evals.json": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-registrations\\skill-batch-registration-20260606T041116522680Z\\backups\\skill-evals.before.json",
+    "runtime/skills.json": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-registrations\\skill-batch-registration-20260606T041116522680Z\\backups\\skills.before.json"
+  },
+  "schema_version": 1
+}

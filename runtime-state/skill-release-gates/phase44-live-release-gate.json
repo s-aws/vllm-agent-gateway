@@ -1,0 +1,171 @@
+{
+  "catalog_summary": {
+    "eval_case_count": 41,
+    "eval_status_counts": {
+      "validated": 42
+    },
+    "route_key_count": 42,
+    "route_namespace_counts": {
+      "code": 13,
+      "config": 2,
+      "context": 3,
+      "diagnostics": 1,
+      "docs": 3,
+      "draft": 3,
+      "feedback": 1,
+      "git": 1,
+      "implementation": 1,
+      "planning": 6,
+      "test": 5,
+      "verification": 3
+    },
+    "skill_count": 42,
+    "workflow_count": 13,
+    "workflow_ids": [
+      "code_context.lookup",
+      "code_investigation.plan",
+      "documenter.review",
+      "execution_planning.plan",
+      "refactor.single_path",
+      "skill.deprecate",
+      "skill.update",
+      "skill_batch.propose",
+      "skill_batch.register",
+      "skill_eval.promote",
+      "skill_lifecycle.audit",
+      "workflow_feedback.record",
+      "workflow_router.plan"
+    ]
+  },
+  "commands": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "pytest",
+        "tests/regression/test_skill_registry.py",
+        "tests/regression/test_skill_evals.py",
+        "tests/regression/test_skill_selector_scale.py",
+        "-q"
+      ],
+      "cwd": "/mnt/c/agentic_agents",
+      "elapsed_seconds": 16.914836710959207,
+      "label": "skill_registry_eval_selector_regression",
+      "rerun": "/usr/bin/python3 -m pytest tests/regression/test_skill_registry.py tests/regression/test_skill_evals.py tests/regression/test_skill_selector_scale.py -q",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "..............................................                           [100%]\n46 passed in 19.20s\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-m",
+        "pytest",
+        "tests/regression/test_controller_service.py",
+        "-k",
+        "skill_batch or skill_eval_promotion or skill_lifecycle or skill_deprecation or skill_update",
+        "-q"
+      ],
+      "cwd": "/mnt/c/agentic_agents",
+      "elapsed_seconds": 175.45964070601622,
+      "label": "focused_skill_controller_regression",
+      "rerun": "/usr/bin/python3 -m pytest tests/regression/test_controller_service.py -k skill_batch or skill_eval_promotion or skill_lifecycle or skill_deprecation or skill_update -q",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "...............................                                          [100%]\n31 passed, 127 deselected in 190.37s (0:03:10)\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "scripts/validate_skill_lifecycle_live.py",
+        "--config-root",
+        "/mnt/c/agentic_agents",
+        "--controller-base-url",
+        "http://127.0.0.1:8400",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+        "--skip-anythingllm"
+      ],
+      "cwd": "/mnt/c/agentic_agents",
+      "elapsed_seconds": 9.998330107016955,
+      "label": "skill_lifecycle_live_guard",
+      "rerun": "/usr/bin/python3 scripts/validate_skill_lifecycle_live.py --config-root /mnt/c/agentic_agents --controller-base-url http://127.0.0.1:8400 --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --timeout-seconds 900 --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --skip-anythingllm",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "PHASE39 PORT PASS label=localhost-model url=http://127.0.0.1:8000/v1/models\nPHASE39 PORT PASS label=llm-gateway url=http://127.0.0.1:8300/v1/models\nPHASE39 PORT PASS label=controller url=http://127.0.0.1:8400/health\nPHASE39 PORT PASS label=workflow-router-gateway url=http://127.0.0.1:8500/v1/models\nPHASE39 PORT PASS label=documenter-role url=http://127.0.0.1:8101/v1/models\nPHASE39 PORT PASS label=architect-role url=http://127.0.0.1:8102/v1/models\nPHASE39 PORT PASS label=agent-role-8201 url=http://127.0.0.1:8201/v1/models\nPHASE39 PORT PASS label=agent-role-8202 url=http://127.0.0.1:8202/v1/models\nPHASE39 PORT PASS label=agent-role-8203 url=http://127.0.0.1:8203/v1/models\nPHASE39 PORT PASS label=agent-role-8204 url=http://127.0.0.1:8204/v1/models\nPHASE39 PORT PASS label=agent-role-8205 url=http://127.0.0.1:8205/v1/models\nPHASE39 STATIC GATES PASS\nPHASE39 DIRECT AUDIT PASS\nPHASE39 GATEWAY AUDIT PASS\nPHASE39 LIVE SUMMARY {\"anythingllm\": false, \"canonical_registry_mutated\": false, \"direct_audit\": true, \"gateway_audit\": true, \"target_roots\": [\"/mnt/c/coinbase_testing_repo_frozen_tmp\", \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"]}\n"
+    }
+  ],
+  "config_root": "/mnt/c/agentic_agents",
+  "created_at": "2026-06-05T18:39:14Z",
+  "errors": [],
+  "generated_reports": {
+    "docs_index_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260605T183533074093Z/docs-index.json",
+    "selector_scale_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260605T183533074093Z/selector-scale.json",
+    "skill_eval_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260605T183533074093Z/skill-evals.json",
+    "skill_scale_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260605T183533074093Z/skill-scale.json"
+  },
+  "hash_summary": {
+    "after": {
+      ".qwen/skills/*/SKILL.md": "8a698085dfd060ba439ac517c04152b96aec776a77a70758cad064eb176594cc",
+      "runtime/skill_evals.json": "e2d16ef4d8f8c51f775dcc7b06e160185a7d6d97d45a839592e3944d1785cbb1",
+      "runtime/skills.json": "cb18bcc761c095b851e9d589ffe4f89170eb4a17495834a325c6102d17030e90",
+      "runtime/workflows.json": "91a770782cd6a017dea28856952eef8d31d98eb9b7717fdcc46dec01da4a15b1"
+    },
+    "before": {
+      ".qwen/skills/*/SKILL.md": "8a698085dfd060ba439ac517c04152b96aec776a77a70758cad064eb176594cc",
+      "runtime/skill_evals.json": "e2d16ef4d8f8c51f775dcc7b06e160185a7d6d97d45a839592e3944d1785cbb1",
+      "runtime/skills.json": "cb18bcc761c095b851e9d589ffe4f89170eb4a17495834a325c6102d17030e90",
+      "runtime/workflows.json": "91a770782cd6a017dea28856952eef8d31d98eb9b7717fdcc46dec01da4a15b1"
+    },
+    "changed_files": []
+  },
+  "kind": "skill_release_gate_report",
+  "mode": "live",
+  "proof_validation": [
+    {
+      "errors": [],
+      "label": "skill_eval_report",
+      "path": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260605T183533074093Z/skill-evals.json",
+      "status": "passed"
+    },
+    {
+      "errors": [],
+      "label": "skill_scale_report",
+      "path": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260605T183533074093Z/skill-scale.json",
+      "status": "passed"
+    },
+    {
+      "errors": [],
+      "label": "selector_scale_report",
+      "path": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260605T183533074093Z/selector-scale.json",
+      "status": "passed"
+    },
+    {
+      "errors": [],
+      "label": "docs_index_report",
+      "path": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260605T183533074093Z/docs-index.json",
+      "status": "passed"
+    }
+  ],
+  "report_path": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/phase44-live-release-gate.json",
+  "run_id": "skill-release-gate-20260605T183533074093Z",
+  "schema_version": 1,
+  "status": "passed",
+  "target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ]
+}

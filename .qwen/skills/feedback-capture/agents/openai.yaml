@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feedback Capture"
+  short_description: "Turn tester feedback into follow-up records."
+  default_prompt: "Use $feedback-capture after validation, workflow runs, plan review, or tester critique to record useful, wrong, missing, noisy, and next-adjustment feedback without treating it as approval to implement."

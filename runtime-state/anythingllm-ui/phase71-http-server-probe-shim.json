@@ -1,0 +1,255 @@
+{
+  "body": "",
+  "body_15s": "",
+  "body_25s": "",
+  "body_3s": "",
+  "body_8s": "",
+  "console": [],
+  "counts": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "counts_15s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "counts_25s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "counts_3s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "counts_8s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "failed": [],
+  "html": "<body class=\"light\">\n  <div id=\"root\"><div class=\"fixed left-0 top-0 z-999999 flex h-screen w-screen bg-[#000000]\"><video src=\"http://127.0.0.1:8767/assets/dark-a267ebfb.webm\" class=\"w-full h-full object-fit\" frameborder=\"0\" autoplay=\"\"></video></div></div>\n  \n\n\n</body>",
+  "last_sec": 25,
+  "responses": [
+    {
+      "ct": "text/html; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/"
+    },
+    {
+      "ct": "text/css; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-ed8835e2.css"
+    },
+    {
+      "ct": "text/css; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-668bcc60.css"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/main-8239a71c.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-e9e26470.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/files-1122acda.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-84fac6f0.js"
+    },
+    {
+      "ct": "text/css; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/clipboard-e6283216.css"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Copy-61c9d797.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-c0eddfd0.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/admin-5bb2a240.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/moment-a9aaa855.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/mcpServers-78407e8f.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/File-6e4bc303.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Database-7e68fb15.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Files-7d6695af.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/clipboard-6c01cd62.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/FolderOpen-b11d662e.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Folder-23acf0b4.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Minus-8d1b1816.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-91ddb648.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Trans-de442f4d.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Brain-46090475.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Browser-0e998625.js"
+    },
+    {
+      "ct": "font/ttf",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/PlusJakartaSans-e493fee2.ttf"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/agentFlows-020fa867.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/purify-3e466d78.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/WarningCircle-12a72741.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/SlidersHorizontal-246b7199.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-f760af4b.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-d29be75f.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Eye-43fedc1e.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-6264efcc.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-85fcfae8.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Hammer-43e8cb89.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/tiny-invariant-1dc34c91.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-44eeee20.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-6a3d9c91.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/UploadSimple-84c01beb.js"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/favicon.png"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/react-beautiful-dnd.esm-2c72ea67.js"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/favicon.png"
+    },
+    {
+      "ct": "video/webm",
+      "status": 206,
+      "url": "http://127.0.0.1:8767/assets/dark-a267ebfb.webm"
+    }
+  ],
+  "title": "AnythingLLM | Superpowers for your OS using local AI",
+  "url": "http://127.0.0.1:8767/#/workspace/my-workspace"
+}

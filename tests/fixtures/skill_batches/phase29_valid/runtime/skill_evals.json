@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "kind": "skill_eval_fixture_registry",
+  "fixtures": [
+    {
+      "id": "clear_request",
+      "description": "Clear request fixture.",
+      "expected_behavior": "produce_ready_or_next_step"
+    },
+    {
+      "id": "ambiguous_request",
+      "description": "Ambiguous request fixture.",
+      "expected_behavior": "stop_or_ask_blocking_question"
+    }
+  ],
+  "cases": [
+    {
+      "id": "existing_eval_case",
+      "prompt_family": "existing",
+      "natural_prompt": "In <repo>, inspect existing behavior. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": [
+        "investigation_plan"
+      ],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "skill_registry_contract"
+    }
+  ]
+}

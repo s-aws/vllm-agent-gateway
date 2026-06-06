@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verification Planner"
+  short_description: "Plan safe pytest verification checks."
+  default_prompt: "Use $verification-planner after implementation packet design to choose controller-compatible pytest verification commands and manual checks without running commands or marking work complete."

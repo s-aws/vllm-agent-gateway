@@ -1,0 +1,265 @@
+{
+  "anythingllm_api_base_url": "http://127.0.0.1:3001",
+  "anythingllm_preflight": {
+    "ping": {
+      "online": true
+    },
+    "ping_status": 200,
+    "status": "passed",
+    "workspace": "my-workspace",
+    "workspace_found": true,
+    "workspace_status": 200
+  },
+  "config_root": "/mnt/c/agentic_agents",
+  "created_at": "20260605T025545013692Z",
+  "errors": [],
+  "feedback": [
+    {
+      "anythingllm_feedback_run_id": "workflow-feedback-20260605T030030803475Z",
+      "anythingllm_seed_run_id": "workflow-router-20260605T030013962209Z",
+      "gateway_feedback_run_id": "workflow-feedback-20260605T030013925371Z",
+      "gateway_seed_run_id": "workflow-router-20260605T025959372550Z",
+      "status": "passed",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "anythingllm_feedback_run_id": "workflow-feedback-20260605T030047430033Z",
+      "anythingllm_seed_run_id": "workflow-router-20260605T030039319903Z",
+      "gateway_feedback_run_id": "workflow-feedback-20260605T030039284748Z",
+      "gateway_seed_run_id": "workflow-router-20260605T030030848562Z",
+      "status": "passed",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    }
+  ],
+  "fixture_state": {
+    "/mnt/c/coinbase_testing_repo_frozen_tmp": {
+      "git_status": null,
+      "hashes": {
+        "configuration.py": "eebe293c3a9661ceffd32d50d46b08c44bcec689bae23e7122449e5a8827f54e",
+        "core/stealth_order_manager.py": "aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e",
+        "docs/agents/INVARIANTS.md": "9dc782f95baa1f0668cf291d16a4718fa97311abeb9cf783010ae779b1648049",
+        "tests/unit/test_order_id_and_followup_rules.py": "9e80dde29afc08c205eee16c327cedbc52720e7fb852dbae93807e40d11c2321"
+      }
+    },
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github": {
+      "git_status": {
+        "clean": false,
+        "line_count": 411,
+        "sample": [
+          " M .agents/ownership.yaml",
+          " M AGENTS.md",
+          " M CLAUDE.md",
+          " M ID_USAGE_ANALYSIS.md",
+          " M __delete_all_database_tables__.py"
+        ],
+        "sha256": "3f76a5e7a3bd7c3ed319511dfa0946a8455fe5442be15e5309b9c8b6aa803b17"
+      },
+      "hashes": {
+        "configuration.py": "eebe293c3a9661ceffd32d50d46b08c44bcec689bae23e7122449e5a8827f54e",
+        "core/stealth_order_manager.py": "aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e",
+        "docs/agents/INVARIANTS.md": "9dc782f95baa1f0668cf291d16a4718fa97311abeb9cf783010ae779b1648049",
+        "tests/unit/test_order_id_and_followup_rules.py": "9e80dde29afc08c205eee16c327cedbc52720e7fb852dbae93807e40d11c2321"
+      }
+    }
+  },
+  "health": [
+    {
+      "http_status": 200,
+      "name": "model",
+      "path": "/v1/models",
+      "port": 8000,
+      "status": "passed",
+      "url": "http://127.0.0.1:8000/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "llm_gateway",
+      "path": "/v1/models",
+      "port": 8300,
+      "status": "passed",
+      "url": "http://127.0.0.1:8300/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "workflow_router_gateway",
+      "path": "/v1/models",
+      "port": 8500,
+      "status": "passed",
+      "url": "http://127.0.0.1:8500/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "controller",
+      "path": "/health",
+      "port": 8400,
+      "status": "passed",
+      "url": "http://127.0.0.1:8400/health"
+    },
+    {
+      "http_status": 200,
+      "name": "reviewer_code",
+      "path": "/v1/models",
+      "port": 8101,
+      "status": "passed",
+      "url": "http://127.0.0.1:8101/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "tester_code",
+      "path": "/v1/models",
+      "port": 8102,
+      "status": "passed",
+      "url": "http://127.0.0.1:8102/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "architect_default",
+      "path": "/v1/models",
+      "port": 8201,
+      "status": "passed",
+      "url": "http://127.0.0.1:8201/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "dispatcher_default",
+      "path": "/v1/models",
+      "port": 8202,
+      "status": "passed",
+      "url": "http://127.0.0.1:8202/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "implementer_default",
+      "path": "/v1/models",
+      "port": 8203,
+      "status": "passed",
+      "url": "http://127.0.0.1:8203/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "researcher_default",
+      "path": "/v1/models",
+      "port": 8204,
+      "status": "passed",
+      "url": "http://127.0.0.1:8204/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "documenter_default",
+      "path": "/v1/models",
+      "port": 8205,
+      "status": "passed",
+      "url": "http://127.0.0.1:8205/v1/models"
+    }
+  ],
+  "json_output": [
+    {
+      "anythingllm_run_id": "workflow-router-20260605T025911753358Z",
+      "gateway_run_id": "workflow-router-20260605T025855653891Z",
+      "status": "passed",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "anythingllm_run_id": "workflow-router-20260605T025944590860Z",
+      "gateway_run_id": "workflow-router-20260605T025931438459Z",
+      "status": "passed",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    }
+  ],
+  "kind": "v1_acceptance_report",
+  "report_path": "/mnt/c/agentic_agents/runtime-state/v1-acceptance/phase28-v1-acceptance.json",
+  "schema_version": 1,
+  "status": "passed",
+  "suite_runs": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/validate_workflow_router_l1_suite.py",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--api-key-env",
+        "ANYTHINGLLM_API_KEY",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+        "--case-id",
+        "L1-002",
+        "--case-id",
+        "L1-010"
+      ],
+      "description": "L1 read-only plus draft-only representative cases",
+      "id": "representative_l1",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "L1 SUITE GATEWAY PASS case=L1-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025546550672Z\nL1 SUITE GATEWAY PASS case=L1-010 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025600744871Z\nL1 SUITE GATEWAY PASS case=L1-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025604562828Z\nL1 SUITE GATEWAY PASS case=L1-010 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025622668714Z\nL1 SUITE ANYTHINGLLM PASS case=L1-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025630977502Z\nL1 SUITE ANYTHINGLLM PASS case=L1-010 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025644136423Z\nL1 SUITE ANYTHINGLLM PASS case=L1-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025647852789Z\nL1 SUITE ANYTHINGLLM PASS case=L1-010 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025658856818Z\nL1 SUITE SUMMARY\n{\n  \"anythingllm\": [\n    {\n      \"case_id\": \"L1-002\",\n      \"run_id\": \"workflow-router-20260605T025630977502Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L1-010\",\n      \"run_id\": \"workflow-router-20260605T025644136423Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L1-002\",\n      \"run_id\": \"workflow-router-20260605T025647852789Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    },\n    {\n      \"case_id\": \"L1-010\",\n      \"run_id\": \"workflow-router-20260605T025658856818Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"case_ids\": [\n    \"L1-002\",\n    \"L1-010\"\n  ],\n  \"gateway\": [\n    {\n      \"case_id\": \"L1-002\",\n      \"run_id\": \"workflow-router-20260605T025546550672Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L1-010\",\n      \"run_id\": \"workflow-router-20260605T025600744871Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L1-002\",\n      \"run_id\": \"workflow-router-20260605T025604562828Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    },\n    {\n      \"case_id\": \"L1-010\",\n      \"run_id\": \"workflow-router-20260605T025622668714Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"target_roots\": [\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp\",\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n  ]\n}\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/validate_workflow_router_l2_suite.py",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--api-key-env",
+        "ANYTHINGLLM_API_KEY",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+        "--case-id",
+        "L2-005"
+      ],
+      "description": "L2 read-only representative test-selection case",
+      "id": "representative_l2",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "L2 SUITE GATEWAY PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025706006300Z\nL2 SUITE GATEWAY PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025720546731Z\nL2 SUITE ANYTHINGLLM PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025730725596Z\nL2 SUITE ANYTHINGLLM PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025745506303Z\nL2 SUITE SUMMARY\n{\n  \"anythingllm\": [\n    {\n      \"case_id\": \"L2-005\",\n      \"run_id\": \"workflow-router-20260605T025730725596Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L2-005\",\n      \"run_id\": \"workflow-router-20260605T025745506303Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"case_ids\": [\n    \"L2-005\"\n  ],\n  \"gateway\": [\n    {\n      \"case_id\": \"L2-005\",\n      \"run_id\": \"workflow-router-20260605T025706006300Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L2-005\",\n      \"run_id\": \"workflow-router-20260605T025720546731Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"target_roots\": [\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp\",\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n  ]\n}\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/validate_workflow_router_inline_answers.py",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--api-key-env",
+        "ANYTHINGLLM_API_KEY",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "description": "Chat-visible FormatA output through gateway and AnythingLLM",
+      "id": "inline_format_a",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "INLINE ANSWER GATEWAY PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025754372348Z\nINLINE ANSWER GATEWAY PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025811530461Z\nINLINE ANSWER ANYTHINGLLM PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025821607468Z\nINLINE ANSWER ANYTHINGLLM PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025842888224Z\n{\n  \"anythingllm\": [\n    {\n      \"run_id\": \"workflow-router-20260605T025821607468Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"run_id\": \"workflow-router-20260605T025842888224Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"gateway\": [\n    {\n      \"run_id\": \"workflow-router-20260605T025754372348Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"run_id\": \"workflow-router-20260605T025811530461Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"target_roots\": [\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp\",\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n  ]\n}\n"
+    }
+  ],
+  "target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "workflow_router_gateway_base_url": "http://127.0.0.1:8500/v1",
+  "workspace": "my-workspace"
+}

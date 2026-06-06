@@ -1,0 +1,20 @@
+{
+  "batch_id": "skill-batch",
+  "batch_path": "C:\\agentic_agents\\tests\\fixtures\\skill_batches\\phase29_valid\\tests\\fixtures\\skill_batches\\phase29_valid\\batch.json",
+  "config_root": "C:\\agentic_agents\\tests\\fixtures\\skill_batches\\phase29_valid",
+  "entries": [],
+  "errors": [
+    "Missing skill batch manifest: C:\\agentic_agents\\tests\\fixtures\\skill_batches\\phase29_valid\\tests\\fixtures\\skill_batches\\phase29_valid\\batch.json"
+  ],
+  "eval_cases": [],
+  "kind": "skill_batch_validation_report",
+  "report_path": "C:\\agentic_agents\\tests\\fixtures\\skill_batches\\phase29_valid\\runtime-state\\skill-batches\\skill-batch-20260605T130637410388Z.json",
+  "schema_version": 1,
+  "status": "failed",
+  "summary": {
+    "eval_case_count": 0,
+    "live_suite_counts": {},
+    "route_key_count": 0,
+    "skill_count": 0
+  }
+}

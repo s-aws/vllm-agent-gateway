@@ -54,6 +54,26 @@ python scripts/run_implementation_workflow.py --target-root /path/to/project \
   --verification-pytest tests
 ```
 
+Inspect patch and rollback proof in `implementation-report-*.json`:
+
+```json
+{
+  "changed_artifacts": [
+    {
+      "patch_preview": ".agentic_reports/implementation-drafts/<run-id>/patches/IMP-0001-README.md.diff",
+      "before_sha256": "...",
+      "after_sha256": "...",
+      "rollback_operation": {
+        "kind": "replace_text",
+        "path": "README.md",
+        "old": "new text",
+        "new": "old text"
+      }
+    }
+  ]
+}
+```
+
 Pause after one packet:
 
 ```bash

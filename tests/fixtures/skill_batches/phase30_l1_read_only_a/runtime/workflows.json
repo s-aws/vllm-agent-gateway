@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_registry",
+  "workflows": [
+    {
+      "id": "code_investigation.plan",
+      "controller_actions": []
+    },
+    {
+      "id": "code_context.lookup",
+      "controller_actions": []
+    }
+  ]
+}

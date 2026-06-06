@@ -1,0 +1,63 @@
+{
+  "batch_id": "phase29-valid-batch",
+  "batch_path": "C:\\agentic_agents\\tests\\fixtures\\skill_batches\\phase29_valid\\batch.json",
+  "config_root": "C:\\agentic_agents\\tests\\fixtures\\skill_batches\\phase29_valid",
+  "description": "Valid skill batch fixture for Phase 29 dry-run admission proof.",
+  "doc_refs": [
+    "README.skill-registry.md",
+    "docs/SKILL_LIBRARY_SCALING_PLAN.md"
+  ],
+  "entries": [
+    {
+      "approval_boundary": "none",
+      "eval_case_ids": [
+        "example_batch_eval"
+      ],
+      "live_mappings": [
+        {
+          "live_suite": "skill_registry_contract",
+          "reason": "case is validated by catalog and registry contract checks",
+          "status": "metadata_only"
+        }
+      ],
+      "mutation_policy": "no_repository_mutation",
+      "output_artifacts": [
+        "example_batch_artifact"
+      ],
+      "route_key": "code.batch_skill",
+      "skill_id": "example-batch-skill",
+      "status": "ready",
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    }
+  ],
+  "errors": [],
+  "eval_cases": [
+    {
+      "expected_artifacts": [
+        "example_batch_artifact"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "id": "example_batch_eval",
+      "live_suite": "skill_registry_contract",
+      "mutation_policy": "no_repository_mutation",
+      "natural_prompt": "In <repo>, run the example batch prompt. Read only.",
+      "prompt_family": "example-batch"
+    }
+  ],
+  "kind": "skill_batch_validation",
+  "next_action": "review_then_append_batch_skills_and_eval_cases",
+  "report_path": "C:\\agentic_agents\\runtime-state\\skill-batches\\phase36-phase29-fixture-check.json",
+  "runtime_behavior_changed": false,
+  "schema_version": 1,
+  "status": "passed",
+  "summary": {
+    "eval_case_count": 1,
+    "live_suite_counts": {
+      "skill_registry_contract": 1
+    },
+    "route_key_count": 1,
+    "skill_count": 1
+  }
+}

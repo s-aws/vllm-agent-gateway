@@ -1,0 +1,140 @@
+{
+  "batch_id": "phase34-draft-only-a",
+  "batch_path": "C:\\agentic_agents\\tests\\fixtures\\skill_batches\\phase34_draft_only_a\\batch.json",
+  "config_root": "C:\\agentic_agents\\tests\\fixtures\\skill_batches\\phase34_draft_only_a",
+  "description": "Phase 34 draft-only expansion batch for three deterministic small unit-test proposal skills.",
+  "doc_refs": [
+    "README.skill-registry.md",
+    "docs/SKILL_LIBRARY_SCALING_PLAN.md"
+  ],
+  "entries": [
+    {
+      "approval_boundary": "packet_design_required",
+      "eval_case_ids": [
+        "d1_config_default_test"
+      ],
+      "live_mappings": [
+        {
+          "case_id": "D1-004",
+          "live_suite": "workflow_router_l1_suite",
+          "script": "scripts/validate_workflow_router_l1_suite.py",
+          "status": "mapped"
+        }
+      ],
+      "mutation_policy": "draft_artifacts_only",
+      "output_artifacts": [
+        "small_unit_test_proposal",
+        "implementation_workflow_report"
+      ],
+      "route_key": "draft.config_default_test",
+      "skill_id": "config-default-test-drafter",
+      "status": "ready",
+      "workflows": [
+        "execution_planning.plan"
+      ]
+    },
+    {
+      "approval_boundary": "packet_design_required",
+      "eval_case_ids": [
+        "d1_message_assertion_test"
+      ],
+      "live_mappings": [
+        {
+          "case_id": "D1-005",
+          "live_suite": "workflow_router_l1_suite",
+          "script": "scripts/validate_workflow_router_l1_suite.py",
+          "status": "mapped"
+        }
+      ],
+      "mutation_policy": "draft_artifacts_only",
+      "output_artifacts": [
+        "small_unit_test_proposal",
+        "implementation_workflow_report"
+      ],
+      "route_key": "draft.message_assertion_test",
+      "skill_id": "message-assertion-test-drafter",
+      "status": "ready",
+      "workflows": [
+        "execution_planning.plan"
+      ]
+    },
+    {
+      "approval_boundary": "packet_design_required",
+      "eval_case_ids": [
+        "d1_test_assertion_update"
+      ],
+      "live_mappings": [
+        {
+          "case_id": "D1-006",
+          "live_suite": "workflow_router_l1_suite",
+          "script": "scripts/validate_workflow_router_l1_suite.py",
+          "status": "mapped"
+        }
+      ],
+      "mutation_policy": "draft_artifacts_only",
+      "output_artifacts": [
+        "small_unit_test_proposal",
+        "implementation_workflow_report"
+      ],
+      "route_key": "draft.test_assertion_update",
+      "skill_id": "test-assertion-update-drafter",
+      "status": "ready",
+      "workflows": [
+        "execution_planning.plan"
+      ]
+    }
+  ],
+  "errors": [],
+  "eval_cases": [
+    {
+      "expected_artifacts": [
+        "small_unit_test_proposal",
+        "implementation_workflow_report"
+      ],
+      "expected_workflow": "execution_planning.plan",
+      "id": "d1_config_default_test",
+      "live_suite": "workflow_router_l1_suite",
+      "mutation_policy": "draft_artifacts_only",
+      "natural_prompt": "In <repo>, draft a small unit test proving a named config symbol defaults to an exact expected value. Draft only.",
+      "prompt_family": "D1-config-default-test"
+    },
+    {
+      "expected_artifacts": [
+        "small_unit_test_proposal",
+        "implementation_workflow_report"
+      ],
+      "expected_workflow": "execution_planning.plan",
+      "id": "d1_message_assertion_test",
+      "live_suite": "workflow_router_l1_suite",
+      "mutation_policy": "draft_artifacts_only",
+      "natural_prompt": "In <repo>, draft a small unit test asserting an exact error or log message. Draft only.",
+      "prompt_family": "D1-message-assertion-test"
+    },
+    {
+      "expected_artifacts": [
+        "small_unit_test_proposal",
+        "implementation_workflow_report"
+      ],
+      "expected_workflow": "execution_planning.plan",
+      "id": "d1_test_assertion_update",
+      "live_suite": "workflow_router_l1_suite",
+      "mutation_policy": "draft_artifacts_only",
+      "natural_prompt": "In <repo>, draft a small test assertion update from exact old assertion text to exact new assertion text. Draft only.",
+      "prompt_family": "D1-test-assertion-update"
+    }
+  ],
+  "kind": "skill_batch_validation",
+  "next_action": "review_then_append_batch_skills_and_eval_cases",
+  "report_path": "C:\\agentic_agents\\runtime-state\\skill-batches\\phase34-dry-run.json",
+  "runtime_behavior_changed": false,
+  "schema_version": 1,
+  "status": "passed",
+  "summary": {
+    "eval_case_count": 3,
+    "live_suite_counts": {
+      "workflow_router_l1_suite": 3
+    },
+    "route_key_count": 3,
+    "skill_count": 3
+  }
+}

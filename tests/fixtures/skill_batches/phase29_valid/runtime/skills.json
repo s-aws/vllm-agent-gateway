@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "kind": "skill_registry",
+  "policy": {
+    "body_load_policy": "metadata_selected_only",
+    "creation_rule": "Create or edit a skill only when an eval failure proves missing knowledge."
+  },
+  "skills": [
+    {
+      "id": "existing-skill",
+      "capability_contract": {
+        "route_key": "existing.route_key"
+      }
+    }
+  ]
+}

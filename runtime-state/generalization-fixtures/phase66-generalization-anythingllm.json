@@ -1,0 +1,347 @@
+{
+  "anythingllm": [
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070439944799Z/code-investigation/code-investigation-20260606T070446797351Z/code-explanation.json",
+      "case_id": "G01",
+      "category": "l1_explain_code",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T070446797351Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070439944799Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070439944799Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070439944799Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "code-explanation-summarizer"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070447623847Z/code-investigation/code-investigation-20260606T070452776393Z/request-flow-map.json",
+      "case_id": "G02",
+      "category": "batch_d_handler_branch_trace",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T070452776393Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070447623847Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070447623847Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070447623847Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "handler-branch-tracer"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070453325349Z/code-investigation/code-investigation-20260606T070458629059Z/data-model-lookup.json",
+      "case_id": "G03",
+      "category": "batch_d_table_schema_only",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T070458629059Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070453325349Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070453325349Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070453325349Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "table-schema-isolator"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070459276459Z/code-investigation/code-investigation-20260606T070500516683Z/cli-entrypoint-lookup.json",
+      "case_id": "G04",
+      "category": "batch_d_runtime_entrypoint",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T070500516683Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070459276459Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070459276459Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070459276459Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "runtime-entrypoint-disambiguator"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070501301857Z/code-investigation/code-investigation-20260606T070504036772Z/change-surface-summary.json",
+      "case_id": "G05",
+      "category": "batch_d_change_boundary",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T070504036772Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070501301857Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070501301857Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070501301857Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "change-boundary-summarizer"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070505062383Z/code-investigation/code-investigation-20260606T070513294907Z/test-selection-plan.json",
+      "case_id": "G06",
+      "category": "l2_test_selection",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T070513294907Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070505062383Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070505062383Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070505062383Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "test-selection-rationale"
+      ]
+    }
+  ],
+  "anythingllm_preflight": {
+    "ping": {
+      "online": true
+    },
+    "ping_status": 200,
+    "status": "passed",
+    "workspace": "my-workspace",
+    "workspace_found": true,
+    "workspace_status": 200
+  },
+  "case_count": 6,
+  "cleanup": {
+    "path": "/mnt/c/agentic_agents/runtime-state/generalization-fixtures/phase66-generalization-20260606T070356669087Z",
+    "status": "removed"
+  },
+  "config_root": "/mnt/c/agentic_agents",
+  "created_at": "2026-06-06T07:03:56.672877Z",
+  "disposable_root": "/mnt/c/agentic_agents/runtime-state/generalization-fixtures/phase66-generalization-20260606T070356669087Z/python_service_fixture",
+  "errors": [],
+  "fixture_hashes_after": {
+    "README.md": "d69fd7b0db5d5ccd5ffb9ebe0d81df78a65cbe216f6c2e6d77867f851b42dfbd",
+    "database/__init__.py": "98b965d590714e83e37984338300e74f6f7575ec080ed8c9bd776c9fa8231877",
+    "database/schema.py": "912cc1d0ef6fa8df14c41d6df9f0f07af31f469dd2610d35032ed20088681fca",
+    "main.py": "bcc14e9de034fda62f7490cb48ec5a1edb3ca41bc470a311b1126cc841d5980a",
+    "service/__init__.py": "48e020ee7923d3d187d23ed295ad0cef14f125700c16fa2eb347bd706a8c6b00",
+    "service/api.py": "4a25a0cbb1363083a8047ab3812a1bc66343b316d78023e70e3e5e69d4206f34",
+    "service/orders.py": "cc35f2c2893211ad984d12ca43d7f42be2e49dadae42a80017cb45c292bc2371",
+    "tests/test_orders.py": "0f1cf90d737ca78527ce7e9a4559697ed792518414d68d3f7a88f151eba4bc52"
+  },
+  "fixture_hashes_before": {
+    "README.md": "d69fd7b0db5d5ccd5ffb9ebe0d81df78a65cbe216f6c2e6d77867f851b42dfbd",
+    "database/__init__.py": "98b965d590714e83e37984338300e74f6f7575ec080ed8c9bd776c9fa8231877",
+    "database/schema.py": "912cc1d0ef6fa8df14c41d6df9f0f07af31f469dd2610d35032ed20088681fca",
+    "main.py": "bcc14e9de034fda62f7490cb48ec5a1edb3ca41bc470a311b1126cc841d5980a",
+    "service/__init__.py": "48e020ee7923d3d187d23ed295ad0cef14f125700c16fa2eb347bd706a8c6b00",
+    "service/api.py": "4a25a0cbb1363083a8047ab3812a1bc66343b316d78023e70e3e5e69d4206f34",
+    "service/orders.py": "cc35f2c2893211ad984d12ca43d7f42be2e49dadae42a80017cb45c292bc2371",
+    "tests/test_orders.py": "0f1cf90d737ca78527ce7e9a4559697ed792518414d68d3f7a88f151eba4bc52"
+  },
+  "fixture_policy": {
+    "cleanup": "delete_disposable_copy_after_validation_unless_keep_fixture_is_set",
+    "disposable_copy_mutation_allowed": false,
+    "template_mutation_allowed": false
+  },
+  "gateway": [
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070357095174Z/code-investigation/code-investigation-20260606T070401386029Z/code-explanation.json",
+      "case_id": "G01",
+      "category": "l1_explain_code",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T070401386029Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070357095174Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070357095174Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070357095174Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "code-explanation-summarizer"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070402183254Z/code-investigation/code-investigation-20260606T070407443893Z/request-flow-map.json",
+      "case_id": "G02",
+      "category": "batch_d_handler_branch_trace",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T070407443893Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070402183254Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070402183254Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070402183254Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "handler-branch-tracer"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070408133975Z/code-investigation/code-investigation-20260606T070414700103Z/data-model-lookup.json",
+      "case_id": "G03",
+      "category": "batch_d_table_schema_only",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T070414700103Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070408133975Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070408133975Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070408133975Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "table-schema-isolator"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070415480304Z/code-investigation/code-investigation-20260606T070417269692Z/cli-entrypoint-lookup.json",
+      "case_id": "G04",
+      "category": "batch_d_runtime_entrypoint",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T070417269692Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070415480304Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070415480304Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070415480304Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "runtime-entrypoint-disambiguator"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070417986212Z/code-investigation/code-investigation-20260606T070427006928Z/change-surface-summary.json",
+      "case_id": "G05",
+      "category": "batch_d_change_boundary",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T070427006928Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070417986212Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070417986212Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070417986212Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "change-boundary-summarizer"
+      ]
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070427803702Z/code-investigation/code-investigation-20260606T070435983679Z/test-selection-plan.json",
+      "case_id": "G06",
+      "category": "l2_test_selection",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T070435983679Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070427803702Z/route-decision.json",
+      "run_id": "workflow-router-20260606T070427803702Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T070427803702Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "test-selection-rationale"
+      ]
+    }
+  ],
+  "kind": "phase66_generalization_fixture_live_report",
+  "port_health": [
+    {
+      "http_status": 200,
+      "label": "localhost-model",
+      "status": "passed",
+      "url": "http://127.0.0.1:8000/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "llm-gateway",
+      "status": "passed",
+      "url": "http://127.0.0.1:8300/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "controller",
+      "status": "passed",
+      "url": "http://127.0.0.1:8400/health"
+    },
+    {
+      "http_status": 200,
+      "label": "workflow-router-gateway",
+      "status": "passed",
+      "url": "http://127.0.0.1:8500/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "documenter-role",
+      "status": "passed",
+      "url": "http://127.0.0.1:8101/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "architect-role",
+      "status": "passed",
+      "url": "http://127.0.0.1:8102/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "agent-role-8201",
+      "status": "passed",
+      "url": "http://127.0.0.1:8201/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "agent-role-8202",
+      "status": "passed",
+      "url": "http://127.0.0.1:8202/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "agent-role-8203",
+      "status": "passed",
+      "url": "http://127.0.0.1:8203/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "agent-role-8204",
+      "status": "passed",
+      "url": "http://127.0.0.1:8204/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "agent-role-8205",
+      "status": "passed",
+      "url": "http://127.0.0.1:8205/v1/models"
+    }
+  ],
+  "run_id": "phase66-generalization-20260606T070356669087Z",
+  "schema_version": 1,
+  "status": "passed",
+  "template_hashes_after": {
+    "README.md": "d69fd7b0db5d5ccd5ffb9ebe0d81df78a65cbe216f6c2e6d77867f851b42dfbd",
+    "database/__init__.py": "98b965d590714e83e37984338300e74f6f7575ec080ed8c9bd776c9fa8231877",
+    "database/schema.py": "912cc1d0ef6fa8df14c41d6df9f0f07af31f469dd2610d35032ed20088681fca",
+    "main.py": "bcc14e9de034fda62f7490cb48ec5a1edb3ca41bc470a311b1126cc841d5980a",
+    "service/__init__.py": "48e020ee7923d3d187d23ed295ad0cef14f125700c16fa2eb347bd706a8c6b00",
+    "service/api.py": "4a25a0cbb1363083a8047ab3812a1bc66343b316d78023e70e3e5e69d4206f34",
+    "service/orders.py": "cc35f2c2893211ad984d12ca43d7f42be2e49dadae42a80017cb45c292bc2371",
+    "tests/test_orders.py": "0f1cf90d737ca78527ce7e9a4559697ed792518414d68d3f7a88f151eba4bc52"
+  },
+  "template_hashes_before": {
+    "README.md": "d69fd7b0db5d5ccd5ffb9ebe0d81df78a65cbe216f6c2e6d77867f851b42dfbd",
+    "database/__init__.py": "98b965d590714e83e37984338300e74f6f7575ec080ed8c9bd776c9fa8231877",
+    "database/schema.py": "912cc1d0ef6fa8df14c41d6df9f0f07af31f469dd2610d35032ed20088681fca",
+    "main.py": "bcc14e9de034fda62f7490cb48ec5a1edb3ca41bc470a311b1126cc841d5980a",
+    "service/__init__.py": "48e020ee7923d3d187d23ed295ad0cef14f125700c16fa2eb347bd706a8c6b00",
+    "service/api.py": "4a25a0cbb1363083a8047ab3812a1bc66343b316d78023e70e3e5e69d4206f34",
+    "service/orders.py": "cc35f2c2893211ad984d12ca43d7f42be2e49dadae42a80017cb45c292bc2371",
+    "tests/test_orders.py": "0f1cf90d737ca78527ce7e9a4559697ed792518414d68d3f7a88f151eba4bc52"
+  },
+  "template_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture"
+}

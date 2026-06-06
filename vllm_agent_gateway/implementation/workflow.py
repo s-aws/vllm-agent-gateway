@@ -9,6 +9,7 @@ verification decisions live here.
 from __future__ import annotations
 
 import hashlib
+import difflib
 import json
 import os
 import re
@@ -245,6 +246,48 @@ def apply_operation_to_content(
             raise ImplementationWorkflowError("create_file refuses to overwrite an existing target file.")
         return operation["content"]
     raise ImplementationWorkflowError(f"Unsupported operation kind: {kind}")
+
+
+def unified_patch_text(target_file: str, before: str | None, after: str) -> str:
+    before_lines = [] if before is None else before.splitlines(keepends=True)
+    after_lines = after.splitlines(keepends=True)
+    return "".join(
+        difflib.unified_diff(
+            before_lines,
+            after_lines,
+            fromfile=f"a/{target_file}",
+            tofile=f"b/{target_file}",
+            lineterm="\n",
+        )
+    )
+
+
+def write_patch_preview(patch_root: Path, packet_id: str, target_file: str, before: str | None, after: str) -> Path:
+    patch_path = (patch_root / f"{sanitize_filename(packet_id)}-{sanitize_filename(target_file)}.diff").resolve()
+    require_under_directory(patch_path, patch_root, "Implementation patch preview path")
+    patch_path.parent.mkdir(parents=True, exist_ok=True)
+    patch_path.write_text(unified_patch_text(target_file, before, after), encoding="utf-8")
+    return patch_path
+
+
+def rollback_metadata(operation: dict[str, Any], target_file: str) -> dict[str, Any]:
+    kind = operation["kind"]
+    if kind == "replace_text":
+        return {
+            "kind": "replace_text",
+            "path": target_file,
+            "old": operation["new"],
+            "new": operation["old"],
+            "status": "machine_applicable_if_new_text_is_unique",
+        }
+    if kind == "append_text":
+        return {
+            "kind": "manual_remove_appended_suffix",
+            "path": target_file,
+            "content": operation["content"],
+            "status": "manual_or_policy_future",
+        }
+    return {"kind": "manual_restore", "path": target_file, "status": "manual_or_policy_future"}
 
 
 def normalize_source_refs(value: Any) -> list[dict[str, Any]]:
@@ -606,12 +649,14 @@ def process_packet_draft(
     draft_path = draft_path_for_packet(draft_root, packet["id"], target_file)
     draft_path.parent.mkdir(parents=True, exist_ok=True)
     draft_path.write_text(new_content, encoding="utf-8")
+    patch_path = write_patch_preview(draft_root / "patches", packet["id"], target_file, existing, new_content)
     return {
         "packet_id": packet["id"],
         "mode": "draft",
         "target_file": target_file,
         "source_path": str(source_path),
         "draft_path": str(draft_path),
+        "patch_preview": str(patch_path),
         "operation": operation["kind"],
         "target_modified": False,
         "draft_sha256": sha256_text(new_content),
@@ -622,6 +667,7 @@ def process_packet_apply(
     packet: dict[str, Any],
     target_root: Path,
     tracked: set[str],
+    patch_root: Path,
 ) -> dict[str, Any]:
     operation = packet["operation"]
     target_file = operation["path"]
@@ -635,6 +681,7 @@ def process_packet_apply(
     before = target_path.read_text(encoding="utf-8", errors="replace")
     before_sha = sha256_text(before)
     after = apply_operation_to_content(before, operation, True)
+    patch_path = write_patch_preview(patch_root, packet["id"], target_file, before, after)
     target_path.write_text(after, encoding="utf-8")
     after_sha = sha256_text(after)
     return {
@@ -642,10 +689,12 @@ def process_packet_apply(
         "mode": "apply",
         "target_file": target_file,
         "source_path": str(target_path),
+        "patch_preview": str(patch_path),
         "operation": operation["kind"],
         "target_modified": True,
         "before_sha256": before_sha,
         "after_sha256": after_sha,
+        "rollback_operation": rollback_metadata(operation, target_file),
         "rollback_hint": "Use VCS to restore before_sha256 content if the applied change is rejected.",
     }
 
@@ -961,7 +1010,7 @@ def run_implementation_workflow(
             if mode == "draft":
                 changed = process_packet_draft(packet, target_root, draft_root)
             else:
-                changed = process_packet_apply(packet, target_root, tracked)
+                changed = process_packet_apply(packet, target_root, tracked, draft_root / "patches")
             state["changed_artifacts"].append(changed)
             state["completed_packets"].append(
                 {

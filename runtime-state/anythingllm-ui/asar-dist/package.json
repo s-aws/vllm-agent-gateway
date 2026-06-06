@@ -1,0 +1,22 @@
+{
+  "name": "anythingllm-desktop",
+  "version": "1.13.0",
+  "main": "dist-electron/main/index.js",
+  "description": "AnythingLLM gives your OS superpowers using local AI.",
+  "author": "Mintplex Labs Inc (team@mintplexlabs.com)",
+  "private": true,
+  "homepage": "./",
+  "debug": {
+    "env": {
+      "VITE_DEV_SERVER_URL": "http://localhost:5173"
+    }
+  },
+  "dependencies": {
+    "@mintplex-labs/node-mic-monitor": "1.0.11",
+    "@nut-tree-fork/nut-js": "^4.2.2",
+    "get-windows": "^9.2.3"
+  },
+  "engines": {
+    "node": "^20.14.0"
+  }
+}

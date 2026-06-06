@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codegraph Context Lookup"
+  short_description: "Plan curated callers, callees, and imports lookups"
+  default_prompt: "Use codegraph-context-lookup to prepare a bounded code_context.lookup relationship request for a known path, symbol, or module. Return only the JSON contract."

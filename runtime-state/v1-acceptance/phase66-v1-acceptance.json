@@ -1,0 +1,458 @@
+{
+  "anythingllm_api_base_url": "http://127.0.0.1:3001",
+  "anythingllm_preflight": {
+    "ping": {
+      "online": true
+    },
+    "ping_status": 200,
+    "status": "passed",
+    "workspace": "my-workspace",
+    "workspace_found": true,
+    "workspace_status": 200
+  },
+  "config_root": "/mnt/c/agentic_agents",
+  "controller_base_url": "http://127.0.0.1:8400",
+  "created_at": "20260606T070524935805Z",
+  "errors": [],
+  "feedback": [
+    {
+      "anythingllm_feedback_run_id": "workflow-feedback-20260606T074021538450Z",
+      "anythingllm_seed_run_id": "workflow-router-20260606T074001919948Z",
+      "gateway_feedback_run_id": "workflow-feedback-20260606T074001827349Z",
+      "gateway_seed_run_id": "workflow-router-20260606T073945189293Z",
+      "status": "passed",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "anythingllm_feedback_run_id": "workflow-feedback-20260606T074043266439Z",
+      "anythingllm_seed_run_id": "workflow-router-20260606T074032267825Z",
+      "gateway_feedback_run_id": "workflow-feedback-20260606T074032172043Z",
+      "gateway_seed_run_id": "workflow-router-20260606T074021604615Z",
+      "status": "passed",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    }
+  ],
+  "fixture_state": {
+    "/mnt/c/coinbase_testing_repo_frozen_tmp": {
+      "git_status": null,
+      "hashes": {
+        "configuration.py": "eebe293c3a9661ceffd32d50d46b08c44bcec689bae23e7122449e5a8827f54e",
+        "core/stealth_order_manager.py": "aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e",
+        "docs/agents/INVARIANTS.md": "9dc782f95baa1f0668cf291d16a4718fa97311abeb9cf783010ae779b1648049",
+        "tests/unit/test_order_id_and_followup_rules.py": "9e80dde29afc08c205eee16c327cedbc52720e7fb852dbae93807e40d11c2321"
+      }
+    },
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github": {
+      "git_status": {
+        "clean": false,
+        "line_count": 411,
+        "sample": [
+          " M .agents/ownership.yaml",
+          " M AGENTS.md",
+          " M CLAUDE.md",
+          " M ID_USAGE_ANALYSIS.md",
+          " M __delete_all_database_tables__.py"
+        ],
+        "sha256": "3f76a5e7a3bd7c3ed319511dfa0946a8455fe5442be15e5309b9c8b6aa803b17"
+      },
+      "hashes": {
+        "configuration.py": "eebe293c3a9661ceffd32d50d46b08c44bcec689bae23e7122449e5a8827f54e",
+        "core/stealth_order_manager.py": "aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e",
+        "docs/agents/INVARIANTS.md": "9dc782f95baa1f0668cf291d16a4718fa97311abeb9cf783010ae779b1648049",
+        "tests/unit/test_order_id_and_followup_rules.py": "9e80dde29afc08c205eee16c327cedbc52720e7fb852dbae93807e40d11c2321"
+      }
+    }
+  },
+  "founder_field_summary": {
+    "errors": [],
+    "prompt_count": 34,
+    "report_path": "/mnt/c/agentic_agents/runtime-state/founder-field-tests/founder-field-prompts-20260606T071235288310Z.json",
+    "status": "passed",
+    "summary": {
+      "failed": 0,
+      "passed": 34
+    }
+  },
+  "health": [
+    {
+      "http_status": 200,
+      "name": "model",
+      "path": "/v1/models",
+      "port": 8000,
+      "status": "passed",
+      "url": "http://127.0.0.1:8000/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "llm_gateway",
+      "path": "/v1/models",
+      "port": 8300,
+      "status": "passed",
+      "url": "http://127.0.0.1:8300/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "workflow_router_gateway",
+      "path": "/v1/models",
+      "port": 8500,
+      "status": "passed",
+      "url": "http://127.0.0.1:8500/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "controller",
+      "path": "/health",
+      "port": 8400,
+      "status": "passed",
+      "url": "http://127.0.0.1:8400/health"
+    },
+    {
+      "http_status": 200,
+      "name": "reviewer_code",
+      "path": "/v1/models",
+      "port": 8101,
+      "status": "passed",
+      "url": "http://127.0.0.1:8101/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "tester_code",
+      "path": "/v1/models",
+      "port": 8102,
+      "status": "passed",
+      "url": "http://127.0.0.1:8102/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "architect_default",
+      "path": "/v1/models",
+      "port": 8201,
+      "status": "passed",
+      "url": "http://127.0.0.1:8201/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "dispatcher_default",
+      "path": "/v1/models",
+      "port": 8202,
+      "status": "passed",
+      "url": "http://127.0.0.1:8202/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "implementer_default",
+      "path": "/v1/models",
+      "port": 8203,
+      "status": "passed",
+      "url": "http://127.0.0.1:8203/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "researcher_default",
+      "path": "/v1/models",
+      "port": 8204,
+      "status": "passed",
+      "url": "http://127.0.0.1:8204/v1/models"
+    },
+    {
+      "http_status": 200,
+      "name": "documenter_default",
+      "path": "/v1/models",
+      "port": 8205,
+      "status": "passed",
+      "url": "http://127.0.0.1:8205/v1/models"
+    }
+  ],
+  "json_output": [
+    {
+      "anythingllm_run_id": "workflow-router-20260606T073857969584Z",
+      "gateway_run_id": "workflow-router-20260606T073841794950Z",
+      "status": "passed",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "anythingllm_run_id": "workflow-router-20260606T073930694485Z",
+      "gateway_run_id": "workflow-router-20260606T073912109437Z",
+      "status": "passed",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    }
+  ],
+  "kind": "v1_acceptance_report",
+  "report_path": "/mnt/c/agentic_agents/runtime-state/v1-acceptance/phase66-v1-acceptance.json",
+  "schema_version": 1,
+  "skill_library_health": {
+    "batch_d_live_report": "/mnt/c/agentic_agents/runtime-state/skill-batches/phase63-batch-d-live-20260606T073407024094Z.json",
+    "catalog_summary": {
+      "eval_case_count": 49,
+      "eval_status_counts": {
+        "validated": 50
+      },
+      "route_key_count": 50,
+      "route_namespace_counts": {
+        "code": 18,
+        "config": 2,
+        "context": 3,
+        "data": 1,
+        "diagnostics": 2,
+        "docs": 3,
+        "draft": 3,
+        "feedback": 1,
+        "git": 1,
+        "implementation": 1,
+        "planning": 7,
+        "test": 5,
+        "verification": 3
+      },
+      "skill_count": 50,
+      "workflow_count": 21,
+      "workflow_ids": [
+        "code_context.lookup",
+        "code_investigation.plan",
+        "documenter.review",
+        "execution_planning.plan",
+        "implementation.workflow",
+        "refactor.single_path",
+        "skill.deprecate",
+        "skill.scaffold",
+        "skill.selection.explain",
+        "skill.update",
+        "skill_batch.propose",
+        "skill_batch.register",
+        "skill_eval.promote",
+        "skill_lifecycle.audit",
+        "skill_pack.install",
+        "skill_pack.validate",
+        "task.decompose",
+        "tool_catalog.register",
+        "tool_catalog.validate",
+        "workflow_feedback.record",
+        "workflow_router.plan"
+      ]
+    },
+    "errors": [],
+    "generated_reports": {
+      "batch_d_live_report": "/mnt/c/agentic_agents/runtime-state/skill-batches/phase63-batch-d-live-20260606T073407024094Z.json",
+      "docs_index_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T072108260068Z/docs-index.json",
+      "prompt_matrix_markdown_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T072108260068Z/prompt-matrix.md",
+      "prompt_matrix_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T072108260068Z/prompt-matrix.json",
+      "selector_scale_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T072108260068Z/selector-scale.json",
+      "skill_eval_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T072108260068Z/skill-evals.json",
+      "skill_scale_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T072108260068Z/skill-scale.json"
+    },
+    "live_suite_statuses": {
+      "focused_skill_controller_regression": "passed",
+      "phase50_skill_batch_live_guard": "passed",
+      "phase63_batch_d_live_guard": "passed",
+      "skill_lifecycle_live_guard": "passed",
+      "skill_mutation_fault_injection": "passed",
+      "skill_natural_lifecycle_live_guard": "passed",
+      "skill_registry_eval_selector_regression": "passed"
+    },
+    "prompt_catalog_summary": {
+      "field_prompt_count": 34,
+      "prompt_matrix_case_count": 50,
+      "prompt_matrix_failed": 0,
+      "prompt_matrix_passed": 50
+    },
+    "report_path": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T072108260068Z/skill-release-gate.json",
+    "status": "passed"
+  },
+  "status": "passed",
+  "suite_runs": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/validate_workflow_router_l1_suite.py",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--api-key-env",
+        "ANYTHINGLLM_API_KEY",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+        "--case-id",
+        "L1-002",
+        "--case-id",
+        "L1-010"
+      ],
+      "description": "L1 read-only plus draft-only representative cases",
+      "id": "representative_l1",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "L1 SUITE GATEWAY PASS case=L1-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T070527161987Z\nL1 SUITE GATEWAY PASS case=L1-010 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T070542889869Z\nL1 SUITE GATEWAY PASS case=L1-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T070551546925Z\nL1 SUITE GATEWAY PASS case=L1-010 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T070604825181Z\nL1 SUITE ANYTHINGLLM PASS case=L1-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T070610112198Z\nL1 SUITE ANYTHINGLLM PASS case=L1-010 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T070632673945Z\nL1 SUITE ANYTHINGLLM PASS case=L1-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T070642593648Z\nL1 SUITE ANYTHINGLLM PASS case=L1-010 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T070704955281Z\nL1 SUITE SUMMARY\n{\n  \"anythingllm\": [\n    {\n      \"case_id\": \"L1-002\",\n      \"run_id\": \"workflow-router-20260606T070610112198Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L1-010\",\n      \"run_id\": \"workflow-router-20260606T070632673945Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L1-002\",\n      \"run_id\": \"workflow-router-20260606T070642593648Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    },\n    {\n      \"case_id\": \"L1-010\",\n      \"run_id\": \"workflow-router-20260606T070704955281Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"case_ids\": [\n    \"L1-002\",\n    \"L1-010\"\n  ],\n  \"gateway\": [\n    {\n      \"case_id\": \"L1-002\",\n      \"run_id\": \"workflow-router-20260606T070527161987Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L1-010\",\n      \"run_id\": \"workflow-router-20260606T070542889869Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L1-002\",\n      \"run_id\": \"workflow-router-20260606T070551546925Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    },\n    {\n      \"case_id\": \"L1-010\",\n      \"run_id\": \"workflow-router-20260606T070604825181Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"target_roots\": [\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp\",\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n  ]\n}\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/validate_workflow_router_l2_suite.py",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--api-key-env",
+        "ANYTHINGLLM_API_KEY",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+        "--case-id",
+        "L2-005"
+      ],
+      "description": "L2 read-only representative test-selection case",
+      "id": "representative_l2",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "L2 SUITE GATEWAY PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T070715076654Z\nL2 SUITE GATEWAY PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T070737518913Z\nL2 SUITE ANYTHINGLLM PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T070753497282Z\nL2 SUITE ANYTHINGLLM PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T070815909869Z\nL2 SUITE SUMMARY\n{\n  \"anythingllm\": [\n    {\n      \"case_id\": \"L2-005\",\n      \"run_id\": \"workflow-router-20260606T070753497282Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L2-005\",\n      \"run_id\": \"workflow-router-20260606T070815909869Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"case_ids\": [\n    \"L2-005\"\n  ],\n  \"gateway\": [\n    {\n      \"case_id\": \"L2-005\",\n      \"run_id\": \"workflow-router-20260606T070715076654Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"case_id\": \"L2-005\",\n      \"run_id\": \"workflow-router-20260606T070737518913Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"target_roots\": [\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp\",\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n  ]\n}\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/validate_task_decomposition_live.py",
+        "--controller-base-url",
+        "http://127.0.0.1:8400",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--api-key-env",
+        "ANYTHINGLLM_API_KEY",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "description": "Multi-step task decomposition through direct controller, gateway, and AnythingLLM",
+      "id": "task_decomposition",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "PHASE53 PORT PASS label=localhost-model url=http://127.0.0.1:8000/v1/models\nPHASE53 PORT PASS label=llm-gateway url=http://127.0.0.1:8300/v1/models\nPHASE53 PORT PASS label=controller url=http://127.0.0.1:8400/health\nPHASE53 PORT PASS label=workflow-router-gateway url=http://127.0.0.1:8500/v1/models\nPHASE53 PORT PASS label=reviewer-code url=http://127.0.0.1:8101/v1/models\nPHASE53 PORT PASS label=tester-code url=http://127.0.0.1:8102/v1/models\nPHASE53 PORT PASS label=architect-default url=http://127.0.0.1:8201/v1/models\nPHASE53 PORT PASS label=dispatcher-default url=http://127.0.0.1:8202/v1/models\nPHASE53 PORT PASS label=implementer-default url=http://127.0.0.1:8203/v1/models\nPHASE53 PORT PASS label=researcher-default url=http://127.0.0.1:8204/v1/models\nPHASE53 PORT PASS label=documenter-default url=http://127.0.0.1:8205/v1/models\nPHASE53 DIRECT PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=task-decomposition-20260606T070836514239Z\nPHASE53 GATEWAY PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T070844651891Z\nPHASE53 DIRECT PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=task-decomposition-20260606T070851928412Z\nPHASE53 GATEWAY PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T070900870330Z\nPHASE53 ANYTHINGLLM PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T070920448587Z\nPHASE53 ANYTHINGLLM PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T070935226981Z\nPHASE53 TASK DECOMPOSITION LIVE PASS report=/mnt/c/agentic_agents/runtime-state/task-decomposition/phase53-live.json\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/validate_controlled_small_change_apply_live.py",
+        "--controller-base-url",
+        "http://127.0.0.1:8400",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--api-key-env",
+        "ANYTHINGLLM_API_KEY",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "description": "Controlled dry-run and disposable-copy apply through direct controller, gateway, and AnythingLLM",
+      "id": "controlled_apply",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "PHASE54 PORT PASS label=localhost-model url=http://127.0.0.1:8000/v1/models\nPHASE54 PORT PASS label=llm-gateway url=http://127.0.0.1:8300/v1/models\nPHASE54 PORT PASS label=controller url=http://127.0.0.1:8400/health\nPHASE54 PORT PASS label=workflow-router-gateway url=http://127.0.0.1:8500/v1/models\nPHASE54 PORT PASS label=reviewer-code url=http://127.0.0.1:8101/v1/models\nPHASE54 PORT PASS label=tester-code url=http://127.0.0.1:8102/v1/models\nPHASE54 PORT PASS label=architect-default url=http://127.0.0.1:8201/v1/models\nPHASE54 PORT PASS label=dispatcher-default url=http://127.0.0.1:8202/v1/models\nPHASE54 PORT PASS label=implementer-default url=http://127.0.0.1:8203/v1/models\nPHASE54 PORT PASS label=researcher-default url=http://127.0.0.1:8204/v1/models\nPHASE54 PORT PASS label=documenter-default url=http://127.0.0.1:8205/v1/models\nPHASE54 DIRECT PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp dry_run=20260606T070948699460Z\nPHASE54 GATEWAY PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T070948837893Z\nPHASE54 DIRECT PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github dry_run=20260606T070959043528Z\nPHASE54 GATEWAY PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T071000496563Z\nPHASE54 ANYTHINGLLM PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T071029889341Z\nPHASE54 ANYTHINGLLM PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T071039567646Z\nPHASE54 CONTROLLED SMALL-CHANGE APPLY LIVE PASS report=/mnt/c/agentic_agents/runtime-state/controlled-small-change-apply/phase54-live.json\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/validate_workflow_router_inline_answers.py",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--api-key-env",
+        "ANYTHINGLLM_API_KEY",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "description": "Chat-visible FormatA output through gateway and AnythingLLM",
+      "id": "inline_format_a",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "INLINE ANSWER GATEWAY PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T071110017394Z\nINLINE ANSWER GATEWAY PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T071134236172Z\nINLINE ANSWER ANYTHINGLLM PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260606T071154264956Z\nINLINE ANSWER ANYTHINGLLM PASS target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260606T071214893390Z\n{\n  \"anythingllm\": [\n    {\n      \"run_id\": \"workflow-router-20260606T071154264956Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"run_id\": \"workflow-router-20260606T071214893390Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"gateway\": [\n    {\n      \"run_id\": \"workflow-router-20260606T071110017394Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp\"\n    },\n    {\n      \"run_id\": \"workflow-router-20260606T071134236172Z\",\n      \"target_root\": \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n    }\n  ],\n  \"target_roots\": [\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp\",\n    \"/mnt/c/coinbase_testing_repo_frozen_tmp.github\"\n  ]\n}\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/run_founder_field_prompt_eval.py",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--api-key-env",
+        "ANYTHINGLLM_API_KEY",
+        "--timeout-seconds",
+        "900"
+      ],
+      "description": "Expanded natural founder prompts through AnythingLLM with fixture mutation proof",
+      "id": "founder_field_prompts",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "FIELD PROMPT P01 PASSED run_id=workflow-router-20260606T071236517126Z\nFIELD PROMPT P02 PASSED run_id=workflow-router-20260606T071251334875Z\nFIELD PROMPT P03 PASSED run_id=workflow-router-20260606T071310492531Z\nFIELD PROMPT P04 PASSED run_id=workflow-router-20260606T071326617691Z\nFIELD PROMPT P05 PASSED run_id=workflow-router-20260606T071343396676Z\nFIELD PROMPT P06 PASSED run_id=workflow-router-20260606T071402487601Z\nFIELD PROMPT P07 PASSED run_id=workflow-router-20260606T071421349714Z\nFIELD PROMPT P08 PASSED run_id=workflow-router-20260606T071439981311Z\nFIELD PROMPT P09 PASSED run_id=workflow-router-20260606T071455029183Z\nFIELD PROMPT P10 PASSED run_id=workflow-router-20260606T071513295384Z\nFIELD PROMPT P11 PASSED run_id=workflow-router-20260606T071528118340Z\nFIELD PROMPT P12 PASSED run_id=workflow-router-20260606T071548012279Z\nFIELD PROMPT P13 PASSED run_id=workflow-router-20260606T071606735083Z\nFIELD PROMPT P14 PASSED run_id=workflow-router-20260606T071629686050Z\nFIELD PROMPT P15 PASSED run_id=workflow-router-20260606T071638177692Z\nFIELD PROMPT P16 PASSED run_id=workflow-router-20260606T071655379554Z\nFIELD PROMPT P17 PASSED run_id=workflow-router-20260606T071704986353Z\nFIELD PROMPT P18 PASSED run_id=workflow-router-20260606T071714434410Z\nFIELD PROMPT P19 PASSED run_id=workflow-router-20260606T071728289473Z\nFIELD PROMPT P20 PASSED run_id=workflow-router-20260606T071740320849Z\nFIELD PROMPT P21 PASSED run_id=workflow-router-20260606T071752025361Z\nFIELD PROMPT P22 PASSED run_id=workflow-router-20260606T071808153356Z\nFIELD PROMPT P23 PASSED run_id=workflow-router-20260606T071814217770Z\nFIELD PROMPT P24 PASSED run_id=workflow-router-20260606T071820203354Z\nFIELD PROMPT P25 PASSED run_id=workflow-router-20260606T071826983122Z\nFIELD PROMPT P26 PASSED run_id=workflow-router-20260606T071833304985Z\nFIELD PROMPT P27 PASSED run_id=workflow-router-20260606T071901782710Z\nFIELD PROMPT P28 PASSED run_id=workflow-router-20260606T071914399163Z\nFIELD PROMPT P29 PASSED run_id=workflow-router-20260606T071934834174Z\nFIELD PROMPT P30 PASSED run_id=workflow-router-20260606T071946676800Z\nFIELD PROMPT P31 PASSED run_id=workflow-router-20260606T072001801996Z\nFIELD PROMPT P32 PASSED run_id=workflow-router-20260606T072015452061Z\nFIELD PROMPT P33 PASSED run_id=workflow-router-20260606T072028897688Z\nFIELD PROMPT P34 PASSED run_id=workflow-router-20260606T072038408919Z\nFOUNDER FIELD REPORT /mnt/c/agentic_agents/runtime-state/founder-field-tests/founder-field-prompts-20260606T071235288310Z.json\nFOUNDER FIELD MARKDOWN /mnt/c/agentic_agents/runtime-state/founder-field-tests/founder-field-prompts-20260606T071235288310Z.md\nFOUNDER FIELD SUMMARY {\"failed\": 0, \"passed\": 34}\nFOUNDER FIELD PASS\n"
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "/mnt/c/agentic_agents/scripts/validate_skill_release_gate.py",
+        "--anythingllm",
+        "--config-root",
+        "/mnt/c/agentic_agents",
+        "--controller-base-url",
+        "http://127.0.0.1:8400",
+        "--workflow-router-gateway-base-url",
+        "http://127.0.0.1:8500/v1",
+        "--anythingllm-api-base-url",
+        "http://127.0.0.1:3001",
+        "--workspace",
+        "my-workspace",
+        "--timeout-seconds",
+        "900",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "--target-root",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "description": "Skill registry, eval, selector-scale, prompt-matrix, and Batch D live proof",
+      "id": "skill_library_release_gate",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "SKILL RELEASE GATE REPORT /mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T072108260068Z/skill-release-gate.json\nSKILL RELEASE GATE SUMMARY {\"changed_files\": [], \"error_count\": 0, \"eval_case_count\": 49, \"mode\": \"anythingllm\", \"skill_count\": 50, \"status\": \"passed\", \"workflow_count\": 21}\nSKILL RELEASE GATE PASS\n"
+    }
+  ],
+  "target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "workflow_router_gateway_base_url": "http://127.0.0.1:8500/v1",
+  "workspace": "my-workspace"
+}

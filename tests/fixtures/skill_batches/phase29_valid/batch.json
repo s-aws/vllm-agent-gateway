@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "skill_batch_manifest",
+  "id": "phase29-valid-batch",
+  "description": "Valid skill batch fixture for Phase 29 dry-run admission proof.",
+  "doc_refs": [
+    "README.skill-registry.md",
+    "docs/SKILL_LIBRARY_SCALING_PLAN.md"
+  ],
+  "skills": [
+    {
+      "id": "example-batch-skill",
+      "path": ".qwen/skills/example-batch-skill/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Describe the bounded procedural knowledge this batch skill adds.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "example batch trigger"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.batch_skill",
+        "task_types": [
+          "example_batch_task"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "example_batch_artifact"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "example_batch_eval"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request"
+        ],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-29-scaling-harness-hardening"
+      ]
+    }
+  ],
+  "eval_cases": [
+    {
+      "id": "example_batch_eval",
+      "prompt_family": "example-batch",
+      "natural_prompt": "In <repo>, run the example batch prompt. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": [
+        "example_batch_artifact"
+      ],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "skill_registry_contract"
+    }
+  ]
+}

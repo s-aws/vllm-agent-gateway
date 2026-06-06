@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "kind": "skill_batch_manifest",
+  "id": "phase31-l1-read-only-b",
+  "description": "Phase 31 L1 read-only expansion batch for five small deterministic coding-agent skills.",
+  "doc_refs": [
+    "README.skill-registry.md",
+    "docs/SKILL_LIBRARY_SCALING_PLAN.md"
+  ],
+  "skills": [
+    {
+      "id": "coverage-gap-summarizer",
+      "path": ".qwen/skills/coverage-gap-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Identify test coverage gaps for a requested behavior from bounded read-only evidence, including covered tests, uncovered source areas, verification commands, and evidence gaps.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["coverage gaps", "test coverage gaps", "uncovered source files", "covered tests"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "test.coverage_gap_summary",
+        "task_types": ["coverage_gap_summary", "test_coverage_gap"],
+        "input_artifacts": ["investigation_evidence", "related_tests", "verification_plan"],
+        "output_artifacts": ["coverage_gap_summary"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_coverage_gap_summary"]
+      },
+      "problem_solving_steps": [4, 7],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    },
+    {
+      "id": "documentation-locator",
+      "path": ".qwen/skills/documentation-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Find documentation for a requested behavior from bounded read-only evidence, including doc files, source refs, and documentation gaps.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["documentation", "docs for", "where documented", "behavior docs"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "docs.documentation_lookup",
+        "task_types": ["documentation_lookup", "behavior_documentation_lookup"],
+        "input_artifacts": ["investigation_evidence", "natural_user_request"],
+        "output_artifacts": ["documentation_lookup"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_documentation_lookup"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    },
+    {
+      "id": "cli-entrypoint-locator",
+      "path": ".qwen/skills/cli-entrypoint-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate CLI or script entrypoints such as main modules, __main__ guards, and runnable commands from bounded read-only evidence.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["cli entrypoint", "script entrypoint", "main.py", "__main__", "run command"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "code.cli_entrypoint_lookup",
+        "task_types": ["cli_entrypoint_lookup", "script_entrypoint_lookup"],
+        "input_artifacts": ["investigation_evidence", "selected_source_file"],
+        "output_artifacts": ["cli_entrypoint_lookup"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_cli_entrypoint_lookup"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    },
+    {
+      "id": "configuration-effect-summarizer",
+      "path": ".qwen/skills/configuration-effect-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Explain the runtime effect of a configuration key or environment variable from bounded read-only evidence.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["runtime effect", "configuration effect", "env var effect", "COINBASE_API_KEY"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "config.effect_summary",
+        "task_types": ["configuration_effect_summary", "runtime_configuration_effect"],
+        "input_artifacts": ["configuration_lookup", "investigation_evidence"],
+        "output_artifacts": ["configuration_effect_summary"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_configuration_effect_summary"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    },
+    {
+      "id": "local-change-summarizer",
+      "path": ".qwen/skills/local-change-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Summarize recent commits, git status, changed files, and non-git limitations from read-only local repository evidence.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["recent changes", "local changes", "git status", "changed files", "recent commits"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "git.local_change_summary",
+        "task_types": ["local_change_summary", "recent_commit_summary"],
+        "input_artifacts": ["natural_user_request", "git_status"],
+        "output_artifacts": ["local_change_summary"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_local_change_summary"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    }
+  ],
+  "eval_cases": [
+    {
+      "id": "l1_coverage_gap_summary",
+      "prompt_family": "L1-coverage-gap-summary",
+      "natural_prompt": "In <repo>, identify test coverage gaps for a named behavior. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["coverage_gap_summary"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "l1_documentation_lookup",
+      "prompt_family": "L1-documentation-lookup",
+      "natural_prompt": "In <repo>, find documentation for a named behavior. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["documentation_lookup"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "l1_cli_entrypoint_lookup",
+      "prompt_family": "L1-cli-entrypoint-lookup",
+      "natural_prompt": "In <repo>, locate a CLI or script entrypoint. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["cli_entrypoint_lookup"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "l1_configuration_effect_summary",
+      "prompt_family": "L1-configuration-effect-summary",
+      "natural_prompt": "In <repo>, explain the runtime effect of a configuration key or environment variable. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["configuration_effect_summary"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "l1_local_change_summary",
+      "prompt_family": "L1-local-change-summary",
+      "natural_prompt": "In <repo>, find recent or local changes. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["local_change_summary"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    }
+  ]
+}

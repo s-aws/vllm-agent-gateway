@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -17,6 +18,18 @@ from vllm_agent_gateway.invocation import WorkflowStatus
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPO_ROOT / "scripts" / "run_implementation_workflow.py"
+EXTERNAL_COINBASE_TARGET = Path("C:/coinbase_testing_repo_frozen_tmp")
+EXTERNAL_COINBASE_GITHUB_TARGET = Path("C:/coinbase_testing_repo_frozen_tmp.github")
+FROZEN_INVARIANT_OLD = (
+    "- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\n"
+    "  maps, dashboard references, follow-up claims, fill ledger ownership, and DB\n"
+    "  local rows."
+)
+FROZEN_INVARIANT_NEW = (
+    "- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\n"
+    "  maps, dashboard references, follow-up claims, fill ledger ownership, DB\n"
+    "  local rows, and stealth manager placed-order index keys."
+)
 
 
 def run_command(args: list[str], cwd: Path, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -177,6 +190,7 @@ def test_implementation_from_report_writes_draft_without_mutating_target(tmp_pat
     state = load_one_json(output_dir, "implementation-state-*.json")
     report = load_one_json(output_dir, "implementation-report-*.json")
     draft_path = Path(state["changed_artifacts"][0]["draft_path"])
+    patch_path = Path(state["changed_artifacts"][0]["patch_preview"])
 
     assert plan["kind"] == "implementation_plan"
     assert plan["source"]["type"] == "documenter_report"
@@ -185,6 +199,10 @@ def test_implementation_from_report_writes_draft_without_mutating_target(tmp_pat
     assert plan["write_policy"]["target_repo_read_only"] is True
     assert draft_path.exists()
     draft_path.resolve().relative_to(output_dir.resolve())
+    assert patch_path.exists()
+    patch_text = patch_path.read_text(encoding="utf-8")
+    assert "--- a/README.md" in patch_text
+    assert "+++ b/README.md" in patch_text
     assert "Implementation Draft Note" in draft_path.read_text(encoding="utf-8")
     assert (target / "README.md").read_text(encoding="utf-8") == original_readme
     assert state["status"] == "completed"
@@ -396,8 +414,94 @@ def test_explicit_apply_records_hashes_and_modifies_only_target_file(tmp_path: P
     assert state["status"] == "completed"
     assert changed["target_modified"] is True
     assert changed["before_sha256"] != changed["after_sha256"]
+    assert Path(changed["patch_preview"]).exists()
+    assert changed["rollback_operation"] == {
+        "kind": "replace_text",
+        "path": "README.md",
+        "old": "Install with Docker or Podman.",
+        "new": "Install with Docker.",
+        "status": "machine_applicable_if_new_text_is_unique",
+    }
     assert "Install with Docker or Podman." in (target / "README.md").read_text(encoding="utf-8")
     assert (target / "docs" / "guide.md").read_text(encoding="utf-8") == "# Guide\n\nOriginal guide text.\n"
+
+
+@pytest.mark.parametrize(
+    ("source_root", "initialize_git"),
+    [
+        (EXTERNAL_COINBASE_TARGET, True),
+        (EXTERNAL_COINBASE_GITHUB_TARGET, False),
+    ],
+    ids=["copied-tree-initialized-git", "git-enabled-fixture"],
+)
+def test_frozen_coinbase_fixture_packet_mutation_on_disposable_copy(
+    tmp_path: Path,
+    source_root: Path,
+    initialize_git: bool,
+) -> None:
+    if not source_root.exists():
+        pytest.skip(f"External frozen Coinbase fixture is not present: {source_root}")
+
+    source_invariant = source_root / "docs" / "agents" / "INVARIANTS.md"
+    original_source_text = source_invariant.read_text(encoding="utf-8")
+    assert FROZEN_INVARIANT_OLD in original_source_text
+
+    target = tmp_path / source_root.name
+    shutil.copytree(source_root, target)
+    if initialize_git:
+        run_command(["git", "init"], target)
+        run_command(["git", "add", "docs/agents/INVARIANTS.md"], target)
+    else:
+        git_top_level = run_command(["git", "rev-parse", "--show-toplevel"], target)
+        assert Path(git_top_level.stdout.strip()).resolve() == target.resolve()
+
+    output_dir = tmp_path / "mutation-output"
+    packet_file = tmp_path / "mutation-packet.json"
+    write_packet_file(
+        packet_file,
+        [
+            {
+                "id": "MUTATION-0001",
+                "target_files": ["docs/agents/INVARIANTS.md"],
+                "allowed_operations": ["replace_text"],
+                "operation": {
+                    "kind": "replace_text",
+                    "path": "docs/agents/INVARIANTS.md",
+                    "old": FROZEN_INVARIANT_OLD,
+                    "new": FROZEN_INVARIANT_NEW,
+                },
+                "acceptance_criteria": ["Invariant text includes stealth manager placed-order index keys."],
+                "max_context_tokens": 2000,
+            }
+        ],
+    )
+
+    result = invoke_implementation_workflow(
+        ImplementationWorkflowInvocationRequest(
+            target_root=target,
+            output_dir=output_dir,
+            mode="apply",
+            packet_file=packet_file,
+            no_structure_index=True,
+        )
+    )
+
+    mutated_text = (target / "docs" / "agents" / "INVARIANTS.md").read_text(encoding="utf-8")
+    assert result.status == WorkflowStatus.COMPLETED
+    assert FROZEN_INVARIANT_NEW in mutated_text
+    assert FROZEN_INVARIANT_OLD not in mutated_text
+    assert source_invariant.read_text(encoding="utf-8") == original_source_text
+    assert result.report is not None
+    changed = result.report["changed_artifacts"][0]
+    implementation_result = result.report["implementation_results"][0]
+    assert result.report["mode"] == "apply"
+    assert implementation_result["operation_status"] == "operation_complete"
+    assert implementation_result["changed_artifacts"] == [changed]
+    assert changed["mode"] == "apply"
+    assert changed["target_file"] == "docs/agents/INVARIANTS.md"
+    assert changed["before_sha256"] != changed["after_sha256"]
+    assert Path(changed["patch_preview"]).exists()
+    assert changed["rollback_operation"]["kind"] == "replace_text"
 
 
 def test_verification_command_json_is_policy_limited(tmp_path: Path) -> None:

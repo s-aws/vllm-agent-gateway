@@ -1,0 +1,4 @@
+interface:
+  display_name: "Impact Map Builder"
+  short_description: "Map files, symbols, tests, and risks."
+  default_prompt: "Use $impact-map-builder after bounded context has been gathered to summarize affected behavior paths, files, symbols, tests, risks, and unknowns before execution planning."

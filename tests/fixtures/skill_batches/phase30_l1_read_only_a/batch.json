@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "kind": "skill_batch_manifest",
+  "id": "phase30-l1-read-only-a",
+  "description": "Phase 30 L1 read-only expansion batch for five small deterministic coding-agent skills.",
+  "doc_refs": [
+    "README.skill-registry.md",
+    "docs/SKILL_LIBRARY_SCALING_PLAN.md"
+  ],
+  "skills": [
+    {
+      "id": "endpoint-route-locator",
+      "path": ".qwen/skills/endpoint-route-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate endpoint, route, WebSocket, or message-handler source lines for a named request using bounded evidence.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["endpoint", "route handler", "websocket handler", "message handler", "handler for"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "code.endpoint_route_lookup",
+        "task_types": ["endpoint_route_lookup", "message_handler_lookup"],
+        "input_artifacts": ["investigation_evidence", "natural_user_request"],
+        "output_artifacts": ["endpoint_route_lookup"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_endpoint_route_lookup"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    },
+    {
+      "id": "message-source-locator",
+      "path": ".qwen/skills/message-source-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate the source of an error, exception, log, logger, or printed message from bounded exact-text evidence.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["error message", "log message", "logger", "source of", "comes from"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "code.message_source_lookup",
+        "task_types": ["message_source_lookup"],
+        "input_artifacts": ["investigation_evidence", "natural_user_request"],
+        "output_artifacts": ["message_source_lookup"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_message_source_lookup"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    },
+    {
+      "id": "module-summarizer",
+      "path": ".qwen/skills/module-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Summarize a module or file from bounded AST and snippet evidence, including responsibilities, definitions, related tests, and gaps.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["summarize module", "module summary", "summarize file", "file summary"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "code.module_summary",
+        "task_types": ["module_summary"],
+        "input_artifacts": ["investigation_evidence", "selected_source_file"],
+        "output_artifacts": ["module_summary"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_module_summary"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    },
+    {
+      "id": "data-model-schema-locator",
+      "path": ".qwen/skills/data-model-schema-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate data models, database table schemas, dataclasses, fields, or columns from bounded source evidence.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["data model", "database schema", "table schema", "fields", "columns", "dataclass"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "code.data_model_lookup",
+        "task_types": ["data_model_lookup", "schema_lookup"],
+        "input_artifacts": ["investigation_evidence", "natural_user_request"],
+        "output_artifacts": ["data_model_lookup"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_data_model_lookup"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    },
+    {
+      "id": "dependency-import-locator",
+      "path": ".qwen/skills/dependency-import-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate imports and module dependencies for a requested file or module using code_context.lookup dependency evidence.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_context_request",
+      "allowed_tools": [],
+      "workflows": ["code_context.lookup"],
+      "triggers": ["imports", "dependencies", "depends on", "module dependency"],
+      "workflow_priorities": {"code_context.lookup": 1000},
+      "capability_contract": {
+        "route_key": "code.dependency_lookup",
+        "task_types": ["dependency_lookup", "import_lookup"],
+        "input_artifacts": ["lookup_results", "selected_source_file"],
+        "output_artifacts": ["dependency_lookup"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l1_dependency_lookup"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"]
+    }
+  ],
+  "eval_cases": [
+    {
+      "id": "l1_endpoint_route_lookup",
+      "prompt_family": "L1-endpoint-route-lookup",
+      "natural_prompt": "In <repo>, find the endpoint, route, WebSocket, or message handler for a named request. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["endpoint_route_lookup"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "l1_message_source_lookup",
+      "prompt_family": "L1-message-source-lookup",
+      "natural_prompt": "In <repo>, locate the source of a named error or log message. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["message_source_lookup"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "l1_module_summary",
+      "prompt_family": "L1-module-summary",
+      "natural_prompt": "In <repo>, summarize a module or file with responsibilities, definitions, tests, and evidence. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["module_summary"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "l1_data_model_lookup",
+      "prompt_family": "L1-data-model-lookup",
+      "natural_prompt": "In <repo>, find a data model, database table schema, dataclass, fields, or columns. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["data_model_lookup"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "l1_dependency_lookup",
+      "prompt_family": "L1-dependency-lookup",
+      "natural_prompt": "In <repo>, find imports or dependencies for a file or module. Read only.",
+      "expected_workflow": "code_context.lookup",
+      "expected_artifacts": ["dependency_lookup"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l1_suite"
+    }
+  ]
+}

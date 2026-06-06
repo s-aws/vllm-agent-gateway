@@ -184,3 +184,39 @@ def test_scan_files_and_run_tests_are_executable_local_capabilities(tmp_path: Pa
     )
     assert test_result["ok"] is True
     assert "pytest" in (test_result["stdout"] + test_result["stderr"]).lower()
+
+
+def test_codegraph_context_is_executable_curated_relationship_lookup(tmp_path: Path) -> None:
+    catalog = load_tool_catalog(REPO_ROOT)
+    target = make_target_repo(tmp_path)
+    write_text(
+        target / "service.py",
+        "def place_order(order):\n"
+        "    return order\n\n"
+        "def wrapper(order):\n"
+        "    return place_order(order)\n",
+    )
+    run_command(["git", "add", "service.py"], target)
+    mediator = ToolMediator(target, catalog, {"codegraph_context"})
+
+    result = mediator.execute_tool_call(
+        ToolCall(
+            call_id="1",
+            name="codegraph_context",
+            arguments={
+                "relationship_queries": [
+                    {
+                        "kind": "callers",
+                        "symbol": "place_order",
+                        "max_results": 10,
+                    }
+                ]
+            },
+        )
+    )
+
+    assert result["ok"] is True
+    relationship_results = result["relationship_results"]
+    assert relationship_results["adapter"] == "curated_codegraph_context"
+    matches = relationship_results["queries"][0]["matches"]
+    assert any(match["source_path"] == "service.py" and match["source_symbol"].endswith(".wrapper") for match in matches)

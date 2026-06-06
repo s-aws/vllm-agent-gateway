@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "kind": "skill_batch_manifest",
+  "id": "phase34-draft-only-a",
+  "description": "Phase 34 draft-only expansion batch for three deterministic small unit-test proposal skills.",
+  "doc_refs": [
+    "README.skill-registry.md",
+    "docs/SKILL_LIBRARY_SCALING_PLAN.md"
+  ],
+  "skills": [
+    {
+      "id": "config-default-test-drafter",
+      "path": ".qwen/skills/config-default-test-drafter/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Draft a small unit-test proposal for an explicit configuration default value without mutating source files.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "approval_gated_packet_design",
+      "allowed_tools": [],
+      "workflows": [
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "config default",
+        "configuration default",
+        "default config",
+        "defaults to"
+      ],
+      "workflow_priorities": {
+        "execution_planning.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "draft.config_default_test",
+        "task_types": [
+          "config_default_test_draft"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "config_source_evidence"
+        ],
+        "output_artifacts": [
+          "small_unit_test_proposal",
+          "implementation_workflow_report"
+        ],
+        "approval_boundary": "packet_design_required",
+        "mutation_policy": "draft_artifacts_only",
+        "eval_case_ids": [
+          "d1_config_default_test"
+        ]
+      },
+      "problem_solving_steps": [
+        5,
+        6,
+        7
+      ],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-34-draft-only-expansion-batch-a"
+      ]
+    },
+    {
+      "id": "message-assertion-test-drafter",
+      "path": ".qwen/skills/message-assertion-test-drafter/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Draft a small unit-test proposal for an exact error or log message assertion without mutating source files.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "approval_gated_packet_design",
+      "allowed_tools": [],
+      "workflows": [
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "error message",
+        "log message",
+        "message assertion",
+        "assert exact message"
+      ],
+      "workflow_priorities": {
+        "execution_planning.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "draft.message_assertion_test",
+        "task_types": [
+          "message_assertion_test_draft"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "message_source_evidence"
+        ],
+        "output_artifacts": [
+          "small_unit_test_proposal",
+          "implementation_workflow_report"
+        ],
+        "approval_boundary": "packet_design_required",
+        "mutation_policy": "draft_artifacts_only",
+        "eval_case_ids": [
+          "d1_message_assertion_test"
+        ]
+      },
+      "problem_solving_steps": [
+        5,
+        6,
+        7
+      ],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-34-draft-only-expansion-batch-a"
+      ]
+    },
+    {
+      "id": "test-assertion-update-drafter",
+      "path": ".qwen/skills/test-assertion-update-drafter/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Draft a bounded test assertion update from exact old assertion text to exact new assertion text.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "approval_gated_packet_design",
+      "allowed_tools": [],
+      "workflows": [
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "test assertion update",
+        "update test assertion",
+        "replace the assertion"
+      ],
+      "workflow_priorities": {
+        "execution_planning.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "draft.test_assertion_update",
+        "task_types": [
+          "test_assertion_update_draft"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "target_test_file"
+        ],
+        "output_artifacts": [
+          "small_unit_test_proposal",
+          "implementation_workflow_report"
+        ],
+        "approval_boundary": "packet_design_required",
+        "mutation_policy": "draft_artifacts_only",
+        "eval_case_ids": [
+          "d1_test_assertion_update"
+        ]
+      },
+      "problem_solving_steps": [
+        5,
+        6,
+        7
+      ],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-34-draft-only-expansion-batch-a"
+      ]
+    }
+  ],
+  "eval_cases": [
+    {
+      "id": "d1_config_default_test",
+      "prompt_family": "D1-config-default-test",
+      "natural_prompt": "In <repo>, draft a small unit test proving a named config symbol defaults to an exact expected value. Draft only.",
+      "expected_workflow": "execution_planning.plan",
+      "expected_artifacts": [
+        "small_unit_test_proposal",
+        "implementation_workflow_report"
+      ],
+      "mutation_policy": "draft_artifacts_only",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "d1_message_assertion_test",
+      "prompt_family": "D1-message-assertion-test",
+      "natural_prompt": "In <repo>, draft a small unit test asserting an exact error or log message. Draft only.",
+      "expected_workflow": "execution_planning.plan",
+      "expected_artifacts": [
+        "small_unit_test_proposal",
+        "implementation_workflow_report"
+      ],
+      "mutation_policy": "draft_artifacts_only",
+      "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "d1_test_assertion_update",
+      "prompt_family": "D1-test-assertion-update",
+      "natural_prompt": "In <repo>, draft a small test assertion update from exact old assertion text to exact new assertion text. Draft only.",
+      "expected_workflow": "execution_planning.plan",
+      "expected_artifacts": [
+        "small_unit_test_proposal",
+        "implementation_workflow_report"
+      ],
+      "mutation_policy": "draft_artifacts_only",
+      "live_suite": "workflow_router_l1_suite"
+    }
+  ]
+}

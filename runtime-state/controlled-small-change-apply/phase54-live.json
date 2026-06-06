@@ -1,0 +1,110 @@
+{
+  "anythingllm_applicable": true,
+  "checks": {
+    "anythingllm": [
+      {
+        "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T114325587981Z/route-decision.json",
+        "run_id": "workflow-router-20260606T114325587981Z",
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      },
+      {
+        "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T114337300962Z/route-decision.json",
+        "run_id": "workflow-router-20260606T114337300962Z",
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      }
+    ],
+    "direct": [
+      {
+        "dry_run_id": "20260606T114244662685Z",
+        "patch_preview": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/implementation-workflow/implementation-drafts/20260606T114244662685Z/patches/CONTROLLED-IMPLEMENTATION-0001-docs-agents-INVARIANTS.md.diff",
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      },
+      {
+        "dry_run_id": "20260606T114255024059Z",
+        "patch_preview": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/implementation-workflow/implementation-drafts/20260606T114255024059Z/patches/CONTROLLED-IMPLEMENTATION-0001-docs-agents-INVARIANTS.md.diff",
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      }
+    ],
+    "gateway": [
+      {
+        "run_id": "workflow-router-20260606T114244780922Z",
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      },
+      {
+        "run_id": "workflow-router-20260606T114256405319Z",
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      }
+    ],
+    "ports": [
+      {
+        "label": "localhost-model",
+        "status": "passed",
+        "url": "http://127.0.0.1:8000/v1/models"
+      },
+      {
+        "label": "llm-gateway",
+        "status": "passed",
+        "url": "http://127.0.0.1:8300/v1/models"
+      },
+      {
+        "label": "controller",
+        "status": "passed",
+        "url": "http://127.0.0.1:8400/health"
+      },
+      {
+        "label": "workflow-router-gateway",
+        "status": "passed",
+        "url": "http://127.0.0.1:8500/v1/models"
+      },
+      {
+        "label": "reviewer-code",
+        "status": "passed",
+        "url": "http://127.0.0.1:8101/v1/models"
+      },
+      {
+        "label": "tester-code",
+        "status": "passed",
+        "url": "http://127.0.0.1:8102/v1/models"
+      },
+      {
+        "label": "architect-default",
+        "status": "passed",
+        "url": "http://127.0.0.1:8201/v1/models"
+      },
+      {
+        "label": "dispatcher-default",
+        "status": "passed",
+        "url": "http://127.0.0.1:8202/v1/models"
+      },
+      {
+        "label": "implementer-default",
+        "status": "passed",
+        "url": "http://127.0.0.1:8203/v1/models"
+      },
+      {
+        "label": "researcher-default",
+        "status": "passed",
+        "url": "http://127.0.0.1:8204/v1/models"
+      },
+      {
+        "label": "documenter-default",
+        "status": "passed",
+        "url": "http://127.0.0.1:8205/v1/models"
+      }
+    ]
+  },
+  "config_root": "/mnt/c/agentic_agents",
+  "controller_artifact_root": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts",
+  "controller_base_url": "http://127.0.0.1:8400",
+  "created_at": "2026-06-06T11:44:05Z",
+  "kind": "controlled_small_change_apply_live_validation",
+  "runtime_changed_files": [],
+  "schema_version": 1,
+  "status": "passed",
+  "target_changed_files": {},
+  "target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "workflow_router_gateway_base_url": "http://127.0.0.1:8500/v1"
+}

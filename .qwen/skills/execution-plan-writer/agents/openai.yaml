@@ -1,0 +1,4 @@
+interface:
+  display_name: "Execution Plan Writer"
+  short_description: "Write bounded execution plan artifacts."
+  default_prompt: "Use this skill after bounded context planning and impact evidence to write a deterministic execution plan artifact without editing files, invoking tools, or approving writes."

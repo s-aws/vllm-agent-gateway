@@ -1,0 +1,383 @@
+{
+  "body_final_tail": "_tmp.github\u2019, \u2018path_count\u2019: 3, \u2018grep_match_count\u2019: 20, \u2018snippet_count\u2019: 3, \u2018relationship_query_count\u2019: 1, \u2018relationship_result_count\u2019: 3, \u2018warning_count\u2019: 0}\n\nArtifacts:\n\nlookup_results: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-context/code-context-20260604T054437855161Z/lookup-results.json\nrelationship_results: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-context/code-context-20260604T054437855161Z/relationship-results.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-context/code-context-20260604T054437855161Z/request.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-context/code-context-20260604T054437855161Z/run-state.json\n\nRun record: /v1/controller/runs/code-context-20260604T054437855161Z\n\n{\u201cagentic_controller_request\u201d: {\u201cworkflow\u201d: \u201ccode_investigation.plan\u201d, \u201cschema_version\u201d: 1, \u201ctarget_root\u201d: \u201c/mnt/c/coinbase_testing_repo_frozen_tmp\u201d, \u201cuser_request\u201d: \u201cInvestigate whether StealthOrderManager.find_stealth_order_by_placed_order_id has one path before planning a refactor.\u201d, \u201cbehavior\u201d: \u201cplaced_order_id stealth lookup\u201d, \u201centrypoint_hints\u201d: [{\u201cpath\u201d: \u201ccore/stealth_order_manager.py\u201d, \u201csymbol\u201d: \u201cStealthOrderManager.find_stealth_order_by_placed_order_id\u201d, \u201creason\u201d: \u201cKnown owner of placed-order lookup behavior.\u201d}], \u201cqueries\u201d: [\u201cfind_stealth_order_by_placed_order_id\u201d, \u201cplaced_order_id\u201d], \u201cpaths\u201d: [\u201ccore/stealth_order_manager.py\u201d, \u201ctests/unit/test_order_id_and_followup_rules.py\u201d, \u201ctests/regression/test_order_id_regression.py\u201d], \u201cmax_results\u201d: 50, \u201cmax_files\u201d: 10}}\n\ncode_investigation.plan completed run_id: code-investigation-20260604T054526768938Z warnings: 6 failures: 0\n\n{\u2018target_root\u2019: \u2018/mnt/c/coinbase_testing_repo_frozen_tmp\u2019, \u2018query_count\u2019: 5, \u2018participating_file_count\u2019: 14, \u2018source_file_count\u2019: 7, \u2018test_file_count\u2019: 4, \u2018grep_match_count\u2019: 30, \u2018beginning_point_status\u2019: \u2018hinted\u2019, \u2018multiple_path_status\u2019: \u2018possible_multiple_paths\u2019, \u2018gap_count\u2019: 1, \u2018warning_count\u2019: 6}\n\nArtifacts:\n\ninvestigation_evidence: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-investigation/code-investigation-20260604T054526768938Z/investigation-evidence.json\ninvestigation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-investigation/code-investigation-20260604T054526768938Z/investigation-plan.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-investigation/code-investigation-20260604T054526768938Z/request.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-investigation/code-investigation-20260604T054526768938Z/run-state.json\n\nRun record: /v1/controller/runs/code-investigation-20260604T054526768938Z\n\n{\u201cagentic_controller_request\u201d: {\u201cworkflow\u201d: \u201ccode_investigation.plan\u201d, \u201cschema_version\u201d: 1, \u201ctarget_root\u201d: \u201c/mnt/c/coinbase_testing_repo_frozen_tmp.github\u201d, \u201cuser_request\u201d: \u201cInvestigate whether StealthOrderManager.find_stealth_order_by_placed_order_id has one path before planning a refactor.\u201d, \u201cbehavior\u201d: \u201cplaced_order_id stealth lookup\u201d, \u201centrypoint_hints\u201d: [{\u201cpath\u201d: \u201ccore/stealth_order_manager.py\u201d, \u201csymbol\u201d: \u201cStealthOrderManager.find_stealth_order_by_placed_order_id\u201d, \u201creason\u201d: \u201cKnown owner of placed-order lookup behavior.\u201d}], \u201cqueries\u201d: [\u201cfind_stealth_order_by_placed_order_id\u201d, \u201cplaced_order_id\u201d], \u201cpaths\u201d: [\u201ccore/stealth_order_manager.py\u201d, \u201ctests/unit/test_order_id_and_followup_rules.py\u201d, \u201ctests/regression/test_order_id_regression.py\u201d], \u201cmax_results\u201d: 50, \u201cmax_files\u201d: 10}}\n\ncode_investigation.plan completed run_id: code-investigation-20260604T054539243336Z warnings: 0 failures: 0\n\n{\u2018target_root\u2019: \u2018/mnt/c/coinbase_testing_repo_frozen_tmp.github\u2019, \u2018query_count\u2019: 5, \u2018participating_file_count\u2019: 11, \u2018source_file_count\u2019: 5, \u2018test_file_count\u2019: 2, \u2018grep_match_count\u2019: 36, \u2018beginning_point_status\u2019: \u2018hinted\u2019, \u2018multiple_path_status\u2019: \u2018possible_multiple_paths\u2019, \u2018gap_count\u2019: 0, \u2018warning_count\u2019: 0}\n\nArtifacts:\n\ninvestigation_evidence: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-investigation/code-investigation-20260604T054539243336Z/investigation-evidence.json\ninvestigation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-investigation/code-investigation-20260604T054539243336Z/investigation-plan.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-investigation/code-investigation-20260604T054539243336Z/request.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/code-investigation/code-investigation-20260604T054539243336Z/run-state.json\n\nRun record: /v1/controller/runs/code-investigation-20260604T054539243336Z\n\n{\u201cagentic_controller_request\u201d: {\u201cworkflow\u201d: \u201crefactor.single_path\u201d, \u201cschema_version\u201d: 1, \u201ctarget_root\u201d: \u201c/mnt/c/coinbase_testing_repo_frozen_tmp\u201d, \u201cuser_request\u201d: \u201cInvestigate whether StealthOrderManager.find_stealth_order_by_placed_order_id has one path before planning a refactor.\u201d, \u201cbehavior\u201d: \u201cplaced_order_id stealth lookup\u201d, \u201centrypoint_hints\u201d: [{\u201cpath\u201d: \u201ccore/stealth_order_manager.py\u201d, \u201csymbol\u201d: \u201cStealthOrderManager.find_stealth_order_by_placed_order_id\u201d, \u201creason\u201d: \u201cKnown owner of placed-order lookup behavior.\u201d}], \u201cqueries\u201d: [\u201cfind_stealth_order_by_placed_order_id\u201d, \u201cplaced_order_id\u201d], \u201cpaths\u201d: [\u201ccore/stealth_order_manager.py\u201d, \u201ctests/unit/test_order_id_and_followup_rules.py\u201d, \u201ctests/regression/test_order_id_regression.py\u201d], \u201cmax_results\u201d: 50, \u201cmax_files\u201d: 10}}\n\nrefactor.single_path completed run_id: refactor-single-path-20260604T054624146686Z warnings: 6 failures: 0\n\n{\u2018mode\u2019: \u2018investigation_only\u2019, \u2018target_root\u2019: \u2018/mnt/c/coinbase_testing_repo_frozen_tmp\u2019, \u2018investigation_run_id\u2019: \u2018code-investigation-20260604T054624153217Z\u2019, \u2018execution_planning_run_id\u2019: None, \u2018beginning_point_status\u2019: \u2018hinted\u2019, \u2018multiple_path_status\u2019: \u2018possible_multiple_paths\u2019, \u2018source_file_count\u2019: 7, \u2018test_file_count\u2019: 4, \u2018refactor_status\u2019: \u2018approval_required\u2019, \u2018candidate_target_file_count\u2019: 7, \u2018candidate_test_file_count\u2019: 4}\n\nArtifacts:\n\ninvestigation_investigation_evidence: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054624146686Z/code-investigation/code-investigation-20260604T054624153217Z/investigation-evidence.json\ninvestigation_investigation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054624146686Z/code-investigation/code-investigation-20260604T054624153217Z/investigation-plan.json\ninvestigation_request: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054624146686Z/code-investigation/code-investigation-20260604T054624153217Z/request.json\ninvestigation_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054624146686Z/code-investigation/code-investigation-20260604T054624153217Z/run-state.json\nrefactor_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054624146686Z/refactor-plan.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054624146686Z/request.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054624146686Z/run-state.json\n\nRun record: /v1/controller/runs/refactor-single-path-20260604T054624146686Z\n\n{\u201cagentic_controller_request\u201d: {\u201cworkflow\u201d: \u201crefactor.single_path\u201d, \u201cschema_version\u201d: 1, \u201ctarget_root\u201d: \u201c/mnt/c/coinbase_testing_repo_frozen_tmp.github\u201d, \u201cuser_request\u201d: \u201cInvestigate whether StealthOrderManager.find_stealth_order_by_placed_order_id has one path before planning a refactor.\u201d, \u201cbehavior\u201d: \u201cplaced_order_id stealth lookup\u201d, \u201centrypoint_hints\u201d: [{\u201cpath\u201d: \u201ccore/stealth_order_manager.py\u201d, \u201csymbol\u201d: \u201cStealthOrderManager.find_stealth_order_by_placed_order_id\u201d, \u201creason\u201d: \u201cKnown owner of placed-order lookup behavior.\u201d}], \u201cqueries\u201d: [\u201cfind_stealth_order_by_placed_order_id\u201d, \u201cplaced_order_id\u201d], \u201cpaths\u201d: [\u201ccore/stealth_order_manager.py\u201d, \u201ctests/unit/test_order_id_and_followup_rules.py\u201d, \u201ctests/regression/test_order_id_regression.py\u201d], \u201cmax_results\u201d: 50, \u201cmax_files\u201d: 10}}\n\nrefactor.single_path completed run_id: refactor-single-path-20260604T054636552657Z warnings: 0 failures: 0\n\n{\u2018mode\u2019: \u2018investigation_only\u2019, \u2018target_root\u2019: \u2018/mnt/c/coinbase_testing_repo_frozen_tmp.github\u2019, \u2018investigation_run_id\u2019: \u2018code-investigation-20260604T054636561610Z\u2019, \u2018execution_planning_run_id\u2019: None, \u2018beginning_point_status\u2019: \u2018hinted\u2019, \u2018multiple_path_status\u2019: \u2018possible_multiple_paths\u2019, \u2018source_file_count\u2019: 5, \u2018test_file_count\u2019: 2, \u2018refactor_status\u2019: \u2018approval_required\u2019, \u2018candidate_target_file_count\u2019: 5, \u2018candidate_test_file_count\u2019: 2}\n\nArtifacts:\n\ninvestigation_investigation_evidence: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054636552657Z/code-investigation/code-investigation-20260604T054636561610Z/investigation-evidence.json\ninvestigation_investigation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054636552657Z/code-investigation/code-investigation-20260604T054636561610Z/investigation-plan.json\ninvestigation_request: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054636552657Z/code-investigation/code-investigation-20260604T054636561610Z/request.json\ninvestigation_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054636552657Z/code-investigation/code-investigation-20260604T054636561610Z/run-state.json\nrefactor_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054636552657Z/refactor-plan.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054636552657Z/request.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/refactor-single-path/refactor-single-path-20260604T054636552657Z/run-state.json\n\nRun record: /v1/controller/runs/refactor-single-path-20260604T054636552657Z\n\n{\u201cagentic_controller_request\u201d: {\u201cworkflow\u201d: \u201cworkflow_feedback.record\u201d, \u201cschema_version\u201d: 1, \u201ctarget_workflow\u201d: \u201crefactor.single_path\u201d, \u201ctarget_run_id\u201d: \u201crefactor-single-path-20260604T054624146686Z\u201d, \u201ctarget_root\u201d: \u201c/mnt/c/coinbase_testing_repo_frozen_tmp\u201d, \u201cfeedback\u201d: {\u201cuseful\u201d: [\u201cAnythingLLM route returned bounded controller artifacts.\u201d], \u201cwrong\u201d: [], \u201cmissing\u201d: [\u201cFounder/tester should review whether this workflow result was actionable.\u201d], \u201ctoo_slow\u201d: [], \u201ctoo_noisy\u201d: [], \u201cnotes\u201d: \u201cLive matrix feedback capture probe. This records validation feedback only and does not approve follow-up work.\u201d}, \u201ctester\u201d: {\u201cid\u201d: \u201clive-matrix\u201d, \u201csurface\u201d: \u201cAnythingLLM\u201d}, \u201crequest_payload\u201d: {\u201csource\u201d: \u201cscripts/validate_live_execution_planning_matrix.py\u201d}, \u201cartifact_refs\u201d: {}}}\n\nworkflow_feedback.record completed run_id: workflow-feedback-20260604T054643144493Z warnings: 0 failures: 0\n\n{\u2018target_workflow\u2019: \u2018refactor.single_path\u2019, \u2018target_run_id\u2019: \u2018refactor-single-path-20260604T054624146686Z\u2019, \u2018target_root\u2019: \u2018/mnt/c/coinbase_testing_repo_frozen_tmp\u2019, \u2018feedback_counts\u2019: {\u2018useful\u2019: 1, \u2018wrong\u2019: 0, \u2018missing\u2019: 1, \u2018too_slow\u2019: 0, \u2018too_noisy\u2019: 0}, \u2018has_notes\u2019: True, \u2018linked_run_found\u2019: True, \u2018linked_run_status\u2019: \u2018completed\u2019, \u2018tester_surface\u2019: \u2018AnythingLLM\u2019}\n\nArtifacts:\n\nfeedback_record: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-feedback/workflow-feedback-20260604T054643144493Z/feedback-record.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-feedback/workflow-feedback-20260604T054643144493Z/request.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-feedback/workflow-feedback-20260604T054643144493Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-feedback-20260604T054643144493Z\n\n{\u201cagentic_controller_request\u201d: {\u201cworkflow\u201d: \u201cworkflow_feedback.record\u201d, \u201cschema_version\u201d: 1, \u201ctarget_workflow\u201d: \u201crefactor.single_path\u201d, \u201ctarget_run_id\u201d: \u201crefactor-single-path-20260604T054636552657Z\u201d, \u201ctarget_root\u201d: \u201c/mnt/c/coinbase_testing_repo_frozen_tmp.github\u201d, \u201cfeedback\u201d: {\u201cuseful\u201d: [\u201cAnythingLLM route returned bounded controller artifacts.\u201d], \u201cwrong\u201d: [], \u201cmissing\u201d: [\u201cFounder/tester should review whether this workflow result was actionable.\u201d], \u201ctoo_slow\u201d: [], \u201ctoo_noisy\u201d: [], \u201cnotes\u201d: \u201cLive matrix feedback capture probe. This records validation feedback only and does not approve follow-up work.\u201d}, \u201ctester\u201d: {\u201cid\u201d: \u201clive-matrix\u201d, \u201csurface\u201d: \u201cAnythingLLM\u201d}, \u201crequest_payload\u201d: {\u201csource\u201d: \u201cscripts/validate_live_execution_planning_matrix.py\u201d}, \u201cartifact_refs\u201d: {}}}\n\nworkflow_feedback.record completed run_id: workflow-feedback-20260604T054643221658Z warnings: 0 failures: 0\n\n{\u2018target_workflow\u2019: \u2018refactor.single_path\u2019, \u2018target_run_id\u2019: \u2018refactor-single-path-20260604T054636552657Z\u2019, \u2018target_root\u2019: \u2018/mnt/c/coinbase_testing_repo_frozen_tmp.github\u2019, \u2018feedback_counts\u2019: {\u2018useful\u2019: 1, \u2018wrong\u2019: 0, \u2018missing\u2019: 1, \u2018too_slow\u2019: 0, \u2018too_noisy\u2019: 0}, \u2018has_notes\u2019: True, \u2018linked_run_found\u2019: True, \u2018linked_run_status\u2019: \u2018completed\u2019, \u2018tester_surface\u2019: \u2018AnythingLLM\u2019}\n\nArtifacts:\n\nfeedback_record: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-feedback/workflow-feedback-20260604T054643221658Z/feedback-record.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-feedback/workflow-feedback-20260604T054643221658Z/request.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-feedback/workflow-feedback-20260604T054643221658Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-feedback-20260604T054643221658Z\n\n{\u201cagentic_controller_request\u201d: {\u201cworkflow\u201d: \u201cworkflow_router.plan\u201d, \u201cschema_version\u201d: 1, \u201ctarget_root\u201d: \u201c/mnt/c/coinbase_testing_repo_frozen_tmp\u201d, \u201cuser_request\u201d: \u201cApply approved packet operations to a disposable copy for mutation proof that client_order_id owns internal lookup paths.\u201d, \u201cmode\u201d: \u201capply_disposable_copy\u201d, \u201capproval\u201d: {\u201cstatus\u201d: \u201capproved_for_disposable_apply\u201d, \u201capply_allowed\u201d: true, \u201capply_scope\u201d: \u201cdisposable_copy_only\u201d, \u201capproval_refs\u201d: [\u201cclient-route-validator:approved disposable copy apply only\u201d]}, \u201cpacket_operations\u201d: [{\u201ckind\u201d: \u201creplace_text\u201d, \u201cpath\u201d: \u201cdocs/agents/INVARIANTS.md\u201d, \u201cold\u201d: \u201c- Use client_order_id for internal tracking, parent/child linkage, orderbook\\n maps, dashboard references, follow-up claims, fill ledger ownership, and DB\\n local rows.\u201d, \u201cnew\u201d: \u201c- Use client_order_id for internal tracking, parent/child linkage, orderbook\\n maps, dashboard references, follow-up claims, fill ledger ownership, DB\\n local rows, and stealth manager placed-order index keys.\u201d}], \u201cbudgets\u201d: {\u201cmax_model_calls\u201d: 3, \u201cmax_selected_skills\u201d: 5, \u201cmax_selected_tools\u201d: 5}}}\n\nSee More\n\nworkflow_router.plan completed run_id: workflow-router-20260604T074551223991Z warnings: 0 failures: 0\n\n{\u2018target_root\u2019: \u2018/mnt/c/coinbase_testing_repo_frozen_tmp\u2019, \u2018route_status\u2019: \u2018ready\u2019, \u2018selected_workflow\u2019: \u2018execution_planning.plan\u2019, \u2018confidence\u2019: \u2018medium\u2019, \u2018selected_skill_count\u2019: 5, \u2018selected_tool_count\u2019: 3, \u2018next_action\u2019: \u2018none\u2019, \u2018blocker_count\u2019: 0, \u2018plan_only\u2019: False, \u2018target_repo_read\u2019: True, \u2018model_router_status\u2019: \u2018accepted\u2019, \u2018downstream_workflow\u2019: \u2018implementation.workflow\u2019, \u2018downstream_run_id\u2019: \u201820260604T074600899774Z\u2019, \u2018downstream_status\u2019: \u2018completed\u2019, \u2018source_changed\u2019: False, \u2018disposable_copy_changed\u2019: True}\n\nArtifacts:\n\ndownstream_draft_root: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074551223991Z/implementation-apply/implementation-drafts/20260604T074600899774Z\ndownstream_implementation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074551223991Z/implementation-apply/implementation-plan-copy-20260604T074600899774Z.json\ndownstream_implementation_report: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074551223991Z/implementation-apply/implementation-report-copy-20260604T074600899774Z.json\ndownstream_implementation_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074551223991Z/implementation-apply/implementation-state-copy-20260604T074600899774Z.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074551223991Z/downstream-result.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074551223991Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074551223991Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074551223991Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074551223991Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260604T074551223991Z\n\n{\u201cagentic_controller_request\u201d: {\u201cworkflow\u201d: \u201cworkflow_router.plan\u201d, \u201cschema_version\u201d: 1, \u201ctarget_root\u201d: \u201c/mnt/c/coinbase_testing_repo_frozen_tmp.github\u201d, \u201cuser_request\u201d: \u201cApply approved packet operations to a disposable copy for mutation proof that client_order_id owns internal lookup paths.\u201d, \u201cmode\u201d: \u201capply_disposable_copy\u201d, \u201capproval\u201d: {\u201cstatus\u201d: \u201capproved_for_disposable_apply\u201d, \u201capply_allowed\u201d: true, \u201capply_scope\u201d: \u201cdisposable_copy_only\u201d, \u201capproval_refs\u201d: [\u201cclient-route-validator:approved disposable copy apply only\u201d]}, \u201cpacket_operations\u201d: [{\u201ckind\u201d: \u201creplace_text\u201d, \u201cpath\u201d: \u201cdocs/agents/INVARIANTS.md\u201d, \u201cold\u201d: \u201c- Use client_order_id for internal tracking, parent/child linkage, orderbook\\n maps, dashboard references, follow-up claims, fill ledger ownership, and DB\\n local rows.\u201d, \u201cnew\u201d: \u201c- Use client_order_id for internal tracking, parent/child linkage, orderbook\\n maps, dashboard references, follow-up claims, fill ledger ownership, DB\\n local rows, and stealth manager placed-order index keys.\u201d}], \u201cbudgets\u201d: {\u201cmax_model_calls\u201d: 3, \u201cmax_selected_skills\u201d: 5, \u201cmax_selected_tools\u201d: 5}}}\n\nSee More\n\nworkflow_router.plan completed run_id: workflow-router-20260604T074601126381Z warnings: 0 failures: 0\n\n{\u2018target_root\u2019: \u2018/mnt/c/coinbase_testing_repo_frozen_tmp.github\u2019, \u2018route_status\u2019: \u2018ready\u2019, \u2018selected_workflow\u2019: \u2018execution_planning.plan\u2019, \u2018confidence\u2019: \u2018medium\u2019, \u2018selected_skill_count\u2019: 5, \u2018selected_tool_count\u2019: 3, \u2018next_action\u2019: \u2018none\u2019, \u2018blocker_count\u2019: 0, \u2018plan_only\u2019: False, \u2018target_repo_read\u2019: True, \u2018model_router_status\u2019: \u2018accepted\u2019, \u2018downstream_workflow\u2019: \u2018implementation.workflow\u2019, \u2018downstream_run_id\u2019: \u201820260604T074625116812Z\u2019, \u2018downstream_status\u2019: \u2018completed\u2019, \u2018source_changed\u2019: False, \u2018disposable_copy_changed\u2019: True}\n\nArtifacts:\n\ndownstream_draft_root: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074601126381Z/implementation-apply/implementation-drafts/20260604T074625116812Z\ndownstream_implementation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074601126381Z/implementation-apply/implementation-plan-copy-20260604T074625116812Z.json\ndownstream_implementation_report: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074601126381Z/implementation-apply/implementation-report-copy-20260604T074625116812Z.json\ndownstream_implementation_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074601126381Z/implementation-apply/implementation-state-copy-20260604T074625116812Z.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074601126381Z/downstream-result.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074601126381Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074601126381Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074601126381Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260604T074601126381Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260604T074601126381Z\n\nIn /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, confidence, and this tag: phase71-ui-e2e-1780744562\n\nI completed workflow_router.plan. workflow_router.plan completed run_id: workflow-router-20260606T111615510847Z warnings: 0 failures: 0\n\nResult:\n\nWorkflow: workflow_router.plan\nStatus: completed\nSelected workflow: code_investigation.plan\nSelected skills: request-triage; scope-and-assumptions; entrypoint-finder; context-plan-builder; related-test-discovery\nSelected tools: structure_index; git_grep; read_file\nNext action: none\nVerification: python -m pytest tests/regression/test_order_id_regression.py; python -m pytest tests/unit/test_filled_followup_dedup.py; python -m pytest tests/unit/test_filled_followup_partial_size_adjustment.py; +7 more\n\nSummary:\n\nblocker_count: 0\nconfidence: medium\ndisposable_copy_changed: False\ndownstream_run_id: code-investigation-20260606T111620730859Z\ndownstream_status: completed\ndownstream_workflow: code_investigation.plan\nmodel_router_status: accepted\nnarrowed_edit_objective_status: None\nnext_action: execute_read_only\npacket_objective_outcome_status: None\nplan_only: False\nroute_status: ready\nselected_skill_count: 5\nselected_tool_count: 3\nselected_workflow: code_investigation.plan\nsource_changed: False\ntarget_repo_read: True\ntarget_root: /mnt/c/coinbase_testing_repo_frozen_tmp.github\nverification_command_count: 10\n\nAnswer:\n\nTarget entrypoint: placed_order_id\nEntrypoints: main.py:65 (python_main_guard): python main.py\nReason: CLI or script entrypoint evidence was found in bounded Python files.\nSource refs: main.py:65\nSource mutation: false\n\nArtifacts:\n\ndownstream_cli_entrypoint_lookup: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/cli-entrypoint-lookup.json\ndownstream_investigation_evidence: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/investigation-evidence.json\ndownstream_investigation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/investigation-plan.json\ndownstream_request: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T111615510847Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 32ms (31.25 tok/s) \u00b7 Jun 6, 7:16 AM\n\nIn /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, confidence, and this tag: phase71-ui-e2e-1780744616\n\nTools\n\nSources",
+  "console": [
+    {
+      "text": "\u001b[32m[Received backend-server-online message]\u001b[0m: {API_BASE: http://localhost:3001/api, APP_VERSION: phase71-browser-e2e, APP_PLATFORM: browser, APP_ARCH: x64}",
+      "type": "log"
+    },
+    {
+      "text": "\u001b[32m[AnythingLLM vphase71-browser-e2e for browser]\u001b[0m Polling for server...",
+      "type": "log"
+    },
+    {
+      "text": "Failed to fetch pfp: TypeError: C.fetchPfp is not a function\n    at a (http://127.0.0.1:8767/assets/main-8239a71c.js:1:2410)\n    at http://127.0.0.1:8767/assets/main-8239a71c.js:1:2488\n    at El (http://127.0.0.1:8767/assets/index-e9e26470.js:40:24263)\n    at Kn (http://127.0.0.1:8767/assets/index-e9e26470.js:40:42315)\n    at http://127.0.0.1:8767/assets/index-e9e26470.js:40:40658\n    at j (http://127.0.0.1:8767/assets/index-e9e26470.js:25:1583)\n    at MessagePort.F (http://127.0.0.1:8767/assets/index-e9e26470.js:25:1951)",
+      "type": "error"
+    },
+    {
+      "text": "Assistant TTS auto-play is disabled",
+      "type": "log"
+    },
+    {
+      "text": "Adding event listener for metrics visibility",
+      "type": "log"
+    }
+  ],
+  "counts": {
+    "button": 1412,
+    "input": 2,
+    "textarea": 1
+  },
+  "failed": [
+    {
+      "failure": "net::ERR_ABORTED",
+      "url": "http://localhost:3001/api/system/logo?theme=system"
+    },
+    {
+      "failure": "net::ERR_ABORTED",
+      "url": "http://localhost:3001/api/system/logo?theme=system"
+    }
+  ],
+  "initial_tail": "partial_size_adjustment.py; +7 more\n\nSummary:\n\nblocker_count: 0\nconfidence: medium\ndisposable_copy_changed: False\ndownstream_run_id: code-investigation-20260606T111620730859Z\ndownstream_status: completed\ndownstream_workflow: code_investigation.plan\nmodel_router_status: accepted\nnarrowed_edit_objective_status: None\nnext_action: execute_read_only\npacket_objective_outcome_status: None\nplan_only: False\nroute_status: ready\nselected_skill_count: 5\nselected_tool_count: 3\nselected_workflow: code_investigation.plan\nsource_changed: False\ntarget_repo_read: True\ntarget_root: /mnt/c/coinbase_testing_repo_frozen_tmp.github\nverification_command_count: 10\n\nAnswer:\n\nTarget entrypoint: placed_order_id\nEntrypoints: main.py:65 (python_main_guard): python main.py\nReason: CLI or script entrypoint evidence was found in bounded Python files.\nSource refs: main.py:65\nSource mutation: false\n\nArtifacts:\n\ndownstream_cli_entrypoint_lookup: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/cli-entrypoint-lookup.json\ndownstream_investigation_evidence: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/investigation-evidence.json\ndownstream_investigation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/investigation-plan.json\ndownstream_request: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/code-investigation/code-investigation-20260606T111620730859Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T111615510847Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T111615510847Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 32ms (31.25 tok/s) \u00b7 Jun 6, 7:16 AM\n\nTools\nSend prompt message to workspace\n\nSources",
+  "latest_marker_hits": {
+    "Answer:": true,
+    "run_id:": true,
+    "selected_workflow: code_investigation.plan": true,
+    "workflow_router.plan completed": true
+  },
+  "latest_tag_visible": true,
+  "marker_hits": {
+    "Answer:": true,
+    "run_id:": true,
+    "selected_workflow: code_investigation.plan": true,
+    "workflow_router.plan completed": true
+  },
+  "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, confidence, and this tag: phase71-ui-e2e-1780744616",
+  "responses": [
+    {
+      "ct": "text/html; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/"
+    },
+    {
+      "ct": "text/css; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-ed8835e2.css"
+    },
+    {
+      "ct": "text/css; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-668bcc60.css"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/main-8239a71c.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-e9e26470.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-84fac6f0.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/files-1122acda.js"
+    },
+    {
+      "ct": "text/css; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/clipboard-e6283216.css"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Copy-61c9d797.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-c0eddfd0.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/clipboard-6c01cd62.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/admin-5bb2a240.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Database-7e68fb15.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/moment-a9aaa855.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/File-6e4bc303.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Files-7d6695af.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/FolderOpen-b11d662e.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Folder-23acf0b4.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Minus-8d1b1816.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Trans-de442f4d.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/mcpServers-78407e8f.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-91ddb648.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Brain-46090475.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Browser-0e998625.js"
+    },
+    {
+      "ct": "font/ttf",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/PlusJakartaSans-e493fee2.ttf"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/agentFlows-020fa867.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/purify-3e466d78.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/SlidersHorizontal-246b7199.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/WarningCircle-12a72741.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-d29be75f.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Eye-43fedc1e.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-85fcfae8.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Hammer-43e8cb89.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-6a3d9c91.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/tiny-invariant-1dc34c91.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-f760af4b.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-6264efcc.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-44eeee20.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/UploadSimple-84c01beb.js"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/favicon.png"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/favicon.png"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/react-beautiful-dnd.esm-2c72ea67.js"
+    },
+    {
+      "ct": "video/webm",
+      "status": 206,
+      "url": "http://127.0.0.1:8767/assets/dark-a267ebfb.webm"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/ping"
+    },
+    {
+      "ct": "",
+      "status": 204,
+      "url": "http://localhost:3001/api/system/logo?theme=system"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/onboarding"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/system/refresh-user"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/setup-complete"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/anything-llm-dark-c251ee6f.png"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspaces"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/system/footer-data"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/threads"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/suggested-messages"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/is-agent-command-available"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/chats"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace"
+    },
+    {
+      "ct": "",
+      "status": 204,
+      "url": "http://localhost:3001/api/system/logo?theme=system"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/parsed-files"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/setup-complete"
+    },
+    {
+      "ct": "text/plain; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/system/document-processing-status"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/setup-complete"
+    },
+    {
+      "ct": "text/event-stream",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/stream-chat"
+    }
+  ],
+  "run_tag": "phase71-ui-e2e-1780744616",
+  "status": "passed",
+  "tag_visible": true,
+  "textarea_after_fill": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, confidence, and this tag: phase71-ui-e2e-1780744616",
+  "textarea_attrs": {
+    "aria": null,
+    "disabled": false,
+    "placeholder": "Send a message",
+    "value": ""
+  },
+  "url": "http://127.0.0.1:8767/#/workspace/my-workspace"
+}

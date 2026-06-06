@@ -12,7 +12,39 @@ Current tool IDs:
 - `git_grep`: search tracked repository content with line numbers.
 - `read_file`: read a controller-selected repository file.
 - `scan_files`: scan repository files for first-run/bootstrap discovery.
+- `structure_index`: build deterministic code, document, and config index slices.
+- `codegraph_context`: run curated read-only relationship lookups for callers, callees, and imports.
 - `run_tests`: run an explicit test command selected by controller policy.
+
+## Tool Catalog Governance
+
+Tool catalog expansion is controlled by two controller-owned workflows:
+
+- `tool_catalog.validate`: read-only admission validation.
+- `tool_catalog.register`: approval-gated metadata registration.
+
+These workflows govern tools whose local mediator implementation already exists. They do not create new executable behavior. A proposed tool must declare:
+
+- tool id, owner, description, and kind
+- argument, input, and output schemas
+- safety class and mutation policy
+- allowed workflows and allowed roles
+- mediator support through `vllm_agent_gateway/tools/mediator.py`
+
+Validation rejects tools that duplicate existing controller behavior unless the manifest includes a consolidation plan. Validation also rejects unsafe file access, unsupported mediator IDs, unknown workflows, unknown roles, and role/workflow exposure mismatches.
+
+Registration requires explicit approval:
+
+```json
+{
+  "status": "approved_for_tool_catalog_registration",
+  "scope": "tool_catalog_registration",
+  "runtime_tool_append": true,
+  "approval_refs": ["approved-change-id"]
+}
+```
+
+Successful registration appends only to `runtime/tools.json`. It must not mutate `runtime/workflows.json`, `runtime/roles.json`, target repositories, or executable tool code.
 
 ## Role Assignment
 
@@ -49,6 +81,7 @@ Examples:
 - documenter tracked discovery requires `git_ls_files`
 - documenter file reading requires `read_file`
 - all-file bootstrap discovery requires `scan_files`
+- curated relationship lookup requires `codegraph_context`
 - implementation verification requires `run_tests`
 
 ## Tool Mediation

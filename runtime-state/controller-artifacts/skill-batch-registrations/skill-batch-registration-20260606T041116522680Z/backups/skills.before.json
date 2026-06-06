@@ -1,0 +1,2917 @@
+{
+  "schema_version": 1,
+  "kind": "skill_registry",
+  "policy": {
+    "body_load_policy": "metadata_selected_only",
+    "creation_rule": "Create or edit a skill only when a router or workflow eval failure proves missing procedural knowledge."
+  },
+  "skills": [
+    {
+      "id": "request-triage",
+      "path": ".qwen/skills/request-triage/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Classify incoming user requests before planning, repository traversal, tool selection, or implementation.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_context.lookup",
+        "code_investigation.plan",
+        "refactor.single_path",
+        "execution_planning.plan",
+        "workflow_feedback.record"
+      ],
+      "triggers": [
+        "classification",
+        "request triage",
+        "change",
+        "investigation",
+        "refactor",
+        "test fix",
+        "documentation update",
+        "workflow run"
+      ],
+      "workflow_priorities": {
+        "code_context.lookup": 10,
+        "code_investigation.plan": 10,
+        "refactor.single_path": 10,
+        "execution_planning.plan": 10,
+        "workflow_feedback.record": 90
+      },
+      "capability_contract": {
+        "route_key": "planning.request_triage",
+        "task_types": [
+          "request_classification"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "triage_result"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "generic_clear_request",
+          "generic_ambiguous_request",
+          "generic_approval_bypass"
+        ]
+      },
+      "problem_solving_steps": [
+        1
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "id": "scope-and-assumptions",
+      "path": ".qwen/skills/scope-and-assumptions/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Define the problem, clarify scope, capture assumptions, containment needs, priority, resources, goals, and stop conditions before context gathering or execution planning.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_context.lookup",
+        "code_investigation.plan",
+        "refactor.single_path",
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "scope",
+        "assumptions",
+        "goals",
+        "containment",
+        "clarify problem",
+        "stop conditions"
+      ],
+      "workflow_priorities": {
+        "code_context.lookup": 20,
+        "code_investigation.plan": 20,
+        "refactor.single_path": 20,
+        "execution_planning.plan": 20
+      },
+      "capability_contract": {
+        "route_key": "planning.scope_assumptions",
+        "task_types": [
+          "problem_definition",
+          "scope_clarification"
+        ],
+        "input_artifacts": [
+          "triage_result"
+        ],
+        "output_artifacts": [
+          "scope_and_assumptions"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "generic_clear_request",
+          "generic_ambiguous_request"
+        ]
+      },
+      "problem_solving_steps": [
+        1,
+        2,
+        3
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "id": "entrypoint-finder",
+      "path": ".qwen/skills/entrypoint-finder/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Identify likely logic entry points for a scoped behavior, workflow, endpoint, command, class, function, test failure, documentation path, or refactor target.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan",
+        "refactor.single_path",
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "entry point",
+        "beginning point",
+        "starting point",
+        "logic entry",
+        "function",
+        "class",
+        "route",
+        "command"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 30,
+        "refactor.single_path": 30,
+        "execution_planning.plan": 30
+      },
+      "capability_contract": {
+        "route_key": "code.entrypoint_discovery",
+        "task_types": [
+          "entrypoint_discovery",
+          "logic_beginning_point"
+        ],
+        "input_artifacts": [
+          "scope_and_assumptions",
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "entrypoint_candidates",
+          "selected_entrypoint"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_read_only_context",
+          "l2_dependency_impact"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "id": "context-plan-builder",
+      "path": ".qwen/skills/context-plan-builder/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Build a bounded context-gathering plan from scoped objectives, selected entry points, and follow-up context needs before impact mapping or execution planning.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_context_request",
+      "allowed_tools": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ],
+      "workflows": [
+        "code_context.lookup",
+        "code_investigation.plan",
+        "refactor.single_path",
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "context plan",
+        "bounded context",
+        "follow-up context",
+        "read file",
+        "grep",
+        "structure index"
+      ],
+      "workflow_priorities": {
+        "code_context.lookup": 30,
+        "code_investigation.plan": 40,
+        "refactor.single_path": 40,
+        "execution_planning.plan": 40
+      },
+      "capability_contract": {
+        "route_key": "context.plan_builder",
+        "task_types": [
+          "bounded_context_plan"
+        ],
+        "input_artifacts": [
+          "selected_entrypoint",
+          "scope_and_assumptions"
+        ],
+        "output_artifacts": [
+          "context_plan"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_read_only_context",
+          "l2_dependency_impact"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "id": "codegraph-context-lookup",
+      "path": ".qwen/skills/codegraph-context-lookup/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Create bounded curated relationship lookup requests for code_context.lookup when a task needs callers, callees, imports, or module dependency context.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_context_request",
+      "allowed_tools": [
+        "codegraph_context"
+      ],
+      "workflows": [
+        "code_context.lookup"
+      ],
+      "triggers": [
+        "callers",
+        "callees",
+        "imports",
+        "importers",
+        "module dependency",
+        "relationship context"
+      ],
+      "workflow_priorities": {
+        "code_context.lookup": 40
+      },
+      "capability_contract": {
+        "route_key": "context.curated_relationship_lookup",
+        "task_types": [
+          "relationship_lookup",
+          "callers_usages"
+        ],
+        "input_artifacts": [
+          "relationship_request"
+        ],
+        "output_artifacts": [
+          "curated_relationship_queries",
+          "usage_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_callers_usages"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "id": "code-explanation-summarizer",
+      "path": ".qwen/skills/code-explanation-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Explain a named function, class, or file from bounded code evidence without planning edits or running tools.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "explain",
+        "what does",
+        "inputs",
+        "outputs",
+        "side effects"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.explanation_summary",
+        "task_types": [
+          "code_explanation"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "selected_entrypoint"
+        ],
+        "output_artifacts": [
+          "code_explanation"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_explain_code"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "related-test-discovery",
+      "path": ".qwen/skills/related-test-discovery/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Identify direct and indirect tests related to a named behavior from bounded investigation evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "related tests",
+        "tests related",
+        "test files",
+        "matching terms"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "test.related_discovery",
+        "task_types": [
+          "related_test_discovery"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "related_tests",
+          "verification_plan"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_related_tests"
+        ]
+      },
+      "problem_solving_steps": [
+        4,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "safe-test-command-selector",
+      "path": ".qwen/skills/safe-test-command-selector/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Select safe pytest validation commands with rationale from bounded evidence and known test files.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "smallest test command",
+        "safe test command",
+        "recommend the smallest",
+        "validation command"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "verification.safe_test_command",
+        "task_types": [
+          "safe_test_command"
+        ],
+        "input_artifacts": [
+          "related_tests",
+          "investigation_evidence"
+        ],
+        "output_artifacts": [
+          "verification_plan",
+          "test_selection_plan"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_safe_test_command"
+        ]
+      },
+      "problem_solving_steps": [
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "behavior-existence-checker",
+      "path": ".qwen/skills/behavior-existence-checker/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Determine whether a named behavior exists using bounded evidence while avoiding overclaimed absence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "already exists",
+        "check whether",
+        "exists"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.behavior_existence",
+        "task_types": [
+          "behavior_existence_check"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "behavior_existence"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_behavior_exists"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "callers-usages-summarizer",
+      "path": ".qwen/skills/callers-usages-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Summarize callers and usages from bounded code_context.lookup relationship evidence grouped by file.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_context_request",
+      "allowed_tools": [],
+      "workflows": [
+        "code_context.lookup"
+      ],
+      "triggers": [
+        "callers",
+        "usages",
+        "who calls",
+        "where used"
+      ],
+      "workflow_priorities": {
+        "code_context.lookup": 1000
+      },
+      "capability_contract": {
+        "route_key": "context.callers_usages_summary",
+        "task_types": [
+          "callers_usages_summary"
+        ],
+        "input_artifacts": [
+          "lookup_results",
+          "relationship_results"
+        ],
+        "output_artifacts": [
+          "usage_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_callers_usages_summary"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "configuration-lookup-guide",
+      "path": ".qwen/skills/configuration-lookup-guide/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Explain where a configuration key or environment variable is defined or used from bounded evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "environment variable",
+        "configuration",
+        "config",
+        "defined or used"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "config.lookup_guide",
+        "task_types": [
+          "configuration_lookup"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "configuration_lookup"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_configuration_lookup"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "pasted-failure-summarizer",
+      "path": ".qwen/skills/pasted-failure-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Summarize pasted test failure output into observed facts, likely cause, and next bounded inspection.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "pasted test failure",
+        "summarize this pasted",
+        "failed tests",
+        "assertionerror"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "test.failure_summary",
+        "task_types": [
+          "test_failure_summary"
+        ],
+        "input_artifacts": [
+          "pasted_failure_output",
+          "investigation_evidence"
+        ],
+        "output_artifacts": [
+          "test_failure_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_test_failure_summary"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "endpoint-route-locator",
+      "path": ".qwen/skills/endpoint-route-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate endpoint, route, WebSocket, or message-handler source lines for a named request using bounded evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "endpoint",
+        "route handler",
+        "websocket handler",
+        "message handler",
+        "handler for"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.endpoint_route_lookup",
+        "task_types": [
+          "endpoint_route_lookup",
+          "message_handler_lookup"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "endpoint_route_lookup"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_endpoint_route_lookup"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "message-source-locator",
+      "path": ".qwen/skills/message-source-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate the source of an error, exception, log, logger, or printed message from bounded exact-text evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "error message",
+        "log message",
+        "logger",
+        "source of",
+        "comes from"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.message_source_lookup",
+        "task_types": [
+          "message_source_lookup"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "message_source_lookup"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_message_source_lookup"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "module-summarizer",
+      "path": ".qwen/skills/module-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Summarize a module or file from bounded AST and snippet evidence, including responsibilities, definitions, related tests, and gaps.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "summarize module",
+        "module summary",
+        "summarize file",
+        "file summary"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.module_summary",
+        "task_types": [
+          "module_summary"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "selected_source_file"
+        ],
+        "output_artifacts": [
+          "module_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_module_summary"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "data-model-schema-locator",
+      "path": ".qwen/skills/data-model-schema-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate data models, database table schemas, dataclasses, fields, or columns from bounded source evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "data model",
+        "database schema",
+        "table schema",
+        "fields",
+        "columns",
+        "dataclass"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.data_model_lookup",
+        "task_types": [
+          "data_model_lookup",
+          "schema_lookup"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "data_model_lookup"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_data_model_lookup"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "dependency-import-locator",
+      "path": ".qwen/skills/dependency-import-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate imports and module dependencies for a requested file or module using code_context.lookup dependency evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_context_request",
+      "allowed_tools": [],
+      "workflows": [
+        "code_context.lookup"
+      ],
+      "triggers": [
+        "imports",
+        "dependencies",
+        "depends on",
+        "module dependency"
+      ],
+      "workflow_priorities": {
+        "code_context.lookup": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.dependency_lookup",
+        "task_types": [
+          "dependency_lookup",
+          "import_lookup"
+        ],
+        "input_artifacts": [
+          "lookup_results",
+          "selected_source_file"
+        ],
+        "output_artifacts": [
+          "dependency_lookup"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_dependency_lookup"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "coverage-gap-summarizer",
+      "path": ".qwen/skills/coverage-gap-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Identify test coverage gaps for a requested behavior from bounded read-only evidence, including covered tests, uncovered source areas, verification commands, and evidence gaps.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "coverage gaps",
+        "test coverage gaps",
+        "uncovered source files",
+        "covered tests"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "test.coverage_gap_summary",
+        "task_types": [
+          "coverage_gap_summary",
+          "test_coverage_gap"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "related_tests",
+          "verification_plan"
+        ],
+        "output_artifacts": [
+          "coverage_gap_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_coverage_gap_summary"
+        ]
+      },
+      "problem_solving_steps": [
+        4,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "documentation-locator",
+      "path": ".qwen/skills/documentation-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Find documentation for a requested behavior from bounded read-only evidence, including doc files, source refs, and documentation gaps.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "documentation",
+        "docs for",
+        "where documented",
+        "behavior docs"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "docs.documentation_lookup",
+        "task_types": [
+          "documentation_lookup",
+          "behavior_documentation_lookup"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "documentation_lookup"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_documentation_lookup"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "cli-entrypoint-locator",
+      "path": ".qwen/skills/cli-entrypoint-locator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Locate CLI or script entrypoints such as main modules, __main__ guards, and runnable commands from bounded read-only evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "cli entrypoint",
+        "script entrypoint",
+        "main.py",
+        "__main__",
+        "run command"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.cli_entrypoint_lookup",
+        "task_types": [
+          "cli_entrypoint_lookup",
+          "script_entrypoint_lookup"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "selected_source_file"
+        ],
+        "output_artifacts": [
+          "cli_entrypoint_lookup"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_cli_entrypoint_lookup"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "configuration-effect-summarizer",
+      "path": ".qwen/skills/configuration-effect-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Explain the runtime effect of a configuration key or environment variable from bounded read-only evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "runtime effect",
+        "configuration effect",
+        "env var effect",
+        "COINBASE_API_KEY"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "config.effect_summary",
+        "task_types": [
+          "configuration_effect_summary",
+          "runtime_configuration_effect"
+        ],
+        "input_artifacts": [
+          "configuration_lookup",
+          "investigation_evidence"
+        ],
+        "output_artifacts": [
+          "configuration_effect_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_configuration_effect_summary"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "local-change-summarizer",
+      "path": ".qwen/skills/local-change-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Summarize recent commits, git status, changed files, and non-git limitations from read-only local repository evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "recent changes",
+        "local changes",
+        "git status",
+        "changed files",
+        "recent commits"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "git.local_change_summary",
+        "task_types": [
+          "local_change_summary",
+          "recent_commit_summary"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "git_status"
+        ],
+        "output_artifacts": [
+          "local_change_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_local_change_summary"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#batch-admission-gates"
+      ]
+    },
+    {
+      "id": "failing-test-diagnosis",
+      "path": ".qwen/skills/failing-test-diagnosis/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Diagnose a failing test from pasted output and bounded evidence with a read-only safe fix plan.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "diagnose why",
+        "root cause",
+        "safe fix plan"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "test.failing_test_diagnosis",
+        "task_types": [
+          "failing_test_diagnosis"
+        ],
+        "input_artifacts": [
+          "test_failure_summary",
+          "investigation_evidence"
+        ],
+        "output_artifacts": [
+          "test_failure_summary",
+          "safe_fix_plan"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_failing_test_diagnosis"
+        ]
+      },
+      "problem_solving_steps": [
+        4,
+        5,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "multi-file-investigation-planner",
+      "path": ".qwen/skills/multi-file-investigation-planner/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Summarize a behavior flow across multiple files using bounded investigation evidence and related tests.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "across source files",
+        "multi-file",
+        "flows across",
+        "participating files"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.multi_file_investigation",
+        "task_types": [
+          "multi_file_behavior_investigation"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "relationship_results"
+        ],
+        "output_artifacts": [
+          "multi_file_behavior_investigation"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_multi_file_behavior"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "dependency-impact-summarizer",
+      "path": ".qwen/skills/dependency-impact-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Summarize dependency impact, risk level, related tests, and validation commands from bounded evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "dependency impact",
+        "impacted files",
+        "risk level"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "planning.dependency_impact_summary",
+        "task_types": [
+          "dependency_impact"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "relationship_results"
+        ],
+        "output_artifacts": [
+          "dependency_impact_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_dependency_impact_summary"
+        ]
+      },
+      "problem_solving_steps": [
+        4,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "test-selection-rationale",
+      "path": ".qwen/skills/test-selection-rationale/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Build smallest, medium, and broad validation tiers with covered-risk rationale from bounded evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "smallest, medium, and broad",
+        "test selection",
+        "covered risks"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "verification.test_selection_rationale",
+        "task_types": [
+          "test_selection_rationale"
+        ],
+        "input_artifacts": [
+          "related_tests",
+          "investigation_evidence"
+        ],
+        "output_artifacts": [
+          "test_selection_plan"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_test_selection_rationale"
+        ]
+      },
+      "problem_solving_steps": [
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "README.skill-registry.md#seed-v1-skill-library"
+      ]
+    },
+    {
+      "id": "runtime-error-diagnoser",
+      "path": ".qwen/skills/runtime-error-diagnoser/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Diagnose a runtime error, exception, or stack trace from bounded read-only evidence.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "runtime error",
+        "stack trace",
+        "traceback",
+        "exception diagnosis"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "diagnostics.runtime_error_diagnosis",
+        "task_types": [
+          "runtime_error_diagnosis",
+          "stack_trace_diagnosis"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "investigation_evidence"
+        ],
+        "output_artifacts": [
+          "runtime_error_diagnosis"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_runtime_error_diagnosis"
+        ]
+      },
+      "problem_solving_steps": [
+        4,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-32-l2-diagnostic-expansion-batch-a"
+      ]
+    },
+    {
+      "id": "request-flow-mapper",
+      "path": ".qwen/skills/request-flow-mapper/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Map a request, message, or data flow across bounded source evidence without editing files.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "request flow",
+        "data flow",
+        "message flow",
+        "flow steps"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.request_flow_map",
+        "task_types": [
+          "request_flow_map",
+          "data_flow_map"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "selected_entrypoint"
+        ],
+        "output_artifacts": [
+          "request_flow_map"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_request_flow_map"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-32-l2-diagnostic-expansion-batch-a"
+      ]
+    },
+    {
+      "id": "code-path-comparator",
+      "path": ".qwen/skills/code-path-comparator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Compare two candidate code paths from bounded read-only evidence and state risks and gaps.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "compare the",
+        "compare code paths",
+        "candidate paths",
+        "compare two paths",
+        "lookup path",
+        "index path",
+        "recommended path"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "code.path_comparison",
+        "task_types": [
+          "code_path_comparison"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "natural_user_request"
+        ],
+        "output_artifacts": [
+          "code_path_comparison"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_code_path_comparison"
+        ]
+      },
+      "problem_solving_steps": [
+        4,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-32-l2-diagnostic-expansion-batch-a"
+      ]
+    },
+    {
+      "id": "change-surface-summarizer",
+      "path": ".qwen/skills/change-surface-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Identify the minimal safe change surface for a requested behavior change without implementation.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "code_investigation.plan"
+      ],
+      "triggers": [
+        "minimal safe change surface",
+        "change surface",
+        "files need review",
+        "before implementation"
+      ],
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "planning.change_surface_summary",
+        "task_types": [
+          "change_surface_summary",
+          "minimal_safe_change_surface"
+        ],
+        "input_artifacts": [
+          "investigation_evidence",
+          "related_tests"
+        ],
+        "output_artifacts": [
+          "change_surface_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_change_surface_summary"
+        ]
+      },
+      "problem_solving_steps": [
+        4,
+        5,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-32-l2-diagnostic-expansion-batch-a"
+      ]
+    },
+    {
+      "id": "config-default-test-drafter",
+      "path": ".qwen/skills/config-default-test-drafter/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Draft a small unit-test proposal for an explicit configuration default value without mutating source files.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "approval_gated_packet_design",
+      "allowed_tools": [],
+      "workflows": [
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "config default",
+        "configuration default",
+        "default config",
+        "defaults to"
+      ],
+      "workflow_priorities": {
+        "execution_planning.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "draft.config_default_test",
+        "task_types": [
+          "config_default_test_draft"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "config_source_evidence"
+        ],
+        "output_artifacts": [
+          "small_unit_test_proposal",
+          "implementation_workflow_report"
+        ],
+        "approval_boundary": "packet_design_required",
+        "mutation_policy": "draft_artifacts_only",
+        "eval_case_ids": [
+          "d1_config_default_test"
+        ]
+      },
+      "problem_solving_steps": [
+        5,
+        6,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-34-draft-only-expansion-batch-a"
+      ]
+    },
+    {
+      "id": "message-assertion-test-drafter",
+      "path": ".qwen/skills/message-assertion-test-drafter/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Draft a small unit-test proposal for an exact error or log message assertion without mutating source files.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "approval_gated_packet_design",
+      "allowed_tools": [],
+      "workflows": [
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "error message",
+        "log message",
+        "message assertion",
+        "assert exact message"
+      ],
+      "workflow_priorities": {
+        "execution_planning.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "draft.message_assertion_test",
+        "task_types": [
+          "message_assertion_test_draft"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "message_source_evidence"
+        ],
+        "output_artifacts": [
+          "small_unit_test_proposal",
+          "implementation_workflow_report"
+        ],
+        "approval_boundary": "packet_design_required",
+        "mutation_policy": "draft_artifacts_only",
+        "eval_case_ids": [
+          "d1_message_assertion_test"
+        ]
+      },
+      "problem_solving_steps": [
+        5,
+        6,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-34-draft-only-expansion-batch-a"
+      ]
+    },
+    {
+      "id": "test-assertion-update-drafter",
+      "path": ".qwen/skills/test-assertion-update-drafter/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Draft a bounded test assertion update from exact old assertion text to exact new assertion text.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "approval_gated_packet_design",
+      "allowed_tools": [],
+      "workflows": [
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "test assertion update",
+        "update test assertion",
+        "replace the assertion"
+      ],
+      "workflow_priorities": {
+        "execution_planning.plan": 1000
+      },
+      "capability_contract": {
+        "route_key": "draft.test_assertion_update",
+        "task_types": [
+          "test_assertion_update_draft"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "target_test_file"
+        ],
+        "output_artifacts": [
+          "small_unit_test_proposal",
+          "implementation_workflow_report"
+        ],
+        "approval_boundary": "packet_design_required",
+        "mutation_policy": "draft_artifacts_only",
+        "eval_case_ids": [
+          "d1_test_assertion_update"
+        ]
+      },
+      "problem_solving_steps": [
+        5,
+        6,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-34-draft-only-expansion-batch-a"
+      ]
+    },
+    {
+      "id": "impact-map-builder",
+      "path": ".qwen/skills/impact-map-builder/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Build a read-only impact map from scoped objectives, selected entry points, bounded context plans, and completed context results before execution-plan-writer.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "refactor.single_path",
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "impact map",
+        "affected files",
+        "affected symbols",
+        "duplicate paths",
+        "parallel paths",
+        "risk map"
+      ],
+      "workflow_priorities": {
+        "refactor.single_path": 50,
+        "execution_planning.plan": 60
+      },
+      "capability_contract": {
+        "route_key": "planning.impact_map",
+        "task_types": [
+          "impact_mapping",
+          "dependency_impact"
+        ],
+        "input_artifacts": [
+          "context_results",
+          "selected_entrypoint"
+        ],
+        "output_artifacts": [
+          "impact_map",
+          "dependency_impact_summary"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_dependency_impact"
+        ]
+      },
+      "problem_solving_steps": [
+        4
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "id": "execution-plan-writer",
+      "path": ".qwen/skills/execution-plan-writer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Write a deterministic execution plan artifact from scoped problem details, entrypoint findings, bounded context plans, and impact evidence before implementation packets or repository mutation.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "refactor.single_path",
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "execution plan",
+        "implementation plan",
+        "action plan",
+        "plan artifact",
+        "stop because evidence is insufficient"
+      ],
+      "workflow_priorities": {
+        "refactor.single_path": 60,
+        "execution_planning.plan": 50
+      },
+      "capability_contract": {
+        "route_key": "planning.execution_plan_writer",
+        "task_types": [
+          "execution_plan",
+          "implementation_plan"
+        ],
+        "input_artifacts": [
+          "scope_and_assumptions",
+          "context_results",
+          "impact_map"
+        ],
+        "output_artifacts": [
+          "execution_plan"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l1_draft_packet_design",
+          "l2_dependency_impact"
+        ]
+      },
+      "problem_solving_steps": [
+        5
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "id": "implementation-packet-designer",
+      "path": ".qwen/skills/implementation-packet-designer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Convert approved execution-plan design_packet steps into bounded implementation packet candidates for the existing implementation.workflow.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "approval_gated_packet_design",
+      "allowed_tools": [],
+      "workflows": [
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "implementation packet",
+        "packet candidate",
+        "design packet",
+        "approved step",
+        "draft packet"
+      ],
+      "workflow_priorities": {
+        "execution_planning.plan": 70
+      },
+      "capability_contract": {
+        "route_key": "implementation.packet_designer",
+        "task_types": [
+          "packet_design",
+          "draft_implementation_prep"
+        ],
+        "input_artifacts": [
+          "approved_execution_plan",
+          "packet_operations"
+        ],
+        "output_artifacts": [
+          "implementation_packet_candidates",
+          "implementation_workflow_report"
+        ],
+        "approval_boundary": "packet_design_required",
+        "mutation_policy": "draft_artifacts_only",
+        "eval_case_ids": [
+          "l1_draft_packet_design"
+        ]
+      },
+      "problem_solving_steps": [
+        5
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "id": "verification-planner",
+      "path": ".qwen/skills/verification-planner/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Select controller-compatible pytest verification commands, manual checks, and coverage gaps for execution plans or implementation packet candidates.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": [
+        "execution_planning.plan"
+      ],
+      "triggers": [
+        "verification",
+        "pytest",
+        "manual check",
+        "coverage gap",
+        "acceptance criteria"
+      ],
+      "workflow_priorities": {
+        "execution_planning.plan": 80
+      },
+      "capability_contract": {
+        "route_key": "verification.plan",
+        "task_types": [
+          "verification_planning",
+          "test_selection"
+        ],
+        "input_artifacts": [
+          "related_tests",
+          "impact_map"
+        ],
+        "output_artifacts": [
+          "verification_plan",
+          "test_selection_plan"
+        ],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": [
+          "l2_test_selection"
+        ]
+      },
+      "problem_solving_steps": [
+        5,
+        7
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "id": "feedback-capture",
+      "path": ".qwen/skills/feedback-capture/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Convert workflow results, validation output, plan reviews, failed test sessions, or founder/tester critique into structured follow-up records.",
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "safety_level": "feedback_only",
+      "allowed_tools": [],
+      "workflows": [
+        "workflow_feedback.record"
+      ],
+      "triggers": [
+        "feedback",
+        "too slow",
+        "too noisy",
+        "useful",
+        "wrong",
+        "missing",
+        "lessons learned"
+      ],
+      "workflow_priorities": {
+        "workflow_feedback.record": 10
+      },
+      "capability_contract": {
+        "route_key": "feedback.capture",
+        "task_types": [
+          "feedback_capture",
+          "continuous_improvement"
+        ],
+        "input_artifacts": [
+          "workflow_run_record",
+          "tester_feedback"
+        ],
+        "output_artifacts": [
+          "feedback_record"
+        ],
+        "approval_boundary": "feedback_only",
+        "mutation_policy": "controller_artifacts_only",
+        "eval_case_ids": [
+          "workflow_feedback_capture"
+        ]
+      },
+      "problem_solving_steps": [
+        7,
+        8
+      ],
+      "eval_status": "validated",
+      "evals": {
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "localhost_8000": "passed",
+        "gateway_8300": "passed",
+        "anythingllm": "passed"
+      },
+      "failure_record_refs": [
+        "docs/EXECUTION_PLANNING_SKILLS.md#current-status-and-next-step"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "phase40_background_job_lookup"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "investigation_plan"
+        ],
+        "route_key": "code.background_job_lookup",
+        "task_types": [
+          "background_job_lookup"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Locate background jobs, scheduled workers, sweepers, or periodic runtime tasks.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-40-controlled-l1l2-skill-expansion-batch-b"
+      ],
+      "id": "background-job-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/background-job-locator/SKILL.md",
+      "problem_solving_steps": [
+        4
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "background job"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "phase40_pytest_fixture_lookup"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "investigation_plan"
+        ],
+        "route_key": "test.pytest_fixture_lookup",
+        "task_types": [
+          "pytest_fixture_lookup"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Locate pytest fixtures, test setup, and test data related to a named behavior.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-40-controlled-l1l2-skill-expansion-batch-b"
+      ],
+      "id": "pytest-fixture-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/pytest-fixture-locator/SKILL.md",
+      "problem_solving_steps": [
+        4
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "pytest fixture"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "phase40_api_reference_lookup"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "documentation_lookup"
+        ],
+        "route_key": "docs.api_reference_lookup",
+        "task_types": [
+          "api_reference_lookup"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Find API reference documentation, sample payloads, and contract files for a named request.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-40-controlled-l1l2-skill-expansion-batch-b"
+      ],
+      "id": "api-reference-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/api-reference-locator/SKILL.md",
+      "problem_solving_steps": [
+        4
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "api reference"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "phase40_agent_invariant_lookup"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "documentation_lookup"
+        ],
+        "route_key": "docs.agent_invariant_lookup",
+        "task_types": [
+          "agent_invariant_lookup"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Find agent-facing invariant, policy, or handoff documentation for a named behavior.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#proposed-phase-40-controlled-l1l2-skill-expansion-batch-b"
+      ],
+      "id": "agent-invariant-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/agent-invariant-locator/SKILL.md",
+      "problem_solving_steps": [
+        4
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "agent invariant"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "phase50_auth_check_lookup"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "investigation_plan"
+        ],
+        "route_key": "code.auth_check_lookup",
+        "task_types": [
+          "auth_check_lookup"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Locate authentication, authorization, permission, or access-control checks for a named behavior.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-50-controlled-l1l2-skill-expansion-batch-c"
+      ],
+      "id": "auth-check-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/auth-check-locator/SKILL.md",
+      "problem_solving_steps": [
+        4
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "auth check",
+        "auth checks",
+        "permission guard",
+        "permission guards",
+        "access-control",
+        "authorization"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "phase50_state_mutation_lookup"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "investigation_plan"
+        ],
+        "route_key": "code.state_mutation_lookup",
+        "task_types": [
+          "state_mutation_lookup"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Locate where a named behavior mutates in-memory state, indexes, caches, or persistent records.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-50-controlled-l1l2-skill-expansion-batch-c"
+      ],
+      "id": "state-mutation-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/state-mutation-locator/SKILL.md",
+      "problem_solving_steps": [
+        4
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "state mutation",
+        "state mutation sites",
+        "mutation sites",
+        "mutates state",
+        "placed_order_id indexing",
+        "indexing"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "phase50_external_integration_lookup"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "investigation_plan"
+        ],
+        "route_key": "code.external_integration_lookup",
+        "task_types": [
+          "external_integration_lookup"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Locate external API, exchange, webhook, SDK, or service integration points for a named behavior.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-50-controlled-l1l2-skill-expansion-batch-c"
+      ],
+      "id": "external-integration-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/external-integration-locator/SKILL.md",
+      "problem_solving_steps": [
+        4
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "external integration",
+        "integration points",
+        "Coinbase order placement",
+        "order placement client",
+        "request boundaries"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "phase50_error_handling_path_lookup"
+        ],
+        "input_artifacts": [
+          "natural_user_request"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "investigation_plan"
+        ],
+        "route_key": "diagnostics.error_handling_path_lookup",
+        "task_types": [
+          "error_handling_path_lookup"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Locate exception handling, retry, fallback, or failure-path logic for a named behavior.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-50-controlled-l1l2-skill-expansion-batch-c"
+      ],
+      "id": "error-handling-path-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/error-handling-path-locator/SKILL.md",
+      "problem_solving_steps": [
+        4
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "error handling path",
+        "error handling",
+        "order placement failures",
+        "exception handlers",
+        "fallback logic"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    }
+  ]
+}

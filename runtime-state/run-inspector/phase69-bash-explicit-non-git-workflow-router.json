@@ -1,0 +1,83 @@
+{
+  "artifact_keys": [
+    "downstream_code_explanation",
+    "downstream_investigation_evidence",
+    "downstream_investigation_plan",
+    "downstream_request",
+    "downstream_result",
+    "downstream_run_state",
+    "registry_snapshot",
+    "request",
+    "route_decision",
+    "run_state"
+  ],
+  "artifact_paths": {
+    "downstream_code_explanation": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/code-investigation/code-investigation-20260606T094438048549Z/code-explanation.json",
+    "downstream_investigation_evidence": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/code-investigation/code-investigation-20260606T094438048549Z/investigation-evidence.json",
+    "downstream_investigation_plan": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/code-investigation/code-investigation-20260606T094438048549Z/investigation-plan.json",
+    "downstream_request": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/code-investigation/code-investigation-20260606T094438048549Z/request.json",
+    "downstream_result": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/downstream-result.json",
+    "downstream_run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/code-investigation/code-investigation-20260606T094438048549Z/run-state.json",
+    "registry_snapshot": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/registry-snapshot.json",
+    "request": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/request.json",
+    "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/route-decision.json",
+    "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/run-state.json"
+  },
+  "controller_output_root": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts",
+  "created_at": "20260606T100202884862Z",
+  "downstream": {
+    "artifact_keys": [
+      "code_explanation",
+      "investigation_evidence",
+      "investigation_plan",
+      "request",
+      "run_state"
+    ],
+    "run_id": "code-investigation-20260606T094438048549Z",
+    "status": "completed",
+    "workflow": "code_investigation.plan"
+  },
+  "failure_count": 0,
+  "failures": [],
+  "kind": "controller_run_inspection",
+  "mutation_proof": {
+    "disposable_copy_changed": false,
+    "source_changed": false,
+    "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+  },
+  "record_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/controller-runs/workflow-router-20260606T094432846134Z.json",
+  "report_path": "/mnt/c/agentic_agents/runtime-state/run-inspector/phase69-bash-explicit-non-git-workflow-router.json",
+  "resume_key": {
+    "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T094432846134Z/run-state.json",
+    "schema_version": 1
+  },
+  "route": {
+    "confidence": "medium",
+    "next_action": "execute_read_only",
+    "rules": [
+      "l1_explain_code_terms"
+    ],
+    "selected_workflow": "code_investigation.plan",
+    "status": "ready"
+  },
+  "run_id": "workflow-router-20260606T094432846134Z",
+  "schema_version": 1,
+  "selected_skills": [
+    "request-triage",
+    "scope-and-assumptions",
+    "entrypoint-finder",
+    "context-plan-builder",
+    "code-explanation-summarizer"
+  ],
+  "selected_tools": [
+    "structure_index",
+    "git_grep",
+    "read_file"
+  ],
+  "semantic_status": "completed_no_failures",
+  "status": "completed",
+  "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+  "updated_at": "2026-06-06T09:44:52Z",
+  "warning_count": 0,
+  "workflow": "workflow_router.plan"
+}

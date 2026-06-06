@@ -1,0 +1,132 @@
+# Controlled Small-Change Apply Examples
+
+These examples prove small approved edits can be previewed, applied to a disposable copy, and rejected from protected frozen source roots.
+
+## Direct Dry-Run Patch Preview
+
+```bash
+curl -fsS http://127.0.0.1:8400/v1/controller/implementation-runs \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "workflow": "implementation.workflow",
+    "schema_version": 1,
+    "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+    "mode": "dry_run",
+    "approval": {
+      "status": "approved_for_small_change_dry_run",
+      "scope": "patch_preview_only",
+      "apply_allowed": false,
+      "approval_refs": ["example dry run"]
+    },
+    "packet_operations": [
+      {
+        "kind": "replace_text",
+        "path": "docs/agents/INVARIANTS.md",
+        "old": "- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\n  maps, dashboard references, follow-up claims, fill ledger ownership, and DB\n  local rows.",
+        "new": "- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\n  maps, dashboard references, follow-up claims, fill ledger ownership, DB\n  local rows, and stealth manager placed-order index keys."
+      }
+    ],
+    "no_structure_index": true
+  }'
+```
+
+Expected:
+
+- HTTP 200
+- `summary.mode` is `draft`
+- `summary.target_repository_changed` is `false`
+- `summary.patch_preview_count` is `1`
+- source files remain unchanged
+
+## Protected Real Apply Refusal
+
+```bash
+curl -i http://127.0.0.1:8400/v1/controller/implementation-runs \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "workflow": "implementation.workflow",
+    "schema_version": 1,
+    "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+    "mode": "apply",
+    "approval": {
+      "status": "approved_for_real_apply",
+      "apply_allowed": true,
+      "apply_scope": "target_root",
+      "explicit_real_apply": true,
+      "approval_refs": ["example real apply boundary"]
+    },
+    "packet_operations": [
+      {
+        "kind": "replace_text",
+        "path": "docs/agents/INVARIANTS.md",
+        "old": "exact old text",
+        "new": "exact new text"
+      }
+    ],
+    "no_structure_index": true
+  }'
+```
+
+Expected:
+
+- HTTP 403
+- `error.code` is `protected_frozen_real_apply_denied`
+- source files remain unchanged
+
+## Natural Disposable-Copy Apply Through Gateway
+
+Send to `http://127.0.0.1:8500/v1/chat/completions`:
+
+```json
+{
+  "model": "agentic-workflow-router",
+  "messages": [
+    {
+      "role": "user",
+      "content": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, approved disposable copy apply only. Apply these exact packet_operations to a disposable copy and do not mutate the source repo: {\"packet_operations\":[{\"kind\":\"replace_text\",\"path\":\"docs/agents/INVARIANTS.md\",\"old\":\"- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\\n  maps, dashboard references, follow-up claims, fill ledger ownership, and DB\\n  local rows.\",\"new\":\"- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\\n  maps, dashboard references, follow-up claims, fill ledger ownership, DB\\n  local rows, and stealth manager placed-order index keys.\"}]}"
+    }
+  ]
+}
+```
+
+Expected chat markers:
+
+- `workflow_router.plan completed`
+- `downstream_workflow: implementation.workflow`
+- `source_changed: False`
+- `disposable_copy_changed: True`
+
+Expected artifact proof in `route-decision.json`:
+
+- `disposable_apply.mutation_proof.source_changed` is `{}`
+- `disposable_apply.mutation_proof.copy_changed` contains `docs/agents/INVARIANTS.md`
+- `disposable_apply.mutation_proof.rollback.status` is `restored`
+
+## AnythingLLM Test
+
+Use a fresh AnythingLLM thread while the LLM provider points at:
+
+```text
+http://127.0.0.1:8500/v1
+```
+
+Paste the same natural disposable-copy apply message from the gateway example.
+
+Expected result:
+
+- chat-visible proof markers appear immediately
+- the `run_id` maps to a workflow-router artifact directory
+- the frozen source fixture remains unchanged
+
+## Live Validator
+
+```bash
+cd /mnt/c/agentic_agents
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/validate_controlled_small_change_apply_live.py \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --controller-base-url http://127.0.0.1:8400 \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
+  --timeout-seconds 900
+```

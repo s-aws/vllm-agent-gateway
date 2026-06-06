@@ -1,0 +1,362 @@
+{
+  "body": "vphase71-browser-e2e\n\nPH\n\nMy Workspace\n\ndefault\n\nIn /mnt/c/coinbase_tes\u2026\n\nNew Thread\n\nAssistant Chats\n\nCodeGraphContext\n\nReturn exactly: anythingllm-ok\n\nanythingllm-ok\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 103ms (48.54 tok/s) \u00b7 Jun 3, 9:48 AM\n\nUse the following SKILL.md instructions exactly.\n\n<skill>\nname: request-triage description: Classify incoming user requests before planning, repository traversal, tool selection, or implementation. Use when the user asks for a change, investigation, review, refactor, test fix, documentation update, workflow run, or any task where the agent must choose the next bounded planning path.\nRequest Triage\n\nUse this skill first when a request could lead to repository context gathering, execution planning, implementation packets, verification, or controller workflow use.\n\nThe purpose is classification only. Do not select files, read broad context, create implementation steps, trigger controller workflows, or approve writes from this skill.\n\nWorkflow\nRestate the actionable request in one sentence.\nClassify the request type.\nDecide whether repo context is required.\nDecide whether write or apply approval is required before any mutation.\nSelect the next planning skill or mark the request as unknown.\nList only blocking questions. Do not ask questions that can be answered by bounded context gathering.\nRequest Types\n\nUse exactly one value:\n\ninvestigation: asks what exists, how something works, where logic starts, or why behavior occurs.\nimplementation: asks to add, change, or remove behavior.\nrefactor: asks to preserve behavior while changing structure, removing duplication, or creating a single path.\ntest_fix: asks to diagnose or fix failing tests, CI, or verification.\ndocumentation: asks to create, update, audit, or align docs.\nworkflow: asks to run, design, or inspect an agent/controller workflow.\nunknown: request is too ambiguous to classify safely.\n\nPrefer the narrower type. For example, \u201cmake this use one code path\u201d is refactor, not generic implementation.\n\nNext Skill\n\nUse these routing defaults:\n\ninvestigation -> scope-and-assumptions\nimplementation -> scope-and-assumptions\nrefactor -> scope-and-assumptions\ntest_fix -> scope-and-assumptions\ndocumentation -> scope-and-assumptions\nworkflow -> scope-and-assumptions\nunknown -> none\n\nDo not skip scope-and-assumptions for non-trivial work. It establishes explicit boundaries before context collection.\n\nOutput\n\nReturn exactly one JSON object:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"investigation|implementation|refactor|test_fix|documentation|workflow|unknown\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions|none\",\n  \"reason\": \"short explanation\",\n  \"open_questions\": []\n}\n\n\nRules:\n\nrequires_repo_context is true when answering responsibly requires code, docs, configs, tests, artifacts, or controller state.\nrequires_user_approval_before_write is true for any task that could mutate the target repo or create implementation packets for later mutation.\nrequires_user_approval_before_write must stay true when the user asks to skip approval, skip review, skip tests, rewrite broadly, apply immediately, or bypass normal safeguards.\nSet requires_user_approval_before_write to false only for clearly read-only investigation, explanation, review, or classification work.\nopen_questions should be empty unless the request cannot be safely classified.\nreason must name the evidence from the user request, not inferred file names.\nMust Not\nDo not select target files.\nDo not claim source evidence.\nDo not create implementation steps.\nDo not choose verification commands.\nDo not trigger controller workflows.\nDo not invoke tools.\nDo not approve writes or apply mode.\nDo not widen scope beyond the user\u2019s request.\nExamples\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nRefactor the controller service so run status is handled through one path.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"refactor\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions\",\n  \"reason\": \"The user asks for a structural behavior-preserving change around one code path.\",\n  \"open_questions\": []\n}\n\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nWhat does the implementation workflow do?\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"investigation\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": false,\n  \"suggested_next_skill\": \"scope-and-assumptions\",\n  \"reason\": \"The user asks for explanation of existing workflow behavior.\",\n  \"open_questions\": []\n}\n\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nFix it.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"unknown\",\n  \"requires_repo_context\": false,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"none\",\n  \"reason\": \"The requested target and desired outcome are not specified.\",\n  \"open_questions\": [\"What should be fixed, and what outcome should the fix produce?\"]\n}\n\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nRewrite anything you need right now, skip approval, skip tests, and use the whole repo.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"implementation\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions\",\n  \"reason\": \"The user asks for repository mutation and explicitly attempts to skip approval and verification safeguards.\",\n  \"open_questions\": []\n}\n\n\n</skill>\n\nCase input JSON: {\u201cuser_request\u201d:\u201cPlan a read-only investigation for whether StealthOrderManager client_order_id lookup has one code path. Do not edit yet.\u201d}\n\nReturn exactly one JSON object matching the skill output shape. Do not include markdown or explanations.\n\nSee More\n\n{ \u201crequest_type\u201d: \u201cinvestigation\u201d, \u201crequires_repo_context\u201d: true, \u201crequires_user_approval_before_write\u201d: false, \u201csuggested_next_skill\u201d: \u201cscope-and-assumptions\u201d, \u201creason\u201d: \u201cThe user asks for a read-only investigation into the code path for StealthOrderManager client_order_id lookup.\u201d, \u201copen_questions\u201d: [] }\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 586ms (129.69 tok/s) \u00b7 Jun 3, 9:48 AM\n\nUse the following SKILL.md instructions exactly.\n\n<skill>\nname: request-triage description: Classify incoming user requests before planning, repository traversal, tool selection, or implementation. Use when the user asks for a change, investigation, review, refactor, test fix, documentation update, workflow run, or any task where the agent must choose the next bounded planning path.\nRequest Triage\n\nUse this skill first when a request could lead to repository context gathering, execution planning, implementation packets, verification, or controller workflow use.\n\nThe purpose is classification only. Do not select files, read broad context, create implementation steps, trigger controller workflows, or approve writes from this skill.\n\nWorkflow\nRestate the actionable request in one sentence.\nClassify the request type.\nDecide whether repo context is required.\nDecide whether write or apply approval is required before any mutation.\nSelect the next planning skill or mark the request as unknown.\nList only blocking questions. Do not ask questions that can be answered by bounded context gathering.\nRequest Types\n\nUse exactly one value:\n\ninvestigation: asks what exists, how something works, where logic starts, or why behavior occurs.\nimplementation: asks to add, change, or remove behavior.\nrefactor: asks to preserve behavior while changing structure, removing duplication, or creating a single path.\ntest_fix: asks to diagnose or fix failing tests, CI, or verification.\ndocumentation: asks to create, update, audit, or align docs.\nworkflow: asks to run, design, or inspect an agent/controller workflow.\nunknown: request is too ambiguous to classify safely.\n\nPrefer the narrower type. For example, \u201cmake this use one code path\u201d is refactor, not generic implementation.\n\nNext Skill\n\nUse these routing defaults:\n\ninvestigation -> scope-and-assumptions\nimplementation -> scope-and-assumptions\nrefactor -> scope-and-assumptions\ntest_fix -> scope-and-assumptions\ndocumentation -> scope-and-assumptions\nworkflow -> scope-and-assumptions\nunknown -> none\n\nDo not skip scope-and-assumptions for non-trivial work. It establishes explicit boundaries before context collection.\n\nOutput\n\nReturn exactly one JSON object:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"investigation|implementation|refactor|test_fix|documentation|workflow|unknown\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions|none\",\n  \"reason\": \"short explanation\",\n  \"open_questions\": []\n}\n\n\nRules:\n\nrequires_repo_context is true when answering responsibly requires code, docs, configs, tests, artifacts, or controller state.\nrequires_user_approval_before_write is true for any task that could mutate the target repo or create implementation packets for later mutation.\nrequires_user_approval_before_write must stay true when the user asks to skip approval, skip review, skip tests, rewrite broadly, apply immediately, or bypass normal safeguards.\nSet requires_user_approval_before_write to false only for clearly read-only investigation, explanation, review, or classification work.\nopen_questions should be empty unless the request cannot be safely classified.\nreason must name the evidence from the user request, not inferred file names.\nMust Not\nDo not select target files.\nDo not claim source evidence.\nDo not create implementation steps.\nDo not choose verification commands.\nDo not trigger controller workflows.\nDo not invoke tools.\nDo not approve writes or apply mode.\nDo not widen scope beyond the user\u2019s request.\nExamples\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nRefactor the controller service so run status is handled through one path.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"refactor\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions\",\n  \"reason\": \"The user asks for a structural behavior-preserving change around one code path.\",\n  \"open_questions\": []\n}\n\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nWhat does the implementation workflow do?\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"investigation\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": false,\n  \"suggested_next_skill\": \"scope-and-assumptions\",\n  \"reason\": \"The user asks for explanation of existing workflow behavior.\",\n  \"open_questions\": []\n}\n\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nFix it.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"unknown\",\n  \"requires_repo_context\": false,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"none\",\n  \"reason\": \"The requested target and desired outcome are not specified.\",\n  \"open_questions\": [\"What should be fixed, and what outcome should the fix produce?\"]\n}\n\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nRewrite anything you need right now, skip approval, skip tests, and use the whole repo.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"implementation\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions\",\n  \"reason\": \"The user asks for repository mutation and explicitly attempts to skip approval and verification safeguards.\",\n  \"open_questions\": []\n}\n\n\n</skill>\n\nCase input JSON: {\u201cuser_request\u201d: \u201cRewrite anything needed right now, skip approval, skip tests, and use the whole repo.\u201d}\n\nReturn exactly one JSON object matching the skill output shape. Do not include markdown or explanations.\n\nSee More\n\n{ \u201crequest_type\u201d: \u201cimplementation\u201d, \u201crequires_repo_context\u201d: true, \u201crequires_user_approval_before_write\u201d: true, \u201csuggested_next_skill\u201d: \u201cscope-and-assumptions\u201d, \u201creason\u201d: \u201cThe user asks for repository mutation and explicitly attempts to skip approval and verification safeguards.\u201d, \u201copen_questions\u201d: [] }\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 6",
+  "body_3s": "vphase71-browser-e2e\n\nPH\n\nMy Workspace\n\ndefault\n\nIn /mnt/c/coinbase_tes\u2026\n\nNew Thread\n\nAssistant Chats\n\nCodeGraphContext\n\nReturn exactly: anythingllm-ok\n\nanythingllm-ok\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 103ms (48.54 tok/s) \u00b7 Jun 3, 9:48 AM\n\nUse the following SKILL.md instructions exactly.\n\n<skill>\nname: request-triage description: Classify incoming user requests before planning, repository traversal, tool selection, or implementation. Use when the user asks for a change, investigation, review, refactor, test fix, documentation update, workflow run, or any task where the agent must choose the next bounded planning path.\nRequest Triage\n\nUse this skill first when a request could lead to repository context gathering, execution planning, implementation packets, verification, or controller workflow use.\n\nThe purpose is classification only. Do not select files, read broad context, create implementation steps, trigger controller workflows, or approve writes from this skill.\n\nWorkflow\nRestate the actionable request in one sentence.\nClassify the request type.\nDecide whether repo context is required.\nDecide whether write or apply approval is required before any mutation.\nSelect the next planning skill or mark the request as unknown.\nList only blocking questions. Do not ask questions that can be answered by bounded context gathering.\nRequest Types\n\nUse exactly one value:\n\ninvestigation: asks what exists, how something works, where logic starts, or why behavior occurs.\nimplementation: asks to add, change, or remove behavior.\nrefactor: asks to preserve behavior while changing structure, removing duplication, or creating a single path.\ntest_fix: asks to diagnose or fix failing tests, CI, or verification.\ndocumentation: asks to create, update, audit, or align docs.\nworkflow: asks to run, design, or inspect an agent/controller workflow.\nunknown: request is too ambiguous to classify safely.\n\nPrefer the narrower type. For example, \u201cmake this use one code path\u201d is refactor, not generic implementation.\n\nNext Skill\n\nUse these routing defaults:\n\ninvestigation -> scope-and-assumptions\nimplementation -> scope-and-assumptions\nrefactor -> scope-and-assumptions\ntest_fix -> scope-and-assumptions\ndocumentation -> scope-and-assumptions\nworkflow -> scope-and-assumptions\nunknown -> none\n\nDo not skip scope-and-assumptions for non-trivial work. It establishes explicit boundaries before context collection.\n\nOutput\n\nReturn exactly one JSON object:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"investigation|implementation|refactor|test_fix|documentation|workflow|unknown\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions|none\",\n  \"reason\": \"short explanation\",\n  \"open_questions\": []\n}\n\n\nRules:\n\nrequires_repo_context is true when answering responsibly requires code, docs, configs, tests, artifacts, or controller state.\nrequires_user_approval_before_write is true for any task that could mutate the target repo or create implementation packets for later mutation.\nrequires_user_approval_before_write must stay true when the user asks to skip approval, skip review, skip tests, rewrite broadly, apply immediately, or bypass normal safeguards.\nSet requires_user_approval_before_write to false only for clearly read-only investigation, explanation, review, or classification work.\nopen_questions should be empty unless the request cannot be safely classified.\nreason must name the evidence from the user request, not inferred file names.\nMust Not\nDo not select target files.\nDo not claim source evidence.\nDo not create implementation steps.\nDo not choose verification commands.\nDo not trigger controller workflows.\nDo not invoke tools.\nDo not approve writes or apply mode.\nDo not widen scope beyond the user\u2019s request.\nExamples\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nRefactor the controller service so run status is handled through one path.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"refactor\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions\",\n  \"reason\": \"The user asks for a structural behavior-preserving change around one code path.\",\n  \"open_questions\": []\n}\n\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nWhat does the implementation workflow do?\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"investigation\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": false,\n  \"suggested_next_skill\": \"scope-and-assumptions\",\n  \"reason\": \"The user asks for explanation of existing workflow behavior.\",\n  \"open_questions\": []\n}\n\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nFix it.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"unknown\",\n  \"requires_repo_context\": false,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"none\",\n  \"reason\": \"The requested target and desired outcome are not specified.\",\n  \"open_questions\": [\"What should be fixed, and what outcome should the fix produce?\"]\n}\n\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nRewrite anything you need right now, skip approval, skip tests, and use the whole repo.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"implementation\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions\",\n  \"reason\": \"The user asks for repository mutation and explicitly attempts to skip approval and verification safeguards.\",\n  \"open_questions\": []\n}\n\n\n</skill>\n\nCase input JSON: {\u201cuser_request\u201d:\u201cPlan a read-only investigation for whether StealthOrderManager client_order_id lookup has one code path. Do not edit yet.\u201d}\n\nReturn exactly one JSON object matching the skill output shape. Do not include markdown or explanations.\n\nSee More\n\n{ \u201crequest_type\u201d: \u201cinvestigation\u201d, \u201crequires_repo_context\u201d: true, \u201crequires_user_approval_before_write\u201d: false, \u201csuggested_next_skill\u201d: \u201cscope-and-assumptions\u201d, \u201creason\u201d: \u201cThe user asks for a read-only investigation into the code path for StealthOrderManager client_order_id lookup.\u201d, \u201copen_questions\u201d: [] }\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 586ms (129.69 tok/s) \u00b7 Jun 3, 9:48 AM\n\nUse the following SKILL.md instructions exactly.\n\n<skill>\nname: request-triage description: Classify incoming user requests before planning, repository traversal, tool selection, or implementation. Use when the user asks for a change, investigation, review, refactor, test fix, documentation update, workflow run, or any task where the agent must choose the next bounded planning path.\nRequest Triage\n\nUse this skill first when a request could lead to repository context gathering, execution planning, implementation packets, verification, or controller workflow use.\n\nThe purpose is classification only. Do not select files, read broad context, create implementation steps, trigger controller workflows, or approve writes from this skill.\n\nWorkflow\nRestate the actionable request in one sentence.\nClassify the request type.\nDecide whether repo context is required.\nDecide whether write or apply approval is required before any mutation.\nSelect the next planning skill or mark the request as unknown.\nList only blocking questions. Do not ask questions that can be answered by bounded context gathering.\nRequest Types\n\nUse exactly one value:\n\ninvestigation: asks what exists, how something works, where logic starts, or why behavior occurs.\nimplementation: asks to add, change, or remove behavior.\nrefactor: asks to preserve behavior while changing structure, removing duplication, or creating a single path.\ntest_fix: asks to diagnose or fix failing tests, CI, or verification.\ndocumentation: asks to create, update, audit, or align docs.\nworkflow: asks to run, design, or inspect an agent/controller workflow.\nunknown: request is too ambiguous to classify safely.\n\nPrefer the narrower type. For example, \u201cmake this use one code path\u201d is refactor, not generic implementation.\n\nNext Skill\n\nUse these routing defaults:\n\ninvestigation -> scope-and-assumptions\nimplementation -> scope-and-assumptions\nrefactor -> scope-and-assumptions\ntest_fix -> scope-and-assumptions\ndocumentation -> scope-and-assumptions\nworkflow -> scope-and-assumptions\nunknown -> none\n\nDo not skip scope-and-assumptions for non-trivial work. It establishes explicit boundaries before context collection.\n\nOutput\n\nReturn exactly one JSON object:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"investigation|implementation|refactor|test_fix|documentation|workflow|unknown\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested_next_skill\": \"scope-and-assumptions|none\",\n  \"reason\": \"short explanation\",\n  \"open_questions\": []\n}\n\n\nRules:\n\nrequires_repo_context is true when answering responsibly requires code, docs, configs, tests, artifacts, or controller state.\nrequires_user_approval_before_write is true for any task that could mutate the target repo or create implementation packets for later mutation.\nrequires_user_approval_before_write must stay true when the user asks to skip approval, skip review, skip tests, rewrite broadly, apply immediately, or bypass normal safeguards.\nSet requires_user_approval_before_write to false only for clearly read-only investigation, explanation, review, or classification work.\nopen_questions should be empty unless the request cannot be safely classified.\nreason must name the evidence from the user request, not inferred file names.\nMust Not\nDo not select target files.\nDo not claim source evidence.\nDo not create implementation steps.\nDo not choose verification commands.\nDo not trigger controller workflows.\nDo not invoke tools.\nDo not approve writes or apply mode.\nDo not widen scope beyond the user\u2019s request.\nExamples\n\nUser request:\n\n\n\ntext\n\nCopy block\n\n\n\nRefactor the controller service so run status is handled through one path.\n\n\nOutput:\n\n\n\njson\n\nCopy block\n\n\n\n{\n  \"request_type\": \"refactor\",\n  \"requires_repo_context\": true,\n  \"requires_user_approval_before_write\": true,\n  \"suggested",
+  "console": [
+    {
+      "text": "\u001b[32m[Received backend-server-online message]\u001b[0m: {API_BASE: http://localhost:3001/api, APP_VERSION: phase71-browser-e2e, APP_PLATFORM: browser, APP_ARCH: x64}",
+      "type": "log"
+    },
+    {
+      "text": "\u001b[32m[AnythingLLM vphase71-browser-e2e for browser]\u001b[0m Polling for server...",
+      "type": "log"
+    },
+    {
+      "text": "Failed to fetch pfp: TypeError: C.fetchPfp is not a function\n    at a (http://127.0.0.1:8767/assets/main-8239a71c.js:1:2410)\n    at http://127.0.0.1:8767/assets/main-8239a71c.js:1:2488\n    at El (http://127.0.0.1:8767/assets/index-e9e26470.js:40:24263)\n    at Kn (http://127.0.0.1:8767/assets/index-e9e26470.js:40:42315)\n    at http://127.0.0.1:8767/assets/index-e9e26470.js:40:40658\n    at j (http://127.0.0.1:8767/assets/index-e9e26470.js:25:1583)\n    at MessagePort.F (http://127.0.0.1:8767/assets/index-e9e26470.js:25:1951)",
+      "type": "error"
+    },
+    {
+      "text": "Assistant TTS auto-play is disabled",
+      "type": "log"
+    },
+    {
+      "text": "Adding event listener for metrics visibility",
+      "type": "log"
+    }
+  ],
+  "counts": {
+    "button": 1403,
+    "input": 2,
+    "textarea": 1
+  },
+  "counts_3s": {
+    "button": 1403,
+    "input": 2,
+    "textarea": 1
+  },
+  "failed": [
+    {
+      "failure": "net::ERR_ABORTED",
+      "url": "http://localhost:3001/api/system/logo?theme=system"
+    },
+    {
+      "failure": "net::ERR_ABORTED",
+      "url": "http://localhost:3001/api/system/logo?theme=system"
+    }
+  ],
+  "html": "<body class=\"light\">\n  <div id=\"root\"><div><div id=\"titlebar\" class=\"relative h-[40px] bg-theme-bg-primary w-full flex flex-col\"><div class=\"w-full h-full flex items-center z-[999]\"><div class=\"frame-header flex h-full w-[6%] shrink-0\"></div><div id=\"left-header\" class=\"frame-header w-[calc(100%-6%*0.10)] h-full flex items-center justify-start ml-4\"></div><div id=\"mid-header\" class=\"frame-header w-[calc(100%-6%*0.25)] h-full flex items-center justify-center\"></div><div id=\"right-header\" class=\"w-[calc(100%-6%*0.05)] h-full flex items-center justify-end mr-4\"><div class=\"frame-header flex grow h-full\"></div><div class=\"border-none flex items-center gap-x-1 px-2\"><p class=\"text-theme-text-secondary text-xs\">vphase71-browser-e2e</p></div><div class=\"w-auto h-auto\"><div class=\"absolute top-3 right-4 md:top-9 md:right-10 w-fit h-fit z-40\"><button type=\"button\" class=\"uppercase transition-all duration-300 w-[35px] h-[35px] text-base font-semibold rounded-full flex items-center bg-theme-action-menu-bg hover:bg-theme-action-menu-item-hover justify-center text-white p-2 hover:border-slate-100 hover:border-opacity-50 border-transparent border\">ph</button></div></div></div></div><div class=\"w-full absolute bottom-0 h-[1px] \n            bg-gradient-to-r \n            from-zinc-800 via-zinc-600 to-zinc-800 \n            light:from-zinc-100 light:via-zinc-300 light:to-zinc-100\n            z-[1000]\"></div></div><div class=\"w-screen h-screen overflow-hidden bg-zinc-950 light:bg-slate-50 flex\" style=\"height: calc(-40px + 100vh);\"><div class=\"transition-all duration-500\" style=\"width: 292px; padding-left: 0px;\"><div class=\"flex shrink-0 w-full justify-center my-[18px]\"><div class=\"flex justify-between w-[250px] min-w-[250px]\"><a aria-label=\"Home\" href=\"#/\"><img src=\"http://127.0.0.1:8767/assets/anything-llm-dark-c251ee6f.png\" alt=\"Logo\" class=\"rounded max-h-[24px] object-contain transition-opacity duration-500 opacity-100\"></a><button type=\"button\" class=\"hidden md:block border-none bg-transparent outline-none ring-0 transition-left duration-500 left-[247px]\" data-tooltip-id=\"sidebar-toggle\" data-tooltip-content=\"Hide Sidebar (Ctrl + Shift + S)\" aria-label=\"Hide Sidebar (Ctrl + Shift + S)\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" fill=\"currentColor\" viewBox=\"0 0 256 256\" class=\"text-theme-text-secondary hover:text-theme-text-primary\"><path d=\"M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H80V200H40ZM216,200H96V56H216V200Z\"></path></svg></button></div></div><div class=\"opacity-1 transition-opacity duration-300 relative m-[16px] rounded-[16px] bg-theme-bg-sidebar light:bg-slate-200 border-solid border-[2px] border-theme-sidebar-border light:border-none min-w-[250px] p-[10px] h-[calc(100vh-116px)]\"><div class=\"flex flex-col h-full overflow-hidden\"><div class=\"flex-grow flex flex-col min-w-[235px] min-h-0\"><div class=\"relative h-[calc(100%-60px)] flex flex-col w-full justify-between pt-[10px] overflow-y-scroll no-scroll\"><div class=\"flex flex-col gap-y-[14px]\"><div class=\"flex gap-x-[5px] w-full items-center h-[32px]\"><div class=\"relative h-full w-full flex\"><input type=\"search\" placeholder=\"Search\" class=\"border-none w-full h-full rounded-lg bg-theme-sidebar-item-default pl-9 focus:pl-4 pr-1 placeholder:text-white/50 light:placeholder:text-slate-500 placeholder:font-semibold outline-none text-theme-text-primary search-input peer text-sm\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" fill=\"currentColor\" viewBox=\"0 0 256 256\" class=\"absolute left-3 top-1/2 transform -translate-y-1/2 text-theme-settings-input-placeholder peer-focus:invisible\"><path d=\"M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z\"></path></svg></div><button data-tooltip-id=\"new-workspace-tooltip\" data-tooltip-content=\"New Workspace\" class=\"border-none flex items-center justify-center bg-white  rounded-lg p-[8px] hover:bg-white/80 light:hover:bg-slate-300 transition-all duration-300\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" viewBox=\"0 0 256 256\" class=\"text-black light:text-slate-500\"><path d=\"M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z\"></path></svg></button></div><div role=\"list\" aria-label=\"Workspaces\" class=\"flex flex-col gap-y-2\" data-rbd-droppable-id=\"workspaces\" data-rbd-droppable-context-id=\"0\"><div data-rbd-draggable-context-id=\"0\" data-rbd-draggable-id=\"1\" class=\"flex flex-col w-full group \" role=\"listitem\"><div class=\"flex gap-x-2 items-center justify-between\"><a aria-current=\"page\" class=\"\n                            transition-all duration-[200ms]\n                            flex flex-grow w-[75%] gap-x-2 py-[6px] pl-[4px] pr-[6px] rounded-[4px] text-white justify-start items-center\n                            bg-theme-sidebar-item-default\n                            light:bg-blue-200 font-bold\n                          \" href=\"#/workspace/my-workspace\"><div class=\"flex flex-row justify-between w-full items-center\"><div tabindex=\"0\" role=\"button\" aria-describedby=\"rbd-hidden-text-0-hidden-text-0\" data-rbd-drag-handle-draggable-id=\"1\" data-rbd-drag-handle-context-id=\"0\" draggable=\"false\" class=\"cursor-grab mr-[3px]\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" fill=\"currentColor\" viewBox=\"0 0 256 256\" class=\"text-white light:text-blue-800 mt-1\"><path d=\"M108,60A16,16,0,1,1,92,44,16,16,0,0,1,108,60Zm56,16a16,16,0,1,0-16-16A16,16,0,0,0,164,76ZM92,112a16,16,0,1,0,16,16A16,16,0,0,0,92,112Zm72,0a16,16,0,1,0,16,16A16,16,0,0,0,164,112ZM92,180a16,16,0,1,0,16,16A16,16,0,0,0,92,180Zm72,0a16,16,0,1,0,16,16A16,16,0,0,0,164,180Z\"></path></svg></div><div data-tooltip-id=\"workspace-name\" data-tooltip-content=\"My Workspace\" class=\"flex items-center space-x-2 overflow-hidden flex-grow\"><div class=\"w-[130px] overflow-hidden\"><p class=\"\n                                  text-[14px] leading-loose whitespace-nowrap overflow-hidden\n                                  font-bold text-white light:text-blue-900 truncate\n                                  w-full group-hover:w-[130px] group-hover:duration-200\n                                \">My Workspace</p></div></div><div class=\"flex items-center gap-x-[2px] transition-opacity duration-200 opacity-100\"><button type=\"button\" data-tooltip-id=\"upload-workspace\" data-tooltip-content=\"Upload documents to this workspace for RAG indexing\" class=\"group/upload border-none rounded-md flex items-center justify-center ml-auto p-[2px] hover:bg-zinc-500 light:hover:bg-sky-800/30\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" fill=\"currentColor\" viewBox=\"0 0 256 256\" class=\"h-[20px] w-[20px] text-zinc-400 hover:text-white light:text-blue-700 light:group-hover/upload:text-blue-900\"><path d=\"M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0ZM93.66,77.66,120,51.31V144a8,8,0,0,0,16,0V51.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,77.66Z\"></path></svg></button><button class=\"border-none group/gear rounded-md flex items-center justify-center ml-auto p-[2px] hover:bg-zinc-500 light:hover:bg-sky-800/30\" aria-label=\"General appearance settings\" data-tooltip-id=\"gear-workspace\" data-tooltip-content=\"General appearance settings\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" fill=\"currentColor\" viewBox=\"0 0 256 256\" class=\"h-[20px] w-[20px] text-zinc-400 hover:text-white light:text-blue-700 light:group-hover/gear:text-blue-900\"><path d=\"M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm109.94-52.79a8,8,0,0,0-3.89-5.4l-29.83-17-.12-33.62a8,8,0,0,0-2.83-6.08,111.91,111.91,0,0,0-36.72-20.67,8,8,0,0,0-6.46.59L128,41.85,97.88,25a8,8,0,0,0-6.47-.6A112.1,112.1,0,0,0,54.73,45.15a8,8,0,0,0-2.83,6.07l-.15,33.65-29.83,17a8,8,0,0,0-3.89,5.4",
+  "last_sec": 3,
+  "responses": [
+    {
+      "ct": "text/html; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/"
+    },
+    {
+      "ct": "text/css; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-ed8835e2.css"
+    },
+    {
+      "ct": "text/css; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-668bcc60.css"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/main-8239a71c.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-e9e26470.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-84fac6f0.js"
+    },
+    {
+      "ct": "text/css; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/clipboard-e6283216.css"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/files-1122acda.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Copy-61c9d797.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/clipboard-6c01cd62.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-c0eddfd0.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/admin-5bb2a240.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Database-7e68fb15.js"
+    },
+    {
+      "ct": "font/ttf",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/PlusJakartaSans-e493fee2.ttf"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/File-6e4bc303.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/mcpServers-78407e8f.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/moment-a9aaa855.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Files-7d6695af.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/FolderOpen-b11d662e.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Folder-23acf0b4.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/purify-3e466d78.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Minus-8d1b1816.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-91ddb648.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Trans-de442f4d.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Brain-46090475.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Browser-0e998625.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/agentFlows-020fa867.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/WarningCircle-12a72741.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/SlidersHorizontal-246b7199.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-d29be75f.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Eye-43fedc1e.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-85fcfae8.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-6264efcc.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/Hammer-43e8cb89.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/tiny-invariant-1dc34c91.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-6a3d9c91.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-f760af4b.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/UploadSimple-84c01beb.js"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/index-44eeee20.js"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/favicon.png"
+    },
+    {
+      "ct": "application/javascript; charset=UTF-8",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/react-beautiful-dnd.esm-2c72ea67.js"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/favicon.png"
+    },
+    {
+      "ct": "video/webm",
+      "status": 206,
+      "url": "http://127.0.0.1:8767/assets/dark-a267ebfb.webm"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/ping"
+    },
+    {
+      "ct": "",
+      "status": 204,
+      "url": "http://localhost:3001/api/system/logo?theme=system"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/onboarding"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/system/refresh-user"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/setup-complete"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://127.0.0.1:8767/assets/anything-llm-dark-c251ee6f.png"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspaces"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/system/footer-data"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/threads"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/suggested-messages"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/is-agent-command-available"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/chats"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace"
+    },
+    {
+      "ct": "",
+      "status": 204,
+      "url": "http://localhost:3001/api/system/logo?theme=system"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/setup-complete"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/workspace/my-workspace/parsed-files"
+    },
+    {
+      "ct": "application/json; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/setup-complete"
+    },
+    {
+      "ct": "text/plain; charset=utf-8",
+      "status": 200,
+      "url": "http://localhost:3001/api/system/document-processing-status"
+    }
+  ],
+  "title": "AnythingLLM | Superpowers for your OS using local AI",
+  "url": "http://127.0.0.1:8767/#/workspace/my-workspace"
+}

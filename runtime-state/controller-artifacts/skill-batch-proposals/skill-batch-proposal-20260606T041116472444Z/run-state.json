@@ -1,0 +1,25 @@
+{
+  "artifacts": {
+    "batch_validation_report": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-proposals\\skill-batch-proposal-20260606T041116472444Z\\batch-validation-report.json",
+    "draft_batch_manifest": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-proposals\\skill-batch-proposal-20260606T041116472444Z\\batch.json",
+    "request": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-proposals\\skill-batch-proposal-20260606T041116472444Z\\request.json",
+    "scale_report": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-proposals\\skill-batch-proposal-20260606T041116472444Z\\scale-report.json",
+    "skill_batch_proposal": "C:\\agentic_agents\\runtime-state\\controller-artifacts\\skill-batch-proposals\\skill-batch-proposal-20260606T041116472444Z\\skill-batch-proposal.json"
+  },
+  "kind": "skill_batch_proposal_run_state",
+  "run_id": "skill-batch-proposal-20260606T041116472444Z",
+  "schema_version": 1,
+  "status": "completed",
+  "summary": {
+    "batch_validation_status": "passed",
+    "do_not_admit_count": 0,
+    "eval_case_count": 4,
+    "next_action": "review_draft_manifest",
+    "proposal_status": "ready",
+    "runtime_registry_changed": false,
+    "scale_report_status": "passed",
+    "skill_count": 4
+  },
+  "updated_at": "2026-06-06T04:11:16Z",
+  "workflow": "skill_batch.propose"
+}

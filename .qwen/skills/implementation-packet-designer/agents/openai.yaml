@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implementation Packet Designer"
+  short_description: "Design approved implementation packets."
+  default_prompt: "Use $implementation-packet-designer after an approved execution plan step to create bounded implementation packet candidates for the implementation workflow without applying edits."

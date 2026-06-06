@@ -11,9 +11,15 @@ import signal
 import sys
 import threading
 from dataclasses import dataclass
+from enum import Enum
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import urlsplit
+
+from vllm_agent_gateway.controller_envelope import (
+    ControllerEnvelopeError,
+    select_latest_controller_envelope,
+)
 
 
 BUDGETED_ROUTES = {
@@ -25,6 +31,15 @@ BUDGETED_ROUTES = {
 
 COUNT_ROUTES = {
     "/v1/messages/count_tokens",
+}
+
+OPENAI_ROUTE_ALIASES = {
+    "/chat/completions": "/v1/chat/completions",
+    "/completions": "/v1/completions",
+    "/responses": "/v1/responses",
+    "/messages": "/v1/messages",
+    "/messages/count_tokens": "/v1/messages/count_tokens",
+    "/models": "/v1/models",
 }
 
 HOP_BY_HOP_HEADERS = {
@@ -50,11 +65,19 @@ PROMPT_SCHEMA_KEYS = {
 }
 
 
+class GatewayControllerRouting(str, Enum):
+    OFF = "off"
+    EXPLICIT_ENVELOPE = "explicit_envelope"
+    WORKFLOW_ROUTER = "workflow_router"
+
+
 @dataclass(frozen=True)
 class GatewayConfig:
     host: str
     port: int
     target_base_url: str
+    controller_routing: GatewayControllerRouting
+    controller_harness_url: str | None
     model_limit: int
     target_input_limit: int
     safety_buffer: int
@@ -108,6 +131,26 @@ def _forward_path(target_base_url: str, request_path: str) -> str:
     if request_path == base_path or request_path.startswith(base_path + "/"):
         return request_path
     return base_path + request_path
+
+
+def _canonical_route(path: str) -> str:
+    return OPENAI_ROUTE_ALIASES.get(path, path)
+
+
+def _canonical_request_path(request_path: str) -> str:
+    parsed = urlsplit(request_path)
+    path = _canonical_route(parsed.path)
+    if parsed.query:
+        path = path + "?" + parsed.query
+    return path
+
+
+def _path_from_url(target_url: str) -> str:
+    target = urlsplit(target_url)
+    path = target.path or "/"
+    if target.query:
+        path = path + "?" + target.query
+    return path
 
 
 def _tokenize_path(target_base_url: str) -> str:
@@ -396,6 +439,8 @@ class GatewayHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "target_base_url": self.config.target_base_url,
+                    "controller_routing": self.config.controller_routing.value,
+                    "controller_harness_url": self.config.controller_harness_url,
                     "model_limit": self.config.model_limit,
                     "target_input_limit": self.config.target_input_limit,
                     "safety_buffer": self.config.safety_buffer,
@@ -407,12 +452,13 @@ class GatewayHandler(BaseHTTPRequestHandler):
         self._forward()
 
     def do_POST(self) -> None:
-        route = urlsplit(self.path).path
+        route = _canonical_route(urlsplit(self.path).path)
+        upstream_path = _canonical_request_path(self.path)
         if route in COUNT_ROUTES:
             self._handle_count_tokens(route)
             return
         if route in BUDGETED_ROUTES:
-            self._handle_budgeted_forward(route)
+            self._handle_budgeted_forward(route, upstream_path)
             return
         self._forward()
 
@@ -462,12 +508,18 @@ class GatewayHandler(BaseHTTPRequestHandler):
             },
         )
 
-    def _handle_budgeted_forward(self, route: str) -> None:
+    def _handle_budgeted_forward(self, route: str, upstream_path: str) -> None:
         raw_body = self._read_request_body()
         body = _parse_json_body(raw_body)
         if body is None:
-            self._forward_with_body(raw_body)
+            self._forward_with_body(raw_body, request_path=upstream_path)
             return
+        if route == "/v1/chat/completions":
+            if self.config.controller_routing == GatewayControllerRouting.WORKFLOW_ROUTER:
+                self._handle_workflow_router_route(raw_body)
+                return
+            if self._handle_controller_envelope_route(raw_body, body):
+                return
 
         token_count = count_input_tokens(self.config, route, body)
         if token_count.input_tokens > self.config.target_input_limit:
@@ -536,6 +588,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
         body_bytes = _json_bytes(body)
         self._forward_with_body(
             body_bytes,
+            request_path=upstream_path,
             extra_request_headers={
                 "Content-Type": "application/json",
                 "X-LLM-Gateway": "budgeted",
@@ -552,16 +605,118 @@ class GatewayHandler(BaseHTTPRequestHandler):
             },
         )
 
+    def _handle_workflow_router_route(self, raw_body: bytes) -> None:
+        if not self.config.controller_harness_url:
+            self._send_json(
+                503,
+                {
+                    "error": {
+                        "message": "Workflow-router gateway mode is enabled, but the controller route is unavailable.",
+                        "type": "controller_routing_error",
+                        "code": "workflow_router_route_unavailable",
+                    }
+                },
+            )
+            return
+        _safe_stdout("workflow-router-route action=forward\n")
+        self._forward_with_body_to_url(
+            raw_body,
+            self.config.controller_harness_url,
+            _path_from_url(self.config.controller_harness_url),
+            extra_request_headers={
+                "Content-Type": "application/json",
+                "X-LLM-Gateway": "workflow-router-routed",
+            },
+            extra_response_headers={"X-LLM-Gateway": "workflow-router-routed"},
+        )
+
+    def _handle_controller_envelope_route(self, raw_body: bytes, body: dict[str, Any]) -> bool:
+        try:
+            envelope = select_latest_controller_envelope(body)
+        except ControllerEnvelopeError as exc:
+            self._send_json(
+                400,
+                {
+                    "error": {
+                        "message": str(exc),
+                        "type": "controller_routing_error",
+                        "code": exc.code,
+                    }
+                },
+            )
+            return True
+        if envelope is None:
+            return False
+        if self.config.controller_routing == GatewayControllerRouting.OFF:
+            self._send_json(
+                503,
+                {
+                    "error": {
+                        "message": (
+                            "Request contains agentic_controller_request, but gateway controller routing is disabled."
+                        ),
+                        "type": "controller_routing_error",
+                        "code": "controller_route_disabled",
+                    }
+                },
+            )
+            return True
+        if not self.config.controller_harness_url:
+            self._send_json(
+                503,
+                {
+                    "error": {
+                        "message": (
+                            "Request contains agentic_controller_request, but gateway controller routing is unavailable."
+                        ),
+                        "type": "controller_routing_error",
+                        "code": "controller_route_unavailable",
+                    }
+                },
+            )
+            return True
+        workflow = envelope.get("workflow") if isinstance(envelope.get("workflow"), str) else "unknown"
+        _safe_stdout(f"controller-route action=forward workflow={workflow}\n")
+        self._forward_with_body_to_url(
+            raw_body,
+            self.config.controller_harness_url,
+            _path_from_url(self.config.controller_harness_url),
+            extra_request_headers={
+                "Content-Type": "application/json",
+                "X-LLM-Gateway": "controller-routed",
+            },
+            extra_response_headers={"X-LLM-Gateway": "controller-routed"},
+        )
+        return True
+
     def _forward(self) -> None:
         self._forward_with_body(self._read_request_body())
 
     def _forward_with_body(
         self,
         body: bytes,
+        request_path: str | None = None,
         extra_request_headers: dict[str, str] | None = None,
         extra_response_headers: dict[str, str] | None = None,
     ) -> None:
-        target, connection_cls, port = _target_parts(self.config.target_base_url)
+        upstream_path = request_path if request_path is not None else _canonical_request_path(self.path)
+        self._forward_with_body_to_url(
+            body,
+            self.config.target_base_url,
+            _forward_path(self.config.target_base_url, upstream_path),
+            extra_request_headers=extra_request_headers,
+            extra_response_headers=extra_response_headers,
+        )
+
+    def _forward_with_body_to_url(
+        self,
+        body: bytes,
+        target_url: str,
+        request_path: str,
+        extra_request_headers: dict[str, str] | None = None,
+        extra_response_headers: dict[str, str] | None = None,
+    ) -> None:
+        target, connection_cls, port = _target_parts(target_url)
         headers = {
             key: value
             for key, value in self.headers.items()
@@ -577,7 +732,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
             conn = connection_cls(target.hostname, port, timeout=600)
             conn.request(
                 self.command,
-                _forward_path(self.config.target_base_url, self.path),
+                request_path,
                 body=body if body else None,
                 headers=headers,
             )
@@ -619,6 +774,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8300)
     parser.add_argument("--target-base-url", default="http://127.0.0.1:8000")
+    parser.add_argument(
+        "--controller-routing",
+        choices=[item.value for item in GatewayControllerRouting],
+        default=GatewayControllerRouting.OFF.value,
+    )
+    parser.add_argument("--controller-harness-url")
     parser.add_argument("--model-limit", type=int, default=65536)
     parser.add_argument("--target-input-limit", type=int, default=24000)
     parser.add_argument("--safety-buffer", type=int, default=1000)
@@ -634,6 +795,8 @@ def main() -> int:
         host=args.host,
         port=args.port,
         target_base_url=args.target_base_url.rstrip("/"),
+        controller_routing=GatewayControllerRouting(args.controller_routing),
+        controller_harness_url=args.controller_harness_url.rstrip("/") if args.controller_harness_url else None,
         model_limit=args.model_limit,
         target_input_limit=args.target_input_limit,
         safety_buffer=args.safety_buffer,
@@ -644,7 +807,8 @@ def main() -> int:
     server = GatewayServer((config.host, config.port), config)
     _safe_stdout(
         f"llm-gateway: http://{config.host}:{config.port} -> {config.target_base_url} "
-        f"(target_input_limit={config.target_input_limit}, default_max_output={config.default_max_output})\n"
+        f"(target_input_limit={config.target_input_limit}, default_max_output={config.default_max_output}, "
+        f"controller_routing={config.controller_routing.value})\n"
     )
 
     stop_event = threading.Event()

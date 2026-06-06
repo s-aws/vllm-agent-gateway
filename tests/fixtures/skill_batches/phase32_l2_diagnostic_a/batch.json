@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "kind": "skill_batch_manifest",
+  "id": "phase32-l2-diagnostic-a",
+  "description": "Phase 32 L2 diagnostic expansion batch for four small deterministic read-only coding-agent skills.",
+  "doc_refs": [
+    "README.skill-registry.md",
+    "docs/SKILL_LIBRARY_SCALING_PLAN.md"
+  ],
+  "skills": [
+    {
+      "id": "runtime-error-diagnoser",
+      "path": ".qwen/skills/runtime-error-diagnoser/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Diagnose a runtime error, exception, or stack trace from bounded read-only evidence.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["runtime error", "stack trace", "traceback", "exception diagnosis"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "diagnostics.runtime_error_diagnosis",
+        "task_types": ["runtime_error_diagnosis", "stack_trace_diagnosis"],
+        "input_artifacts": ["natural_user_request", "investigation_evidence"],
+        "output_artifacts": ["runtime_error_diagnosis"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l2_runtime_error_diagnosis"]
+      },
+      "problem_solving_steps": [4, 7],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request", "unsafe_approval_bypass"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-32-l2-diagnostic-expansion-batch-a"]
+    },
+    {
+      "id": "request-flow-mapper",
+      "path": ".qwen/skills/request-flow-mapper/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Map a request, message, or data flow across bounded source evidence without editing files.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["request flow", "data flow", "message flow", "flow steps"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "code.request_flow_map",
+        "task_types": ["request_flow_map", "data_flow_map"],
+        "input_artifacts": ["investigation_evidence", "selected_entrypoint"],
+        "output_artifacts": ["request_flow_map"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l2_request_flow_map"]
+      },
+      "problem_solving_steps": [4],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request", "unsafe_approval_bypass"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-32-l2-diagnostic-expansion-batch-a"]
+    },
+    {
+      "id": "code-path-comparator",
+      "path": ".qwen/skills/code-path-comparator/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Compare two candidate code paths from bounded read-only evidence and state risks and gaps.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["compare the", "compare code paths", "candidate paths", "compare two paths", "lookup path", "index path", "recommended path"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "code.path_comparison",
+        "task_types": ["code_path_comparison"],
+        "input_artifacts": ["investigation_evidence", "natural_user_request"],
+        "output_artifacts": ["code_path_comparison"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l2_code_path_comparison"]
+      },
+      "problem_solving_steps": [4, 7],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request", "unsafe_approval_bypass"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-32-l2-diagnostic-expansion-batch-a"]
+    },
+    {
+      "id": "change-surface-summarizer",
+      "path": ".qwen/skills/change-surface-summarizer/SKILL.md",
+      "version": "0.1.0",
+      "owner": "agentic_agents",
+      "description": "Identify the minimal safe change surface for a requested behavior change without implementation.",
+      "compatibility": ["agent-skills-frontmatter", "openai-compatible-chat", "qwen-local"],
+      "safety_level": "read_only_planning",
+      "allowed_tools": [],
+      "workflows": ["code_investigation.plan"],
+      "triggers": ["minimal safe change surface", "change surface", "files need review", "before implementation"],
+      "workflow_priorities": {"code_investigation.plan": 1000},
+      "capability_contract": {
+        "route_key": "planning.change_surface_summary",
+        "task_types": ["change_surface_summary", "minimal_safe_change_surface"],
+        "input_artifacts": ["investigation_evidence", "related_tests"],
+        "output_artifacts": ["change_surface_summary"],
+        "approval_boundary": "none",
+        "mutation_policy": "no_repository_mutation",
+        "eval_case_ids": ["l2_change_surface_summary"]
+      },
+      "problem_solving_steps": [4, 5, 7],
+      "eval_status": "draft",
+      "evals": {
+        "fixtures": ["clear_request", "ambiguous_request", "unsafe_approval_bypass"],
+        "localhost_8000": "not_run",
+        "gateway_8300": "not_run",
+        "anythingllm": "not_run"
+      },
+      "failure_record_refs": ["docs/SKILL_LIBRARY_SCALING_PLAN.md#phase-32-l2-diagnostic-expansion-batch-a"]
+    }
+  ],
+  "eval_cases": [
+    {
+      "id": "l2_runtime_error_diagnosis",
+      "prompt_family": "L2-runtime-error-diagnosis",
+      "natural_prompt": "In <repo>, diagnose a runtime error or stack trace. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["runtime_error_diagnosis"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l2_suite"
+    },
+    {
+      "id": "l2_request_flow_map",
+      "prompt_family": "L2-request-flow-map",
+      "natural_prompt": "In <repo>, map a request or data flow across source files. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["request_flow_map"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l2_suite"
+    },
+    {
+      "id": "l2_code_path_comparison",
+      "prompt_family": "L2-code-path-comparison",
+      "natural_prompt": "In <repo>, compare two candidate code paths. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["code_path_comparison"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l2_suite"
+    },
+    {
+      "id": "l2_change_surface_summary",
+      "prompt_family": "L2-change-surface-summary",
+      "natural_prompt": "In <repo>, identify the minimal safe change surface for a requested behavior change. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": ["change_surface_summary"],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "workflow_router_l2_suite"
+    }
+  ]
+}

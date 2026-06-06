@@ -1,0 +1,534 @@
+{
+  "anythingllm_preflight": {
+    "ping": {
+      "online": true
+    },
+    "ping_status": 200,
+    "status": "passed",
+    "workspace": "my-workspace",
+    "workspace_found": true,
+    "workspace_slugs": [
+      "my-workspace",
+      "assistant-chats",
+      "codegraphcontext"
+    ],
+    "workspace_status": 200
+  },
+  "config": {
+    "anythingllm_api_base_url": "http://127.0.0.1:3001",
+    "browser_channel": "chrome",
+    "target_roots": [
+      "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    ],
+    "timeout_seconds": 420,
+    "workspace": "my-workspace"
+  },
+  "created_at": "2026-06-06T11:22:29.787395+00:00",
+  "errors": [
+    "AnythingLLM browser UI validation failed"
+  ],
+  "fixture_state_after": {
+    "/mnt/c/coinbase_testing_repo_frozen_tmp": {
+      "git_status": null,
+      "hashes": {
+        "README.md": "670cb0b5751f5f4cd12814f4859d2eeab96de9337644ed826cf5621ee6d9434a",
+        "agent.md": "6e7ba4bce7c130d28220435a47f23ae8fb01c675dc0cdd44cbf4540059ff4091",
+        "business/lot_config.py": "a153c4d48e27f492201b03a8b2f3dc45fe7c7cc42a53a5aa7925129c5882e49c",
+        "configuration.py": "eebe293c3a9661ceffd32d50d46b08c44bcec689bae23e7122449e5a8827f54e",
+        "core/orderbook.py": "6278b11b2b76b3345e5e16fc6356c590424916d13d281de2f8d94f82f7406d01",
+        "core/stealth_order_manager.py": "aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e",
+        "dashboard_server.py": "29418e828e6c516c9a73815bac6953c4b11b388d691ae693bd2f77e1e80ff167",
+        "database/order.py": "98feeee6837745bfe3c5409b37ab5d62f03e89ccd9b504ce26fc3c43f8e0d119",
+        "docs/agents/INVARIANTS.md": "9dc782f95baa1f0668cf291d16a4718fa97311abeb9cf783010ae779b1648049",
+        "main.py": "950d4ff9884a723ae7e7c54b623c9749624f4c18220f95b5802b0b91aec3a6f5",
+        "tests/test_lot_tracking_integration.py": "82cc63570d27d2a96fdd67d6e1b16157e211189d0a58435db6f20d1f0c1d6c3c",
+        "tests/unit/test_order_id_and_followup_rules.py": "9e80dde29afc08c205eee16c327cedbc52720e7fb852dbae93807e40d11c2321",
+        "tests/unit/test_orderbook_v2.py": "0aae79bc00d2d3e00607ce749263e320f8a1258db105f46e059121a38c029075"
+      },
+      "host_path": "C:\\coinbase_testing_repo_frozen_tmp"
+    },
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github": {
+      "git_status": "",
+      "hashes": {
+        "README.md": "670cb0b5751f5f4cd12814f4859d2eeab96de9337644ed826cf5621ee6d9434a",
+        "agent.md": "6e7ba4bce7c130d28220435a47f23ae8fb01c675dc0cdd44cbf4540059ff4091",
+        "business/lot_config.py": "a153c4d48e27f492201b03a8b2f3dc45fe7c7cc42a53a5aa7925129c5882e49c",
+        "configuration.py": "eebe293c3a9661ceffd32d50d46b08c44bcec689bae23e7122449e5a8827f54e",
+        "core/orderbook.py": "6278b11b2b76b3345e5e16fc6356c590424916d13d281de2f8d94f82f7406d01",
+        "core/stealth_order_manager.py": "aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e",
+        "dashboard_server.py": "29418e828e6c516c9a73815bac6953c4b11b388d691ae693bd2f77e1e80ff167",
+        "database/order.py": "98feeee6837745bfe3c5409b37ab5d62f03e89ccd9b504ce26fc3c43f8e0d119",
+        "docs/agents/INVARIANTS.md": "9dc782f95baa1f0668cf291d16a4718fa97311abeb9cf783010ae779b1648049",
+        "main.py": "950d4ff9884a723ae7e7c54b623c9749624f4c18220f95b5802b0b91aec3a6f5",
+        "tests/test_lot_tracking_integration.py": "82cc63570d27d2a96fdd67d6e1b16157e211189d0a58435db6f20d1f0c1d6c3c",
+        "tests/unit/test_order_id_and_followup_rules.py": "9e80dde29afc08c205eee16c327cedbc52720e7fb852dbae93807e40d11c2321",
+        "tests/unit/test_orderbook_v2.py": "0aae79bc00d2d3e00607ce749263e320f8a1258db105f46e059121a38c029075"
+      },
+      "host_path": "C:\\coinbase_testing_repo_frozen_tmp.github"
+    }
+  },
+  "fixture_state_before": {
+    "/mnt/c/coinbase_testing_repo_frozen_tmp": {
+      "git_status": null,
+      "hashes": {
+        "README.md": "670cb0b5751f5f4cd12814f4859d2eeab96de9337644ed826cf5621ee6d9434a",
+        "agent.md": "6e7ba4bce7c130d28220435a47f23ae8fb01c675dc0cdd44cbf4540059ff4091",
+        "business/lot_config.py": "a153c4d48e27f492201b03a8b2f3dc45fe7c7cc42a53a5aa7925129c5882e49c",
+        "configuration.py": "eebe293c3a9661ceffd32d50d46b08c44bcec689bae23e7122449e5a8827f54e",
+        "core/orderbook.py": "6278b11b2b76b3345e5e16fc6356c590424916d13d281de2f8d94f82f7406d01",
+        "core/stealth_order_manager.py": "aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e",
+        "dashboard_server.py": "29418e828e6c516c9a73815bac6953c4b11b388d691ae693bd2f77e1e80ff167",
+        "database/order.py": "98feeee6837745bfe3c5409b37ab5d62f03e89ccd9b504ce26fc3c43f8e0d119",
+        "docs/agents/INVARIANTS.md": "9dc782f95baa1f0668cf291d16a4718fa97311abeb9cf783010ae779b1648049",
+        "main.py": "950d4ff9884a723ae7e7c54b623c9749624f4c18220f95b5802b0b91aec3a6f5",
+        "tests/test_lot_tracking_integration.py": "82cc63570d27d2a96fdd67d6e1b16157e211189d0a58435db6f20d1f0c1d6c3c",
+        "tests/unit/test_order_id_and_followup_rules.py": "9e80dde29afc08c205eee16c327cedbc52720e7fb852dbae93807e40d11c2321",
+        "tests/unit/test_orderbook_v2.py": "0aae79bc00d2d3e00607ce749263e320f8a1258db105f46e059121a38c029075"
+      },
+      "host_path": "C:\\coinbase_testing_repo_frozen_tmp"
+    },
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github": {
+      "git_status": "",
+      "hashes": {
+        "README.md": "670cb0b5751f5f4cd12814f4859d2eeab96de9337644ed826cf5621ee6d9434a",
+        "agent.md": "6e7ba4bce7c130d28220435a47f23ae8fb01c675dc0cdd44cbf4540059ff4091",
+        "business/lot_config.py": "a153c4d48e27f492201b03a8b2f3dc45fe7c7cc42a53a5aa7925129c5882e49c",
+        "configuration.py": "eebe293c3a9661ceffd32d50d46b08c44bcec689bae23e7122449e5a8827f54e",
+        "core/orderbook.py": "6278b11b2b76b3345e5e16fc6356c590424916d13d281de2f8d94f82f7406d01",
+        "core/stealth_order_manager.py": "aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e",
+        "dashboard_server.py": "29418e828e6c516c9a73815bac6953c4b11b388d691ae693bd2f77e1e80ff167",
+        "database/order.py": "98feeee6837745bfe3c5409b37ab5d62f03e89ccd9b504ce26fc3c43f8e0d119",
+        "docs/agents/INVARIANTS.md": "9dc782f95baa1f0668cf291d16a4718fa97311abeb9cf783010ae779b1648049",
+        "main.py": "950d4ff9884a723ae7e7c54b623c9749624f4c18220f95b5802b0b91aec3a6f5",
+        "tests/test_lot_tracking_integration.py": "82cc63570d27d2a96fdd67d6e1b16157e211189d0a58435db6f20d1f0c1d6c3c",
+        "tests/unit/test_order_id_and_followup_rules.py": "9e80dde29afc08c205eee16c327cedbc52720e7fb852dbae93807e40d11c2321",
+        "tests/unit/test_orderbook_v2.py": "0aae79bc00d2d3e00607ce749263e320f8a1258db105f46e059121a38c029075"
+      },
+      "host_path": "C:\\coinbase_testing_repo_frozen_tmp.github"
+    }
+  },
+  "fixture_unchanged": true,
+  "kind": "anythingllm_ui_e2e_report",
+  "report_path": "C:\\agentic_agents\\runtime-state\\anythingllm-ui\\phase71-ui-e2e.json",
+  "schema_version": 1,
+  "status": "failed",
+  "ui": {
+    "cases": [
+      {
+        "after_screenshot": "C:\\agentic_agents\\runtime-state\\anythingllm-ui\\phase71-ui-e2e\\phase71-ui-e2e-8cc152154fd9-after.png",
+        "before_screenshot": "C:\\agentic_agents\\runtime-state\\anythingllm-ui\\phase71-ui-e2e\\phase71-ui-e2e-8cc152154fd9-before.png",
+        "marker_hits_after_tag": {
+          "Answer:": true,
+          "run_id:": true,
+          "selected_workflow: code_investigation.plan": true,
+          "workflow_router.plan completed": true
+        },
+        "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, and confidence. Tracking tag: phase71-ui-e2e-8cc152154fd9",
+        "segment_after_tag_tail": "\n\nI completed workflow_router.plan. workflow_router.plan completed run_id: workflow-router-20260606T112246230964Z warnings: 0 failures: 0\n\nResult:\n\nWorkflow: workflow_router.plan\nStatus: completed\nSelected workflow: code_investigation.plan\nSelected skills: request-triage; scope-and-assumptions; entrypoint-finder; context-plan-builder; related-test-discovery\nSelected tools: structure_index; git_grep; read_file\nNext action: none\nVerification: python -m pytest tests/regression/test_order_id_regression.py; python -m pytest tests/unit/test_filled_followup_dedup.py; python -m pytest tests/unit/test_filled_followup_partial_size_adjustment.py; +7 more\n\nSummary:\n\nblocker_count: 0\nconfidence: medium\ndisposable_copy_changed: False\ndownstream_run_id: code-investigation-20260606T112248376711Z\ndownstream_status: completed\ndownstream_workflow: code_investigation.plan\nmodel_router_status: accepted\nnarrowed_edit_objective_status: None\nnext_action: execute_read_only\npacket_objective_outcome_status: None\nplan_only: False\nroute_status: ready\nselected_skill_count: 5\nselected_tool_count: 3\nselected_workflow: code_investigation.plan\nsource_changed: False\ntarget_repo_read: True\ntarget_root: /mnt/c/coinbase_testing_repo_frozen_tmp\nverification_command_count: 10\n\nAnswer:\n\nTarget entrypoint: placed_order_id\nEntrypoints: main.py:65 (python_main_guard): python main.py\nReason: CLI or script entrypoint evidence was found in bounded Python files.\nSource refs: main.py:65\nGaps: fallback_or_warning_present\nSource mutation: false\n\nArtifacts:\n\ndownstream_cli_entrypoint_lookup: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/cli-entrypoint-lookup.json\ndownstream_investigation_evidence: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/investigation-evidence.json\ndownstream_investigation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/investigation-plan.json\ndownstream_request: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112246230964Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 36ms (27.78 tok/s) \u00b7 Jun 6, 7:23 AM\n\nTools\nSend prompt message to workspace\n\nSources",
+        "snapshots_tail": [
+          {
+            "elapsed_seconds": 382,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3643,
+            "segment_tail": "12248376711Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112246230964Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 36ms (27.78 tok/s) \u00b7 Jun 6, 7:23 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 387,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3643,
+            "segment_tail": "12248376711Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112246230964Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 36ms (27.78 tok/s) \u00b7 Jun 6, 7:23 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 392,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3643,
+            "segment_tail": "12248376711Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112246230964Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 36ms (27.78 tok/s) \u00b7 Jun 6, 7:23 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 397,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3643,
+            "segment_tail": "12248376711Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112246230964Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 36ms (27.78 tok/s) \u00b7 Jun 6, 7:23 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 402,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3643,
+            "segment_tail": "12248376711Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112246230964Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 36ms (27.78 tok/s) \u00b7 Jun 6, 7:23 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 407,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3643,
+            "segment_tail": "12248376711Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112246230964Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 36ms (27.78 tok/s) \u00b7 Jun 6, 7:23 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 413,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3643,
+            "segment_tail": "12248376711Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112246230964Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 36ms (27.78 tok/s) \u00b7 Jun 6, 7:23 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 418,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3643,
+            "segment_tail": "12248376711Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/code-investigation/code-investigation-20260606T112248376711Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112246230964Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112246230964Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 36ms (27.78 tok/s) \u00b7 Jun 6, 7:23 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          }
+        ],
+        "status": "failed",
+        "stream_chat_response_count": 0,
+        "stream_chat_seen": false,
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "tracking_tag": "phase71-ui-e2e-8cc152154fd9"
+      },
+      {
+        "after_screenshot": "C:\\agentic_agents\\runtime-state\\anythingllm-ui\\phase71-ui-e2e\\phase71-ui-e2e-d63eab5df3a4-after.png",
+        "before_screenshot": "C:\\agentic_agents\\runtime-state\\anythingllm-ui\\phase71-ui-e2e\\phase71-ui-e2e-d63eab5df3a4-before.png",
+        "marker_hits_after_tag": {
+          "Answer:": true,
+          "run_id:": true,
+          "selected_workflow: code_investigation.plan": true,
+          "workflow_router.plan completed": true
+        },
+        "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, and confidence. Tracking tag: phase71-ui-e2e-d63eab5df3a4",
+        "segment_after_tag_tail": "\n\nI completed workflow_router.plan. workflow_router.plan completed run_id: workflow-router-20260606T112957129941Z warnings: 0 failures: 0\n\nResult:\n\nWorkflow: workflow_router.plan\nStatus: completed\nSelected workflow: code_investigation.plan\nSelected skills: request-triage; scope-and-assumptions; entrypoint-finder; context-plan-builder; related-test-discovery\nSelected tools: structure_index; git_grep; read_file\nNext action: none\nVerification: python -m pytest tests/regression/test_order_id_regression.py; python -m pytest tests/unit/test_filled_followup_dedup.py; python -m pytest tests/unit/test_filled_followup_partial_size_adjustment.py; +7 more\n\nSummary:\n\nblocker_count: 0\nconfidence: medium\ndisposable_copy_changed: False\ndownstream_run_id: code-investigation-20260606T112958974212Z\ndownstream_status: completed\ndownstream_workflow: code_investigation.plan\nmodel_router_status: accepted\nnarrowed_edit_objective_status: None\nnext_action: execute_read_only\npacket_objective_outcome_status: None\nplan_only: False\nroute_status: ready\nselected_skill_count: 5\nselected_tool_count: 3\nselected_workflow: code_investigation.plan\nsource_changed: False\ntarget_repo_read: True\ntarget_root: /mnt/c/coinbase_testing_repo_frozen_tmp.github\nverification_command_count: 10\n\nAnswer:\n\nTarget entrypoint: placed_order_id\nEntrypoints: main.py:65 (python_main_guard): python main.py\nReason: CLI or script entrypoint evidence was found in bounded Python files.\nSource refs: main.py:65\nSource mutation: false\n\nArtifacts:\n\ndownstream_cli_entrypoint_lookup: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/cli-entrypoint-lookup.json\ndownstream_investigation_evidence: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/investigation-evidence.json\ndownstream_investigation_plan: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/investigation-plan.json\ndownstream_request: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112957129941Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 37ms (27.03 tok/s) \u00b7 Jun 6, 7:30 AM\n\nTools\nSend prompt message to workspace\n\nSources",
+        "snapshots_tail": [
+          {
+            "elapsed_seconds": 382,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3616,
+            "segment_tail": "12958974212Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112957129941Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 37ms (27.03 tok/s) \u00b7 Jun 6, 7:30 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 387,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3616,
+            "segment_tail": "12958974212Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112957129941Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 37ms (27.03 tok/s) \u00b7 Jun 6, 7:30 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 392,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3616,
+            "segment_tail": "12958974212Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112957129941Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 37ms (27.03 tok/s) \u00b7 Jun 6, 7:30 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 397,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3616,
+            "segment_tail": "12958974212Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112957129941Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 37ms (27.03 tok/s) \u00b7 Jun 6, 7:30 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 402,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3616,
+            "segment_tail": "12958974212Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112957129941Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 37ms (27.03 tok/s) \u00b7 Jun 6, 7:30 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 407,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3616,
+            "segment_tail": "12958974212Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112957129941Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 37ms (27.03 tok/s) \u00b7 Jun 6, 7:30 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 412,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3616,
+            "segment_tail": "12958974212Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112957129941Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 37ms (27.03 tok/s) \u00b7 Jun 6, 7:30 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          },
+          {
+            "elapsed_seconds": 418,
+            "marker_hits_after_tag": {
+              "Answer:": true,
+              "run_id:": true,
+              "selected_workflow: code_investigation.plan": true,
+              "workflow_router.plan completed": true
+            },
+            "segment_length": 3616,
+            "segment_tail": "12958974212Z/request.json\ndownstream_result: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/downstream-result.json\ndownstream_run_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/code-investigation/code-investigation-20260606T112958974212Z/run-state.json\nregistry_snapshot: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/registry-snapshot.json\nrequest: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/request.json\nroute_decision: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/route-decision.json\nrun_state: /mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T112957129941Z/run-state.json\n\nRun record: /v1/controller/runs/workflow-router-20260606T112957129941Z\n\nQwen3-Coder-30B-A3B-Instruct \u00b7 37ms (27.03 tok/s) \u00b7 Jun 6, 7:30 AM\n\nTools\nSend prompt message to workspace\n\nSources"
+          }
+        ],
+        "status": "failed",
+        "stream_chat_response_count": 0,
+        "stream_chat_seen": false,
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+        "tracking_tag": "phase71-ui-e2e-d63eab5df3a4"
+      }
+    ],
+    "console_tail": [
+      {
+        "text": "\u001b[32m[Received backend-server-online message]\u001b[0m: {API_BASE: http://127.0.0.1:3001/api, APP_VERSION: phase71-browser-e2e, APP_PLATFORM: browser, APP_ARCH: x64}",
+        "type": "log"
+      },
+      {
+        "text": "\u001b[32m[AnythingLLM vphase71-browser-e2e for browser]\u001b[0m Polling for server...",
+        "type": "log"
+      },
+      {
+        "text": "Failed to fetch pfp: TypeError: C.fetchPfp is not a function\n    at a (http://127.0.0.1:60994/assets/main-8239a71c.js:1:2410)\n    at http://127.0.0.1:60994/assets/main-8239a71c.js:1:2488\n    at El (http://127.0.0.1:60994/assets/index-e9e26470.js:40:24263)\n    at Kn (http://127.0.0.1:60994/assets/index-e9e26470.js:40:42315)\n    at http://127.0.0.1:60994/assets/index-e9e26470.js:40:40658\n    at j (http://127.0.0.1:60994/assets/index-e9e26470.js:25:1583)\n    at MessagePort.F (http://127.0.0.1:60994/assets/index-e9e26470.js:25:1951)",
+        "type": "error"
+      },
+      {
+        "text": "Assistant TTS auto-play is disabled",
+        "type": "log"
+      },
+      {
+        "text": "Adding event listener for metrics visibility",
+        "type": "log"
+      }
+    ],
+    "ignored_request_failures": [
+      {
+        "failure": "net::ERR_ABORTED",
+        "url": "http://127.0.0.1:3001/api/system/logo?theme=system"
+      },
+      {
+        "failure": "net::ERR_ABORTED",
+        "url": "http://127.0.0.1:3001/api/system/logo?theme=system"
+      }
+    ],
+    "non_ignored_request_failures": [],
+    "page_errors": [],
+    "request_failures": [
+      {
+        "failure": "net::ERR_ABORTED",
+        "url": "http://127.0.0.1:3001/api/system/logo?theme=system"
+      },
+      {
+        "failure": "net::ERR_ABORTED",
+        "url": "http://127.0.0.1:3001/api/system/logo?theme=system"
+      }
+    ],
+    "response_count": 64,
+    "responses_tail": [
+      {
+        "content_type": "application/javascript; charset=UTF-8",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/assets/Hammer-43e8cb89.js"
+      },
+      {
+        "content_type": "application/javascript; charset=UTF-8",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/assets/index-85fcfae8.js"
+      },
+      {
+        "content_type": "application/javascript; charset=UTF-8",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/assets/index-6a3d9c91.js"
+      },
+      {
+        "content_type": "application/javascript; charset=UTF-8",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/assets/UploadSimple-84c01beb.js"
+      },
+      {
+        "content_type": "application/javascript; charset=UTF-8",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/assets/index-44eeee20.js"
+      },
+      {
+        "content_type": "image/png",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/favicon.png"
+      },
+      {
+        "content_type": "font/ttf",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/assets/PlusJakartaSans-e493fee2.ttf"
+      },
+      {
+        "content_type": "image/png",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/favicon.png"
+      },
+      {
+        "content_type": "application/javascript; charset=UTF-8",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/assets/react-beautiful-dnd.esm-2c72ea67.js"
+      },
+      {
+        "content_type": "video/webm",
+        "status": 206,
+        "url": "http://127.0.0.1:60994/assets/dark-a267ebfb.webm"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/onboarding"
+      },
+      {
+        "content_type": "",
+        "status": 204,
+        "url": "http://127.0.0.1:3001/api/system/logo?theme=system"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/system/refresh-user"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/setup-complete"
+      },
+      {
+        "content_type": "image/png",
+        "status": 200,
+        "url": "http://127.0.0.1:60994/assets/anything-llm-dark-c251ee6f.png"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/system/footer-data"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspaces"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspace/my-workspace"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspace/my-workspace/suggested-messages"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspace/my-workspace/is-agent-command-available"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspace/my-workspace/threads"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspace/my-workspace/chats"
+      },
+      {
+        "content_type": "",
+        "status": 204,
+        "url": "http://127.0.0.1:3001/api/system/logo?theme=system"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspace/my-workspace"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/setup-complete"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspace/my-workspace/parsed-files"
+      },
+      {
+        "content_type": "application/json; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/setup-complete"
+      },
+      {
+        "content_type": "text/plain; charset=utf-8",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/system/document-processing-status"
+      },
+      {
+        "content_type": "text/event-stream",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspace/my-workspace/stream-chat"
+      },
+      {
+        "content_type": "text/event-stream",
+        "status": 200,
+        "url": "http://127.0.0.1:3001/api/workspace/my-workspace/stream-chat"
+      }
+    ],
+    "static_origin": "http://127.0.0.1:60994",
+    "status": "failed",
+    "ui_dist_root": "C:\\agentic_agents\\runtime-state\\anythingllm-ui\\asar-dist\\dist"
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "body_10s": "",
+  "body_20s": "",
+  "body_35s": "",
+  "body_50s": "",
+  "body_5s": "",
+  "body_65s": "",
+  "console": [
+    {
+      "text": "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "type": "error"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "type": "error"
+    },
+    {
+      "text": "Failed to load resource: net::ERR_CONNECTION_RESET",
+      "type": "error"
+    }
+  ],
+  "counts_10s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "counts_20s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "counts_35s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "counts_50s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "counts_5s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "counts_65s": {
+    "button": 0,
+    "input": 0,
+    "textarea": 0
+  },
+  "failed": [
+    {
+      "failure": "net::ERR_CONNECTION_RESET",
+      "url": "http://localhost:61593/assets/index-ed8835e2.css"
+    },
+    {
+      "failure": "net::ERR_CONNECTION_RESET",
+      "url": "http://localhost:61593/assets/main-8239a71c.js"
+    },
+    {
+      "failure": "net::ERR_CONNECTION_RESET",
+      "url": "http://localhost:61593/assets/index-e9e26470.js"
+    }
+  ],
+  "html": "<body>\n  <div id=\"root\"></div>\n  \n\n\n</body>",
+  "last_sec": 65,
+  "perf": [
+    {
+      "decoded": 175200,
+      "duration": 19269.899999976158,
+      "name": "http://localhost:61593/assets/main-8239a71c.js",
+      "transfer": 175500
+    },
+    {
+      "decoded": 69,
+      "duration": 322.60000002384186,
+      "name": "http://localhost:61593/assets/index-668bcc60.css",
+      "transfer": 369
+    },
+    {
+      "decoded": 321200,
+      "duration": 19208,
+      "name": "http://localhost:61593/assets/index-ed8835e2.css",
+      "transfer": 321500
+    },
+    {
+      "decoded": 2918540,
+      "duration": 19286.400000035763,
+      "name": "http://localhost:61593/assets/index-e9e26470.js",
+      "transfer": 2918840
+    }
+  ],
+  "responses": [
+    {
+      "ct": "text/html",
+      "status": 200,
+      "url": "http://localhost:61593/"
+    },
+    {
+      "ct": "text/css",
+      "status": 200,
+      "url": "http://localhost:61593/assets/index-ed8835e2.css"
+    },
+    {
+      "ct": "text/css",
+      "status": 200,
+      "url": "http://localhost:61593/assets/index-668bcc60.css"
+    },
+    {
+      "ct": "application/javascript",
+      "status": 200,
+      "url": "http://localhost:61593/assets/main-8239a71c.js"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://localhost:61593/favicon.png"
+    },
+    {
+      "ct": "image/png",
+      "status": 200,
+      "url": "http://localhost:61593/favicon.png"
+    },
+    {
+      "ct": "application/javascript",
+      "status": 200,
+      "url": "http://localhost:61593/assets/index-e9e26470.js"
+    }
+  ],
+  "title": "AnythingLLM | Superpowers for your OS using local AI",
+  "url": "http://localhost:61593/#/workspace/my-workspace"
+}

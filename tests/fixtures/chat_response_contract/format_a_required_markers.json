@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "format_a_contract_markers": [
+    "Result:",
+    "- Workflow:",
+    "- Status:",
+    "- Selected workflow:",
+    "- Selected skills:",
+    "- Selected tools:",
+    "- Next action:",
+    "- Verification:"
+  ],
+  "read_only_answer_markers": [
+    "Answer:",
+    "- Target:",
+    "- Related tests:",
+    "Artifacts:"
+  ],
+  "skill_lifecycle_markers": [
+    "Lifecycle Audit:",
+    "- Skills audited:",
+    "- Next actions:",
+    "- Queue:"
+  ],
+  "truncation_markers": [
+    "omitted"
+  ]
+}

@@ -1,0 +1,1 @@
+"use strict";const e=require("electron");e.contextBridge.exposeInMainWorld("manualBrowserHelper",{openDocumentation:()=>{e.shell.openExternal("https://docs.anythingllm.com/features/browser-tool")},navigate:n=>{e.ipcRenderer.send("quick-link-open",n)},clearSession:()=>{e.ipcRenderer.send("clear-manual-browser-session-data")}});

@@ -1,0 +1,324 @@
+{
+  "anythingllm": [
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082008789098Z/code-investigation/code-investigation-20260606T082010820334Z/request-flow-map.json",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T082010820334Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082008789098Z/route-decision.json",
+      "run_id": "workflow-router-20260606T082008789098Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082008789098Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "handler-branch-tracer"
+      ],
+      "skill_id": "handler-branch-tracer",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082026536571Z/code-investigation/code-investigation-20260606T082028163508Z/data-model-lookup.json",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T082028163508Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082026536571Z/route-decision.json",
+      "run_id": "workflow-router-20260606T082026536571Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082026536571Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "table-schema-isolator"
+      ],
+      "skill_id": "table-schema-isolator",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082039311731Z/code-investigation/code-investigation-20260606T082040751168Z/cli-entrypoint-lookup.json",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T082040751168Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082039311731Z/route-decision.json",
+      "run_id": "workflow-router-20260606T082039311731Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082039311731Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "runtime-entrypoint-disambiguator"
+      ],
+      "skill_id": "runtime-entrypoint-disambiguator",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082055001646Z/code-investigation/code-investigation-20260606T082056806918Z/change-surface-summary.json",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T082056806918Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082055001646Z/route-decision.json",
+      "run_id": "workflow-router-20260606T082055001646Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082055001646Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "change-boundary-summarizer"
+      ],
+      "skill_id": "change-boundary-summarizer",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082118305367Z/code-investigation/code-investigation-20260606T082119784823Z/request-flow-map.json",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T082119784823Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082118305367Z/route-decision.json",
+      "run_id": "workflow-router-20260606T082118305367Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082118305367Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "handler-branch-tracer"
+      ],
+      "skill_id": "handler-branch-tracer",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082132132560Z/code-investigation/code-investigation-20260606T082133556619Z/data-model-lookup.json",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T082133556619Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082132132560Z/route-decision.json",
+      "run_id": "workflow-router-20260606T082132132560Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082132132560Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "table-schema-isolator"
+      ],
+      "skill_id": "table-schema-isolator",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082145454972Z/code-investigation/code-investigation-20260606T082147123548Z/cli-entrypoint-lookup.json",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T082147123548Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082145454972Z/route-decision.json",
+      "run_id": "workflow-router-20260606T082145454972Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082145454972Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "runtime-entrypoint-disambiguator"
+      ],
+      "skill_id": "runtime-entrypoint-disambiguator",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082159175896Z/code-investigation/code-investigation-20260606T082200826971Z/change-surface-summary.json",
+      "client": "anythingllm",
+      "downstream_run_id": "code-investigation-20260606T082200826971Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082159175896Z/route-decision.json",
+      "run_id": "workflow-router-20260606T082159175896Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T082159175896Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "change-boundary-summarizer"
+      ],
+      "skill_id": "change-boundary-summarizer",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    }
+  ],
+  "config_root": "/mnt/c/agentic_agents",
+  "created_at": "2026-06-06T08:22:12.527690Z",
+  "eval_case_ids": [
+    "phase61_handler_branch_trace",
+    "phase61_table_schema_only",
+    "phase61_runtime_entrypoint_disambiguation",
+    "phase61_change_boundary_summary"
+  ],
+  "final_lifecycle_state": "validated",
+  "gateway": [
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081804146601Z/code-investigation/code-investigation-20260606T081805966154Z/request-flow-map.json",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T081805966154Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081804146601Z/route-decision.json",
+      "run_id": "workflow-router-20260606T081804146601Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081804146601Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "handler-branch-tracer"
+      ],
+      "skill_id": "handler-branch-tracer",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081821287381Z/code-investigation/code-investigation-20260606T081822915478Z/data-model-lookup.json",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T081822915478Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081821287381Z/route-decision.json",
+      "run_id": "workflow-router-20260606T081821287381Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081821287381Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "table-schema-isolator"
+      ],
+      "skill_id": "table-schema-isolator",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081835267424Z/code-investigation/code-investigation-20260606T081836623608Z/cli-entrypoint-lookup.json",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T081836623608Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081835267424Z/route-decision.json",
+      "run_id": "workflow-router-20260606T081835267424Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081835267424Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "runtime-entrypoint-disambiguator"
+      ],
+      "skill_id": "runtime-entrypoint-disambiguator",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081851475815Z/code-investigation/code-investigation-20260606T081853363203Z/change-surface-summary.json",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T081853363203Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081851475815Z/route-decision.json",
+      "run_id": "workflow-router-20260606T081851475815Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081851475815Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "change-boundary-summarizer"
+      ],
+      "skill_id": "change-boundary-summarizer",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081914067109Z/code-investigation/code-investigation-20260606T081915481743Z/request-flow-map.json",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T081915481743Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081914067109Z/route-decision.json",
+      "run_id": "workflow-router-20260606T081914067109Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081914067109Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "handler-branch-tracer"
+      ],
+      "skill_id": "handler-branch-tracer",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081927877363Z/code-investigation/code-investigation-20260606T081929246645Z/data-model-lookup.json",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T081929246645Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081927877363Z/route-decision.json",
+      "run_id": "workflow-router-20260606T081927877363Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081927877363Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "table-schema-isolator"
+      ],
+      "skill_id": "table-schema-isolator",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081941191480Z/code-investigation/code-investigation-20260606T081942767705Z/cli-entrypoint-lookup.json",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T081942767705Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081941191480Z/route-decision.json",
+      "run_id": "workflow-router-20260606T081941191480Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081941191480Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "runtime-entrypoint-disambiguator"
+      ],
+      "skill_id": "runtime-entrypoint-disambiguator",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "artifact_path": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081955534331Z/code-investigation/code-investigation-20260606T081957299035Z/change-surface-summary.json",
+      "client": "gateway",
+      "downstream_run_id": "code-investigation-20260606T081957299035Z",
+      "route_decision": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081955534331Z/route-decision.json",
+      "run_id": "workflow-router-20260606T081955534331Z",
+      "run_state": "/mnt/c/private_agentic_agents/runtime-state/controller-artifacts/workflow-router/workflow-router-20260606T081955534331Z/run-state.json",
+      "selected_skills": [
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder",
+        "change-boundary-summarizer"
+      ],
+      "skill_id": "change-boundary-summarizer",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    }
+  ],
+  "initial_lifecycle_state": "validated",
+  "kind": "phase63_batch_d_live_report",
+  "live_suite_runs": [
+    {
+      "anythingllm": true,
+      "case_ids": [
+        "phase61_handler_branch_trace",
+        "phase61_table_schema_only",
+        "phase61_runtime_entrypoint_disambiguation",
+        "phase61_change_boundary_summary"
+      ],
+      "live_suite": "phase63_batch_d_live_suite",
+      "live_target": "gateway_and_anythingllm",
+      "status": "passed",
+      "suite": "phase63_batch_d_live_suite",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ]
+    }
+  ],
+  "promotion": {
+    "status": "already_validated"
+  },
+  "report_path": "/mnt/c/agentic_agents/runtime-state/skill-batches/phase63-batch-d-live-20260606T081801352768Z.json",
+  "schema_version": 1,
+  "skill_ids": [
+    "handler-branch-tracer",
+    "table-schema-isolator",
+    "runtime-entrypoint-disambiguator",
+    "change-boundary-summarizer"
+  ],
+  "status": "passed",
+  "target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ]
+}

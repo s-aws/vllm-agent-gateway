@@ -1,0 +1,113 @@
+L2 SUITE GATEWAY PASS case=L2-001 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025210319865Z
+L2 SUITE GATEWAY PASS case=L2-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025227501068Z
+L2 SUITE GATEWAY PASS case=L2-003 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025242154151Z
+L2 SUITE GATEWAY PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025253157062Z
+L2 SUITE GATEWAY PASS case=L2-001 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025305201631Z
+L2 SUITE GATEWAY PASS case=L2-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025320286467Z
+L2 SUITE GATEWAY PASS case=L2-003 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025330886670Z
+L2 SUITE GATEWAY PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025344056150Z
+L2 SUITE ANYTHINGLLM PASS case=L2-001 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025352712235Z
+L2 SUITE ANYTHINGLLM PASS case=L2-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025411319197Z
+L2 SUITE ANYTHINGLLM PASS case=L2-003 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025425891719Z
+L2 SUITE ANYTHINGLLM PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp run_id=workflow-router-20260605T025436081751Z
+L2 SUITE ANYTHINGLLM PASS case=L2-001 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025452174836Z
+L2 SUITE ANYTHINGLLM PASS case=L2-002 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025503854520Z
+L2 SUITE ANYTHINGLLM PASS case=L2-003 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025515455141Z
+L2 SUITE ANYTHINGLLM PASS case=L2-005 target=/mnt/c/coinbase_testing_repo_frozen_tmp.github run_id=workflow-router-20260605T025529210094Z
+L2 SUITE SUMMARY
+{
+  "anythingllm": [
+    {
+      "case_id": "L2-001",
+      "run_id": "workflow-router-20260605T025352712235Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "case_id": "L2-002",
+      "run_id": "workflow-router-20260605T025411319197Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "case_id": "L2-003",
+      "run_id": "workflow-router-20260605T025425891719Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "case_id": "L2-005",
+      "run_id": "workflow-router-20260605T025436081751Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "case_id": "L2-001",
+      "run_id": "workflow-router-20260605T025452174836Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "case_id": "L2-002",
+      "run_id": "workflow-router-20260605T025503854520Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "case_id": "L2-003",
+      "run_id": "workflow-router-20260605T025515455141Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "case_id": "L2-005",
+      "run_id": "workflow-router-20260605T025529210094Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    }
+  ],
+  "case_ids": [
+    "L2-001",
+    "L2-002",
+    "L2-003",
+    "L2-005"
+  ],
+  "gateway": [
+    {
+      "case_id": "L2-001",
+      "run_id": "workflow-router-20260605T025210319865Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "case_id": "L2-002",
+      "run_id": "workflow-router-20260605T025227501068Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "case_id": "L2-003",
+      "run_id": "workflow-router-20260605T025242154151Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "case_id": "L2-005",
+      "run_id": "workflow-router-20260605T025253157062Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    },
+    {
+      "case_id": "L2-001",
+      "run_id": "workflow-router-20260605T025305201631Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "case_id": "L2-002",
+      "run_id": "workflow-router-20260605T025320286467Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "case_id": "L2-003",
+      "run_id": "workflow-router-20260605T025330886670Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "case_id": "L2-005",
+      "run_id": "workflow-router-20260605T025344056150Z",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    }
+  ],
+  "target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ]
+}

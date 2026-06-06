@@ -1,0 +1,157 @@
+{
+  "catalog_summary": {
+    "eval_case_count": 45,
+    "eval_status_counts": {
+      "validated": 46
+    },
+    "route_key_count": 46,
+    "route_namespace_counts": {
+      "code": 16,
+      "config": 2,
+      "context": 3,
+      "diagnostics": 2,
+      "docs": 3,
+      "draft": 3,
+      "feedback": 1,
+      "git": 1,
+      "implementation": 1,
+      "planning": 6,
+      "test": 5,
+      "verification": 3
+    },
+    "skill_count": 46,
+    "workflow_count": 17,
+    "workflow_ids": [
+      "code_context.lookup",
+      "code_investigation.plan",
+      "documenter.review",
+      "execution_planning.plan",
+      "refactor.single_path",
+      "skill.deprecate",
+      "skill.scaffold",
+      "skill.selection.explain",
+      "skill.update",
+      "skill_batch.propose",
+      "skill_batch.register",
+      "skill_eval.promote",
+      "skill_lifecycle.audit",
+      "skill_pack.install",
+      "skill_pack.validate",
+      "workflow_feedback.record",
+      "workflow_router.plan"
+    ]
+  },
+  "commands": [
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-m",
+        "pytest",
+        "tests/regression/test_skill_registry.py",
+        "tests/regression/test_skill_evals.py",
+        "tests/regression/test_skill_selector_scale.py",
+        "-q"
+      ],
+      "cwd": "C:\\agentic_agents",
+      "elapsed_seconds": 2.4218631999683566,
+      "label": "skill_registry_eval_selector_regression",
+      "rerun": "C:\\Python314\\python.exe -m pytest tests/regression/test_skill_registry.py tests/regression/test_skill_evals.py tests/regression/test_skill_selector_scale.py -q",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "...............................................                          [100%]\n47 passed in 1.58s\n"
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "-m",
+        "pytest",
+        "tests/regression/test_controller_service.py",
+        "-k",
+        "phase50_batch_c or skill_batch or skill_eval_promotion or skill_lifecycle or skill_deprecation or skill_update or skill_selection or skill_pack or skill_scaffold",
+        "-q"
+      ],
+      "cwd": "C:\\agentic_agents",
+      "elapsed_seconds": 34.674279500031844,
+      "label": "focused_skill_controller_regression",
+      "rerun": "C:\\Python314\\python.exe -m pytest tests/regression/test_controller_service.py -k phase50_batch_c or skill_batch or skill_eval_promotion or skill_lifecycle or skill_deprecation or skill_update or skill_selection or skill_pack or skill_scaffold -q",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": ".................................................                        [100%]\n49 passed, 127 deselected in 33.79s\n"
+    },
+    {
+      "command": [
+        "C:\\Python314\\python.exe",
+        "scripts/validate_skill_mutations.py",
+        "--output-path",
+        "C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\skill-mutations.json"
+      ],
+      "cwd": "C:\\agentic_agents",
+      "elapsed_seconds": 1.1708392000291497,
+      "label": "skill_mutation_fault_injection",
+      "rerun": "C:\\Python314\\python.exe scripts/validate_skill_mutations.py --output-path C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\skill-mutations.json",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "SKILL MUTATION REPORT C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\skill-mutations.json\nSKILL MUTATION SUMMARY {\"all_disposable_roots_restored_or_deleted\": true, \"failed_count\": 0, \"mutation_count\": 9, \"passed_count\": 9, \"protected_fixture_mutated\": false}\nSKILL MUTATION PASS\n"
+    }
+  ],
+  "config_root": "C:\\agentic_agents",
+  "created_at": "2026-06-05T20:40:34Z",
+  "errors": [],
+  "generated_reports": {
+    "docs_index_report": "C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\docs-index.json",
+    "selector_scale_report": "C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\selector-scale.json",
+    "skill_eval_report": "C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\skill-evals.json",
+    "skill_scale_report": "C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\skill-scale.json"
+  },
+  "hash_summary": {
+    "after": {
+      ".qwen/skills/*/SKILL.md": "c706466154c56092c8ec5be43d63eac4206289171882a08980bd6e145375b724",
+      "runtime/skill_evals.json": "b9abc83335791d73962614af712476bb56f88904941c2b2ba462dd189ce924ac",
+      "runtime/skills.json": "37d83d65b2a5debb777865b41263334d576d9a6efa7b966f73cb880477332737",
+      "runtime/workflows.json": "64703a1fc29fe460f16216b89bb290aa88f1222ce4d5485da32063052ddb7899"
+    },
+    "before": {
+      ".qwen/skills/*/SKILL.md": "c706466154c56092c8ec5be43d63eac4206289171882a08980bd6e145375b724",
+      "runtime/skill_evals.json": "b9abc83335791d73962614af712476bb56f88904941c2b2ba462dd189ce924ac",
+      "runtime/skills.json": "37d83d65b2a5debb777865b41263334d576d9a6efa7b966f73cb880477332737",
+      "runtime/workflows.json": "64703a1fc29fe460f16216b89bb290aa88f1222ce4d5485da32063052ddb7899"
+    },
+    "changed_files": []
+  },
+  "kind": "skill_release_gate_report",
+  "mode": "offline-only",
+  "proof_validation": [
+    {
+      "errors": [],
+      "label": "skill_eval_report",
+      "path": "C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\skill-evals.json",
+      "status": "passed"
+    },
+    {
+      "errors": [],
+      "label": "skill_scale_report",
+      "path": "C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\skill-scale.json",
+      "status": "passed"
+    },
+    {
+      "errors": [],
+      "label": "selector_scale_report",
+      "path": "C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\selector-scale.json",
+      "status": "passed"
+    },
+    {
+      "errors": [],
+      "label": "docs_index_report",
+      "path": "C:\\agentic_agents\\runtime-state\\skill-release-gates\\skill-release-gate-20260605T203954917242Z\\docs-index.json",
+      "status": "passed"
+    }
+  ],
+  "report_path": "C:\\agentic_agents\\runtime-state\\skill-release-gates\\phase50-offline-release-gate.json",
+  "run_id": "skill-release-gate-20260605T203954917242Z",
+  "schema_version": 1,
+  "status": "passed",
+  "target_roots": []
+}

@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "summary": {
+    "do_not_admit_count": 0,
+    "eval_case_count": 45,
+    "route_key_count": 46,
+    "skill_count": 46
+  }
+}

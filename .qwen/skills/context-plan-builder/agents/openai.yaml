@@ -1,0 +1,4 @@
+interface:
+  display_name: "Context Plan Builder"
+  short_description: "Plan bounded context requests safely."
+  default_prompt: "Use this skill after entrypoint-finder to turn selected entry points and follow-up needs into bounded context requests without invoking tools or reading files."
