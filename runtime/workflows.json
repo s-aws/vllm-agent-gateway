@@ -427,7 +427,7 @@
     },
     {
       "id": "skill.scaffold",
-      "description": "Controller-owned artifact-only skill authoring scaffold workflow that generates draft skill bodies, metadata, eval cases, docs refs, and validation checklists.",
+      "description": "Controller-owned artifact-only skill authoring scaffold workflow that generates draft skill bodies, metadata, eval cases, coverage entries, docs stubs, fail-closed test skeletons, and validation checklists.",
       "default_role_id": "architect/default",
       "allowed_role_ids": [
         "architect/default"

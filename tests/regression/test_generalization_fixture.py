@@ -153,3 +153,23 @@ def test_feedback_term_inside_target_path_does_not_trigger_feedback_route() -> N
     assert workflow_id == "code_investigation.plan"
     assert status == "ready"
     assert not any(item.get("rule") == "feedback_terms" for item in evidence)
+
+
+def test_windows_target_path_action_terms_do_not_block_l1_routes() -> None:
+    coverage_workflow, coverage_status, coverage_evidence = workflow_kind_for_request(
+        r"In C:\tmp\test_workflow_router_chat_l1_coverage_gap_summary_returns_artifact-add3\allowed\repo, "
+        "identify test coverage gaps for placed_order_id stealth lookup. Read only. "
+        "Return covered tests, uncovered source files, verification commands, and gaps."
+    )
+    cli_workflow, cli_status, cli_evidence = workflow_kind_for_request(
+        r"In C:\tmp\test_workflow_router_chat_l1_cli_entrypoint_lookup_returns_artifact-refactor\allowed\repo, "
+        "locate the CLI/script entrypoint main.py for running the trading engine. Read only. "
+        "Return entrypoint files, command, and source refs."
+    )
+
+    assert coverage_workflow == "code_investigation.plan"
+    assert coverage_status == "ready"
+    assert any(item.get("rule") == "l1_coverage_gap_summary_terms" for item in coverage_evidence)
+    assert cli_workflow == "code_investigation.plan"
+    assert cli_status == "ready"
+    assert any(item.get("rule") == "l1_cli_entrypoint_lookup_terms" for item in cli_evidence)

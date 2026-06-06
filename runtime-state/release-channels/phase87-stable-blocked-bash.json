@@ -1,0 +1,71 @@
+{
+  "channel_ids": [
+    "dev",
+    "release-candidate",
+    "stable"
+  ],
+  "checks": [
+    {
+      "category": "manifest",
+      "details": {
+        "channel_ids": [
+          "dev",
+          "release-candidate",
+          "stable"
+        ],
+        "config_root": "/mnt/c/agentic_agents",
+        "errors": [],
+        "harness_version": "0.1.0",
+        "manifest_path": "/mnt/c/agentic_agents/runtime/release_channels.json"
+      },
+      "id": "manifest.shape",
+      "message": "Release channel manifest shape is valid.",
+      "next_action": "",
+      "status": "passed"
+    },
+    {
+      "category": "channel_contract",
+      "details": {
+        "channel": "stable",
+        "errors": [],
+        "release_gate_profile": "release-candidate",
+        "status": "blocked"
+      },
+      "id": "channel.stable.contract",
+      "message": "Release channel stable contract is valid.",
+      "next_action": "",
+      "status": "passed"
+    },
+    {
+      "category": "stable_readiness",
+      "details": {
+        "stable_status": "blocked"
+      },
+      "id": "stable.readiness",
+      "message": "Stable channel is blocked until release-candidate validation passes.",
+      "next_action": "",
+      "status": "passed"
+    }
+  ],
+  "config_root": "/mnt/c/agentic_agents",
+  "created_at": "20260606T182142775888Z",
+  "harness_version": "0.1.0",
+  "kind": "release_channel_validation_report",
+  "manifest_path": "/mnt/c/agentic_agents/runtime/release_channels.json",
+  "release_candidate_report_path": null,
+  "report_path": "/mnt/c/agentic_agents/runtime-state/release-channels/phase87-stable-blocked-bash.json",
+  "schema_version": 1,
+  "selected_channel": "stable",
+  "status": "passed",
+  "summary": {
+    "check_count": 3,
+    "failed_check_ids": [],
+    "status_counts": {
+      "failed": 0,
+      "passed": 3,
+      "skipped": 0,
+      "warning": 0
+    },
+    "warning_check_ids": []
+  }
+}

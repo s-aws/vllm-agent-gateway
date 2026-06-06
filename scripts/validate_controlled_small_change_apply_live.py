@@ -263,6 +263,22 @@ def require_protected_apply_refusal(body: dict[str, Any], status: int, target_ro
 
 
 def require_route_decision_proof(decision: dict[str, Any], target_root: str, label: str) -> dict[str, Any]:
+    approval_state = decision.get("approval_state")
+    if not isinstance(approval_state, dict):
+        raise RuntimeError(f"{label} route decision missing approval_state for {target_root}")
+    expected_approval = {
+        "status": "finished",
+        "approval_type": "disposable_copy_apply",
+        "approval_status": "approved",
+        "target_root": str(Path(target_root).resolve()),
+    }
+    wrong_approval = {
+        key: {"expected": expected_value, "actual": approval_state.get(key)}
+        for key, expected_value in expected_approval.items()
+        if approval_state.get(key) != expected_value
+    }
+    if wrong_approval:
+        raise RuntimeError(f"{label} approval_state mismatch for {target_root}: {json.dumps(wrong_approval, sort_keys=True)}")
     disposable_apply = decision.get("disposable_apply")
     if not isinstance(disposable_apply, dict):
         raise RuntimeError(f"{label} route decision missing disposable_apply for {target_root}")
@@ -271,6 +287,26 @@ def require_route_decision_proof(decision: dict[str, Any], target_root: str, lab
     proof = disposable_apply.get("mutation_proof")
     if not isinstance(proof, dict):
         raise RuntimeError(f"{label} missing mutation proof for {target_root}")
+    if proof.get("kind") != "disposable_mutation_proof":
+        raise RuntimeError(f"{label} mutation proof kind mismatch for {target_root}: {proof.get('kind')!r}")
+    proof_artifact = proof.get("artifact")
+    if not isinstance(proof_artifact, str) or not Path(proof_artifact).exists():
+        raise RuntimeError(f"{label} mutation proof artifact missing for {target_root}: {proof_artifact!r}")
+    sandbox_contract = proof.get("sandbox_contract")
+    if not isinstance(sandbox_contract, dict) or sandbox_contract.get("status") != "active":
+        raise RuntimeError(f"{label} sandbox contract missing or inactive for {target_root}: {json.dumps(sandbox_contract, sort_keys=True)}")
+    contract_artifact = sandbox_contract.get("artifact")
+    if not isinstance(contract_artifact, str) or not Path(contract_artifact).exists():
+        raise RuntimeError(f"{label} sandbox contract artifact missing for {target_root}: {contract_artifact!r}")
+    structured_diff = proof.get("structured_diff")
+    if not isinstance(structured_diff, dict) or structured_diff.get("changed_file_count") != 1:
+        raise RuntimeError(f"{label} structured diff proof mismatch for {target_root}: {json.dumps(structured_diff, sort_keys=True)}")
+    diff_artifact = structured_diff.get("artifact")
+    if not isinstance(diff_artifact, str) or not Path(diff_artifact).exists():
+        raise RuntimeError(f"{label} structured diff artifact missing for {target_root}: {diff_artifact!r}")
+    records = structured_diff.get("records")
+    if not isinstance(records, list) or not records or records[0].get("path") != "docs/agents/INVARIANTS.md":
+        raise RuntimeError(f"{label} structured diff records missing target file for {target_root}: {json.dumps(records, sort_keys=True)}")
     if proof.get("source_changed") != {}:
         raise RuntimeError(f"{label} source changed for {target_root}: {json.dumps(proof.get('source_changed'), sort_keys=True)}")
     copy_changed = proof.get("copy_changed")
@@ -298,6 +334,12 @@ def require_gateway_response(body: dict[str, Any], target_root: str) -> dict[str
         "- downstream_workflow: implementation.workflow",
         "- source_changed: False",
         "- disposable_copy_changed: True",
+        "Approval:",
+        "- State: finished",
+        "- Type: disposable_copy_apply",
+        "Skill Selection:",
+        "- Why: Selected execution_planning.plan",
+        "disposable_apply_terms",
     ]
     missing = [marker for marker in required_markers if marker not in text]
     if missing:
@@ -310,9 +352,24 @@ def require_gateway_response(body: dict[str, Any], target_root: str) -> dict[str
         raise RuntimeError(f"gateway summary mismatch for {target_root}: {json.dumps(summary, sort_keys=True)}")
     if summary.get("source_changed") is not False or summary.get("disposable_copy_changed") is not True:
         raise RuntimeError(f"gateway mutation summary mismatch for {target_root}: {json.dumps(summary, sort_keys=True)}")
+    if summary.get("approval_state_status") != "finished" or summary.get("approval_type") != "disposable_copy_apply":
+        raise RuntimeError(f"gateway approval summary mismatch for {target_root}: {json.dumps(summary, sort_keys=True)}")
     artifacts = compact.get("artifacts")
     if not isinstance(artifacts, dict) or "route_decision" not in artifacts:
         raise RuntimeError(f"gateway missing route_decision artifact for {target_root}")
+    for artifact_key in (
+        "disposable_mutation_proof",
+        "disposable_mutation_sandbox_contract",
+        "disposable_mutation_diff",
+        "disposable_rollback_proof",
+        "approval_state",
+    ):
+        artifact_path = artifacts.get(artifact_key)
+        if not isinstance(artifact_path, str) or not Path(artifact_path).exists():
+            raise RuntimeError(f"gateway missing {artifact_key} artifact for {target_root}: {artifact_path!r}")
+    approval_state = json.loads(Path(artifacts["approval_state"]).read_text(encoding="utf-8"))
+    if approval_state.get("status") != "finished" or approval_state.get("approval_type") != "disposable_copy_apply":
+        raise RuntimeError(f"gateway approval_state artifact mismatch for {target_root}: {json.dumps(approval_state, sort_keys=True)}")
     decision = json.loads(Path(artifacts["route_decision"]).read_text(encoding="utf-8"))
     proof = require_route_decision_proof(decision, target_root, "gateway")
     return {"run_id": compact.get("run_id"), "proof": proof}
@@ -342,6 +399,12 @@ def require_anythingllm_response(body: dict[str, Any], target_root: str, artifac
         "- downstream_workflow: implementation.workflow",
         "- source_changed: False",
         "- disposable_copy_changed: True",
+        "Approval:",
+        "- State: finished",
+        "- Type: disposable_copy_apply",
+        "Skill Selection:",
+        "- Why: Selected execution_planning.plan",
+        "disposable_apply_terms",
     ]
     missing = [marker for marker in required_markers if marker not in text]
     if missing:
@@ -349,6 +412,12 @@ def require_anythingllm_response(body: dict[str, Any], target_root: str, artifac
     run_id = run_id_from_text(text)
     decision_path = route_decision_for_run(artifact_root, run_id)
     decision = json.loads(decision_path.read_text(encoding="utf-8"))
+    approval_state_path = decision_path.parent / "approval-state.json"
+    if not approval_state_path.exists():
+        raise RuntimeError(f"AnythingLLM missing approval-state.json for {target_root}: {approval_state_path}")
+    approval_state = json.loads(approval_state_path.read_text(encoding="utf-8"))
+    if approval_state.get("status") != "finished" or approval_state.get("approval_type") != "disposable_copy_apply":
+        raise RuntimeError(f"AnythingLLM approval_state artifact mismatch for {target_root}: {json.dumps(approval_state, sort_keys=True)}")
     proof = require_route_decision_proof(decision, target_root, "AnythingLLM")
     return {"run_id": run_id, "route_decision": str(decision_path), "proof": proof}
 

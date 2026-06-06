@@ -1,0 +1,10 @@
+﻿{
+    "output_format":  "json",
+    "messages":  [
+                     {
+                         "content":  "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, and confidence.",
+                         "role":  "user"
+                     }
+                 ],
+    "model":  "agentic-workflow-router"
+}

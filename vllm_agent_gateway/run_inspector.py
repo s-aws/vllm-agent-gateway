@@ -29,6 +29,23 @@ class RunInspectorConfig:
     output_format: InspectorOutputFormat = InspectorOutputFormat.TEXT
 
 
+@dataclass(frozen=True)
+class RunObservabilityConfig:
+    config_root: Path
+    controller_output_root: Path | None = None
+    workflow: str | None = "workflow_router.plan"
+    limit: int = 20
+    prompt_family: str | None = None
+    skill: str | None = None
+    model_status: str | None = None
+    target_root: str | None = None
+    route_status: str | None = None
+    semantic_status: str | None = None
+    failure_category: str | None = None
+    output_path: Path | None = None
+    output_format: InspectorOutputFormat = InspectorOutputFormat.TEXT
+
+
 def utc_timestamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
 
@@ -118,6 +135,15 @@ def parse_updated_at(value: Any) -> float | None:
         return None
 
 
+def iso_duration_seconds(start_value: Any, end_value: Any) -> float | None:
+    start = parse_updated_at(start_value)
+    end = parse_updated_at(end_value)
+    if start is None or end is None:
+        return None
+    duration = round(end - start, 3)
+    return duration if duration >= 0 else None
+
+
 def controller_run_records(output_root: Path, workflow: str | None = None) -> list[tuple[Path, dict[str, Any]]]:
     registry = output_root / "controller-runs"
     records: list[tuple[Path, dict[str, Any]]] = []
@@ -199,9 +225,36 @@ def mutation_proof(record: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in proof.items() if value is not None}
 
 
+def failure_categories_from_failures(failures: Any) -> list[str]:
+    if not isinstance(failures, list):
+        return []
+    categories: list[str] = []
+    for item in failures:
+        value: Any = None
+        if isinstance(item, dict):
+            for key in ("category", "failure_category", "code", "type", "kind"):
+                if isinstance(item.get(key), str) and item[key]:
+                    value = item[key]
+                    break
+        elif isinstance(item, str) and item:
+            value = item
+        if value is not None:
+            categories.append(str(value))
+    return sorted(set(categories))
+
+
 def inspect_run(config: RunInspectorConfig) -> dict[str, Any]:
     output_root = controller_output_root(config)
     record_path, record = select_run_record(config, output_root)
+    report = inspect_run_record(output_root, record_path, record)
+    if config.output_path:
+        write_json(config.output_path, report)
+        report["report_path"] = str(config.output_path.resolve())
+        write_json(config.output_path, report)
+    return report
+
+
+def inspect_run_record(output_root: Path, record_path: Path, record: dict[str, Any]) -> dict[str, Any]:
     route_decision = load_artifact(record, "route_decision") or {}
     downstream = route_decision.get("downstream") if isinstance(route_decision.get("downstream"), dict) else {}
     summary = record.get("summary") if isinstance(record.get("summary"), dict) else {}
@@ -212,6 +265,9 @@ def inspect_run(config: RunInspectorConfig) -> dict[str, Any]:
     selected_tools = route_decision.get("selected_tools")
     if not isinstance(selected_tools, list):
         selected_tools = []
+    approval_state = load_artifact(record, "approval_state") or {}
+    started_at = route_decision.get("created_at") or approval_state.get("created_at")
+    duration_seconds = iso_duration_seconds(started_at, record.get("updated_at"))
 
     report = {
         "schema_version": 1,
@@ -224,6 +280,7 @@ def inspect_run(config: RunInspectorConfig) -> dict[str, Any]:
         "status": record.get("status"),
         "updated_at": record.get("updated_at"),
         "target_root": summary.get("target_root") or route_decision.get("target_root"),
+        "model_router_status": summary.get("model_router_status"),
         "route": {
             "status": summary.get("route_status") or route_decision.get("status"),
             "selected_workflow": summary.get("selected_workflow") or route_decision.get("selected_workflow"),
@@ -247,8 +304,148 @@ def inspect_run(config: RunInspectorConfig) -> dict[str, Any]:
         "warning_count": len(record.get("warnings") if isinstance(record.get("warnings"), list) else []),
         "failure_count": len(record.get("failures") if isinstance(record.get("failures"), list) else []),
         "failures": record.get("failures") if isinstance(record.get("failures"), list) else [],
+        "failure_categories": failure_categories_from_failures(record.get("failures")),
+        "approval": {
+            "status": summary.get("approval_state_status") or approval_state.get("status"),
+            "type": summary.get("approval_type") or approval_state.get("approval_type"),
+            "next_action": summary.get("approval_state_next_action") or approval_state.get("next_action_text"),
+        },
+        "timing": {
+            "started_at": started_at,
+            "updated_at": record.get("updated_at"),
+            "duration_seconds": duration_seconds,
+        },
         "mutation_proof": mutation_proof(record),
         "resume_key": record.get("resume_key") if isinstance(record.get("resume_key"), dict) else {},
+    }
+    return report
+
+
+def count_by(items: list[dict[str, Any]], key_path: tuple[str, ...]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for item in items:
+        value: Any = item
+        for key in key_path:
+            value = value.get(key) if isinstance(value, dict) else None
+        label = str(value if value not in (None, "") else "unknown")
+        counts[label] = counts.get(label, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def compact_observability_run(report: dict[str, Any]) -> dict[str, Any]:
+    route = report.get("route") if isinstance(report.get("route"), dict) else {}
+    downstream = report.get("downstream") if isinstance(report.get("downstream"), dict) else {}
+    approval = report.get("approval") if isinstance(report.get("approval"), dict) else {}
+    timing = report.get("timing") if isinstance(report.get("timing"), dict) else {}
+    artifacts = report.get("artifact_keys") if isinstance(report.get("artifact_keys"), list) else []
+    return {
+        "run_id": report.get("run_id"),
+        "workflow": report.get("workflow"),
+        "status": report.get("status"),
+        "semantic_status": report.get("semantic_status"),
+        "updated_at": report.get("updated_at"),
+        "target_root": report.get("target_root"),
+        "model_router_status": report.get("model_router_status"),
+        "route_status": route.get("status"),
+        "selected_workflow": route.get("selected_workflow"),
+        "next_action": route.get("next_action"),
+        "route_rules": route.get("rules") if isinstance(route.get("rules"), list) else [],
+        "selected_skills": report.get("selected_skills") if isinstance(report.get("selected_skills"), list) else [],
+        "selected_tools": report.get("selected_tools") if isinstance(report.get("selected_tools"), list) else [],
+        "downstream_workflow": downstream.get("workflow"),
+        "downstream_status": downstream.get("status"),
+        "approval_status": approval.get("status"),
+        "approval_type": approval.get("type"),
+        "artifact_count": len(artifacts),
+        "artifact_keys": artifacts[:12],
+        "failure_count": report.get("failure_count"),
+        "failure_categories": report.get("failure_categories") if isinstance(report.get("failure_categories"), list) else [],
+        "warning_count": report.get("warning_count"),
+        "mutation_proof": report.get("mutation_proof") if isinstance(report.get("mutation_proof"), dict) else {},
+        "duration_seconds": timing.get("duration_seconds"),
+    }
+
+
+def filter_value_matches(actual: Any, expected: str | None) -> bool:
+    if expected in (None, ""):
+        return True
+    return str(actual or "") == expected
+
+
+def filter_list_contains(values: Any, expected: str | None) -> bool:
+    if expected in (None, ""):
+        return True
+    if not isinstance(values, list):
+        return False
+    return expected in {str(value) for value in values}
+
+
+def observability_run_matches_filters(run: dict[str, Any], config: RunObservabilityConfig) -> bool:
+    return (
+        filter_list_contains(run.get("route_rules"), config.prompt_family)
+        and filter_list_contains(run.get("selected_skills"), config.skill)
+        and filter_value_matches(run.get("model_router_status"), config.model_status)
+        and filter_value_matches(run.get("target_root"), config.target_root)
+        and filter_value_matches(run.get("route_status"), config.route_status)
+        and filter_value_matches(run.get("semantic_status"), config.semantic_status)
+        and filter_list_contains(run.get("failure_categories"), config.failure_category)
+    )
+
+
+def observe_runs(config: RunObservabilityConfig) -> dict[str, Any]:
+    if config.limit <= 0:
+        raise RuntimeError("limit must be positive")
+    output_root = controller_output_root(
+        RunInspectorConfig(
+            config_root=config.config_root,
+            controller_output_root=config.controller_output_root,
+            workflow=config.workflow,
+        )
+    )
+    records = sorted(controller_run_records(output_root, workflow=config.workflow), key=sort_key_for_record, reverse=True)
+    runs: list[dict[str, Any]] = []
+    for path, record in records:
+        compact_run = compact_observability_run(inspect_run_record(output_root, path, record))
+        if observability_run_matches_filters(compact_run, config):
+            runs.append(compact_run)
+        if len(runs) >= config.limit:
+            break
+    metrics = {
+        "run_count": len(runs),
+        "failure_count": sum(int(item.get("failure_count") or 0) for item in runs),
+        "warning_count": sum(int(item.get("warning_count") or 0) for item in runs),
+        "by_route_status": count_by(runs, ("route_status",)),
+        "by_selected_workflow": count_by(runs, ("selected_workflow",)),
+        "by_semantic_status": count_by(runs, ("semantic_status",)),
+        "by_approval_status": count_by(runs, ("approval_status",)),
+        "by_downstream_status": count_by(runs, ("downstream_status",)),
+    }
+    durations = [item.get("duration_seconds") for item in runs if isinstance(item.get("duration_seconds"), (int, float))]
+    if durations:
+        metrics["duration_seconds"] = {
+            "count": len(durations),
+            "max": max(durations),
+            "min": min(durations),
+            "average": round(sum(durations) / len(durations), 3),
+        }
+    report = {
+        "schema_version": 1,
+        "kind": "controller_run_observability_report",
+        "created_at": utc_timestamp(),
+        "controller_output_root": str(output_root),
+        "workflow": config.workflow,
+        "limit": config.limit,
+        "filters": {
+            "prompt_family": config.prompt_family,
+            "skill": config.skill,
+            "model_status": config.model_status,
+            "target_root": config.target_root,
+            "route_status": config.route_status,
+            "semantic_status": config.semantic_status,
+            "failure_category": config.failure_category,
+        },
+        "metrics": metrics,
+        "runs": runs,
     }
     if config.output_path:
         write_json(config.output_path, report)
@@ -294,4 +491,58 @@ def format_run_inspection(report: dict[str, Any]) -> str:
         lines.append(f"- Mutation proof: {mutation_text}")
     if report.get("report_path"):
         lines.append(f"- Report: {report.get('report_path')}")
+    return "\n".join(lines)
+
+
+def format_run_observability(report: dict[str, Any]) -> str:
+    metrics = report.get("metrics") if isinstance(report.get("metrics"), dict) else {}
+    lines = [
+        "Run Observability Report",
+        f"- Workflow filter: {report.get('workflow')}",
+        f"- Controller output root: {report.get('controller_output_root')}",
+        f"- Run count: {metrics.get('run_count')}",
+        f"- Failures: {metrics.get('failure_count')}",
+        f"- Warnings: {metrics.get('warning_count')}",
+    ]
+    filters = report.get("filters") if isinstance(report.get("filters"), dict) else {}
+    active_filters = {key: value for key, value in filters.items() if value not in (None, "")}
+    if active_filters:
+        rendered_filters = ", ".join(f"{key}={value}" for key, value in sorted(active_filters.items()))
+        lines.append(f"- Filters: {rendered_filters}")
+    for label, key in (
+        ("Route status", "by_route_status"),
+        ("Selected workflow", "by_selected_workflow"),
+        ("Approval status", "by_approval_status"),
+        ("Downstream status", "by_downstream_status"),
+    ):
+        counts = metrics.get(key)
+        if isinstance(counts, dict) and counts:
+            rendered = ", ".join(f"{name}={count}" for name, count in counts.items())
+            lines.append(f"- {label}: {rendered}")
+    duration = metrics.get("duration_seconds")
+    if isinstance(duration, dict) and duration:
+        lines.append(
+            "- Duration seconds: "
+            f"count={duration.get('count')}, avg={duration.get('average')}, max={duration.get('max')}"
+        )
+    lines.append("")
+    lines.append("Recent runs:")
+    runs = report.get("runs") if isinstance(report.get("runs"), list) else []
+    for item in runs:
+        if not isinstance(item, dict):
+            continue
+        skills = item.get("selected_skills") if isinstance(item.get("selected_skills"), list) else []
+        tools = item.get("selected_tools") if isinstance(item.get("selected_tools"), list) else []
+        lines.append(
+            f"- {item.get('run_id')}: route={item.get('selected_workflow')} "
+            f"status={item.get('route_status')} next={item.get('next_action')} "
+            f"model={item.get('model_router_status')} "
+            f"approval={item.get('approval_status')}/{item.get('approval_type')} "
+            f"downstream={item.get('downstream_workflow')}/{item.get('downstream_status')} "
+            f"skills={len(skills)} tools={len(tools)} artifacts={item.get('artifact_count')} "
+            f"failures={item.get('failure_count')} duration={item.get('duration_seconds')}"
+        )
+    if report.get("report_path"):
+        lines.append("")
+        lines.append(f"Report: {report.get('report_path')}")
     return "\n".join(lines)

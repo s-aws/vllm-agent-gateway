@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "kind": "skill_pack_policy",
+  "policy_id": "project-local-skill-packaging",
+  "version": "1.0.0",
+  "owner": "agentic_agents",
+  "status": "active",
+  "description": "Packaging policy for project-local skill packs that can scale beyond hand-managed batches without adding a second runtime path.",
+  "layout": {
+    "manifest_filename": "pack.json",
+    "skill_body_root": "skills",
+    "skill_body_path_template": "skills/{skill_id}/SKILL.md",
+    "docs_root": "docs",
+    "examples_root": "docs/examples",
+    "registry_targets": [
+      "runtime/skills.json",
+      "runtime/skill_evals.json",
+      ".qwen/skills"
+    ]
+  },
+  "manifest_contract": {
+    "kind": "skill_pack_manifest",
+    "required_fields": [
+      "schema_version",
+      "kind",
+      "id",
+      "version",
+      "owner",
+      "description",
+      "namespaces",
+      "compatibility",
+      "docs",
+      "skills",
+      "eval_cases"
+    ],
+    "skill_status_on_import": "draft",
+    "install_workflow": "skill_pack.install",
+    "validation_workflow": "skill_pack.validate"
+  },
+  "namespace_ownership": {
+    "allowed_route_namespaces": [
+      "code",
+      "config",
+      "context",
+      "data",
+      "diagnostics",
+      "docs",
+      "draft",
+      "feedback",
+      "git",
+      "implementation",
+      "planning",
+      "test",
+      "verification"
+    ],
+    "pack_namespaces_must_cover_skill_route_keys": true,
+    "pack_owner_must_match_skill_owner": true,
+    "active_namespace_collision_policy": "reject_when_existing_active_skill_has_different_owner",
+    "strict_namespace_rules": {
+      "draft": {
+        "workflows": [
+          "execution_planning.plan"
+        ],
+        "mutation_policy": "draft_artifacts_only",
+        "approval_boundary": "packet_design_required",
+        "safety_level": "approval_gated_packet_design"
+      },
+      "feedback": {
+        "workflows": [
+          "workflow_feedback.record"
+        ],
+        "mutation_policy": "controller_artifacts_only",
+        "approval_boundary": "feedback_only",
+        "safety_level": "feedback_only"
+      },
+      "implementation": {
+        "workflows": [
+          "execution_planning.plan"
+        ],
+        "mutation_policy": "draft_artifacts_only",
+        "approval_boundary": "packet_design_required",
+        "safety_level": "approval_gated_packet_design"
+      }
+    }
+  },
+  "dependency_policy": {
+    "runtime_dependency_mode": "metadata_and_existing_controller_capabilities_only",
+    "allowed_dependency_types": [
+      "docs",
+      "eval_cases",
+      "skill_bodies",
+      "existing_workflows",
+      "existing_controller_tools",
+      "live_suite_mappings"
+    ],
+    "disallowed_dependency_types": [
+      "new_python_packages",
+      "new_external_services",
+      "new_runtime_tool_ids_without_tool_catalog_approval",
+      "new_workflows_without_roadmap_approval",
+      "model_fine_tuning_requirement"
+    ],
+    "dependency_declaration_required": false,
+    "future_dependency_field": "dependencies"
+  },
+  "versioning": {
+    "semver_required": true,
+    "initial_pack_version": "0.1.0",
+    "version_bump_rules": {
+      "metadata_only": "patch",
+      "skill_body_only": "patch",
+      "eval_case_only": "patch",
+      "new_skill_or_eval_case": "minor",
+      "route_key_or_namespace_change": "major",
+      "workflow_or_tool_dependency_change": "major",
+      "retirement_or_deprecation_metadata": "minor"
+    }
+  },
+  "import_export": {
+    "export_artifact_kind": "skill_pack_manifest",
+    "export_includes_skill_bodies": true,
+    "export_includes_eval_cases": true,
+    "import_validation_command": "python scripts/validate_skill_pack.py --pack-file <pack.json>",
+    "install_requires_approval_status": "approved_for_skill_pack_install",
+    "install_requires_validation_rerun": true,
+    "install_writes_runtime_registries": true,
+    "install_writes_skill_bodies": true,
+    "uninstall_supported": false
+  },
+  "retirement": {
+    "preferred_operation": "skill.deprecate",
+    "deprecated_skill_requires_replacement": true,
+    "replacement_must_exist_and_not_be_deprecated": true,
+    "retired_pack_install_policy": "reject_new_installs",
+    "uninstall_policy": "not_supported_until_explicit_roadmap_phase",
+    "archive_metadata_fields": [
+      "reason",
+      "effective_date",
+      "replaced_by",
+      "replacement_pack"
+    ]
+  },
+  "validation": {
+    "policy_validation_command": "python scripts/validate_skill_packaging_policy.py",
+    "pack_validation_command": "python scripts/validate_skill_pack.py --pack-file <pack.json>",
+    "release_gate_command": "python scripts/validate_skill_release_gate.py --profile release-candidate",
+    "docs": [
+      "README.skill-packaging.md",
+      "README.skill-registry.md",
+      "docs/SKILL_LIBRARY_PACKAGING_STRATEGY.md",
+      "docs/examples/skill-packaging.md"
+    ]
+  }
+}

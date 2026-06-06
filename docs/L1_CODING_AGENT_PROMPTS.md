@@ -4,6 +4,8 @@ This is the review list for simple, common coding-agent prompts that should beco
 
 The broad refactor prompt is intentionally deferred to advanced stages. L1 prompts should be small enough that a first-time tester can tell whether the agent succeeded without reading a long chain of artifacts.
 
+The canonical implementation coverage map is `runtime/prompt_skill_coverage.json`; update it whenever an L1 prompt family changes.
+
 ## Selection Rules
 
 An L1 prompt must:

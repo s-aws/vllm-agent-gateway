@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "kind": "security_policy",
+  "policy_id": "release-candidate-security-policy",
+  "version": "0.1.0",
+  "owner": "agentic_agents",
+  "release_channel": "release-candidate",
+  "description": "Security and policy gate for local tester releases before broader distribution.",
+  "docs": [
+    "README.security-policy.md",
+    "README.external-tester-onboarding.md",
+    "README.release-channels.md",
+    "README.mutation-sandbox.md",
+    "README.controlled-apply.md",
+    "README.workflow-feedback.md"
+  ],
+  "examples": [
+    "docs/examples/security-policy.md",
+    "docs/examples/external-tester-onboarding.md",
+    "docs/examples/mutation-sandbox.md"
+  ],
+  "required_scripts": [
+    "scripts/validate_security_policy.py",
+    "scripts/run_first_time_user_doctor.py",
+    "scripts/validate_release_channels.py",
+    "scripts/validate_external_tester_onboarding.py"
+  ],
+  "secret_handling": {
+    "secret_env_vars": [
+      "ANYTHINGLLM_API_KEY"
+    ],
+    "scan_globs": [
+      "README*.md",
+      "docs/**/*.md",
+      "runtime/**/*.json",
+      "scripts/**/*.py",
+      "vllm_agent_gateway/**/*.py",
+      "runtime-state/**/*.json",
+      "runtime-state/**/*.md",
+      "runtime-state/**/*.txt"
+    ],
+    "max_file_bytes": 4194304
+  },
+  "filesystem_boundaries": {
+    "allowed_target_roots": [
+      "/mnt/c/agentic_agents",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    ],
+    "forbidden_root_values": [
+      "/",
+      "/mnt",
+      "/mnt/c",
+      "C:/",
+      "C:\\\\"
+    ],
+    "fixture_manifest": "runtime/fixtures.json",
+    "protected_fixture_sources_must_be_disposable_only": true
+  },
+  "command_policy": {
+    "scan_globs": [
+      "scripts/**/*.py",
+      "vllm_agent_gateway/**/*.py",
+      "*.sh"
+    ],
+    "forbidden_fragments": [
+      "git reset --hard",
+      "rm -rf /",
+      "Remove-Item -Recurse",
+      "del /s /q"
+    ]
+  },
+  "prompt_policy": {
+    "onboarding_pack": "runtime/external_tester_onboarding.json",
+    "suspicious_output_terms": [
+      "show anythingllm_api_key",
+      "print anythingllm_api_key",
+      "dump env",
+      "dump environment",
+      "show secret value",
+      "print secret value",
+      "reveal secret",
+      "exfiltrate"
+    ],
+    "deferred_first_test_terms": [
+      "refactor",
+      "packet_operations",
+      "implementation prep",
+      "apply to source",
+      "mutate source"
+    ]
+  },
+  "tester_actions": {
+    "allowed": [
+      "run first-time user doctor",
+      "validate release channels",
+      "run external tester onboarding prompt",
+      "record workflow feedback",
+      "inspect generated artifacts"
+    ],
+    "disallowed": [
+      "paste or request real secret values",
+      "change protected frozen fixture source files",
+      "run broad refactor prompts during onboarding",
+      "approve repository mutation without disposable-copy proof",
+      "point AnythingLLM at the controller service port 8400"
+    ]
+  }
+}

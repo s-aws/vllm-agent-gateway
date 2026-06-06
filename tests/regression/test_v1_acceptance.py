@@ -11,6 +11,7 @@ from vllm_agent_gateway.acceptance.v1 import (
     skill_library_health_from_suites,
     suite_commands,
 )
+from vllm_agent_gateway.acceptance.profiles import ReleaseGateProfile
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -33,6 +34,7 @@ def test_v1_acceptance_suite_commands_cover_required_representative_cases() -> N
         "task_decomposition",
         "controlled_apply",
         "inline_format_a",
+        "external_tester_onboarding",
         "founder_field_prompts",
         "skill_library_release_gate",
     }
@@ -42,6 +44,10 @@ def test_v1_acceptance_suite_commands_cover_required_representative_cases() -> N
     assert "validate_task_decomposition_live.py" in " ".join(by_id["task_decomposition"])
     assert "validate_controlled_small_change_apply_live.py" in " ".join(by_id["controlled_apply"])
     assert "validate_workflow_router_inline_answers.py" in " ".join(by_id["inline_format_a"])
+    assert "validate_external_tester_onboarding.py" in " ".join(by_id["external_tester_onboarding"])
+    assert "--live-anythingllm" in by_id["external_tester_onboarding"]
+    assert "--include-feedback" in by_id["external_tester_onboarding"]
+    assert "ONB-001" in by_id["external_tester_onboarding"]
     assert "run_founder_field_prompt_eval.py" in " ".join(by_id["founder_field_prompts"])
     assert "validate_skill_release_gate.py" in " ".join(by_id["skill_library_release_gate"])
     assert "--profile" in by_id["skill_library_release_gate"]
@@ -50,6 +56,46 @@ def test_v1_acceptance_suite_commands_cover_required_representative_cases() -> N
     assert by_id["representative_l1"].count("--target-root") == 2
     assert by_id["task_decomposition"].count("--target-root") == 2
     assert by_id["controlled_apply"].count("--target-root") == 2
+    assert by_id["skill_library_release_gate"].count("--target-root") == 2
+
+
+def test_v1_1_acceptance_suite_commands_cover_consolidated_release_gate() -> None:
+    commands = suite_commands(
+        V1AcceptanceConfig(
+            config_root=REPO_ROOT,
+            target_roots=("/mnt/c/coinbase_testing_repo_frozen_tmp", "/mnt/c/coinbase_testing_repo_frozen_tmp.github"),
+            python_executable="python3",
+            profile=ReleaseGateProfile.V1_1_RELEASE_CANDIDATE,
+        )
+    )
+
+    by_id = {item["id"]: item["command"] for item in commands}
+
+    assert set(by_id) == {
+        "first_time_user_doctor",
+        "docs_index",
+        "release_channels",
+        "representative_l1",
+        "representative_l2",
+        "task_decomposition",
+        "controlled_apply",
+        "inline_format_a",
+        "external_tester_onboarding",
+        "founder_field_prompts",
+        "skill_library_release_gate",
+        "security_policy",
+        "run_observability",
+    }
+    assert "run_first_time_user_doctor.py" in " ".join(by_id["first_time_user_doctor"])
+    assert "check_docs_index.py" in " ".join(by_id["docs_index"])
+    assert "validate_release_channels.py" in " ".join(by_id["release_channels"])
+    assert "validate_security_policy.py" in " ".join(by_id["security_policy"])
+    assert "report_run_observability.py" in " ".join(by_id["run_observability"])
+    assert "--format" in by_id["run_observability"]
+    assert "json" in by_id["run_observability"]
+    assert "--profile" in by_id["skill_library_release_gate"]
+    assert "v1.1-release-candidate" in by_id["skill_library_release_gate"]
+    assert by_id["first_time_user_doctor"].count("--target-root") == 2
     assert by_id["skill_library_release_gate"].count("--target-root") == 2
 
 

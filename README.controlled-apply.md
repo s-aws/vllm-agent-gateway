@@ -95,7 +95,10 @@ Workflow-router disposable apply artifacts include:
 - `route-decision.json`
 - `downstream-result.json`
 - downstream `implementation_report`
+- `disposable-mutation-sandbox-contract.json`
+- `disposable-mutation-diff.json`
 - `disposable-rollback-proof.json`
+- `disposable-mutation-proof.json`
 
 Key proof fields:
 
@@ -105,6 +108,8 @@ Key proof fields:
 - `rollback_operation`
 - `source_changed`
 - `copy_changed`
+- `sandbox_contract.status`
+- `structured_diff.changed_file_count`
 - `rollback.status`
 
 ## Validation
@@ -129,6 +134,7 @@ python3 scripts/validate_controlled_small_change_apply_live.py \
 ## References
 
 - Examples: [docs/examples/controlled-apply.md](docs/examples/controlled-apply.md)
+- Mutation sandbox proof: [README.mutation-sandbox.md](README.mutation-sandbox.md)
 - Workflow router: [README.workflow-router.md](README.workflow-router.md)
 - Implementation workflow: [README.implementation-workflow.md](README.implementation-workflow.md)
 - Roadmap: [docs/ACTIONABLE_WORKFLOW_ROADMAP.md](docs/ACTIONABLE_WORKFLOW_ROADMAP.md)

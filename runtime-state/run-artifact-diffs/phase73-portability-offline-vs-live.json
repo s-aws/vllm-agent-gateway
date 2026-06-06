@@ -1,0 +1,679 @@
+{
+  "created_at": "20260606T132206260345Z",
+  "diff": {
+    "artifact_count": {
+      "delta": 0,
+      "left": 30,
+      "right": 30
+    },
+    "candidate_changed": {
+      "changed": true,
+      "left": "offline-phase71-baseline",
+      "right": "localhost-8000-current"
+    },
+    "case_status_changes": {
+      "changed": [],
+      "changed_count": 0
+    },
+    "classification_summary_delta": {},
+    "fixture_state_changes": [],
+    "health_status_changes": {
+      "changed": [],
+      "changed_count": 0
+    },
+    "left_status": "passed",
+    "output_miss_changes": {
+      "added": [],
+      "removed": [],
+      "unchanged_count": 0
+    },
+    "right_status": "passed",
+    "route_rule_changes": {
+      "changed": [],
+      "changed_count": 0
+    },
+    "selected_skill_changes": {
+      "added": [],
+      "removed": [],
+      "unchanged_count": 4
+    },
+    "semantic_miss_changes": {
+      "added": [],
+      "removed": [],
+      "unchanged_count": 0
+    },
+    "status_changed": false,
+    "suite_status_changes": {
+      "changed": [],
+      "changed_count": 0
+    },
+    "workflow_changes": {
+      "changed": [],
+      "changed_count": 0
+    }
+  },
+  "errors": [],
+  "kind": "run_artifact_diff",
+  "left": {
+    "label": "phase72-offline",
+    "report_path": "C:\\agentic_agents\\runtime-state\\model-portability\\phase72-offline-baseline.json",
+    "summary": {
+      "acceptance_report": {
+        "error_count": 0,
+        "founder_field_summary": {
+          "errors": [],
+          "prompt_count": 34,
+          "report_path": "/mnt/c/agentic_agents/runtime-state/founder-field-tests/founder-field-prompts-20260606T114459727498Z.json",
+          "status": "passed",
+          "summary": {
+            "failed": 0,
+            "passed": 34
+          }
+        },
+        "kind": "v1_acceptance_report",
+        "profile": "release-candidate",
+        "report_path": "/mnt/c/agentic_agents/runtime-state/v1-acceptance/phase71-v1-acceptance.json",
+        "skill_library_health": {
+          "batch_d_live_report": "/mnt/c/agentic_agents/runtime-state/skill-batches/phase63-batch-d-live-20260606T120159592851Z.json",
+          "catalog_summary": {
+            "eval_case_count": 49,
+            "eval_status_counts": {
+              "validated": 50
+            },
+            "route_key_count": 50,
+            "route_namespace_counts": {
+              "code": 18,
+              "config": 2,
+              "context": 3,
+              "data": 1,
+              "diagnostics": 2,
+              "docs": 3,
+              "draft": 3,
+              "feedback": 1,
+              "git": 1,
+              "implementation": 1,
+              "planning": 7,
+              "test": 5,
+              "verification": 3
+            },
+            "skill_count": 50,
+            "workflow_count": 21,
+            "workflow_ids": [
+              "code_context.lookup",
+              "code_investigation.plan",
+              "documenter.review",
+              "execution_planning.plan",
+              "implementation.workflow",
+              "refactor.single_path",
+              "skill.deprecate",
+              "skill.scaffold",
+              "skill.selection.explain",
+              "skill.update",
+              "skill_batch.propose",
+              "skill_batch.register",
+              "skill_eval.promote",
+              "skill_lifecycle.audit",
+              "skill_pack.install",
+              "skill_pack.validate",
+              "task.decompose",
+              "tool_catalog.register",
+              "tool_catalog.validate",
+              "workflow_feedback.record",
+              "workflow_router.plan"
+            ]
+          },
+          "errors": [],
+          "generated_reports": {
+            "batch_d_live_report": "/mnt/c/agentic_agents/runtime-state/skill-batches/phase63-batch-d-live-20260606T120159592851Z.json",
+            "docs_index_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T115138436630Z/docs-index.json",
+            "prompt_catalog_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T115138436630Z/prompt-catalog.json",
+            "prompt_matrix_markdown_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T115138436630Z/prompt-matrix.md",
+            "prompt_matrix_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T115138436630Z/prompt-matrix.json",
+            "selector_scale_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T115138436630Z/selector-scale.json",
+            "skill_eval_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T115138436630Z/skill-evals.json",
+            "skill_scale_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T115138436630Z/skill-scale.json"
+          },
+          "live_suite_statuses": {
+            "focused_skill_controller_regression": "passed",
+            "phase50_skill_batch_live_guard": "passed",
+            "phase63_batch_d_live_guard": "passed",
+            "skill_lifecycle_live_guard": "passed",
+            "skill_mutation_fault_injection": "passed",
+            "skill_natural_lifecycle_live_guard": "passed",
+            "skill_registry_eval_selector_regression": "passed"
+          },
+          "profile": "release-candidate",
+          "profile_contract": {
+            "description": "Mutation profile plus all live guards through AnythingLLM.",
+            "final_gate": true,
+            "includes_anythingllm": true,
+            "includes_mutation": true,
+            "includes_static": true,
+            "live_guard_level": "full",
+            "profile": "release-candidate"
+          },
+          "prompt_catalog_summary": {
+            "field_prompt_count": 34,
+            "prompt_catalog_case_count": 34,
+            "prompt_catalog_refined_prompt_count": 16,
+            "prompt_matrix_case_count": 50,
+            "prompt_matrix_failed": 0,
+            "prompt_matrix_passed": 50
+          },
+          "report_path": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T115138436630Z/skill-release-gate.json",
+          "status": "passed"
+        },
+        "status": "passed",
+        "suite_count": 7,
+        "target_roots": [
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ]
+      },
+      "artifact_count": 30,
+      "candidate_id": "offline-phase71-baseline",
+      "candidate_model_base_url": "http://127.0.0.1:8000/v1",
+      "candidate_model_ids": null,
+      "classification_summary": {
+        "classifier": 0,
+        "harness": 0,
+        "model_quality": 0,
+        "prompt": 0,
+        "unknown": 0
+      },
+      "classified_failure_count": 0,
+      "created_at": "20260606T124256511945Z",
+      "kind": "model_portability_report",
+      "nested_acceptance": {
+        "artifact_count": 30,
+        "created_at": "20260606T114015200355Z",
+        "error_count": 0,
+        "eval_case_count": 49,
+        "feedback_count": 2,
+        "fixture_signatures": {
+          "/mnt/c/coinbase_testing_repo_frozen_tmp": {
+            "git_clean": null,
+            "hash_count": 4,
+            "sha256": "2424232a7dbefa033fecebdf5b32cc8caef93b2948fbfed53c068cc729ee6030"
+          },
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github": {
+            "git_clean": false,
+            "hash_count": 4,
+            "sha256": "260bc3daa9a2647ab80ed060c432019bb4a227fd8fc35027b39ab0f95cd9e904"
+          }
+        },
+        "founder_field_report": {
+          "artifact_count": 34,
+          "case_count": 34,
+          "case_route_rules": {},
+          "case_statuses": {
+            "P01": "passed",
+            "P02": "passed",
+            "P03": "passed",
+            "P04": "passed",
+            "P05": "passed",
+            "P06": "passed",
+            "P07": "passed",
+            "P08": "passed",
+            "P09": "passed",
+            "P10": "passed",
+            "P11": "passed",
+            "P12": "passed",
+            "P13": "passed",
+            "P14": "passed",
+            "P15": "passed",
+            "P16": "passed",
+            "P17": "passed",
+            "P18": "passed",
+            "P19": "passed",
+            "P20": "passed",
+            "P21": "passed",
+            "P22": "passed",
+            "P23": "passed",
+            "P24": "passed",
+            "P25": "passed",
+            "P26": "passed",
+            "P27": "passed",
+            "P28": "passed",
+            "P29": "passed",
+            "P30": "passed",
+            "P31": "passed",
+            "P32": "passed",
+            "P33": "passed",
+            "P34": "passed"
+          },
+          "case_workflows": {
+            "P01": "code_investigation.plan",
+            "P02": "code_investigation.plan",
+            "P03": "code_investigation.plan",
+            "P04": "code_investigation.plan",
+            "P05": "code_context.lookup",
+            "P06": "code_investigation.plan",
+            "P07": "code_investigation.plan",
+            "P08": "code_investigation.plan",
+            "P09": "code_investigation.plan",
+            "P10": "code_investigation.plan",
+            "P11": "code_investigation.plan",
+            "P12": "code_context.lookup",
+            "P13": "code_investigation.plan",
+            "P14": "code_investigation.plan",
+            "P15": "code_investigation.plan",
+            "P16": "code_investigation.plan",
+            "P17": "code_investigation.plan",
+            "P18": "code_investigation.plan",
+            "P19": "code_investigation.plan",
+            "P20": "code_investigation.plan",
+            "P21": "code_investigation.plan",
+            "P22": "task.decompose",
+            "P23": "execution_planning.plan",
+            "P24": "execution_planning.plan",
+            "P25": "execution_planning.plan",
+            "P26": "execution_planning.plan",
+            "P27": "code_investigation.plan",
+            "P28": "code_investigation.plan",
+            "P29": "code_investigation.plan",
+            "P30": "code_investigation.plan",
+            "P31": "code_investigation.plan",
+            "P32": "code_investigation.plan",
+            "P33": "code_investigation.plan",
+            "P34": "code_investigation.plan"
+          },
+          "created_at": "20260606T114459727537Z",
+          "expected_artifacts": [
+            "downstream_change_surface_summary",
+            "downstream_cli_entrypoint_lookup",
+            "downstream_data_model_lookup",
+            "downstream_request_flow_map"
+          ],
+          "failed_count": 0,
+          "fixture_signatures": {
+            "after": {
+              "git_clean": null,
+              "hash_count": null,
+              "sha256": "0784fb560cf36ce1f8b732d07f395eece0aa4ba77230f6fde7c61602ca350def"
+            },
+            "before": {
+              "git_clean": null,
+              "hash_count": null,
+              "sha256": "0784fb560cf36ce1f8b732d07f395eece0aa4ba77230f6fde7c61602ca350def"
+            }
+          },
+          "kind": "founder_field_prompt_evaluation",
+          "output_miss_cases": [],
+          "passed_count": 34,
+          "report_path": "C:\\agentic_agents\\runtime-state\\founder-field-tests\\founder-field-prompts-20260606T114459727498Z.json",
+          "selected_skills": [
+            "change-boundary-summarizer",
+            "handler-branch-tracer",
+            "runtime-entrypoint-disambiguator",
+            "table-schema-isolator"
+          ],
+          "semantic_miss_cases": [],
+          "status": "passed"
+        },
+        "founder_field_summary": {
+          "errors": [],
+          "prompt_count": 34,
+          "report_path": "/mnt/c/agentic_agents/runtime-state/founder-field-tests/founder-field-prompts-20260606T114459727498Z.json",
+          "status": "passed",
+          "summary": {
+            "failed": 0,
+            "passed": 34
+          }
+        },
+        "generated_report_count": 8,
+        "health_statuses": {
+          "architect_default": "passed:200",
+          "controller": "passed:200",
+          "dispatcher_default": "passed:200",
+          "documenter_default": "passed:200",
+          "implementer_default": "passed:200",
+          "llm_gateway": "passed:200",
+          "model": "passed:200",
+          "researcher_default": "passed:200",
+          "reviewer_code": "passed:200",
+          "tester_code": "passed:200",
+          "workflow_router_gateway": "passed:200"
+        },
+        "json_output_count": 2,
+        "kind": "v1_acceptance_report",
+        "profile": "release-candidate",
+        "prompt_matrix_failed": 0,
+        "report_path": "C:\\agentic_agents\\runtime-state\\v1-acceptance\\phase71-v1-acceptance.json",
+        "route_key_count": 50,
+        "skill_count": 50,
+        "skill_library_status": "passed",
+        "status": "passed",
+        "suite_statuses": {
+          "controlled_apply": "passed",
+          "founder_field_prompts": "passed",
+          "inline_format_a": "passed",
+          "representative_l1": "passed",
+          "representative_l2": "passed",
+          "skill_library_release_gate": "passed",
+          "task_decomposition": "passed"
+        },
+        "target_roots": [
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ]
+      },
+      "status": "passed"
+    }
+  },
+  "recommendations": [
+    "No material route, semantic, suite, classification, or fixture diff was detected."
+  ],
+  "report_path": "C:\\agentic_agents\\runtime-state\\run-artifact-diffs\\phase73-portability-offline-vs-live.json",
+  "right": {
+    "label": "phase72-live",
+    "report_path": "C:\\agentic_agents\\runtime-state\\model-portability\\phase72-live-current.json",
+    "summary": {
+      "acceptance_report": {
+        "error_count": 0,
+        "founder_field_summary": {
+          "errors": [],
+          "prompt_count": 34,
+          "report_path": "/mnt/c/agentic_agents/runtime-state/founder-field-tests/founder-field-prompts-20260606T125217135534Z.json",
+          "status": "passed",
+          "summary": {
+            "failed": 0,
+            "passed": 34
+          }
+        },
+        "kind": "v1_acceptance_report",
+        "profile": "release-candidate",
+        "report_path": "/mnt/c/agentic_agents/runtime-state/v1-acceptance/phase72-model-portability-v1.json",
+        "skill_library_health": {
+          "batch_d_live_report": "/mnt/c/agentic_agents/runtime-state/skill-batches/phase63-batch-d-live-20260606T131041218946Z.json",
+          "catalog_summary": {
+            "eval_case_count": 49,
+            "eval_status_counts": {
+              "validated": 50
+            },
+            "route_key_count": 50,
+            "route_namespace_counts": {
+              "code": 18,
+              "config": 2,
+              "context": 3,
+              "data": 1,
+              "diagnostics": 2,
+              "docs": 3,
+              "draft": 3,
+              "feedback": 1,
+              "git": 1,
+              "implementation": 1,
+              "planning": 7,
+              "test": 5,
+              "verification": 3
+            },
+            "skill_count": 50,
+            "workflow_count": 21,
+            "workflow_ids": [
+              "code_context.lookup",
+              "code_investigation.plan",
+              "documenter.review",
+              "execution_planning.plan",
+              "implementation.workflow",
+              "refactor.single_path",
+              "skill.deprecate",
+              "skill.scaffold",
+              "skill.selection.explain",
+              "skill.update",
+              "skill_batch.propose",
+              "skill_batch.register",
+              "skill_eval.promote",
+              "skill_lifecycle.audit",
+              "skill_pack.install",
+              "skill_pack.validate",
+              "task.decompose",
+              "tool_catalog.register",
+              "tool_catalog.validate",
+              "workflow_feedback.record",
+              "workflow_router.plan"
+            ]
+          },
+          "errors": [],
+          "generated_reports": {
+            "batch_d_live_report": "/mnt/c/agentic_agents/runtime-state/skill-batches/phase63-batch-d-live-20260606T131041218946Z.json",
+            "docs_index_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T130013073803Z/docs-index.json",
+            "prompt_catalog_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T130013073803Z/prompt-catalog.json",
+            "prompt_matrix_markdown_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T130013073803Z/prompt-matrix.md",
+            "prompt_matrix_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T130013073803Z/prompt-matrix.json",
+            "selector_scale_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T130013073803Z/selector-scale.json",
+            "skill_eval_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T130013073803Z/skill-evals.json",
+            "skill_scale_report": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T130013073803Z/skill-scale.json"
+          },
+          "live_suite_statuses": {
+            "focused_skill_controller_regression": "passed",
+            "phase50_skill_batch_live_guard": "passed",
+            "phase63_batch_d_live_guard": "passed",
+            "skill_lifecycle_live_guard": "passed",
+            "skill_mutation_fault_injection": "passed",
+            "skill_natural_lifecycle_live_guard": "passed",
+            "skill_registry_eval_selector_regression": "passed"
+          },
+          "profile": "release-candidate",
+          "profile_contract": {
+            "description": "Mutation profile plus all live guards through AnythingLLM.",
+            "final_gate": true,
+            "includes_anythingllm": true,
+            "includes_mutation": true,
+            "includes_static": true,
+            "live_guard_level": "full",
+            "profile": "release-candidate"
+          },
+          "prompt_catalog_summary": {
+            "field_prompt_count": 34,
+            "prompt_catalog_case_count": 34,
+            "prompt_catalog_refined_prompt_count": 16,
+            "prompt_matrix_case_count": 50,
+            "prompt_matrix_failed": 0,
+            "prompt_matrix_passed": 50
+          },
+          "report_path": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T130013073803Z/skill-release-gate.json",
+          "status": "passed"
+        },
+        "status": "passed",
+        "suite_count": 7,
+        "target_roots": [
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ]
+      },
+      "artifact_count": 30,
+      "candidate_id": "localhost-8000-current",
+      "candidate_model_base_url": "http://127.0.0.1:8000/v1",
+      "candidate_model_ids": [
+        "Qwen3-Coder-30B-A3B-Instruct"
+      ],
+      "classification_summary": {
+        "classifier": 0,
+        "harness": 0,
+        "model_quality": 0,
+        "prompt": 0,
+        "unknown": 0
+      },
+      "classified_failure_count": 0,
+      "created_at": "20260606T124629864684Z",
+      "kind": "model_portability_report",
+      "nested_acceptance": {
+        "artifact_count": 30,
+        "created_at": "20260606T124629882617Z",
+        "error_count": 0,
+        "eval_case_count": 49,
+        "feedback_count": 2,
+        "fixture_signatures": {
+          "/mnt/c/coinbase_testing_repo_frozen_tmp": {
+            "git_clean": null,
+            "hash_count": 4,
+            "sha256": "2424232a7dbefa033fecebdf5b32cc8caef93b2948fbfed53c068cc729ee6030"
+          },
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github": {
+            "git_clean": false,
+            "hash_count": 4,
+            "sha256": "260bc3daa9a2647ab80ed060c432019bb4a227fd8fc35027b39ab0f95cd9e904"
+          }
+        },
+        "founder_field_report": {
+          "artifact_count": 34,
+          "case_count": 34,
+          "case_route_rules": {},
+          "case_statuses": {
+            "P01": "passed",
+            "P02": "passed",
+            "P03": "passed",
+            "P04": "passed",
+            "P05": "passed",
+            "P06": "passed",
+            "P07": "passed",
+            "P08": "passed",
+            "P09": "passed",
+            "P10": "passed",
+            "P11": "passed",
+            "P12": "passed",
+            "P13": "passed",
+            "P14": "passed",
+            "P15": "passed",
+            "P16": "passed",
+            "P17": "passed",
+            "P18": "passed",
+            "P19": "passed",
+            "P20": "passed",
+            "P21": "passed",
+            "P22": "passed",
+            "P23": "passed",
+            "P24": "passed",
+            "P25": "passed",
+            "P26": "passed",
+            "P27": "passed",
+            "P28": "passed",
+            "P29": "passed",
+            "P30": "passed",
+            "P31": "passed",
+            "P32": "passed",
+            "P33": "passed",
+            "P34": "passed"
+          },
+          "case_workflows": {
+            "P01": "code_investigation.plan",
+            "P02": "code_investigation.plan",
+            "P03": "code_investigation.plan",
+            "P04": "code_investigation.plan",
+            "P05": "code_context.lookup",
+            "P06": "code_investigation.plan",
+            "P07": "code_investigation.plan",
+            "P08": "code_investigation.plan",
+            "P09": "code_investigation.plan",
+            "P10": "code_investigation.plan",
+            "P11": "code_investigation.plan",
+            "P12": "code_context.lookup",
+            "P13": "code_investigation.plan",
+            "P14": "code_investigation.plan",
+            "P15": "code_investigation.plan",
+            "P16": "code_investigation.plan",
+            "P17": "code_investigation.plan",
+            "P18": "code_investigation.plan",
+            "P19": "code_investigation.plan",
+            "P20": "code_investigation.plan",
+            "P21": "code_investigation.plan",
+            "P22": "task.decompose",
+            "P23": "execution_planning.plan",
+            "P24": "execution_planning.plan",
+            "P25": "execution_planning.plan",
+            "P26": "execution_planning.plan",
+            "P27": "code_investigation.plan",
+            "P28": "code_investigation.plan",
+            "P29": "code_investigation.plan",
+            "P30": "code_investigation.plan",
+            "P31": "code_investigation.plan",
+            "P32": "code_investigation.plan",
+            "P33": "code_investigation.plan",
+            "P34": "code_investigation.plan"
+          },
+          "created_at": "20260606T125217135569Z",
+          "expected_artifacts": [
+            "downstream_change_surface_summary",
+            "downstream_cli_entrypoint_lookup",
+            "downstream_data_model_lookup",
+            "downstream_request_flow_map"
+          ],
+          "failed_count": 0,
+          "fixture_signatures": {
+            "after": {
+              "git_clean": null,
+              "hash_count": null,
+              "sha256": "0784fb560cf36ce1f8b732d07f395eece0aa4ba77230f6fde7c61602ca350def"
+            },
+            "before": {
+              "git_clean": null,
+              "hash_count": null,
+              "sha256": "0784fb560cf36ce1f8b732d07f395eece0aa4ba77230f6fde7c61602ca350def"
+            }
+          },
+          "kind": "founder_field_prompt_evaluation",
+          "output_miss_cases": [],
+          "passed_count": 34,
+          "report_path": "C:\\agentic_agents\\runtime-state\\founder-field-tests\\founder-field-prompts-20260606T125217135534Z.json",
+          "selected_skills": [
+            "change-boundary-summarizer",
+            "handler-branch-tracer",
+            "runtime-entrypoint-disambiguator",
+            "table-schema-isolator"
+          ],
+          "semantic_miss_cases": [],
+          "status": "passed"
+        },
+        "founder_field_summary": {
+          "errors": [],
+          "prompt_count": 34,
+          "report_path": "/mnt/c/agentic_agents/runtime-state/founder-field-tests/founder-field-prompts-20260606T125217135534Z.json",
+          "status": "passed",
+          "summary": {
+            "failed": 0,
+            "passed": 34
+          }
+        },
+        "generated_report_count": 8,
+        "health_statuses": {
+          "architect_default": "passed:200",
+          "controller": "passed:200",
+          "dispatcher_default": "passed:200",
+          "documenter_default": "passed:200",
+          "implementer_default": "passed:200",
+          "llm_gateway": "passed:200",
+          "model": "passed:200",
+          "researcher_default": "passed:200",
+          "reviewer_code": "passed:200",
+          "tester_code": "passed:200",
+          "workflow_router_gateway": "passed:200"
+        },
+        "json_output_count": 2,
+        "kind": "v1_acceptance_report",
+        "profile": "release-candidate",
+        "prompt_matrix_failed": 0,
+        "report_path": "C:\\agentic_agents\\runtime-state\\v1-acceptance\\phase72-model-portability-v1.json",
+        "route_key_count": 50,
+        "skill_count": 50,
+        "skill_library_status": "passed",
+        "status": "passed",
+        "suite_statuses": {
+          "controlled_apply": "passed",
+          "founder_field_prompts": "passed",
+          "inline_format_a": "passed",
+          "representative_l1": "passed",
+          "representative_l2": "passed",
+          "skill_library_release_gate": "passed",
+          "task_decomposition": "passed"
+        },
+        "target_roots": [
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ]
+      },
+      "status": "passed"
+    }
+  },
+  "schema_version": 1,
+  "status": "passed"
+}

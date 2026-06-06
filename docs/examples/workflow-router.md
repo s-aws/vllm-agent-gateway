@@ -27,10 +27,26 @@ Expected summary includes:
   "route_status": "ready",
   "selected_workflow": "refactor.single_path",
   "downstream_workflow": "refactor.single_path",
+  "next_action": "request_approval",
+  "approval_state_status": "waiting_for_approval",
+  "approval_type": "packet_design",
   "target_repo_read": true,
   "verification_command_count": 1
 }
 ```
+
+Expected chat-visible approval markers:
+
+- `Approval:`
+- `State: waiting_for_approval`
+- `Type: packet_design`
+
+Expected chat-visible skill-selection markers:
+
+- `Skill Selection:`
+- `Why: Selected refactor.single_path`
+- `single_path_refactor_terms`
+- `route_decision.evidence`
 
 AnythingLLM natural workflow testing should use this base URL:
 
@@ -49,6 +65,14 @@ Expected `Result:` markers:
 - `Selected tools:`
 - `Next action:`
 - `Verification:`
+
+Expected `Skill Selection:` markers:
+
+- `Why:`
+- `Route rules:`
+- `Skills:`
+- `Tools:`
+- `Grounded in: route_decision.evidence`
 
 For example, an L1 explain-code prompt should return key inputs, outputs, side effects, related tests, and source refs directly in `choices[0].message.content`; the JSON artifact path is still listed afterward for full inspection.
 
@@ -77,7 +101,7 @@ Or use OpenAI-compatible response format:
 }
 ```
 
-The same selector also accepts natural text such as `Return JSON`. JSON content includes `chat_contract`, which is the structured equivalent of the `Result:` block.
+The same selector also accepts natural text such as `Return JSON`. JSON content includes `chat_contract`, which is the structured equivalent of the `Result:` block, plus `selection_explanation` with route rules, selected skill route keys, selected tools, and grounding markers.
 
 ## Natural L1 Simple Fix Draft
 
@@ -163,9 +187,19 @@ Expected summary when exact operations are present:
   "route_status": "ready",
   "selected_workflow": "execution_planning.plan",
   "downstream_workflow": "execution_planning.plan",
-  "downstream_status": "completed"
+  "downstream_status": "completed",
+  "approval_state_status": "finished",
+  "approval_type": "packet_design"
 }
 ```
+
+Expected chat-visible continuation markers:
+
+- `Approval:`
+- `State: finished`
+- `Type: packet_design`
+
+Duplicate approval messages for the same source run fail closed with `approval_already_consumed`. Denied approvals fail with `approval_denied`, expired approvals fail with `approval_expired`, and approvals for runs that are not waiting for packet design fail with `approval_not_pending`.
 
 Generated proposal continuation:
 

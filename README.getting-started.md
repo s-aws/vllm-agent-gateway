@@ -47,6 +47,60 @@ Quick health check from PowerShell:
 bash -lc 'for u in http://127.0.0.1:8000/v1/models http://127.0.0.1:8300/v1/models http://127.0.0.1:8500/v1/models http://127.0.0.1:8400/health; do curl -fsS --max-time 20 "$u" >/dev/null && echo "$u ok"; done'
 ```
 
+Run the setup doctor from Bash before opening AnythingLLM:
+
+```bash
+cd /mnt/c/agentic_agents
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/run_first_time_user_doctor.py
+```
+
+Expected markers:
+
+```text
+FIRST TIME USER DOCTOR REPORT ...
+FIRST TIME USER DOCTOR SUMMARY ...
+FIRST TIME USER DOCTOR PASS
+```
+
+If it fails, fix the listed `failed_check_ids` before running prompt tests. See [README.first-time-user-doctor.md](README.first-time-user-doctor.md).
+
+Validate the release-channel contract before first prompt testing:
+
+```bash
+python3 scripts/validate_release_channels.py \
+  --output-path runtime-state/release-channels/getting-started.json
+```
+
+Expected markers:
+
+```text
+RELEASE CHANNEL REPORT ...
+RELEASE CHANNEL SUMMARY ...
+RELEASE CHANNEL PASS
+```
+
+Use the `release-candidate` channel for current tester work. The `stable` channel remains blocked until a passed release-candidate V1 acceptance report is supplied to the release-channel validator. See [README.release-channels.md](README.release-channels.md).
+
+Run the security policy gate before sharing tester prompts:
+
+```bash
+python3 scripts/validate_security_policy.py \
+  --output-path runtime-state/security-policy/getting-started.json
+```
+
+Expected markers:
+
+```text
+SECURITY POLICY REPORT ...
+SECURITY POLICY SUMMARY ...
+SECURITY POLICY PASS
+```
+
+See [README.security-policy.md](README.security-policy.md).
+
+After this setup path passes, use [README.external-tester-onboarding.md](README.external-tester-onboarding.md) for the contextless first-test prompt set and feedback capture templates.
+
 ## 2. Point AnythingLLM At The Workflow Router
 
 For natural workflow testing, AnythingLLM must use:
@@ -93,6 +147,10 @@ Expected response markers:
 - `Selected tools:`
 - `Next action:`
 - `Verification:`
+- `Skill Selection:`
+- `Why:`
+- `Route rules:`
+- `Grounded in: route_decision.evidence`
 - `selected_workflow`
 - `code_investigation.plan`
 - `verification_command_count`
@@ -123,6 +181,39 @@ This serves the extracted AnythingLLM Desktop UI bundle, drives it with Playwrig
 
 The default visible response format is `format_a`: deterministic human-readable text with a natural completion sentence, a `Result:` block, summary fields, bounded inline `Answer:` content for supported L1 artifacts, and artifact links. The structured `agentic_controller_response` is still returned for API clients.
 
+Optional approval UX check:
+
+```text
+In /mnt/c/coinbase_testing_repo_frozen_tmp.github, refactor the placed_order_id stealth lookup so there is only one code path. Start from the logic beginning point, investigate first, create an implementation plan, wait for approval before implementation prep, and provide verification commands.
+```
+
+Expected initial response markers:
+
+- `workflow_router.plan completed`
+- `Selected workflow: refactor.single_path`
+- `Next action: request_approval`
+- `Approval:`
+- `State: waiting_for_approval`
+- `Type: packet_design`
+- `run_id: workflow-router-...`
+
+Only continue if you intend to approve draft-only implementation prep. The approval message must name the returned run ID:
+
+```text
+Approve packet design for run workflow-router-YYYYMMDDTHHMMSSffffffZ. Proceed with implementation prep.
+```
+
+Expected continuation markers:
+
+- `workflow_router.plan completed`
+- `execution_planning.plan`
+- `Approval:`
+- `State: finished`
+- `Type: packet_design`
+- `source_changed: False`
+
+Duplicate approvals, denied approvals, expired approvals, and approvals for the wrong run fail closed.
+
 Optional JSON output check:
 
 ```text
@@ -132,8 +223,9 @@ In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where the placed_order_i
 Expected behavior:
 
 - the assistant-visible response is valid JSON
-- the JSON includes `workflow`, `status`, `run_id`, `chat_contract`, `summary`, and `artifacts`
+- the JSON includes `workflow`, `status`, `run_id`, `chat_contract`, `selection_explanation`, `summary`, and `artifacts`
 - `chat_contract.selected_workflow` is `code_investigation.plan`
+- `selection_explanation.route_rules` is populated
 - `summary.selected_workflow` is `code_investigation.plan`
 - the frozen fixture remains unchanged
 
@@ -326,7 +418,7 @@ Expected behavior:
 
 ## 4. Run The V1 Acceptance Command
 
-This is the shortest automated founder acceptance check for the full `release-candidate` profile. It verifies health for `8000`, `8300`, `8500`, `8400`, and role ports; proves AnythingLLM responds through the workflow-router gateway; runs representative L1 read-only, L1 draft-only, L2 read-only, task-decomposition, controlled disposable-copy apply, chat-visible `format_a` checks, the expanded founder field suite, and the profiled skill-library release gate; verifies JSON output selection; records feedback; and writes a report artifact.
+This is the shortest automated founder acceptance check for the full `v1.1-release-candidate` profile. It verifies health for `8000`, `8300`, `8500`, `8400`, and role ports; proves AnythingLLM responds through the workflow-router gateway; runs setup doctor, docs-index, release-channel, security policy, representative L1 read-only, L1 draft-only, L2 read-only, task-decomposition, controlled disposable-copy apply, chat-visible `format_a` checks, external tester onboarding, the expanded founder field suite, the profiled skill-library release gate, observability, and model-probe checks; verifies JSON output selection; records feedback; and writes a report artifact.
 
 Run from Bash:
 
@@ -334,7 +426,8 @@ Run from Bash:
 cd /mnt/c/agentic_agents
 export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
 python3 scripts/validate_v1_acceptance.py \
-  --profile release-candidate \
+  --profile v1.1-release-candidate \
+  --candidate-model-base-url http://127.0.0.1:8000/v1 \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
@@ -353,7 +446,47 @@ V1 ACCEPTANCE PASS
 
 Report artifacts are written under `runtime-state/v1-acceptance/`.
 
-The V1 gate also writes founder field suite reports under `runtime-state/founder-field-tests/` and skill-library release reports under `runtime-state/skill-release-gates/`. The V1 report includes `profile`, `founder_field_summary`, and `skill_library_health` sections with prompt counts, skill counts, eval counts, route-key counts, prompt-matrix status, Batch D live proof, and protected fixture mutation proof.
+The V1.1 gate also writes founder field suite reports under `runtime-state/founder-field-tests/`, skill-library release reports under `runtime-state/skill-release-gates/`, security reports under `runtime-state/security-policy/`, and observability reports under `runtime-state/run-observability/`. The V1.1 report includes `profile`, `profile_contract`, `first_time_user_doctor`, `docs_index`, `release_channels`, `security_policy`, `founder_field_summary`, `skill_library_health`, `model_portability`, `observability`, `proof_summary`, and `known_limitations`.
+
+When you switch the local stack to a smaller model candidate, run the model portability gate instead of assuming the V1 result still applies:
+
+```bash
+python3 scripts/validate_model_portability.py \
+  --candidate-id smaller-local-candidate \
+  --candidate-description "Smaller local model candidate behind localhost:8000" \
+  --candidate-model-base-url http://127.0.0.1:8000/v1 \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --controller-base-url http://127.0.0.1:8400 \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
+  --timeout-seconds 900 \
+  --command-timeout-seconds 3600
+```
+
+The portability report classifies misses as `harness`, `classifier`, `prompt`, `model_quality`, or `unknown`. See [README.model-portability.md](README.model-portability.md).
+
+Compare a new run to a prior run without rerunning localhost validation:
+
+```bash
+python3 scripts/diff_run_artifacts.py \
+  --left-report runtime-state/v1-acceptance/phase71-v1-acceptance.json \
+  --right-report runtime-state/v1-acceptance/phase72-model-portability-v1.json \
+  --left-label prior \
+  --right-label candidate
+```
+
+See [README.run-artifact-diff.md](README.run-artifact-diff.md).
+
+Validate fixture setup and cleanup before adding another test repository:
+
+```bash
+python3 scripts/manage_fixtures.py setup \
+  --fixture-id python-service-generalization \
+  --run-id getting-started-smoke \
+  --cleanup-after
+```
+
+See [README.fixture-manager.md](README.fixture-manager.md).
 
 The founder field prompt inventory is governed by `runtime/prompt_catalogs/founder_field_v1.json`. To check the catalog without a live model run:
 
@@ -461,6 +594,27 @@ implementation-workflow-report.json
 ```
 
 `context-results.json` is the full evidence artifact. `context-results-for-model.json` is the compact model-facing artifact used to keep local-model skill calls reliable.
+
+To classify failures from existing validation reports without rerunning localhost services:
+
+```bash
+cd /mnt/c/agentic_agents
+python3 scripts/report_failure_taxonomy.py \
+  --report runtime-state/v1-acceptance/phase72-model-portability-v1.json \
+  --label phase72-v1 \
+  --report runtime-state/model-portability/phase72-live-current.json \
+  --label phase72-portability
+```
+
+Expected markers:
+
+```text
+FAILURE TAXONOMY REPORT ...
+FAILURE TAXONOMY SUMMARY ...
+FAILURE TAXONOMY PASS
+```
+
+The Markdown output is the quick review surface. Start with `summary.highest_severity`, `summary.category_counts`, and `findings[].recommended_next_action`.
 
 ## Troubleshooting
 

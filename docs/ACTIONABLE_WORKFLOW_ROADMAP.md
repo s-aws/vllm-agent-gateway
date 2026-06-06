@@ -174,16 +174,16 @@ Build order:
 Next roadmap gate:
 
 ```text
-Phase 72 is approved and active after Phase 71 AnythingLLM UI E2E proof is complete.
+No approved implementation phase remains after Phase 90 V1.1 Release Candidate Gate proof is complete. Phase 91 is proposed and awaits founder approval.
 ```
 
 Next implementation target:
 
 ```text
-Phase 72 Model Portability Gate.
+Founder approval for proposed Phase 91 Stable Channel Promotion And External Tester Handoff.
 ```
 
-Reason: Phase 57 made the founder field suite part of V1 acceptance, Phase 58 added the prompt matrix, Phase 59 added semantic answer quality gates, Phase 60 added user-facing refined prompts, Phase 61 produced a validated Batch D skill-scaling proposal without registry mutation, Phase 62 registered Batch D as draft skills through the existing lifecycle, Phase 63 proved and promoted Batch D through live gateway and AnythingLLM validation, Phase 64 added Batch D prompts to the founder field suite with live V1 acceptance proof, Phase 65 added skill-library health and Batch D proof to the V1 acceptance path, Phase 66 proved the harness against a non-Coinbase disposable Python service fixture, Phase 67 made AnythingLLM feedback actionable, Phase 68 split release gates into diagnosable profiles, Phase 69 added a latest-run inspector, Phase 70 made prompt catalogs governed fixtures instead of scattered script literals, and Phase 71 proved the browser-rendered AnythingLLM Desktop UI path through `/stream-chat` with screenshots and fixture mutation proof. The next approved gate is model portability: prove whether the current skill/router path works against a smaller local model candidate and classify misses without weakening the harness.
+Reason: Phase 57 made the founder field suite part of V1 acceptance, Phase 58 added the prompt matrix, Phase 59 added semantic answer quality gates, Phase 60 added user-facing refined prompts, Phase 61 produced a validated Batch D skill-scaling proposal without registry mutation, Phase 62 registered Batch D as draft skills through the existing lifecycle, Phase 63 proved and promoted Batch D through live gateway and AnythingLLM validation, Phase 64 added Batch D prompts to the founder field suite with live V1 acceptance proof, Phase 65 added skill-library health and Batch D proof to the V1 acceptance path, Phase 66 proved the harness against a non-Coinbase disposable Python service fixture, Phase 67 made AnythingLLM feedback actionable, Phase 68 split release gates into diagnosable profiles, Phase 69 added a latest-run inspector, Phase 70 made prompt catalogs governed fixtures instead of scattered script literals, Phase 71 proved the browser-rendered AnythingLLM Desktop UI path through `/stream-chat` with screenshots and fixture mutation proof, Phase 72 added a model portability gate that wraps the existing V1 acceptance path, probes the candidate `/v1/models` endpoint, and classifies misses as harness, classifier, prompt, model-quality, or unknown issues, Phase 73 added read-only run artifact diffing for V1 acceptance, founder-field, and model-portability reports, Phase 74 added a manifest-driven fixture manager with protected source snapshots, disposable setup, cleanup, and integration into the existing generalization fixture copy helpers, Phase 75 added a read-only failure taxonomy report so failures across release gates can be classified consistently instead of reinterpreted from raw logs, Phase 76 added a first-time user doctor so setup failures can be detected before testers try AnythingLLM prompts, Phase 77 added governed skill-library packaging policy before scaling toward large skill packs, Phase 78 turned portability evidence into advisory model capability profiles and a routing policy without enabling automatic model selection, Phase 79 added a canonical prompt-to-skill coverage map with a validator and gap backlog, Phase 80 extended the existing `skill.scaffold` path into a dry-run authoring factory with coverage, docs, eval, fail-closed test, and live AnythingLLM proof, Phase 81 added an explicit skill regression tier catalog with offline, controller, gateway, AnythingLLM API, UI, fixture-mutation, and release-candidate proof boundaries, Phase 82 expanded live validation to a synthetic Node CLI fixture plus both frozen Coinbase fixtures, Phase 83 added a disposable-copy mutation sandbox contract, structured diff proof, direct mutation proof artifacts, path guardrails, and rollback-failure tests around the single existing implementation workflow, Phase 84 made approval states visible in chat and stateful in controller run records, Phase 85 added a read-only observability report with route, model, skill, tool, approval, downstream, artifact, mutation, timing, and filter proof from recent live runs, Phase 86 made normal workflow-router chat explain selected workflow, skills, tools, route rules, and registry grounding in both FormatA and JSON output, Phase 87 added versioned release-channel metadata plus setup validation, Phase 88 added a contextless external tester onboarding pack with live AnythingLLM feedback proof inside the release-candidate gate, Phase 89 added the release-candidate security policy gate for secret exposure, filesystem boundaries, protected fixture policy, command fragments, and onboarding prompt safety, and Phase 90 consolidated those gates into a passed V1.1 release-candidate profile. The next logical product step is a stable-channel promotion and external tester handoff decision, but that changes release state and must be explicitly approved before implementation.
 
 ## Foreseeable Approval Queue
 
@@ -228,12 +228,26 @@ Approved phase queue:
 27. Phase 69: Latest Run Inspector - complete
 28. Phase 70: Prompt Catalog Governance - complete
 29. Phase 71: AnythingLLM UI E2E - complete
-30. Phase 72: Model Portability Gate - approved; active
-31. Phase 73: Run Artifact Diffing - approved; pending Phase 72
-32. Phase 74: Fixture Manager - approved; pending Phase 73
-33. Phase 75: Failure Taxonomy Dashboard And Report - approved; pending Phase 74
-34. Phase 76: First-Time User Doctor - approved; pending Phase 75
-35. Phase 77: Skill Library Packaging Strategy - approved; pending Phase 76
+30. Phase 72: Model Portability Gate - complete
+31. Phase 73: Run Artifact Diffing - complete
+32. Phase 74: Fixture Manager - complete
+33. Phase 75: Failure Taxonomy Dashboard And Report - complete
+34. Phase 76: First-Time User Doctor - complete
+35. Phase 77: Skill Library Packaging Strategy - complete
+36. Phase 78: Model Capability Profiles And Routing Policy - complete
+37. Phase 79: Prompt-To-Skill Coverage Map And Gap Backlog - complete
+38. Phase 80: Skill Authoring Factory And Eval Scaffolder - complete
+39. Phase 81: Skill Regression Tiers - complete
+40. Phase 82: Multi-Repo Fixture Expansion - complete
+41. Phase 83: Tool Reliability And Sandboxed Mutation Harness - complete
+42. Phase 84: Approval And Continuation UX Hardening - complete
+43. Phase 85: Skill And Tool Observability Dashboard - complete
+44. Phase 86: Natural-Language Skill Discovery And Selection Explanation - complete
+45. Phase 87: Versioned Release Channels And Installer - complete
+46. Phase 88: External Tester Onboarding Pack - complete
+47. Phase 89: Security And Policy Review Gate - complete
+48. Phase 90: V1.1 Release Candidate Gate - complete
+49. Phase 91: Stable Channel Promotion And External Tester Handoff - proposed; awaiting founder approval
 
 Second-step approved phases:
 
@@ -241,12 +255,29 @@ Second-step approved phases:
 2. Phase 69: Latest Run Inspector - complete.
 3. Phase 70: Prompt Catalog Governance - complete.
 4. Phase 71: AnythingLLM UI E2E - complete.
-5. Phase 72: Model Portability Gate - approved; active.
-6. Phase 73: Run Artifact Diffing - approved; wait for Phase 72 completion.
-7. Phase 74: Fixture Manager - approved; wait for Phase 73 completion.
-8. Phase 75: Failure Taxonomy Dashboard And Report - approved; wait for Phase 74 completion.
-9. Phase 76: First-Time User Doctor - approved; wait for Phase 75 completion.
-10. Phase 77: Skill Library Packaging Strategy - approved; wait for Phase 76 completion.
+5. Phase 72: Model Portability Gate - complete.
+6. Phase 73: Run Artifact Diffing - complete.
+7. Phase 74: Fixture Manager - complete.
+8. Phase 75: Failure Taxonomy Dashboard And Report - complete.
+9. Phase 76: First-Time User Doctor - complete.
+10. Phase 77: Skill Library Packaging Strategy - complete.
+
+Third-step approved phases:
+
+1. Phase 78: Model Capability Profiles And Routing Policy - complete.
+2. Phase 79: Prompt-To-Skill Coverage Map And Gap Backlog - complete.
+3. Phase 80: Skill Authoring Factory And Eval Scaffolder - complete.
+4. Phase 81: Skill Regression Tiers - complete.
+5. Phase 82: Multi-Repo Fixture Expansion - complete.
+6. Phase 83: Tool Reliability And Sandboxed Mutation Harness - complete.
+7. Phase 84: Approval And Continuation UX Hardening - complete.
+8. Phase 85: Skill And Tool Observability Dashboard - complete.
+9. Phase 86: Natural-Language Skill Discovery And Selection Explanation - complete.
+10. Phase 87: Versioned Release Channels And Installer - complete.
+11. Phase 88: External Tester Onboarding Pack - complete.
+12. Phase 89: Security And Policy Review Gate - complete.
+13. Phase 90: V1.1 Release Candidate Gate - complete.
+14. Phase 91: Stable Channel Promotion And External Tester Handoff - proposed; awaiting founder approval.
 
 Current L1-001 status:
 
@@ -4220,39 +4251,746 @@ Phase 71 validation proof:
 
 ### Approved Phase 72: Model Portability Gate
 
-Status: Approved; active.
+Status: Complete.
 
 Goal: run the field suite against at least one smaller local model candidate and classify failures as model quality, classifier, prompt, or harness issues.
 
+Implementation:
+
+- Added `vllm_agent_gateway.acceptance.model_portability` as a wrapper around the existing V1 acceptance path.
+- Added `scripts/validate_model_portability.py` to run live candidate validation or classify an existing V1 acceptance report.
+- Added deterministic failure classes: `harness`, `classifier`, `prompt`, `model_quality`, and `unknown`.
+- Added `README.model-portability.md` and `docs/examples/model-portability.md`, linked from the ordered docs index and examples index.
+- Kept model portability advisory only; it does not alter routing, prompts, skills, workflow behavior, or model selection.
+
+Completion proof:
+
+- Passed focused regression: `python -m pytest tests\regression\test_model_portability.py -q` returned `4 passed`.
+- Passed docs-index validation: `python scripts\check_docs_index.py` returned `DOCS INDEX PASS` with `63` linked docs and no orphan docs.
+- Passed offline CLI classification: `runtime-state/model-portability/phase72-offline-baseline.json` returned `status=passed`, `acceptance_status=passed`, and zero classified failures against `runtime-state/v1-acceptance/phase71-v1-acceptance.json`.
+- Passed full regression after implementation: `python -m pytest tests\regression\ -v` returned `363 passed, 19 deselected`.
+- Passed Bash live portability gate: `runtime-state/model-portability/phase72-live-current.json` returned `status=passed`, `candidate_id=localhost-8000-current`, candidate model ID `Qwen3-Coder-30B-A3B-Instruct`, `acceptance_status=passed`, and zero classified failures.
+- Nested V1 acceptance report `runtime-state/v1-acceptance/phase72-model-portability-v1.json` returned `status=passed`, `suite_count=7`, `json_output_count=2`, and `feedback_count=2`.
+- Live health in the nested V1 report passed for localhost ports `8000`, `8300`, `8500`, `8400`, `8101`, `8102`, and `8201` through `8205`.
+- Verified watched protected `core/stealth_order_manager.py` hash stayed `aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e` in both frozen Coinbase fixtures, and `C:\coinbase_testing_repo_frozen_tmp.github` git status stayed clean.
+
+Known limitation:
+
+- The live Phase 72 proof validated the currently running localhost `8000` candidate. It did not prove a different smaller model endpoint because no separate smaller-model service was available during this phase. To approve a specific smaller model, point `localhost:8000` or `VLLM_BASE_URL` at that candidate and rerun `scripts/validate_model_portability.py`; Phase 78 will turn these per-run results into durable capability profiles.
+
 ### Approved Phase 73: Run Artifact Diffing
 
-Status: Approved; wait for Phase 72 completion.
+Status: Complete.
 
 Goal: compare two field-test or V1 acceptance runs and summarize route, rule, selected skills, semantic misses, latency, artifact counts, and fixture state changes.
 
+Implementation:
+
+- Added `vllm_agent_gateway.acceptance.run_artifact_diff` for read-only report extraction and comparison.
+- Added `scripts/diff_run_artifacts.py` to compare `v1_acceptance_report`, `founder_field_prompt_evaluation`, and `model_portability_report` artifacts.
+- Added nested model-portability handling through `acceptance_report_path`.
+- Added high-signal diff fields for suite statuses, health statuses, founder-field case statuses, route rules, workflows, selected skill expectations, semantic misses, output misses, artifact counts, model-portability classification deltas, and fixture state signatures.
+- Added `README.run-artifact-diff.md` and `docs/examples/run-artifact-diff.md`, linked from the ordered docs index and examples index.
+
+Completion proof:
+
+- Passed focused regression: `python -m pytest tests\regression\test_run_artifact_diff.py -q` returned `3 passed`.
+- Passed docs-index validation: `python scripts\check_docs_index.py` returned `DOCS INDEX PASS` with `65` linked docs and no orphan docs.
+- Passed real V1 artifact comparison: `runtime-state/run-artifact-diffs/phase73-phase71-vs-phase72.json` compared `phase71-v1-acceptance.json` to `phase72-model-portability-v1.json` and returned `status=passed`, `status_changed=false`, `suite_status_change_count=0`, `semantic_misses_added=[]`, and `fixture_state_change_count=0`.
+- Passed real model-portability artifact comparison: `runtime-state/run-artifact-diffs/phase73-portability-offline-vs-live.json` compared `phase72-offline-baseline.json` to `phase72-live-current.json` and returned `status=passed`, `status_changed=false`, `suite_status_change_count=0`, `semantic_misses_added=[]`, and `fixture_state_change_count=0`.
+- Passed full regression after implementation: `python -m pytest tests\regression\ -v` returned `366 passed, 19 deselected`.
+
 ### Approved Phase 74: Fixture Manager
 
-Status: Approved; wait for Phase 73 completion.
+Status: Complete.
 
 Goal: add controlled fixture-copy setup and cleanup for additional real-world repos without hand-managed paths or accidental mutation.
 
+Implementation:
+
+- Added `runtime/fixtures.json` as the canonical fixture manifest for the two protected Coinbase fixtures and the Python-service generalization fixture.
+- Added `vllm_agent_gateway.fixtures.manager` for manifest validation, source snapshots, watched hashes, git status summaries, disposable copy setup, bounded cleanup, and report generation.
+- Added `scripts/manage_fixtures.py` with `validate`, `snapshot`, `setup`, and `cleanup` commands.
+- Updated `scripts/validate_generalization_fixture_live.py` so its copy, cleanup, and hash helpers delegate to the shared fixture manager instead of owning a parallel copy implementation.
+- Added `README.fixture-manager.md` and `docs/examples/fixture-manager.md`, linked from the ordered docs index and examples index.
+
+Completion proof:
+
+- Passed focused regression: `python -m pytest tests\regression\test_fixture_manager.py tests\regression\test_generalization_fixture.py -q` returned `14 passed`.
+- Passed docs-index validation: `python scripts\check_docs_index.py` returned `DOCS INDEX PASS` with `67` linked docs and no orphan docs.
+- Passed fixture-manager smoke: `runtime-state/fixture-manager/phase74-smoke.json` returned `status=passed`, `command=setup`, `fixture_count=1`, `setup_count=1`, `source_unchanged=true`, `copy_hash_count=8`, and `cleanup.removed=true`.
+- Verified `runtime-state\managed-fixtures\phase74-smoke` did not remain after cleanup.
+- Passed full regression after implementation: `python -m pytest tests\regression\ -v` returned `371 passed, 19 deselected`.
+- Verified watched protected `core/stealth_order_manager.py` hash stayed `aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e` in both frozen Coinbase fixtures, and `C:\coinbase_testing_repo_frozen_tmp.github` git status stayed clean.
+
 ### Approved Phase 75: Failure Taxonomy Dashboard And Report
 
-Status: Approved; wait for Phase 74 completion.
+Status: Complete.
 
 Goal: standardize validator failure categories such as routing miss, semantic miss, output-contract miss, fixture mutation, AnythingLLM config error, model timeout, and approval-boundary miss.
 
+Problem:
+
+- Recent release gates produced useful V1, founder-field, model-portability, and run-diff artifacts, but failures still required manual interpretation across raw logs and report-specific fields.
+
+Evidence gathered:
+
+- `README.founder-field-tests.md` already named miss types such as routing miss, output miss, semantic miss, evidence miss, prompt ambiguity, and apply-boundary miss.
+- `vllm_agent_gateway/acceptance/model_portability.py` classified portability failures as harness, classifier, prompt, model-quality, or unknown.
+- `vllm_agent_gateway/acceptance/run_artifact_diff.py` extracted route, suite, semantic, output-contract, classification, artifact, and fixture-state changes from existing reports.
+
+Design:
+
+- Add one read-only artifact reader, not a second validator or runtime path.
+- Support `v1_acceptance_report`, `founder_field_prompt_evaluation`, `model_portability_report`, and `run_artifact_diff`.
+- Produce separate JSON and Markdown reports with stable categories, severity, source, evidence, matched terms, and recommended next action.
+
+Implementation:
+
+- Added `vllm_agent_gateway/acceptance/failure_taxonomy.py` with `FailureCategory`, category severity/action maps, report-kind extractors, nested report following for founder-field and V1 artifacts, and Markdown rendering.
+- Added `scripts/report_failure_taxonomy.py` with repeated `--report` and optional matching `--label` arguments.
+- Added `tests/regression/test_failure_taxonomy.py`.
+- Added `README.failure-taxonomy.md` and `docs/examples/failure-taxonomy.md`.
+- Linked the feature from `README.md`, `README.getting-started.md`, `docs/README.md`, and `docs/examples/README.md`.
+
+Completion proof:
+
+- Passed focused regression: `python -m pytest tests\regression\test_failure_taxonomy.py -q` returned `5 passed`.
+- Passed docs-index validation: `python scripts\check_docs_index.py` returned `DOCS INDEX PASS` with `69` linked docs and no orphan docs.
+- Generated real taxonomy proof:
+
+  ```text
+  python scripts\report_failure_taxonomy.py --report runtime-state\v1-acceptance\phase72-model-portability-v1.json --label phase72-v1 --report runtime-state\model-portability\phase72-live-current.json --label phase72-portability --report runtime-state\run-artifact-diffs\phase73-phase71-vs-phase72.json --label phase73-v1-diff --report runtime-state\run-artifact-diffs\phase73-portability-offline-vs-live.json --label phase73-portability-diff --output-path runtime-state\failure-taxonomy\phase75-current.json --markdown-output-path runtime-state\failure-taxonomy\phase75-current.md
+  ```
+
+- The generated report `runtime-state/failure-taxonomy/phase75-current.json` returned `status=passed`, `finding_count=0`, `highest_severity=none`, and four input reports.
+- Passed full regression after implementation: `python -m pytest tests\regression\ -v` returned `376 passed, 19 deselected`.
+- Verified watched protected `core/stealth_order_manager.py` hash stayed `aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e` in both frozen Coinbase fixtures, and `C:\coinbase_testing_repo_frozen_tmp.github` git status stayed clean.
+
 ### Approved Phase 76: First-Time User Doctor
 
-Status: Approved; wait for Phase 75 completion.
+Status: Complete.
 
 Goal: add a doctor command for vLLM, gateway ports, controller health, AnythingLLM API key, workspace, model target URL, allowed roots, and frozen repo status.
 
+Problem:
+
+- First-time AnythingLLM testing could fail for setup reasons before any prompt quality issue appears, including wrong AnythingLLM target URL, missing API key, stale controller allowed roots, gateway misrouting, unhealthy role ports, or dirty protected fixtures.
+
+Evidence gathered:
+
+- `vllm_agent_gateway/acceptance/v1.py` already defined the featured localhost health targets for `8000`, `8300`, `8500`, `8400`, and role ports.
+- The controller `/health` response exposes `allowed_target_roots`.
+- Gateway `/__gateway/health` exposes `target_base_url`, `controller_routing`, and `controller_harness_url`.
+- Role prompt proxies expose `/__proxy/health`.
+- AnythingLLM `/api/v1/system` exposes `GenericOpenAiBasePath` in the current local version.
+- Bash-side git status for `/mnt/c/coinbase_testing_repo_frozen_tmp.github` can show line-ending-only dirtiness while Windows git status is clean and `git diff --ignore-space-at-eol --quiet` passes.
+
+Design:
+
+- Add one setup doctor command that checks readiness without running workflow prompts or mutating fixtures.
+- Treat real failures as blocking and line-ending-only git noise as a warning.
+- Keep the report machine-readable so future release gates can consume it.
+
+Implementation:
+
+- Added `vllm_agent_gateway/acceptance/first_time_user_doctor.py` with typed config, `DoctorStatus`, reusable checks, report writing, gateway/controller/AnythingLLM/fixture validation, and line-ending-only git warning detection.
+- Added `scripts/run_first_time_user_doctor.py`.
+- Added `tests/regression/test_first_time_user_doctor.py`.
+- Added `README.first-time-user-doctor.md` and `docs/examples/first-time-user-doctor.md`.
+- Linked the doctor from `README.md`, `README.getting-started.md`, `docs/README.md`, and `docs/examples/README.md`.
+
+Completion proof:
+
+- Passed focused regression: `python -m pytest tests\regression\test_first_time_user_doctor.py -q` returned `5 passed`.
+- Passed combined focused regression for Phase 75/76: `python -m pytest tests\regression\test_failure_taxonomy.py tests\regression\test_first_time_user_doctor.py -q` returned `10 passed`.
+- Passed docs-index validation: `python scripts\check_docs_index.py` returned `DOCS INDEX PASS` with `71` linked docs and no orphan docs.
+- Passed live Bash doctor:
+
+  ```text
+  python3 scripts/run_first_time_user_doctor.py --output-path runtime-state/first-time-user-doctor/phase76-live.json --timeout-seconds 45
+  ```
+
+- The live doctor report returned `status=passed`, `check_count=29`, `failed=0`, `passed=28`, `warning=1`, and `warning_check_ids=["fixtures.coinbase-frozen-git"]`.
+- The live doctor proved AnythingLLM `GenericOpenAiBasePath=http://127.0.0.1:8500/v1`, controller missing allowed roots `[]`, all featured localhost ports healthy, and all role proxies healthy.
+- The single warning was Bash-visible line-ending-only git noise on `/mnt/c/coinbase_testing_repo_frozen_tmp.github`; `git diff --ignore-space-at-eol --quiet` returned clean.
+- Passed full regression after implementation: `python -m pytest tests\regression\ -v` returned `381 passed, 19 deselected`.
+- Verified watched protected `core/stealth_order_manager.py` hash stayed `aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean.
+
 ### Approved Phase 77: Skill Library Packaging Strategy
 
-Status: Approved; wait for Phase 76 completion.
+Status: Complete.
 
 Goal: define skill-pack layout, namespace ownership, dependency rules, versioning, import/export, and retirement policy before scaling toward thousands of skills.
+
+Problem:
+
+- The project already had skill-pack validation and approved install mechanics, but did not have a single written packaging policy that a contextless author or future controller workflow could validate before scaling the library.
+- Without a policy, pack layout, namespace ownership, dependency rules, versioning, import/export behavior, and retirement semantics could drift across hand-authored packs.
+
+Root cause:
+
+- Phase 46 established mechanics, but the governance contract lived across runtime manifests, README prose, and tests instead of a machine-readable policy with its own validation report.
+
+Smallest acceptable design:
+
+- Add one project-local policy file under `runtime/`.
+- Add one read-only validator and CLI that compare the policy against the current skill registry constants and pack manifest validator.
+- Add feature docs and examples linked from the ordered docs index.
+- Keep import/install behavior unchanged; do not introduce uninstall or automatic remote package fetching in this phase.
+
+Implementation:
+
+- Added `runtime/skill_pack_policy.json`.
+- Added `vllm_agent_gateway/skills/packaging_policy.py`.
+- Added `scripts/validate_skill_packaging_policy.py`.
+- Added `tests/regression/test_skill_packaging_policy.py`.
+- Added `README.skill-packaging.md`, `docs/SKILL_LIBRARY_PACKAGING_STRATEGY.md`, and `docs/examples/skill-packaging.md`.
+- Updated `README.md`, `README.getting-started.md`, `README.skill-registry.md`, `docs/README.md`, `docs/examples/README.md`, and `docs/examples/skill-registry.md`.
+
+Tightening completed during the phase gate:
+
+- Full regression exposed order-dependent L1 routing failures for Windows pytest temp paths containing action-looking path fragments such as `add3` or `refactor`.
+- Root cause was classifier predicates scanning raw request text, including filesystem paths.
+- Updated `workflow_kind_for_request` to classify against path-stripped request text while preserving the original request for target resolution and downstream artifacts.
+- Added `test_windows_target_path_action_terms_do_not_block_l1_routes` so Windows target paths cannot contaminate coverage-gap or CLI-entrypoint L1 routing.
+
+Completion proof:
+
+- `python -m pytest tests\regression\test_skill_packaging_policy.py -q` returned `4 passed`.
+- `python scripts\validate_skill_packaging_policy.py --output-path runtime-state\skill-packaging-policy\phase77-policy.json` returned `SKILL PACKAGING POLICY PASS`.
+- `python scripts\check_docs_index.py` returned `DOCS INDEX PASS`.
+- `python -m pytest tests\regression\test_generalization_fixture.py::test_windows_target_path_action_terms_do_not_block_l1_routes -q` returned `1 passed`.
+- The previously failing L1 coverage-gap and CLI-entrypoint controller tests returned `2 passed`.
+- Full regression after the tightening returned `386 passed, 19 deselected`.
+
+### Approved Phase 78: Model Capability Profiles And Routing Policy
+
+Status: Complete.
+
+Goal: turn Phase 72 model-portability evidence into durable model capability profiles and routing policy so the harness can choose behavior based on measured model strengths instead of assumptions.
+
+Problem:
+
+- Phase 72 proved whether a candidate model passed V1 acceptance, but it did not produce a durable profile describing what task types the model is proven, partially proven, unknown, or not approved to handle.
+- Without profiles, future model routing would either be based on assumptions or require re-reading raw portability and V1 artifacts every time.
+
+Root cause:
+
+- Portability reports contained candidate metadata, model probes, nested acceptance summaries, and classified failures, but no schema converted that evidence into task-level routing policy.
+
+Smallest acceptable design:
+
+- Add one advisory profile generator from existing `model_portability_report` artifacts.
+- Load the nested V1 acceptance report when available to recover suite status evidence.
+- Produce JSON and Markdown profile artifacts.
+- Document the routing policy without changing runtime routing, prompts, skills, or model selection.
+
+Implementation:
+
+- Added `vllm_agent_gateway/acceptance/model_capability_profile.py`.
+- Added `scripts/generate_model_capability_profile.py`.
+- Added `tests/regression/test_model_capability_profile.py`.
+- Added `README.model-capability-profiles.md`, `docs/MODEL_CAPABILITY_ROUTING_POLICY.md`, and `docs/examples/model-capability-profiles.md`.
+- Updated `README.md`, `README.model-portability.md`, `docs/README.md`, `docs/examples/README.md`, and `docs/examples/model-portability.md`.
+
+Profile capability coverage:
+
+- `route_stability`
+- `output_contract_reliability`
+- `semantic_answer_quality`
+- `latency`
+- `timeout_behavior`
+- `safe_apply_readiness`
+
+Task policy coverage:
+
+- `read_only_l1`
+- `draft_only_l1`
+- `approval_gated_l1`
+- `l2_read_only`
+- `apply_prep`
+- `real_apply`
+- `automatic_model_selection`
+
+Completion proof:
+
+- `python -m pytest tests\regression\test_model_capability_profile.py tests\regression\test_model_portability.py -q` returned `6 passed`.
+- `python scripts\generate_model_capability_profile.py --portability-report-path runtime-state\model-portability\phase72-live-current.json --output-path runtime-state\model-capability-profiles\phase78-live-current-profile.json --markdown-output-path runtime-state\model-capability-profiles\phase78-live-current-profile.md` generated a profile for `localhost-8000-current`.
+- `python scripts\generate_model_capability_profile.py --portability-report-path runtime-state\model-portability\phase72-offline-baseline.json --output-path runtime-state\model-capability-profiles\phase78-offline-baseline-profile.json --markdown-output-path runtime-state\model-capability-profiles\phase78-offline-baseline-profile.md` generated a profile for `offline-phase71-baseline`.
+- Both generated profiles reported `route_stability=proven`, `output_contract_reliability=proven`, `semantic_answer_quality=proven`, `timeout_behavior=proven`, `latency=unknown`, `safe_apply_readiness=partially_proven`, `automatic_model_selection=not_approved`, and `real_apply=not_approved`.
+- `python scripts\check_docs_index.py` returned `DOCS INDEX PASS`.
+- Full regression returned `388 passed, 19 deselected`.
+- Watched protected `core/stealth_order_manager.py` hash stayed `aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean.
+
+### Approved Phase 79: Prompt-To-Skill Coverage Map And Gap Backlog
+
+Status: Complete.
+
+Goal: maintain a coverage map from natural-language prompt families to workflows, skills, tools, eval gates, and known gaps.
+
+Problem:
+
+- L1/L2 prompt families were spread across backlog docs, skill metadata, eval fixtures, founder-field prompt catalogs, controller tests, and examples.
+- That made it too easy to add or change a prompt family without updating skills, tools, evals, docs, or known gap state.
+
+Root cause:
+
+- The project had prompt catalogs and skill evals, but no single registry that mapped prompt family to route rule, selected workflow, skill IDs, tool IDs, eval case IDs, expected artifacts, validation suites, docs, and gaps.
+
+Smallest acceptable design:
+
+- Add one canonical runtime coverage registry.
+- Add one validator and CLI that checks the registry against live workflow, tool, skill, eval, route-rule, docs, and founder-field catalog sources.
+- Keep the advanced single-path refactor prompt recorded as deferred, not active.
+- Do not change runtime routing behavior.
+
+Implementation:
+
+- Added `runtime/prompt_skill_coverage.json`.
+- Added `vllm_agent_gateway/skills/prompt_coverage.py`.
+- Added `scripts/validate_prompt_skill_coverage.py`.
+- Added `tests/regression/test_prompt_skill_coverage.py`.
+- Added `README.prompt-skill-coverage.md`, `docs/PROMPT_SKILL_COVERAGE_MAP.md`, and `docs/examples/prompt-skill-coverage.md`.
+- Updated `README.md`, `docs/README.md`, `docs/examples/README.md`, `docs/L1_CODING_AGENT_PROMPTS.md`, and `docs/L2_CODING_AGENT_PROMPTS.md`.
+
+Completion proof:
+
+- `python scripts\validate_prompt_skill_coverage.py --output-path runtime-state\prompt-skill-coverage\phase79-current.json` returned `PROMPT SKILL COVERAGE PASS`.
+- The Phase 79 coverage report returned `entry_count=34`, `implemented_count=34`, `founder_field_rule_count=26`, `covered_founder_field_rule_count=26`, `gap_count=2`, and `error_count=0`.
+- `GAP-ADV-REFACTOR-SINGLE-PATH` is recorded as `deferred`, not active.
+- `python -m pytest tests\regression\test_prompt_skill_coverage.py -q` returned `4 passed`.
+- `python scripts\check_docs_index.py` returned `DOCS INDEX PASS`.
+- Full regression returned `392 passed, 19 deselected`.
+- Watched protected `core/stealth_order_manager.py` hash stayed `aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean.
+
+### Approved Phase 80: Skill Authoring Factory And Eval Scaffolder
+
+Status: Complete.
+
+Goal: make small deterministic skill creation repeatable by generating the skill stub, registry entry, prompt coverage entry, docs stub, and eval skeleton from one approved template.
+
+Implementation tasks:
+
+- Add a scaffolder that creates a new skill package from a prompt-family specification.
+- Generate the minimum required test skeletons for routing, artifact contracts, natural-language chat output, and prompt coverage.
+- Enforce naming, namespace, version, lifecycle state, and documentation rules from the existing skill governance path.
+- Prevent scaffolded skills from being promoted until eval gates pass.
+
+Acceptance proof:
+
+- Scaffolder focused regression passes.
+- A dry-run scaffold creates the expected files in a disposable output directory.
+- Generated tests fail closed when required skill metadata or coverage entries are missing.
+- No new skill is promoted by scaffolding alone.
+
+Implementation result:
+
+- Extended the existing `skill.scaffold` workflow instead of adding a second scaffold/factory path.
+- Added dry-run sidecars: `prompt-coverage-entry.json`, `eval-skeleton.json`, docs stub, example stub, fail-closed regression skeleton, and `authoring-factory-report.json`.
+- Added chat-visible `Authoring factory`, `Promotion state`, and `Factory sidecars` markers so AnythingLLM users can see the factory ran without opening artifact folders.
+- Added reusable Bash live validator `scripts/validate_skill_authoring_factory_live.py`.
+- Added [Skill Authoring Factory README](../README.skill-authoring-factory.md), [Skill Authoring Factory reference](SKILL_AUTHORING_FACTORY.md), and [Skill Authoring Factory examples](examples/skill-authoring-factory.md).
+
+Completion proof:
+
+- Passed: `python -m py_compile scripts\validate_skill_authoring_factory_live.py vllm_agent_gateway\controller_service\server.py vllm_agent_gateway\controllers\skill_scaffold\scaffold.py`.
+- Passed: `python -m pytest tests\regression\test_controller_service.py -k skill_scaffold -q` returned `5 passed, 175 deselected`.
+- Passed: `python scripts\check_docs_index.py` returned `DOCS INDEX PASS` with `expected_count=83`, `linked_count=83`, and no orphaned docs.
+- Passed: `python scripts\validate_prompt_skill_coverage.py --output-path runtime-state\prompt-skill-coverage\phase80-final.json` returned `status=passed`, `entry_count=34`, `implemented_count=34`, `founder_field_rule_count=26`, `covered_founder_field_rule_count=26`, and `error_count=0`.
+- Passed: Bash live validator `python3 scripts/validate_skill_authoring_factory_live.py --timeout-seconds 900 --output-path runtime-state/skill-authoring-factory/phase80-live-current.json` returned `SKILL AUTHORING FACTORY LIVE PASS`.
+- Live proof covered localhost `8000`, gateway `8300`, workflow-router gateway `8500`, controller `8400`, role port `8205`, direct controller scaffold, explicit-envelope gateway scaffold, workflow-router natural scaffold, and AnythingLLM workspace API.
+- Passed: full regression `python -m pytest tests\regression\ -v` returned `393 passed, 19 deselected`.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash diff check returned `BASH_IGNORE_EOL_EXIT=0`.
+
+### Approved Phase 81: Skill Regression Tiers
+
+Status: Complete.
+
+Goal: split skill validation into clear regression tiers so local changes can be tested quickly while release gates still prove live AnythingLLM and gateway behavior.
+
+Implementation tasks:
+
+- Define offline, controller, gateway, AnythingLLM API, AnythingLLM UI, fixture mutation, and release-candidate tiers.
+- Add commands or profiles that run each tier explicitly.
+- Ensure release-candidate validation still includes both frozen Coinbase fixtures and localhost runtime paths.
+- Update docs so contributors know which tier to run for each change type.
+
+Acceptance proof:
+
+- Tier commands pass focused regression.
+- Release-candidate profile continues to include live gateway and fixture mutation proof.
+- Docs identify the minimum tier for docs-only, skill-only, router, gateway, AnythingLLM, and mutation-harness changes.
+
+Implementation result:
+
+- Added `runtime/skill_regression_tiers.json` as the canonical tier catalog.
+- Added `vllm_agent_gateway/skills/regression_tiers.py` and `scripts/validate_skill_regression_tiers.py` to validate tier order, command references, runtime requirements, change-type minimums, frozen fixture roots, release-candidate profile coverage, and full regression inclusion.
+- Added regression coverage in `tests/regression/test_skill_regression_tiers.py`.
+- Added [Skill Regression Tiers README](../README.skill-regression-tiers.md), [Skill Regression Tiers reference](SKILL_REGRESSION_TIERS.md), and [Skill Regression Tier examples](examples/skill-regression-tiers.md).
+- Updated the skill registry docs and ordered docs index so contextless contributors can find the minimum validation tier.
+
+Completion proof:
+
+- Passed: `python -m py_compile vllm_agent_gateway\skills\regression_tiers.py scripts\validate_skill_regression_tiers.py`.
+- Passed: `python scripts\validate_skill_regression_tiers.py --output-path runtime-state\skill-regression-tiers\phase81-docs.json` returned `SKILL REGRESSION TIERS PASS` with `tier_count=7`, `change_type_count=28`, and `error_count=0`.
+- Passed: `python -m pytest tests\regression\test_skill_regression_tiers.py tests\regression\test_skill_release_gate.py -q` returned `9 passed`.
+- Passed: `python scripts\check_docs_index.py` returned `DOCS INDEX PASS` with `expected_count=86`, `linked_count=86`, and no orphaned docs.
+- Passed: representative offline tier command `python scripts\validate_skill_release_gate.py --profile offline --output-path runtime-state\skill-regression-tiers\phase81-offline-release-gate.json`.
+- Passed: representative controller tier command `python -m pytest tests\regression\test_controller_service.py -k "skill_scaffold or skill_batch or skill_eval_promotion or skill_lifecycle or skill_deprecation or skill_update or skill_selection or skill_pack" -q` returned `48 passed, 132 deselected`.
+- Passed: representative fixture-mutation tier commands `python scripts\manage_fixtures.py validate --report-path runtime-state\skill-regression-tiers\phase81-fixture-manager.json` and `python scripts\validate_skill_mutations.py --output-path runtime-state\skill-regression-tiers\phase81-skill-mutations.json`.
+- Passed: Bash gateway tier commands `python3 scripts/validate_skill_authoring_factory_live.py --skip-anythingllm --timeout-seconds 900 --output-path runtime-state/skill-regression-tiers/phase81-gateway-authoring-factory.json` and `python3 scripts/validate_workflow_router_chat_contract_live.py --skip-anythingllm --timeout-seconds 900 --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Passed: AnythingLLM API tier command `python3 scripts/validate_workflow_router_chat_contract_live.py --timeout-seconds 900 --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Passed: full regression `python -m pytest tests\regression\ -v` returned `397 passed, 19 deselected`.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash diff check returned `BASH_IGNORE_EOL_EXIT=0`.
+
+### Approved Phase 82: Multi-Repo Fixture Expansion
+
+Status: Complete.
+
+Goal: expand live validation beyond the Coinbase fixtures with additional controlled repositories that exercise different languages, project structures, and common coding-agent tasks.
+
+Implementation tasks:
+
+- Add a fixture manifest format for real-world and synthetic repos.
+- Add at least one non-Coinbase fixture category beyond the existing disposable Python service fixture.
+- Ensure fixture setup uses controlled copies and protected-source mutation checks.
+- Add prompt coverage entries that target fixture-specific behaviors without hardcoding brittle paths.
+
+Acceptance proof:
+
+- Fixture manifest validator passes focused regression.
+- Live validation runs against both frozen Coinbase fixtures and at least one additional controlled fixture.
+- Protected fixture mutation checks pass.
+- Prompt outcomes are documented with route, artifacts, and verification evidence.
+
+Completion proof:
+
+- Added protected synthetic Node CLI fixture `node-cli-generalization` to `runtime/fixtures.json` with watched paths for `README.md`, `package.json`, `src/config.js`, `src/index.js`, and `tests/config.test.js`.
+- Added multi-repo live validator `scripts/validate_multi_repo_fixtures_live.py` covering `coinbase-frozen`, `coinbase-frozen-git`, and `node-cli-generalization`.
+- Added planned prompt coverage entries `FX-001` and `FX-002` for Python-service and Node CLI fixture generalization, increasing prompt coverage to `36` entries with `34` implemented entries and no validation errors.
+- Passed: fixture manager validation `python scripts\manage_fixtures.py validate --report-path runtime-state\multi-repo-fixtures\phase82-fixture-manifest.json` returned `fixture_count=4`.
+- Passed: prompt coverage validation `python scripts\validate_prompt_skill_coverage.py --output-path runtime-state\prompt-skill-coverage\phase82-current.json` returned `entry_count=36`, `implemented_count=34`, and `error_count=0`.
+- Passed: skill regression tier validation `python scripts\validate_skill_regression_tiers.py --output-path runtime-state\skill-regression-tiers\phase82-current.json`.
+- Passed: focused regression `python -m pytest tests\regression\test_fixture_manager.py tests\regression\test_prompt_skill_coverage.py tests\regression\test_skill_regression_tiers.py -q` returned `16 passed`.
+- Passed: Bash live multi-repo validation `python3 scripts/validate_multi_repo_fixtures_live.py --timeout-seconds 900 --output-path runtime-state/multi-repo-fixtures/phase82-live-current.json` returned `case_count=3`, categories `real-world-python-git`, `real-world-python-non-git`, and `synthetic-node-cli`, and no errors. Run IDs: `workflow-router-20260606T160922702736Z`, `workflow-router-20260606T160939270679Z`, and `workflow-router-20260606T160953207357Z`.
+- Passed: full regression `python -m pytest tests\regression\ -v` returned `400 passed, 19 deselected`.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash content diff check returned `BASH_IGNORE_EOL_EXIT=0` when ignoring EOL-only differences.
+
+### Approved Phase 83: Tool Reliability And Sandboxed Mutation Harness
+
+Status: Complete.
+
+Goal: make tool execution and mutation tests reliable by isolating write operations, recording file diffs, and proving mutations occur only in approved disposable paths.
+
+Implementation tasks:
+
+- Add a mutation sandbox contract for disposable fixture copies.
+- Record pre/post file hashes and structured diffs for mutation-capable workflows.
+- Add guardrails that reject mutation outside approved roots and approved disposable copies.
+- Add tests for attempted out-of-bounds mutation and cleanup failures.
+
+Acceptance proof:
+
+- Mutation harness focused regression passes.
+- Disposable-copy mutation test records expected diff proof.
+- Protected frozen fixtures remain unchanged.
+- Out-of-bounds mutation attempts fail closed with a clear artifact.
+
+Completion proof:
+
+- Added strict repo-relative path validation for disposable apply hash, backup, rollback, structured diff, and contract targets; invalid paths such as `../outside.md` now block before `implementation.workflow` runs.
+- Added `disposable-mutation-sandbox-contract.json` with allowed source/copy roots, allowed packet paths, approval scope, mutation policy, and guardrails.
+- Added `disposable-mutation-diff.json` with per-file before/after hashes, changed status, added/removed line counts, and bounded unified diff excerpts for the disposable copy.
+- Added `disposable-mutation-proof.json` as the combined proof artifact, exposed directly through workflow-router artifacts alongside `disposable_rollback_proof`.
+- Added rollback cleanup failure regression that writes mutation proof and fails closed with `disposable_copy_rollback_failed` while preserving the source root.
+- Updated `scripts/validate_controlled_small_change_apply_live.py` to assert sandbox contract, structured diff, rollback proof, and direct mutation proof artifacts through gateway and AnythingLLM.
+- Added documentation surfaces [README.mutation-sandbox.md](../README.mutation-sandbox.md) and [docs/examples/mutation-sandbox.md](examples/mutation-sandbox.md), and linked them from the ordered docs index and root README.
+- Passed: focused regression `python -m pytest tests\regression\test_controlled_small_change_apply.py tests\regression\test_implementation_workflow.py -q` returned `19 passed`.
+- Passed: docs index validation `python scripts\check_docs_index.py` returned `expected_count=88`, `orphaned_docs=[]`, and `status=passed`.
+- Passed: skill regression tier validation `python scripts\validate_skill_regression_tiers.py --output-path runtime-state\skill-regression-tiers\phase83-current.json`.
+- Passed: prompt skill coverage validation `python scripts\validate_prompt_skill_coverage.py --output-path runtime-state\prompt-skill-coverage\phase83-current.json` returned `entry_count=36`, `implemented_count=34`, `gap_count=2`, and `error_count=0`.
+- Passed: targeted `git diff --check` for Phase 83 code and docs changes.
+- Passed: Bash live controlled-apply validation `python3 scripts/validate_controlled_small_change_apply_live.py --timeout-seconds 900 --output-path runtime-state/controlled-small-change-apply/phase83-sandbox-live.json` through localhost `8000`, gateway/controller/role ports, both frozen Coinbase fixtures, workflow-router gateway, and AnythingLLM. Gateway run IDs: `workflow-router-20260606T163221675697Z`, `workflow-router-20260606T163234131052Z`. AnythingLLM run IDs: `workflow-router-20260606T163258296305Z`, `workflow-router-20260606T163309476338Z`.
+- Passed: full regression `python -m pytest tests\regression\ -v` returned `402 passed, 19 deselected`.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash content diff check returned `BASH_IGNORE_EOL_EXIT=0`.
+
+### Approved Phase 84: Approval And Continuation UX Hardening
+
+Status: Complete.
+
+Goal: make approval gates and continuation states understandable in chat so users can tell when the harness is waiting, executing, blocked, or finished.
+
+Implementation tasks:
+
+- Standardize chat-visible approval prompts for read-only, implementation-prep, and mutation-capable flows.
+- Add continuation-state artifacts that link approval requests to the originating run.
+- Add tests for approve, deny, expired approval, duplicate approval, and wrong-run continuation.
+- Ensure natural-language output remains the default while structured formats remain selectable.
+
+Acceptance proof:
+
+- Implemented `approval-state.json` for workflow-router runs and exposed `approval_state_status`, `approval_state_next_action`, and `approval_type` in summaries.
+- FormatA chat now includes an `Approval:` section for waiting, blocked, finished, and mutation-capable approval flows.
+- Natural packet-design continuations now validate the source run, expire after 24 hours, and fail closed for denied, duplicate, expired, or wrong-run approvals.
+- Refactor investigation runs that complete read-only now show `next_action=request_approval` and `approval_state_status=waiting_for_approval` instead of silently looking complete.
+- Prior-run generated packet continuations skip L1 deterministic proposal shortcuts and use the packet-operation proposal path.
+- Focused regression `python -m pytest tests\regression\test_controller_service.py -q -m advanced_workflow -k approval_continuation` returned `7 passed`.
+- Advanced workflow regression `python -m pytest tests\regression\test_controller_service.py -q -m advanced_workflow` returned `23 passed`.
+- Default controller and controlled-apply regression `python -m pytest tests\regression\test_controller_service.py tests\regression\test_controlled_small_change_apply.py -q` returned `171 passed, 23 deselected`.
+- Full regression `python -m pytest tests\regression\ -v` returned `402 passed, 23 deselected`.
+- Documentation index validation `python scripts\check_docs_index.py` returned `expected_count=88`, `orphaned_docs=[]`, and `status=passed`.
+- Skill regression tier validation `python scripts\validate_skill_regression_tiers.py --output-path runtime-state\skill-regression-tiers\phase84-current.json` returned `status=passed`.
+- Prompt skill coverage validation `python scripts\validate_prompt_skill_coverage.py --output-path runtime-state\prompt-skill-coverage\phase84-current.json` returned `entry_count=36`, `implemented_count=34`, `gap_count=2`, and `error_count=0`.
+- Live controlled apply validation `python3 scripts/validate_controlled_small_change_apply_live.py --timeout-seconds 900 --output-path runtime-state/controlled-small-change-apply/phase84-approval-ux-live.json` passed through localhost `8000`, all controller/gateway featured ports, both frozen Coinbase fixtures, workflow-router gateway, and AnythingLLM. Gateway run IDs: `workflow-router-20260606T170145591086Z`, `workflow-router-20260606T170156671404Z`. AnythingLLM run IDs: `workflow-router-20260606T170223166092Z`, `workflow-router-20260606T170232544629Z`.
+- Live natural client validation `python3 scripts/validate_workflow_router_natural_clients.py --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --timeout-seconds 900 --include-approval-continuation --include-feedback-record` passed through gateway and AnythingLLM. Gateway run IDs: `workflow-router-20260606T171538641761Z` -> `workflow-router-20260606T171549396315Z` -> `workflow-feedback-20260606T171722431304Z`, and `workflow-router-20260606T171722494436Z` -> `workflow-router-20260606T171732611946Z` -> `workflow-feedback-20260606T171901955028Z`. AnythingLLM run IDs: `workflow-router-20260606T171902049834Z` -> `workflow-router-20260606T171914552050Z` -> `workflow-feedback-20260606T172032808591Z`, and `workflow-router-20260606T172032892592Z` -> `workflow-router-20260606T172043149079Z` -> `workflow-feedback-20260606T172209468351Z`.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash ignore-EOL diff returned `BASH_IGNORE_EOL_EXIT=0`.
+- Updated [README.workflow-router.md](../README.workflow-router.md), [README.getting-started.md](../README.getting-started.md), and [docs/examples/workflow-router.md](examples/workflow-router.md) with first-time tester approval examples and expected markers.
+
+### Approved Phase 85: Skill And Tool Observability Dashboard
+
+Status: Complete.
+
+Goal: provide a local dashboard or report that shows route decisions, selected skills, tool calls, artifacts, validations, failures, and latency for recent runs.
+
+Implementation tasks:
+
+- Define a normalized run-observability summary from existing controller artifacts.
+- Add a report or lightweight local dashboard for recent workflow-router runs.
+- Include filters by prompt family, workflow, skill, model, fixture, status, and failure category.
+- Link observability output to latest-run inspection and failure taxonomy artifacts.
+
+Acceptance proof:
+
+- Observability report regression passes.
+- A report generated from recent live runs includes both frozen Coinbase fixtures.
+- Report identifies route, skill, model, artifacts, validation status, and latency.
+- Docs explain how a tester can use the report after an AnythingLLM prompt.
+
+Completion proof:
+
+- Implemented `RunObservabilityConfig`, `observe_runs`, `format_run_observability`, and `scripts/report_run_observability.py` on top of the existing run-inspector path.
+- Report rows include route status, selected workflow, route rules, selected skills, selected tools, model-router status, approval status/type, downstream workflow/status, artifact keys/count, failure categories, mutation proof, and duration seconds.
+- CLI filters cover workflow, prompt family, skill, model status, target root/fixture, route status, semantic status, and failure category.
+- Focused regression `python -m pytest tests\regression\test_run_inspector.py -q` returned `7 passed`.
+- Documentation index validation `python scripts\check_docs_index.py` returned `expected_count=90`, `orphaned_docs=[]`, and `status=passed`.
+- Full regression `python -m pytest tests\regression\ -v` returned `406 passed, 23 deselected`.
+- Bash live report `python3 scripts/report_run_observability.py --controller-output-root /mnt/c/private_agentic_agents/runtime-state/controller-artifacts --workflow workflow_router.plan --limit 30 --format json --output-path runtime-state/run-observability/phase85-live.json` produced `kind=controller_run_observability_report`, `run_count=30`, `failure_count=0`, both frozen Coinbase target roots, approval states, model-router statuses, selected skills/tools, mutation proof, and duration metrics.
+- Bash filtered live report `python3 scripts/report_run_observability.py --controller-output-root /mnt/c/private_agentic_agents/runtime-state/controller-artifacts --workflow workflow_router.plan --prompt-family execution_planning_terms --skill execution-plan-writer --model-status accepted --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --route-status ready --semantic-status completed_no_failures --limit 5 --format json --output-path runtime-state/run-observability/phase85-filtered-github-live.json` returned 5 matching git-fixture execution-planning runs.
+- `git diff --check` passed.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash ignore-EOL diff returned `BASH_IGNORE_EOL_EXIT=0`.
+- Updated [README.observability.md](../README.observability.md), [README.md](../README.md), [docs/README.md](README.md), [docs/examples/README.md](examples/README.md), and [docs/examples/observability.md](examples/observability.md).
+
+### Approved Phase 86: Natural-Language Skill Discovery And Selection Explanation
+
+Status: Complete.
+
+Goal: make the harness explain, in normal chat language, which skill or workflow was selected and why, without requiring the user to know skill names.
+
+Implementation tasks:
+
+- Add a concise skill-selection explanation section to supported chat outputs.
+- Ensure explanations are grounded in route rules and registry metadata, not model speculation.
+- Add output-format support for natural-language default and JSON requested formats.
+- Add tests that explanations are present, bounded, and correct for implemented L1/L2 prompt families.
+
+Acceptance proof:
+
+- Focused explanation regression passes.
+- Live gateway and AnythingLLM validation show skill-selection explanation in chat-visible output.
+- JSON format includes equivalent structured selection metadata.
+- Explanation never claims unsupported capabilities for deferred advanced workflows.
+
+Completion proof:
+
+- Added a single formatting-layer explanation path in `vllm_agent_gateway/controller_service/server.py` that reads `route_decision` and `registry_snapshot` artifacts instead of running a separate selector or model rewrite.
+- FormatA workflow-router responses now include `Skill Selection:` with `Why:`, `Route rules:`, `Skills:`, `Tools:`, and `Grounded in:` markers.
+- JSON workflow-router responses now include top-level `selection_explanation` and `chat_contract.selection_explanation` with selected workflow, route rules, selected skill route keys, selected tools, and grounding markers.
+- Fixed an existing classifier-order issue where behavior-beginning prompts containing `Return the entrypoint` could be labeled as `l1_cli_entrypoint_lookup_terms`; behavior-start prompts now retain `l1_find_behavior_start_terms`.
+- Focused regression `python -m pytest tests\regression\test_chat_response_contract.py -q` returned `4 passed`.
+- Focused workflow-router regression `python -m pytest tests\regression\test_controller_service.py -q -k "workflow_router_plan_routes_l1_behavior_start_without_repo_reads or workflow_router_chat_accepts_natural_language_and_uses_latest_user_message or workflow_router_chat_explicit_json_output_format_returns_json_content or workflow_router_chat_natural_json_output_format_returns_json_content or workflow_router_chat_l1_explain_code_returns_explanation_artifact"` returned `5 passed, 179 deselected`.
+- Full regression `python -m pytest tests\regression\ -v` returned `406 passed, 23 deselected`.
+- Documentation index validation `python scripts\check_docs_index.py` returned `expected_count=90`, `orphaned_docs=[]`, and `status=passed`.
+- Bash stack restart with `./stop-agent-prompt-proxies.sh` and `./start-agent-prompt-proxies.sh` reported localhost `8000`, `8300`, `8500`, `8400`, and role ports `8101`, `8102`, `8201` through `8205` healthy.
+- Live natural client validation `python3 scripts/validate_workflow_router_natural_clients.py --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --timeout-seconds 900 --include-approval-continuation --include-feedback-record` passed through gateway and AnythingLLM with new `Skill Selection:` markers. Gateway run IDs: `workflow-router-20260606T180104150330Z` -> `workflow-router-20260606T180115825566Z` -> `workflow-feedback-20260606T180249240067Z`, and `workflow-router-20260606T180249311152Z` -> `workflow-router-20260606T180258097412Z` -> `workflow-feedback-20260606T180430121699Z`. AnythingLLM run IDs: `workflow-router-20260606T180430202036Z` -> `workflow-router-20260606T180440595785Z` -> `workflow-feedback-20260606T180625560608Z`, and `workflow-router-20260606T180625668600Z` -> `workflow-router-20260606T180634655540Z` -> `workflow-feedback-20260606T180801775460Z`.
+- Live JSON gateway probe `python3 runtime-state/phase86-selection-explanation/check_json_gateway.py` returned `PHASE86_JSON_GATEWAY_PASS workflow-router-20260606T180920941839Z` and wrote `runtime-state/phase86-selection-explanation/gateway-json-response.json`.
+- Live controlled apply validation `python3 scripts/validate_controlled_small_change_apply_live.py --timeout-seconds 900 --output-path runtime-state/controlled-small-change-apply/phase86-selection-explanation-live.json` passed through localhost `8000`, all featured controller/gateway ports, workflow-router gateway, AnythingLLM, and both frozen Coinbase fixtures with `Skill Selection:` markers.
+- `git diff --check` passed.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash ignore-EOL diff returned `BASH_IGNORE_EOL_EXIT=0`.
+- Updated [README.workflow-router.md](../README.workflow-router.md), [README.getting-started.md](../README.getting-started.md), and [docs/examples/workflow-router.md](examples/workflow-router.md).
+
+### Approved Phase 87: Versioned Release Channels And Installer
+
+Status: Complete.
+
+Goal: define installable release channels so testers can run a stable harness without manually reconstructing environment state from session history.
+
+Implementation tasks:
+
+- Define dev, release-candidate, and stable channel metadata.
+- Add installer or setup validation that checks dependencies, scripts, ports, env vars, and fixture availability.
+- Add version metadata to skill packs, gateway/controller components, and docs.
+- Ensure rollback instructions exist for failed tester setup.
+
+Acceptance proof:
+
+- Installer or setup validator passes focused regression.
+- A release-candidate setup run produces a machine-readable report.
+- Docs show a first-time tester path from install to first AnythingLLM prompt.
+- Stable channel cannot be marked ready unless release-candidate validation passes.
+
+Completion proof:
+
+- Added `runtime/release_channels.json` with ordered `dev`, `release-candidate`, and `stable` channel metadata, harness/component versions, required docs/examples/runtime files, featured localhost ports, AnythingLLM API key requirements, both frozen Coinbase fixtures, setup validator commands, acceptance validator commands, rollback docs, and known limitations.
+- Added `vllm_agent_gateway/acceptance/release_channels.py` and `scripts/validate_release_channels.py` as the single read-only release-channel validation path, writing `release_channel_validation_report` artifacts under `runtime-state/release-channels/`.
+- Stable remains `blocked`; if it is changed to `active`, validation fails unless a supplied report has `kind=v1_acceptance_report`, `status=passed`, and `profile=release-candidate`.
+- Added [README.release-channels.md](../README.release-channels.md), [docs/examples/release-channels.md](examples/release-channels.md), and Getting Started links so a first-time tester can validate the release-candidate path before AnythingLLM prompt testing.
+- Passed focused regression `python -m pytest tests\regression\test_release_channels.py -q` with `4 passed`.
+- Passed focused release/setup regression `python -m pytest tests\regression\test_first_time_user_doctor.py tests\regression\test_v1_acceptance.py tests\regression\test_skill_release_gate.py tests\regression\test_release_channels.py -q` with `18 passed`.
+- Passed release-channel validator `python scripts\validate_release_channels.py --output-path runtime-state\release-channels\phase87-current.json` with `status=passed`, `channel_ids=["dev","release-candidate","stable"]`, and `failed_check_ids=[]`.
+- Passed Bash release-channel validator `python3 scripts/validate_release_channels.py --output-path runtime-state/release-channels/phase87-bash-current.json` with `status=passed`, `check_count=5`, and `failed_check_ids=[]`.
+- Passed Bash stable blocked check `python3 scripts/validate_release_channels.py --channel stable --output-path runtime-state/release-channels/phase87-stable-blocked-bash.json` with `status=passed` and no failed checks.
+- Passed Bash first-time user doctor `python3 scripts/run_first_time_user_doctor.py --timeout-seconds 30 --output-path runtime-state/first-time-user-doctor/phase87-release-channel-live.json` through localhost `8000`, `8300`, `8500`, `8400`, role ports `8101`, `8102`, `8201` through `8205`, AnythingLLM, and both frozen Coinbase fixtures. Result: `status=passed`, `failed_check_ids=[]`, `passed=28`, `warning=1` for known line-ending-only Bash git fixture noise.
+- Passed docs index validation `python scripts\check_docs_index.py` with `expected_count=92`, `orphaned_docs=[]`, and `status=passed`.
+- Passed full regression `python -m pytest tests\regression\ -v` with `410 passed, 23 deselected`.
+- `git diff --check` passed.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash ignore-EOL diff returned `BASH_IGNORE_EOL_EXIT=0`.
+
+### Approved Phase 88: External Tester Onboarding Pack
+
+Status: Complete.
+
+Goal: make the project testable by a contextless external tester with minimal setup and clear feedback capture.
+
+Implementation tasks:
+
+- Create an onboarding README that starts from zero context and links only to required docs.
+- Add a curated first-test prompt set with expected outputs and troubleshooting notes.
+- Add a feedback capture workflow for tester confusion, routing misses, answer-quality misses, and setup failures.
+- Keep advanced and deferred workflows out of the first-test path.
+
+Acceptance proof:
+
+- Docs-index validation passes with no orphan onboarding docs.
+- Onboarding prompt set runs through the release-candidate validation profile.
+- AnythingLLM API or UI proof shows at least one full onboarding prompt works end to end.
+- Feedback artifacts are generated and linked to tester runs.
+
+Completion proof:
+
+- Added `runtime/external_tester_onboarding.json` with five read-only `ONB-*` first-test prompts, expected workflows, expected output markers, expected artifact keys, troubleshooting notes, and feedback templates for confusing output, routing misses, answer-quality misses, and setup failures.
+- Added `vllm_agent_gateway/acceptance/onboarding.py` and `scripts/validate_external_tester_onboarding.py` for static onboarding pack validation and optional live AnythingLLM validation with linked feedback capture.
+- Added [README.external-tester-onboarding.md](../README.external-tester-onboarding.md) and [docs/examples/external-tester-onboarding.md](examples/external-tester-onboarding.md), and linked them from the root README, Getting Started, ordered docs index, and examples index.
+- Kept first-test onboarding prompts read-only and added regression coverage that rejects deferred advanced or mutation-capable prompt terms.
+- Wired `validate_external_tester_onboarding.py --live-anythingllm --include-feedback --case-id ONB-001` into the existing V1 release-candidate acceptance suite as `external_tester_onboarding`, preserving a single release-candidate acceptance entrypoint.
+- Updated `runtime/release_channels.json` so dev, release-candidate, and stable metadata include the external tester onboarding docs, examples, and runtime prompt pack.
+- Passed focused regression `python -m pytest tests\regression\test_external_tester_onboarding.py tests\regression\test_v1_acceptance.py -q` with `7 passed`.
+- Passed focused release/onboarding regression `python -m pytest tests\regression\test_release_channels.py tests\regression\test_external_tester_onboarding.py tests\regression\test_v1_acceptance.py -q` with `11 passed`.
+- Passed static onboarding validation `python scripts\validate_external_tester_onboarding.py --output-path runtime-state\external-tester-onboarding\phase88-static-after-v1-wire.json` with `status=passed`, `case_count=5`, and `failed_check_ids=[]`.
+- Passed release-channel validation `python scripts\validate_release_channels.py --output-path runtime-state\release-channels\phase88-post-onboarding.json` with `status=passed`, `channel_ids=["dev","release-candidate","stable"]`, and `failed_check_ids=[]`.
+- Passed live Bash onboarding validation `python3 scripts/validate_external_tester_onboarding.py --live-anythingllm --include-feedback --case-id ONB-001 --timeout-seconds 900 --output-path runtime-state/external-tester-onboarding/phase88-onb-001-live.json` through AnythingLLM. Run IDs: onboarding `workflow-router-20260606T183043242394Z`, feedback `workflow-feedback-20260606T183053992753Z`.
+- Passed Bash V1 release-candidate acceptance `python3 scripts/validate_v1_acceptance.py --profile release-candidate --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 --controller-base-url http://127.0.0.1:8400 --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --timeout-seconds 900 --command-timeout-seconds 3600 --output-path runtime-state/v1-acceptance/phase88-v1-acceptance.json` with `status=passed`, `suite_count=8`, `json_output_count=2`, `feedback_count=2`, and `error_count=0`; suite `external_tester_onboarding` passed and wrote its own linked-feedback report.
+- Passed docs index validation `python scripts\check_docs_index.py` with `expected_count=94`, `orphaned_docs=[]`, and `status=passed`.
+- Passed full regression `python -m pytest tests\regression\ -v` with `413 passed, 23 deselected`.
+- `git diff --check` passed.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash ignore-EOL diff returned `BASH_IGNORE_EOL_EXIT=0`.
+
+### Approved Phase 89: Security And Policy Review Gate
+
+Status: Complete.
+
+Goal: review the harness for unsafe execution paths, secret handling, filesystem boundaries, network assumptions, and policy gaps before a broader release.
+
+Implementation tasks:
+
+- Audit allowed roots, mutation boundaries, AnythingLLM API key handling, artifact contents, and command execution paths.
+- Add checks for accidental secret exposure in generated artifacts and reports.
+- Document allowed and disallowed tester actions.
+- Add fail-closed tests for unsafe roots, missing approvals, and suspicious output requests.
+
+Acceptance proof:
+
+- Security gate focused regression passes.
+- Secret and artifact exposure checks pass on recent run artifacts.
+- Unsafe mutation and approval-boundary tests fail closed.
+- Docs include a concise tester safety policy.
+
+Completion proof:
+
+- Added `runtime/security_policy.json` as the security policy manifest for the release-candidate channel.
+- Added `vllm_agent_gateway/acceptance/security_policy.py` and `scripts/validate_security_policy.py` as the single read-only security validation path, writing `security_policy_validation_report` artifacts under `runtime-state/security-policy/`.
+- Tightened filesystem boundary normalization so broad roots such as `/`, `/mnt/c`, and `C:/` fail closed before tester release.
+- Added [README.security-policy.md](../README.security-policy.md) and [docs/examples/security-policy.md](examples/security-policy.md), and linked them from the root README, Getting Started, Release Channels, ordered docs index, and examples index.
+- Updated `runtime/release_channels.json` so dev, release-candidate, and stable metadata include the security policy README, example, and runtime manifest.
+- Added regression coverage in `tests/regression/test_security_policy.py` for current policy success, secret value exposure, unsafe broad roots, non-disposable protected fixtures, suspicious onboarding prompts, approval-gated onboarding prompts, and forbidden command fragments.
+- Passed focused security regression `python -m pytest tests\regression\test_security_policy.py -q` with `7 passed`.
+- Passed security policy validation `python scripts\validate_security_policy.py --output-path runtime-state\security-policy\phase89-current-after-approval-boundary.json` with `status=passed`, `check_count=5`, `failed_check_ids=[]`, and no skipped checks.
+- Passed Bash security policy validation with the Windows `ANYTHINGLLM_API_KEY` bridged into Bash: `python3 scripts/validate_security_policy.py --output-path runtime-state/security-policy/phase89-bash-live.json` with `status=passed`, `check_count=5`, `failed_check_ids=[]`, and no skipped checks.
+- Passed release-channel validation `python scripts\validate_release_channels.py --output-path runtime-state\release-channels\phase89-final-release-channels.json` with `status=passed`, `channel_ids=["dev","release-candidate","stable"]`, and `failed_check_ids=[]`.
+- Passed focused release/security regression `python -m pytest tests\regression\test_release_channels.py tests\regression\test_security_policy.py -q` with `10 passed`.
+- Passed docs index validation `python scripts\check_docs_index.py` with `expected_count=96`, `orphaned_docs=[]`, and `status=passed`.
+- `git diff --check` passed.
+- First full regression attempt exposed two transient controller JSON-output connection-reset failures; the two tests passed in focused rerun, and final full regression passed `python -m pytest tests\regression\ -v` with `420 passed, 23 deselected`.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash ignore-EOL diff returned `bash_fixture_diff_exit:0`.
+
+### Approved Phase 90: V1.1 Release Candidate Gate
+
+Status: Complete.
+
+Goal: consolidate phases 72 through 89 into a V1.1 release-candidate gate that proves model portability, skill scaling, fixture expansion, observability, onboarding, and safety.
+
+Implementation tasks:
+
+- Add a V1.1 release-candidate validation profile.
+- Require live localhost `8000`, controller/gateway featured ports, AnythingLLM API or UI, both frozen Coinbase fixtures, and expanded fixtures where available.
+- Require docs-index validation, release-channel metadata, skill-library health, and security/policy checks.
+- Produce a single release-candidate report with pass/fail, evidence links, known limitations, and next recommended phase.
+
+Acceptance proof:
+
+- V1.1 release-candidate profile passes.
+- Report includes route, skill, model, fixture, AnythingLLM, mutation, docs, security, and onboarding proof.
+- Known limitations are explicit and do not include unproven advanced refactor orchestration.
+- Roadmap state is updated with the next approved product direction.
+
+Completion proof:
+
+- Added `v1.1-release-candidate` to the shared `ReleaseGateProfile` contract as a final live profile with AnythingLLM, mutation, setup, docs, release-channel, security, onboarding, observability, model, and fixture proof.
+- Extended `scripts/validate_v1_acceptance.py` and `vllm_agent_gateway/acceptance/v1.py` so `--profile v1.1-release-candidate` runs one consolidated acceptance path with 13 suites: `first_time_user_doctor`, `docs_index`, `release_channels`, `representative_l1`, `representative_l2`, `task_decomposition`, `controlled_apply`, `inline_format_a`, `external_tester_onboarding`, `founder_field_prompts`, `skill_library_release_gate`, `security_policy`, and `run_observability`.
+- Kept the older `release-candidate` V1 profile available for compatibility while moving release-channel acceptance metadata to `v1.1-release-candidate`.
+- Updated stable-readiness validation so a passed report with profile `release-candidate` or `v1.1-release-candidate` can satisfy stable proof when stable is deliberately activated.
+- Added V1.1 report fields: `profile_contract`, `first_time_user_doctor`, `docs_index`, `release_channels`, `security_policy`, `observability`, `model_portability`, `proof_summary`, `known_limitations`, and `next_recommended_phase`.
+- Updated [README.getting-started.md](../README.getting-started.md), [README.release-channels.md](../README.release-channels.md), [docs/examples/release-channels.md](examples/release-channels.md), and [docs/V1_RELEASE_CANDIDATE.md](V1_RELEASE_CANDIDATE.md) so tester-facing release commands use `--profile v1.1-release-candidate`.
+- Passed focused V1.1/profile regression `python -m pytest tests\regression\test_v1_acceptance.py tests\regression\test_release_channels.py tests\regression\test_skill_release_gate.py tests\regression\test_skill_regression_tiers.py -q` with `20 passed`.
+- Passed release-channel validation `python scripts\validate_release_channels.py --output-path runtime-state\release-channels\phase90-doc-profile-wiring.json` with `status=passed` and `failed_check_ids=[]`.
+- Passed Bash V1.1 release-candidate validation `python3 scripts/validate_v1_acceptance.py --profile v1.1-release-candidate --candidate-model-base-url http://127.0.0.1:8000/v1 --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 --controller-base-url http://127.0.0.1:8400 --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --timeout-seconds 900 --command-timeout-seconds 3600 --output-path runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json` with `status=passed`, `suite_count=13`, `json_output_count=2`, `feedback_count=2`, `known_limitation_count=4`, and `error_count=0`.
+- The final V1.1 report recorded setup doctor `28` passed and `1` known fixture warning, docs index `expected_count=96`, release-channel validation passed for `dev`, `release-candidate`, and `stable`, security policy `5` passed and `0` failed, observability `30` recent workflow-router runs, model probe `Qwen3-Coder-30B-A3B-Instruct`, founder field prompts `34` passed and `0` failed, skill library `50` skills and `49` eval cases, and prompt matrix `50` passed and `0` failed.
+- Passed post-V1.1 release-channel validation with the V1.1 report supplied: `python scripts\validate_release_channels.py --release-candidate-report runtime-state\v1-acceptance\phase90-v1-1-acceptance-final.json --output-path runtime-state\release-channels\phase90-final-with-v1-1-report.json`.
+- Passed post-V1.1 security validation `python scripts\validate_security_policy.py --output-path runtime-state\security-policy\phase90-final-post-v1-1.json` with `status=passed`, `check_count=5`, and `failed_check_ids=[]`.
+- Passed docs index validation `python scripts\check_docs_index.py` with `expected_count=96`, `orphaned_docs=[]`, and `status=passed`.
+- `git diff --check` passed.
+- Passed full regression `python -m pytest tests\regression\ -v` with `422 passed, 23 deselected`.
+- Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash ignore-EOL diff returned `bash_fixture_diff_exit:0`.
+
+### Proposed Phase 91: Stable Channel Promotion And External Tester Handoff
+
+Status: Proposed; awaiting founder approval.
+
+Goal: decide whether to promote the `stable` release channel and prepare a contextless external tester handoff package using the passed V1.1 release-candidate proof.
+
+Implementation tasks:
+
+- Review `runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json` with the founder and record any release-blocking concerns.
+- If approved, update `runtime/release_channels.json` so `stable.status=active` and validate it using the passed V1.1 report.
+- Produce a short external tester handoff checklist with setup, first prompt, feedback, security policy, known limitations, and rollback instructions.
+- Add a stable-channel smoke command that confirms setup doctor, release-channel validation, security policy, and one onboarding prompt still pass.
+
+Acceptance proof:
+
+- Stable remains blocked unless founder approval is explicit.
+- If stable is activated, `validate_release_channels.py --channel stable --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json` passes.
+- Handoff docs are linked from the ordered docs index and contain no manual skill-injection path.
+- Bash smoke validation passes through localhost `8000`, `8500`, `8400`, AnythingLLM, and both frozen Coinbase fixtures.
 
 ## Stop Conditions
 
@@ -4279,4 +5017,4 @@ When a new Codex session starts, do this:
 6. Run regression after non-agent code changes.
 7. Follow the Structured Development Rule in this roadmap for every non-trivial change: define the problem, gather evidence, identify root cause, design the smallest correction, implement, verify, inspect artifacts, and document the result.
 
-Phase 72 is the active approved implementation phase. Phases 43 through 71 are complete. Phases 73 through 77 are approved but must wait for the lowest-numbered approved incomplete phase to complete first.
+Phase 90 is complete. Phases 43 through 90 are complete. Phase 91 is proposed and awaits founder approval before implementation.

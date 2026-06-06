@@ -1,0 +1,98 @@
+{
+  "anythingllm_applicable": false,
+  "checks": {
+    "direct_controller": {
+      "http_status": 200,
+      "run_id": "skill-scaffold-20260606T155828346641Z",
+      "status": "passed",
+      "summary": {
+        "authoring_factory_status": "draft_sidecars_generated",
+        "batch_validation_status": "passed",
+        "do_not_admit_count": 0,
+        "eval_case_id": "phase80_live_direct_locator",
+        "live_suite": "skill_registry_contract",
+        "next_action": "review_then_propose_or_pack",
+        "output_artifact": "investigation_plan",
+        "promotion_state": "not_promoted_by_scaffold",
+        "runtime_registry_changed": false,
+        "scaffold_status": "ready",
+        "skill_id": "phase80-live-direct-locator",
+        "target_repository_changed": false
+      }
+    },
+    "explicit_gateway_8300": {
+      "http_status": 200,
+      "run_id": "skill-scaffold-20260606T155828863172Z",
+      "status": "passed",
+      "summary": {
+        "authoring_factory_status": "draft_sidecars_generated",
+        "batch_validation_status": "passed",
+        "do_not_admit_count": 0,
+        "eval_case_id": "phase80_live_gateway_locator",
+        "live_suite": "skill_registry_contract",
+        "next_action": "review_then_propose_or_pack",
+        "output_artifact": "investigation_plan",
+        "promotion_state": "not_promoted_by_scaffold",
+        "runtime_registry_changed": false,
+        "scaffold_status": "ready",
+        "skill_id": "phase80-live-gateway-locator",
+        "target_repository_changed": false
+      }
+    },
+    "workflow_router_gateway_8500": {
+      "http_status": 200,
+      "run_id": "skill-scaffold-20260606T155829517917Z",
+      "status": "passed",
+      "summary": {
+        "authoring_factory_status": "draft_sidecars_generated",
+        "batch_validation_status": "passed",
+        "do_not_admit_count": 0,
+        "eval_case_id": "phase80_live_router_locator",
+        "live_suite": "skill_registry_contract",
+        "next_action": "review_then_propose_or_pack",
+        "output_artifact": "investigation_plan",
+        "promotion_state": "not_promoted_by_scaffold",
+        "runtime_registry_changed": false,
+        "scaffold_status": "ready",
+        "skill_id": "phase80-live-router-locator",
+        "target_repository_changed": false
+      }
+    }
+  },
+  "created_at": "20260606T155828307052Z",
+  "kind": "skill_authoring_factory_live_report",
+  "port_smoke": [
+    {
+      "http_status": 200,
+      "label": "model_8000",
+      "status": "passed",
+      "url": "http://127.0.0.1:8000/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "gateway_8300",
+      "status": "passed",
+      "url": "http://127.0.0.1:8300/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "workflow_router_8500",
+      "status": "passed",
+      "url": "http://127.0.0.1:8500/v1/models"
+    },
+    {
+      "http_status": 200,
+      "label": "controller_8400",
+      "status": "passed",
+      "url": "http://127.0.0.1:8400/health"
+    },
+    {
+      "http_status": 200,
+      "label": "documenter_8205",
+      "status": "passed",
+      "url": "http://127.0.0.1:8205/v1/models"
+    }
+  ],
+  "schema_version": 1,
+  "status": "passed"
+}

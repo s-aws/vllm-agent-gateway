@@ -1,6 +1,6 @@
 # V1 Release Candidate Report
 
-Created from Phase 55 validation on June 5, 2026.
+Created from Phase 55 validation on June 5, 2026. Updated through Phase 90 V1.1 release-candidate validation on June 6, 2026.
 
 ## Candidate Scope
 
@@ -39,8 +39,11 @@ http://127.0.0.1:8400
 | Founder/tester feedback capture | Supported | gateway and AnythingLLM feedback records linked to prior run IDs |
 | Founder field prompt release gate | Supported | `runtime/prompt_catalogs/founder_field_v1.json` drives `run_founder_field_prompt_eval.py`, and the suite is included in `validate_v1_acceptance.py` |
 | Prompt matrix diagnostic | Supported | `validate_founder_field_prompt_matrix.py` checks original and refined prompt classifier rules offline |
+| V1.1 consolidated release gate | Supported | `validate_v1_acceptance.py --profile v1.1-release-candidate` includes setup, docs, release-channel, security, observability, model, onboarding, workflow, JSON, feedback, and fixture proof |
 
 Broader L1/L2 prompt suites exist and should be run during extended testing. The current release-candidate command includes representative suites plus the founder field prompt gate so first-user validation proves both narrow known-good cases and realistic founder wording.
+
+The current V1.1 release-candidate profile is the preferred broad tester gate. The older `release-candidate` profile remains available for compatibility.
 
 ## Supported Prompt Families
 
@@ -83,27 +86,34 @@ Phase 55 validation ran against:
 - role ports `8101`, `8102`, `8201`, `8202`, `8203`, `8204`, and `8205`
 - AnythingLLM workspace API
 
-Latest release-candidate report:
+Latest V1.1 release-candidate report:
 
 ```text
-runtime-state/v1-acceptance/v1-acceptance-20260606T021841646193Z.json
+runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json
 ```
 
 Latest validation results:
 
-- V1 acceptance: `status=passed`, `suite_count=6`, `json_output_count=2`, `feedback_count=2`, `error_count=0`
+- V1.1 acceptance: `status=passed`, `profile=v1.1-release-candidate`, `suite_count=13`, `json_output_count=2`, `feedback_count=2`, `error_count=0`
 - health checks: `11` localhost endpoints passed
 - AnythingLLM preflight: `ping_status=200`, `workspace_status=200`, workspace `my-workspace` found
+- first-time user doctor: `28` passed, `1` known fixture warning for Bash/Windows git line-ending noise, `0` failed
+- docs-index check: `expected_count=96`, `orphaned_docs=[]`, `status=passed`
+- release-channel validation: `dev`, `release-candidate`, and `stable` metadata passed
+- security policy: `5` checks passed, `0` skipped, `0` failed
+- observability: recent workflow-router report loaded `30` runs
+- model probe: `localhost:8000/v1/models` returned `Qwen3-Coder-30B-A3B-Instruct`; model portability summary passed with zero classified misses
 - representative L1: `L1-002` and `L1-010` passed through gateway and AnythingLLM on both frozen repos
 - representative L2: `L2-005` passed through gateway and AnythingLLM on both frozen repos
 - task decomposition: direct controller, gateway, and AnythingLLM passed on both frozen repos
 - controlled apply: direct dry-run, protected real-apply refusal, gateway disposable-copy apply, and AnythingLLM disposable-copy apply passed on both frozen repos
 - inline FormatA answers: gateway and AnythingLLM passed on both frozen repos
-- founder field prompts: `26` AnythingLLM prompts passed with output-contract and semantic-quality gates
+- external tester onboarding: live onboarding prompt and linked feedback passed through AnythingLLM
+- founder field prompts: `34` AnythingLLM prompts passed with output-contract and semantic-quality gates
+- skill-library release gate: `50` skills, `49` eval cases, `50` route keys, Batch D live proof, prompt matrix `50` passed and `0` failed
 - JSON output: gateway and AnythingLLM passed on both frozen repos
 - feedback capture: gateway and AnythingLLM feedback records passed on both frozen repos
-- docs-index check: `DOCS INDEX PASS`
-- full regression: `332 passed, 19 deselected`
+- full regression: `422 passed, 23 deselected`
 - protected fixture mutation check: watched hashes were unchanged; Windows Git status for `C:\coinbase_testing_repo_frozen_tmp.github` returned clean output after validation
 
 Representative run IDs:
@@ -130,7 +140,8 @@ Run the release-candidate gate from Bash:
 cd /mnt/c/agentic_agents
 export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
 python3 scripts/validate_v1_acceptance.py \
-  --profile release-candidate \
+  --profile v1.1-release-candidate \
+  --candidate-model-base-url http://127.0.0.1:8000/v1 \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \

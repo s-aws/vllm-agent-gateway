@@ -1,0 +1,10 @@
+{
+  "name": "node-cli-fixture",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node tests/config.test.js"
+  },
+  "dependencies": {}
+}

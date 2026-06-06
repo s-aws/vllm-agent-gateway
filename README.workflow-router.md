@@ -122,6 +122,13 @@ The `Result:` block is the first place a tester should look. It includes:
 - next action
 - verification command summary
 
+The `Skill Selection:` block explains why the router selected the workflow, skills, and tools. It is grounded in `route-decision.json` evidence and registry metadata, not a separate model rewrite. It includes:
+
+- matched route rules
+- selected skill IDs and capability route keys when available
+- selected tool IDs
+- grounding markers such as `route_decision.evidence`
+
 The inline `Answer:` block is rendered from controller artifacts, not from a second model rewrite. Supported artifact summaries include code explanation, behavior-existence checks, callers/usages, configuration lookup, pasted test-failure summary, related-test command discovery, L2 failing-test diagnosis with root-cause hypothesis, L2 multi-file behavior investigation, L2 dependency impact summary, and L2 test selection with smallest/medium/broad command tiers, rationale, covered risks, confidence, gaps, and source-mutation state. Explicit multi-step decomposition prompts return a `Task Decomposition:` section with work packages, dependencies, approval gates, uncertainty, verification strategy, and mutation proof. The full artifact paths remain visible so users can inspect the durable JSON evidence when needed.
 
 Long summary or artifact sections are bounded. When content is omitted, the response includes explicit omitted-count markers such as `omitted 30 artifact(s)`.
@@ -149,9 +156,11 @@ Example JSON request:
 }
 ```
 
-For JSON output, `choices[0].message.content` is a JSON object string. It includes `chat_contract` with the same selected workflow, selected skills, selected tools, next action, and verification fields that `format_a` shows in the `Result:` block. The top-level `agentic_controller_response` is still returned separately.
+For JSON output, `choices[0].message.content` is a JSON object string. It includes `chat_contract` with the same selected workflow, selected skills, selected tools, next action, verification fields, and `selection_explanation` that `format_a` shows in the `Result:` and `Skill Selection:` blocks. The top-level `selection_explanation` object is also included for clients that want route rules, selected skill route keys, selected tools, and grounding markers without parsing text. The top-level `agentic_controller_response` is still returned separately.
 
-Natural approval continuation is supported for a prior workflow-router run ID. The user can approve packet design in plain language, and the adapter will recover the target root from the prior run. When exact `packet_operations` are supplied by client metadata or embedded JSON, implementation prep runs through `execution_planning.plan` and `implementation.workflow` draft mode. When exact operations are missing, the router asks the local model for bounded `replace_text` proposals from the approved investigation artifacts; invalid or empty proposals are written to `packet-operation-proposal.json` and block with `next_action=request_packet_objective`.
+Natural approval continuation is supported for a prior workflow-router run ID. The user can approve packet design in plain language, and the adapter will recover the target root from the prior run. Initial refactor investigation runs now show an `Approval:` block with `State: waiting_for_approval` and `Type: packet_design`; approved continuations show `State: finished`. The router writes `approval-state.json` and links the continuation to the originating run. Duplicate, denied, expired, and wrong-run approvals fail closed before implementation prep.
+
+When exact `packet_operations` are supplied by client metadata or embedded JSON, implementation prep runs through `execution_planning.plan` and `implementation.workflow` draft mode. When exact operations are missing, the router asks the local model for bounded `replace_text` proposals from the approved investigation artifacts; invalid or empty proposals are written to `packet-operation-proposal.json` and block with `next_action=request_packet_objective`.
 
 Natural feedback capture is supported for prior run IDs through the same chat route. Messages such as `Record feedback for original run <run_id> and continuation run <run_id>: useful: ... missing: ...` are routed to the existing `workflow_feedback.record` workflow and linked to stored controller run records.
 
@@ -177,9 +186,10 @@ Artifacts are written under `CONTROLLER_OUTPUT_ROOT/workflow-router/<run-id>/`:
 - `registry-snapshot.json`
 - `route-decision.json`
 - `downstream-result.json` when execution delegates
+- `approval-state.json`
 - `run-state.json`
 
-The summary includes `route_status`, `selected_workflow`, `next_action`, `target_repo_read`, `model_router_status`, downstream fields when execution delegates, `verification_command_count` when downstream investigation found related test evidence, and `source_changed` / `disposable_copy_changed` for disposable-copy apply.
+The summary includes `route_status`, `selected_workflow`, `next_action`, `target_repo_read`, `model_router_status`, downstream fields when execution delegates, `verification_command_count` when downstream investigation found related test evidence, `approval_state_status`, `approval_type`, and `source_changed` / `disposable_copy_changed` for disposable-copy apply.
 
 `route-decision.json` records skill-selection evidence from the registry. Skill selection is now based on a `capability_contract` shortlist before trigger ordering, and the evidence includes selected skill IDs plus their capability route keys.
 
@@ -188,7 +198,8 @@ The summary includes `route_status`, `selected_workflow`, `next_action`, `target
 - `plan_only` reads no target repository files.
 - `execute_read_only` can run only `code_context.lookup`, `code_investigation.plan`, `refactor.single_path` in investigation mode, `skill_batch.propose`, or `task.decompose`.
 - Natural chat routing requires an allowed target path in the latest user message.
-- Natural approval continuation may use a prior workflow-router run ID as the target-root source. Exact packet operations are required for completed implementation prep; generated proposals may block with an inspectable `packet_operation_proposal` artifact.
+- Natural approval continuation may use a prior workflow-router run ID as the target-root source only when that run is waiting for `packet_design` approval. Exact packet operations are required for completed implementation prep; generated proposals may block with an inspectable `packet_operation_proposal` artifact.
+- Natural approval continuations expire after 24 hours. Duplicate approvals, denied approvals, and wrong-run approvals fail closed.
 - Natural packet-objective follow-up may continue after `request_packet_objective`; generated operations still must validate exactly, no-op proposals can become evidence-backed `no_change_needed`, and unsupported no-op proposals return `request_narrowed_edit_objective`.
 - Natural narrowed-edit follow-up may continue after `request_narrowed_edit_objective`; exact supplied operations complete dry-run implementation prep. Live model-generated narrowed edits now produce validated exact `replace_text` operations on both frozen Coinbase fixtures, and compacted execution-planning context lets the downstream dry-run complete through the existing `implementation.workflow` draft path.
 - Natural L1 small documentation edits, small unit-test additions, and simple failing-test fixes must be draft-only before the adapter creates packet-design approval. If draft-only intent is missing, the router stops at `request_approval`.

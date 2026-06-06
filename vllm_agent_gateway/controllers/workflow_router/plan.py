@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import difflib
 import os
 import re
 import shutil
@@ -832,6 +833,21 @@ def is_l1_cli_entrypoint_lookup_request(text: str) -> bool:
     if is_l1_test_failure_summary_request(text):
         return False
     has_cli_word = re.search(r"\bcli\b", text) is not None
+    behavior_beginning_terms = (
+        "begin",
+        "begins",
+        "beginning point",
+        "logic beginning",
+        "first source point",
+        "source point",
+    )
+    behavior_subject_terms = ("behavior", "lookup", "flow", "logic")
+    if (
+        not has_cli_word
+        and any(term in text for term in behavior_beginning_terms)
+        and any(term in text for term in behavior_subject_terms)
+    ):
+        return False
     entry_terms = ("script", "entrypoint", "entry point", "main.py", "__main__", "run command")
     lookup_terms = ("find", "locate", "where", "which", "show", "command")
     return (has_cli_word or any(term in text for term in entry_terms)) and any(term in text for term in lookup_terms)
@@ -1437,7 +1453,7 @@ def is_task_decomposition_request(text: str) -> bool:
 
 
 def workflow_kind_for_request(user_request: str) -> tuple[str | None, str, list[dict[str, Any]]]:
-    text = lower_request(user_request)
+    text = lower_request(strip_filesystem_paths(user_request))
     evidence: list[dict[str, Any]] = []
     raw_terms = contains_any(text, RAW_CONTEXT_TERMS)
     if raw_terms:
@@ -1461,8 +1477,7 @@ def workflow_kind_for_request(user_request: str) -> tuple[str | None, str, list[
     if is_task_decomposition_request(text):
         evidence.append({"source": "router_rule", "rule": "task_decomposition_terms"})
         return "task.decompose", "ready", evidence
-    feedback_text = lower_request(strip_filesystem_paths(user_request))
-    if "feedback" in feedback_text or "too noisy" in feedback_text or "too slow" in feedback_text or "what was useful" in feedback_text:
+    if "feedback" in text or "too noisy" in text or "too slow" in text or "what was useful" in text:
         evidence.append({"source": "router_rule", "rule": "feedback_terms"})
         return "workflow_feedback.record", "ready", evidence
     if is_l1_simple_failing_test_fix_request(text):
@@ -3245,6 +3260,18 @@ def disposable_apply_blockers(request: WorkflowRouterPlanRequest) -> list[dict[s
                 "message": "apply_disposable_copy requires exact packet_operations.",
             }
         )
+    else:
+        source_root = Path(request.target_root).resolve()
+        for index, operation in enumerate(request.packet_operations, 1):
+            try:
+                normalize_disposable_operation_path(source_root, operation.get("path"))
+            except ValueError as exc:
+                blockers.append(
+                    {
+                        "reason": "invalid_disposable_operation_path",
+                        "message": f"packet_operations[{index}].path must stay inside the source root: {exc}",
+                    }
+                )
     return blockers
 
 
@@ -3297,14 +3324,36 @@ def initialize_disposable_git_repo(repo_root: Path, packet_operations: list[dict
         subprocess.run(["git", "add", *paths], cwd=repo_root, check=True, capture_output=True, text=True, encoding="utf-8", timeout=60)
 
 
+def normalize_disposable_operation_path(root: Path, value: Any) -> tuple[str, Path]:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("operation path must be a non-empty string")
+    normalized = value.strip().replace("\\", "/")
+    raw_path = Path(normalized)
+    if raw_path.is_absolute():
+        raise ValueError(f"absolute paths are not allowed: {value}")
+    root_resolved = root.resolve()
+    candidate = (root_resolved / raw_path).resolve()
+    try:
+        relative_path = candidate.relative_to(root_resolved)
+    except ValueError as exc:
+        raise ValueError(f"path escapes root: {value}") from exc
+    if any(part == ".." for part in relative_path.parts):
+        raise ValueError(f"path escapes root: {value}")
+    return relative_path.as_posix(), candidate
+
+
 def hash_operation_targets(root: Path, packet_operations: list[dict[str, Any]]) -> dict[str, str | None]:
     hashes: dict[str, str | None] = {}
     for operation in packet_operations:
-        path_value = operation.get("path")
-        if not isinstance(path_value, str):
-            continue
-        path = root / path_value.replace("\\", "/").lstrip("./")
-        hashes[path_value] = file_sha256(path) if path.exists() and path.is_file() else None
+        try:
+            relative_path, path = normalize_disposable_operation_path(root, operation.get("path"))
+        except ValueError as exc:
+            raise WorkflowRouterError(
+                f"Invalid disposable operation path: {exc}",
+                code="invalid_disposable_operation_path",
+                status=HTTPStatus.UNPROCESSABLE_ENTITY,
+            ) from exc
+        hashes[relative_path] = file_sha256(path) if path.exists() and path.is_file() else None
     return hashes
 
 
@@ -3316,10 +3365,10 @@ def backup_operation_targets(
     backup_dir.mkdir(parents=True, exist_ok=True)
     backups: dict[str, str] = {}
     for operation in packet_operations:
-        path_value = operation.get("path")
-        if not isinstance(path_value, str):
+        try:
+            path_value, source = normalize_disposable_operation_path(root, operation.get("path"))
+        except ValueError:
             continue
-        source = root / path_value.replace("\\", "/").lstrip("./")
         if not source.exists() or not source.is_file():
             continue
         backup = (backup_dir / f"{artifact_safe_name(path_value)}.bak").resolve()
@@ -3345,12 +3394,12 @@ def rollback_disposable_copy(
 ) -> dict[str, Any]:
     blockers: list[dict[str, Any]] = []
     for operation in packet_operations:
-        path_value = operation.get("path")
         kind = operation.get("kind")
-        if not isinstance(path_value, str):
-            blockers.append({"reason": "invalid_operation_path", "operation": operation})
+        try:
+            path_value, target = normalize_disposable_operation_path(copy_root, operation.get("path"))
+        except ValueError as exc:
+            blockers.append({"reason": "invalid_operation_path", "operation": operation, "detail": str(exc)})
             continue
-        target = copy_root / path_value.replace("\\", "/").lstrip("./")
         backup_path_value = backups.get(path_value)
         if isinstance(backup_path_value, str):
             backup_path = Path(backup_path_value)
@@ -3399,6 +3448,148 @@ def rollback_disposable_copy(
     return proof
 
 
+def ensure_path_under(path: Path, root: Path, label: str) -> None:
+    try:
+        path.resolve().relative_to(root.resolve())
+    except ValueError as exc:
+        raise WorkflowRouterError(
+            f"{label} must stay under {root.resolve()}: {path.resolve()}",
+            code="mutation_sandbox_contract_failed",
+            status=HTTPStatus.UNPROCESSABLE_ENTITY,
+        ) from exc
+
+
+def build_disposable_sandbox_contract(
+    request: WorkflowRouterPlanRequest,
+    *,
+    source_root: Path,
+    copy_root: Path,
+    run_dir: Path,
+) -> dict[str, Any]:
+    ensure_path_under(copy_root, run_dir, "disposable copy root")
+    if source_root.resolve() == copy_root.resolve():
+        raise WorkflowRouterError(
+            "Disposable copy root must be different from source root.",
+            code="mutation_sandbox_contract_failed",
+            status=HTTPStatus.UNPROCESSABLE_ENTITY,
+        )
+    allowed_paths: list[dict[str, Any]] = []
+    for index, operation in enumerate(request.packet_operations, 1):
+        try:
+            source_relative, source_path = normalize_disposable_operation_path(source_root, operation.get("path"))
+            copy_relative, copy_path = normalize_disposable_operation_path(copy_root, operation.get("path"))
+        except ValueError as exc:
+            raise WorkflowRouterError(
+                f"Disposable mutation sandbox rejected packet_operations[{index}].path: {exc}",
+                code="mutation_sandbox_contract_failed",
+                status=HTTPStatus.UNPROCESSABLE_ENTITY,
+            ) from exc
+        if source_relative != copy_relative:
+            raise WorkflowRouterError(
+                "Disposable mutation sandbox path normalization mismatch.",
+                code="mutation_sandbox_contract_failed",
+                status=HTTPStatus.UNPROCESSABLE_ENTITY,
+            )
+        allowed_paths.append(
+            {
+                "operation_index": index,
+                "relative_path": source_relative,
+                "operation_kind": operation.get("kind"),
+                "source_path": str(source_path),
+                "copy_path": str(copy_path),
+            }
+        )
+    contract = {
+        "schema_version": SCHEMA_VERSION,
+        "kind": "disposable_mutation_sandbox_contract",
+        "status": "active",
+        "mutation_policy": "disposable_copy_only",
+        "approval_status": request.approval.get("status") if isinstance(request.approval, dict) else None,
+        "approval_scope": request.approval.get("apply_scope") if isinstance(request.approval, dict) else None,
+        "source_root": str(source_root),
+        "disposable_copy_root": str(copy_root),
+        "run_dir": str(run_dir),
+        "allowed_write_root": str(copy_root),
+        "allowed_operation_paths": allowed_paths,
+        "guardrails": [
+            "source_root_read_only",
+            "copy_root_must_be_under_run_dir",
+            "packet_paths_must_be_repo_relative",
+            "implementation_workflow_is_the_only_apply_executor",
+            "rollback_must_restore_copy_hashes",
+        ],
+    }
+    contract_path = run_dir / "disposable-mutation-sandbox-contract.json"
+    write_json(contract_path, contract)
+    contract["artifact"] = str(contract_path)
+    return contract
+
+
+def structured_disposable_diff(
+    *,
+    copy_root: Path,
+    packet_operations: list[dict[str, Any]],
+    backups: dict[str, str],
+    before_hashes: dict[str, str | None],
+    after_hashes: dict[str, str | None],
+    run_dir: Path,
+    max_diff_lines: int = 120,
+) -> dict[str, Any]:
+    records: list[dict[str, Any]] = []
+    for operation in packet_operations:
+        try:
+            relative_path, target = normalize_disposable_operation_path(copy_root, operation.get("path"))
+        except ValueError as exc:
+            records.append({"status": "invalid_path", "path": operation.get("path"), "detail": str(exc)})
+            continue
+        backup_path_value = backups.get(relative_path)
+        before_text = ""
+        before_exists = False
+        if isinstance(backup_path_value, str):
+            backup_path = Path(backup_path_value)
+            if backup_path.exists() and backup_path.is_file():
+                before_text = backup_path.read_text(encoding="utf-8", errors="replace")
+                before_exists = True
+        after_exists = target.exists() and target.is_file()
+        after_text = target.read_text(encoding="utf-8", errors="replace") if after_exists else ""
+        diff_lines = list(
+            difflib.unified_diff(
+                before_text.splitlines(),
+                after_text.splitlines(),
+                fromfile=f"a/{relative_path}",
+                tofile=f"b/{relative_path}",
+                lineterm="",
+            )
+        )
+        records.append(
+            {
+                "status": "changed" if before_hashes.get(relative_path) != after_hashes.get(relative_path) else "unchanged",
+                "path": relative_path,
+                "operation_kind": operation.get("kind"),
+                "before_exists": before_exists,
+                "after_exists": after_exists,
+                "before_sha256": before_hashes.get(relative_path),
+                "after_sha256": after_hashes.get(relative_path),
+                "added_line_count": sum(1 for line in diff_lines if line.startswith("+") and not line.startswith("+++")),
+                "removed_line_count": sum(1 for line in diff_lines if line.startswith("-") and not line.startswith("---")),
+                "unified_diff_excerpt": diff_lines[:max_diff_lines],
+                "diff_truncated": len(diff_lines) > max_diff_lines,
+            }
+        )
+    proof = {
+        "schema_version": SCHEMA_VERSION,
+        "kind": "disposable_mutation_structured_diff",
+        "status": "ready",
+        "disposable_copy_root": str(copy_root),
+        "changed_file_count": sum(1 for record in records if record.get("status") == "changed"),
+        "records": records,
+    }
+    diff_path = run_dir / "disposable-mutation-diff.json"
+    write_json(diff_path, proof)
+    proof["artifact"] = str(diff_path)
+    return proof
+
+
 def invoke_disposable_copy_apply(
     request: WorkflowRouterPlanRequest,
     run_dir: Path,
@@ -3406,6 +3597,12 @@ def invoke_disposable_copy_apply(
     source_root = Path(request.target_root).resolve()
     copy_root = run_dir / "copy"
     shutil.copytree(source_root, copy_root)
+    sandbox_contract = build_disposable_sandbox_contract(
+        request,
+        source_root=source_root,
+        copy_root=copy_root,
+        run_dir=run_dir,
+    )
     initialize_disposable_git_repo(copy_root, request.packet_operations)
     source_before = hash_operation_targets(source_root, request.packet_operations)
     copy_before = hash_operation_targets(copy_root, request.packet_operations)
@@ -3432,21 +3629,36 @@ def invoke_disposable_copy_apply(
         for path in sorted(copy_before)
         if copy_before.get(path) != copy_after.get(path)
     }
+    structured_diff = structured_disposable_diff(
+        copy_root=copy_root,
+        packet_operations=request.packet_operations,
+        backups=rollback_backups,
+        before_hashes=copy_before,
+        after_hashes=copy_after,
+        run_dir=run_dir,
+    )
     rollback = rollback_disposable_copy(copy_root, request.packet_operations, copy_before, run_dir, rollback_backups)
     proof = {
+        "schema_version": SCHEMA_VERSION,
+        "kind": "disposable_mutation_proof",
         "workflow": "implementation.workflow",
         "mode": "apply",
         "source_root": str(source_root),
         "disposable_copy_root": str(copy_root),
         "packet_file": str(packet_file),
+        "sandbox_contract": sandbox_contract,
         "source_hashes_before": source_before,
         "source_hashes_after": source_after,
         "copy_hashes_before": copy_before,
         "copy_hashes_after": copy_after,
         "source_changed": source_changed,
         "copy_changed": copy_changed,
+        "structured_diff": structured_diff,
         "rollback": rollback,
     }
+    proof_path = run_dir / "disposable-mutation-proof.json"
+    write_json(proof_path, proof)
+    proof["artifact"] = str(proof_path)
     if source_changed:
         raise WorkflowRouterError(
             "Source target changed during disposable-copy apply.",
@@ -3470,6 +3682,184 @@ def invoke_disposable_copy_apply(
 
 def prefixed_artifacts(prefix: str, artifacts: dict[str, str]) -> dict[str, str]:
     return {f"{prefix}_{key}": value for key, value in artifacts.items()}
+
+
+def expected_approval_for_mode(mode: str) -> dict[str, Any] | None:
+    if mode == "implementation_prep":
+        return {
+            "status": "approved_for_packet_design",
+            "scope": "packet_design_only",
+            "apply_allowed": False,
+            "approval_refs": ["natural_approval:<source_run_id>"],
+        }
+    if mode == "apply_disposable_copy":
+        return {
+            "status": "approved_for_disposable_apply",
+            "scope": "workflow_router_disposable_copy",
+            "apply_allowed": True,
+            "apply_scope": "disposable_copy_only",
+            "approval_refs": ["founder-approved disposable copy apply"],
+        }
+    return None
+
+
+def approval_type_for_mode(mode: str) -> str:
+    if mode == "implementation_prep":
+        return "packet_design"
+    if mode == "apply_disposable_copy":
+        return "disposable_copy_apply"
+    return "none"
+
+
+def expected_approval_for_type(approval_type: str) -> dict[str, Any] | None:
+    if approval_type == "packet_design":
+        return expected_approval_for_mode("implementation_prep")
+    if approval_type == "disposable_copy_apply":
+        return expected_approval_for_mode("apply_disposable_copy")
+    return None
+
+
+def approval_type_for_decision(request: WorkflowRouterPlanRequest, decision: dict[str, Any]) -> str:
+    approval_type = approval_type_for_mode(request.mode)
+    if approval_type != "none":
+        return approval_type
+    if decision.get("next_action") == "request_approval" or decision.get("selected_workflow") == "execution_planning.plan":
+        return "packet_design"
+    return "none"
+
+
+def expected_approval_for_decision(
+    request: WorkflowRouterPlanRequest,
+    decision: dict[str, Any],
+    approval_type: str,
+) -> dict[str, Any] | None:
+    if request.mode in {"implementation_prep", "apply_disposable_copy"}:
+        return expected_approval_for_type(approval_type)
+    if decision.get("next_action") == "request_approval" and approval_type != "none":
+        return expected_approval_for_type(approval_type)
+    if isinstance(request.approval, dict) and request.approval and approval_type != "none":
+        return expected_approval_for_type(approval_type)
+    return None
+
+
+def approval_status_for_expected(
+    request: WorkflowRouterPlanRequest,
+    expected: dict[str, Any] | None,
+) -> str:
+    if expected is None:
+        return "not_required"
+    if not isinstance(request.approval, dict):
+        return "missing"
+    expected_status = expected.get("status")
+    actual_status = request.approval.get("status")
+    if actual_status == expected_status:
+        return "approved"
+    if actual_status:
+        return "invalid"
+    return "missing"
+
+
+def approval_next_action_text(
+    *,
+    run_id: str,
+    request: WorkflowRouterPlanRequest,
+    decision: dict[str, Any],
+    approval_status: str,
+    approval_type: str,
+) -> str:
+    if approval_type == "packet_design":
+        if approval_status != "approved":
+            return (
+                f"Approve packet design for run {run_id} and include exact packet_operations JSON. "
+                "The continuation must stay draft-only."
+            )
+        if decision.get("status") == "blocked":
+            return "Provide exact packet_operations JSON, a packet objective, or a narrowed edit objective."
+        return "No approval action remains for this run."
+    if approval_type == "disposable_copy_apply":
+        if approval_status != "approved":
+            return (
+                f"Approve disposable-copy apply for run {run_id} with apply_scope=disposable_copy_only "
+                "and exact packet_operations JSON."
+            )
+        if decision.get("status") == "blocked":
+            return "Fix the blocked packet_operations or disposable-copy approval fields before retrying."
+        return "No approval action remains for this run."
+    if decision.get("next_action") == "request_approval":
+        return f"Review run {run_id}, then send an approved continuation with the required approval fields."
+    return "No approval action is required for this run."
+
+
+def approval_state_status(
+    *,
+    request: WorkflowRouterPlanRequest,
+    decision: dict[str, Any],
+    approval_status: str,
+) -> str:
+    if approval_status in {"missing", "invalid"}:
+        return "waiting_for_approval"
+    if approval_status == "approved":
+        if decision.get("status") == "blocked":
+            return "blocked"
+        if decision.get("downstream"):
+            return "finished"
+        return "approved"
+    if decision.get("next_action") == "request_approval":
+        return "waiting_for_approval"
+    if decision.get("status") == "blocked":
+        return "blocked"
+    if request.mode in {"execute_read_only", "plan_only"}:
+        return "not_required"
+    return "finished" if decision.get("downstream") else "not_required"
+
+
+def build_workflow_router_approval_state(
+    *,
+    request: WorkflowRouterPlanRequest,
+    decision: dict[str, Any],
+    run_id: str,
+    target_root: Path,
+    run_dir: Path,
+) -> dict[str, Any]:
+    approval_type = approval_type_for_decision(request, decision)
+    expected_approval = expected_approval_for_decision(request, decision, approval_type)
+    approval_status = approval_status_for_expected(request, expected_approval)
+    state_status = approval_state_status(
+        request=request,
+        decision=decision,
+        approval_status=approval_status,
+    )
+    blockers = decision.get("blockers") if isinstance(decision.get("blockers"), list) else []
+    approved_run_id = approved_run_id_from_context(request.context)
+    state = {
+        "kind": "workflow_router_approval_state",
+        "schema_version": SCHEMA_VERSION,
+        "run_id": run_id,
+        "target_root": str(target_root),
+        "mode": request.mode,
+        "selected_workflow": decision.get("selected_workflow"),
+        "route_status": decision.get("status"),
+        "status": state_status,
+        "approval_type": approval_type,
+        "approval_status": approval_status,
+        "expected_approval": expected_approval,
+        "received_approval": request.approval if isinstance(request.approval, dict) else None,
+        "source_run_id": approved_run_id,
+        "next_action": decision.get("next_action"),
+        "next_action_text": approval_next_action_text(
+            run_id=run_id,
+            request=request,
+            decision=decision,
+            approval_status=approval_status,
+            approval_type=approval_type,
+        ),
+        "blockers": blockers,
+        "created_at": utc_now(),
+    }
+    artifact_path = run_dir / "approval-state.json"
+    write_json(artifact_path, state)
+    state["artifact"] = str(artifact_path)
+    return state
 
 
 def blocked_decision(
@@ -3721,6 +4111,8 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
                 "artifacts": downstream_result.artifact_paths,
                 "tool_policy": downstream_tool_policy,
             }
+            if selected_workflow == "refactor.single_path" and downstream_result.status == WorkflowStatus.COMPLETED:
+                decision["next_action"] = "request_approval"
             downstream_failures = downstream_result.failures
     if request.mode == "implementation_prep" and decision["status"] == "ready":
         implementation_request = request
@@ -3741,7 +4133,8 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
                 "objective": narrowed_objective,
             }
         proposal_path = run_dir / "packet-operation-proposal.json"
-        if not request.packet_operations:
+        use_prior_run_packet_proposal = approved_run_id_from_context(request.context) is not None
+        if not request.packet_operations and not use_prior_run_packet_proposal:
             proposed_operations, small_text_edit_proposal = small_text_edit_packet_operations(request, run_dir)
             if small_text_edit_proposal is not None:
                 decision["small_text_edit"] = {
@@ -3766,7 +4159,7 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
                             "packet_operation_count": len(proposed_operations),
                         }
                     )
-        if not implementation_request.packet_operations:
+        if not implementation_request.packet_operations and not use_prior_run_packet_proposal:
             proposed_operations, simple_test_fix_proposal = simple_test_fix_packet_operations(request, run_dir)
             if simple_test_fix_proposal is not None:
                 decision["simple_test_fix"] = {
@@ -3789,7 +4182,11 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
                             "packet_operation_count": len(proposed_operations),
                         }
                     )
-        if not implementation_request.packet_operations and simple_test_fix_proposal is None:
+        if (
+            not implementation_request.packet_operations
+            and simple_test_fix_proposal is None
+            and not use_prior_run_packet_proposal
+        ):
             proposed_operations, small_unit_test_proposal = small_unit_test_packet_operations(request, run_dir)
             if small_unit_test_proposal is not None:
                 decision["small_unit_test"] = {
@@ -3817,9 +4214,14 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
                     )
         if (
             not implementation_request.packet_operations
-            and small_text_edit_proposal is None
-            and small_unit_test_proposal is None
-            and simple_test_fix_proposal is None
+            and (
+                use_prior_run_packet_proposal
+                or (
+                    small_text_edit_proposal is None
+                    and small_unit_test_proposal is None
+                    and simple_test_fix_proposal is None
+                )
+            )
         ):
             proposed_operations, proposal = propose_packet_operations_from_prior_run(request, run_dir)
             decision["packet_operation_proposal"] = {
@@ -3955,6 +4357,14 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
             decision["downstream"] = decision["disposable_apply"]
             downstream_failures = downstream_result.failures
 
+    approval_state = build_workflow_router_approval_state(
+        request=request,
+        decision=decision,
+        run_id=run_id,
+        target_root=target_root,
+        run_dir=run_dir,
+    )
+    decision["approval_state"] = approval_state
     write_json(run_dir / "route-decision.json", decision)
     model_evidence = [
         item
@@ -3969,6 +4379,11 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         else {}
     )
     decision_downstream = decision.get("downstream") if isinstance(decision.get("downstream"), dict) else {}
+    mutation_proof = (
+        decision.get("disposable_apply", {}).get("mutation_proof", {})
+        if isinstance(decision.get("disposable_apply"), dict)
+        else {}
+    )
     summary = {
         "target_root": str(target_root),
         "route_status": decision["status"],
@@ -4001,21 +4416,32 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
             else None
         ),
         "verification_command_count": downstream_report_summary.get("verification_command_count", 0),
-        "source_changed": bool(
-            decision.get("disposable_apply", {})
-            .get("mutation_proof", {})
-            .get("source_changed", {})
+        "source_changed": bool(mutation_proof.get("source_changed", {})),
+        "disposable_copy_changed": bool(mutation_proof.get("copy_changed", {})),
+        "mutation_sandbox_status": (
+            mutation_proof.get("sandbox_contract", {}).get("status")
+            if isinstance(mutation_proof.get("sandbox_contract"), dict)
+            else None
         ),
-        "disposable_copy_changed": bool(
-            decision.get("disposable_apply", {})
-            .get("mutation_proof", {})
-            .get("copy_changed", {})
+        "mutation_diff_file_count": (
+            mutation_proof.get("structured_diff", {}).get("changed_file_count", 0)
+            if isinstance(mutation_proof.get("structured_diff"), dict)
+            else 0
         ),
+        "mutation_rollback_status": (
+            mutation_proof.get("rollback", {}).get("status")
+            if isinstance(mutation_proof.get("rollback"), dict)
+            else None
+        ),
+        "approval_state_status": approval_state.get("status"),
+        "approval_state_next_action": approval_state.get("next_action_text"),
+        "approval_type": approval_state.get("approval_type"),
     }
     artifacts = {
         "request": str(run_dir / "request.json"),
         "registry_snapshot": str(run_dir / "registry-snapshot.json"),
         "route_decision": str(run_dir / "route-decision.json"),
+        "approval_state": str(run_dir / "approval-state.json"),
     }
     proposal_artifact_path = run_dir / "packet-operation-proposal.json"
     if proposal_artifact_path.exists():
@@ -4037,6 +4463,14 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         write_json(downstream_result_path, downstream_result.to_dict(include_report=True))
         artifacts["downstream_result"] = str(downstream_result_path)
         artifacts.update(prefixed_artifacts("downstream", downstream_result.artifact_paths))
+    for artifact_key, artifact_path in (
+        ("disposable_mutation_sandbox_contract", run_dir / "disposable-mutation-sandbox-contract.json"),
+        ("disposable_mutation_diff", run_dir / "disposable-mutation-diff.json"),
+        ("disposable_mutation_proof", run_dir / "disposable-mutation-proof.json"),
+        ("disposable_rollback_proof", run_dir / "disposable-rollback-proof.json"),
+    ):
+        if artifact_path.exists():
+            artifacts[artifact_key] = str(artifact_path)
     run_state = {
         "kind": "workflow_router_run_state",
         "schema_version": SCHEMA_VERSION,

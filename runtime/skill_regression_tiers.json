@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "kind": "skill_regression_tier_catalog",
+  "owner": "agentic_agents",
+  "description": "Canonical validation tiers for skill-library changes. Tiers compose existing validators instead of creating parallel release gates.",
+  "tiers": [
+    {
+      "id": "offline",
+      "order": 1,
+      "purpose": "Static skill, eval, selector, prompt coverage, docs, and focused regression proof without localhost services.",
+      "minimum_for_change_types": ["docs-only", "registry-metadata", "prompt-coverage", "skill-packaging-policy"],
+      "requirements": {
+        "localhost_8000": false,
+        "gateway_8300": false,
+        "workflow_router_gateway_8500": false,
+        "controller_8400": false,
+        "role_8205": false,
+        "anythingllm_api": false,
+        "anythingllm_ui": false,
+        "both_frozen_coinbase_fixtures": false,
+        "disposable_mutation": false,
+        "full_regression": false
+      },
+      "commands": [
+        ["python", "scripts/validate_skill_release_gate.py", "--profile", "offline"],
+        ["python", "scripts/validate_prompt_skill_coverage.py"],
+        ["python", "scripts/check_docs_index.py"],
+        ["python", "-m", "pytest", "tests/regression/test_skill_registry.py", "tests/regression/test_skill_evals.py", "tests/regression/test_skill_selector_scale.py", "tests/regression/test_prompt_skill_coverage.py", "-q"]
+      ]
+    },
+    {
+      "id": "controller",
+      "order": 2,
+      "purpose": "Controller-owned workflow proof without live gateway or AnythingLLM.",
+      "minimum_for_change_types": ["controller-workflow", "skill-scaffold", "skill-lifecycle", "chat-rendering-unit"],
+      "requirements": {
+        "localhost_8000": false,
+        "gateway_8300": false,
+        "workflow_router_gateway_8500": false,
+        "controller_8400": false,
+        "role_8205": false,
+        "anythingllm_api": false,
+        "anythingllm_ui": false,
+        "both_frozen_coinbase_fixtures": false,
+        "disposable_mutation": false,
+        "full_regression": false
+      },
+      "commands": [
+        ["python", "-m", "pytest", "tests/regression/test_controller_service.py", "-k", "skill_scaffold or skill_batch or skill_eval_promotion or skill_lifecycle or skill_deprecation or skill_update or skill_selection or skill_pack", "-q"],
+        ["python", "-m", "pytest", "tests/regression/test_chat_response_contract.py", "-q"]
+      ]
+    },
+    {
+      "id": "gateway",
+      "order": 3,
+      "purpose": "Bash-hosted localhost proof through model, gateway, workflow-router gateway, controller, and role ports without AnythingLLM.",
+      "minimum_for_change_types": ["gateway-routing", "workflow-router-routing", "live-chat-output", "runtime-facing-scaffold"],
+      "requirements": {
+        "localhost_8000": true,
+        "gateway_8300": true,
+        "workflow_router_gateway_8500": true,
+        "controller_8400": true,
+        "role_8205": true,
+        "anythingllm_api": false,
+        "anythingllm_ui": false,
+        "both_frozen_coinbase_fixtures": true,
+        "disposable_mutation": false,
+        "full_regression": false
+      },
+      "commands": [
+        ["python3", "scripts/validate_skill_authoring_factory_live.py", "--skip-anythingllm"],
+        ["python3", "scripts/validate_multi_repo_fixtures_live.py"],
+        ["python3", "scripts/validate_workflow_router_chat_contract_live.py", "--skip-anythingllm"],
+        ["python3", "scripts/validate_skill_release_gate.py", "--profile", "live-smoke"]
+      ],
+      "target_roots": ["/mnt/c/coinbase_testing_repo_frozen_tmp", "/mnt/c/coinbase_testing_repo_frozen_tmp.github"]
+    },
+    {
+      "id": "anythingllm-api",
+      "order": 4,
+      "purpose": "AnythingLLM workspace API proof through the workflow-router gateway.",
+      "minimum_for_change_types": ["anythingllm-api", "natural-chat-output", "founder-field-prompt"],
+      "requirements": {
+        "localhost_8000": true,
+        "gateway_8300": true,
+        "workflow_router_gateway_8500": true,
+        "controller_8400": true,
+        "role_8205": true,
+        "anythingllm_api": true,
+        "anythingllm_ui": false,
+        "both_frozen_coinbase_fixtures": true,
+        "disposable_mutation": false,
+        "full_regression": false
+      },
+      "commands": [
+        ["python3", "scripts/validate_skill_authoring_factory_live.py"],
+        ["python3", "scripts/validate_workflow_router_chat_contract_live.py"],
+        ["python3", "scripts/validate_workflow_router_l1_suite.py"],
+        ["python3", "scripts/validate_workflow_router_l2_suite.py"]
+      ],
+      "target_roots": ["/mnt/c/coinbase_testing_repo_frozen_tmp", "/mnt/c/coinbase_testing_repo_frozen_tmp.github"]
+    },
+    {
+      "id": "anythingllm-ui",
+      "order": 5,
+      "purpose": "Browser-rendered AnythingLLM UI proof for tester-visible chat behavior.",
+      "minimum_for_change_types": ["anythingllm-ui", "desktop-ui", "browser-rendered-chat"],
+      "requirements": {
+        "localhost_8000": true,
+        "gateway_8300": true,
+        "workflow_router_gateway_8500": true,
+        "controller_8400": true,
+        "role_8205": true,
+        "anythingllm_api": true,
+        "anythingllm_ui": true,
+        "both_frozen_coinbase_fixtures": true,
+        "disposable_mutation": false,
+        "full_regression": false
+      },
+      "commands": [
+        ["python3", "scripts/validate_anythingllm_ui_e2e.py", "--workspace", "my-workspace"]
+      ],
+      "target_roots": ["/mnt/c/coinbase_testing_repo_frozen_tmp", "/mnt/c/coinbase_testing_repo_frozen_tmp.github"]
+    },
+    {
+      "id": "fixture-mutation",
+      "order": 6,
+      "purpose": "Disposable-copy mutation and protected fixture proof for changes that can affect files, fixtures, or failure behavior.",
+      "minimum_for_change_types": ["mutation-harness", "controlled-apply", "fixture-manager", "failure-taxonomy", "tool-execution"],
+      "requirements": {
+        "localhost_8000": false,
+        "gateway_8300": false,
+        "workflow_router_gateway_8500": false,
+        "controller_8400": false,
+        "role_8205": false,
+        "anythingllm_api": false,
+        "anythingllm_ui": false,
+        "both_frozen_coinbase_fixtures": true,
+        "disposable_mutation": true,
+        "full_regression": false
+      },
+      "commands": [
+        ["python", "scripts/validate_skill_mutations.py"],
+        ["python", "scripts/manage_fixtures.py", "validate"]
+      ],
+      "target_roots": ["/mnt/c/coinbase_testing_repo_frozen_tmp", "/mnt/c/coinbase_testing_repo_frozen_tmp.github"]
+    },
+    {
+      "id": "release-candidate",
+      "order": 7,
+      "purpose": "Full product release proof across static checks, mutation proof, live gateway, AnythingLLM API, fixture mutation checks, and full regression.",
+      "minimum_for_change_types": ["release", "cross-cutting-runtime", "router-policy", "skill-library-scale", "model-portability"],
+      "requirements": {
+        "localhost_8000": true,
+        "gateway_8300": true,
+        "workflow_router_gateway_8500": true,
+        "controller_8400": true,
+        "role_8205": true,
+        "anythingllm_api": true,
+        "anythingllm_ui": false,
+        "both_frozen_coinbase_fixtures": true,
+        "disposable_mutation": true,
+        "full_regression": true
+      },
+      "commands": [
+        ["python3", "scripts/validate_skill_release_gate.py", "--profile", "release-candidate", "--target-root", "/mnt/c/coinbase_testing_repo_frozen_tmp", "--target-root", "/mnt/c/coinbase_testing_repo_frozen_tmp.github"],
+        ["python3", "scripts/validate_multi_repo_fixtures_live.py"],
+        ["python3", "scripts/validate_v1_acceptance.py", "--profile", "release-candidate", "--target-root", "/mnt/c/coinbase_testing_repo_frozen_tmp", "--target-root", "/mnt/c/coinbase_testing_repo_frozen_tmp.github"],
+        ["python", "-m", "pytest", "tests/regression/", "-v"]
+      ],
+      "target_roots": ["/mnt/c/coinbase_testing_repo_frozen_tmp", "/mnt/c/coinbase_testing_repo_frozen_tmp.github"]
+    }
+  ],
+  "change_type_minimums": {
+    "docs-only": "offline",
+    "registry-metadata": "offline",
+    "prompt-coverage": "offline",
+    "skill-packaging-policy": "offline",
+    "controller-workflow": "controller",
+    "skill-scaffold": "controller",
+    "skill-lifecycle": "controller",
+    "chat-rendering-unit": "controller",
+    "gateway-routing": "gateway",
+    "workflow-router-routing": "gateway",
+    "live-chat-output": "gateway",
+    "runtime-facing-scaffold": "gateway",
+    "anythingllm-api": "anythingllm-api",
+    "natural-chat-output": "anythingllm-api",
+    "founder-field-prompt": "anythingllm-api",
+    "anythingllm-ui": "anythingllm-ui",
+    "desktop-ui": "anythingllm-ui",
+    "browser-rendered-chat": "anythingllm-ui",
+    "mutation-harness": "fixture-mutation",
+    "controlled-apply": "fixture-mutation",
+    "fixture-manager": "fixture-mutation",
+    "failure-taxonomy": "fixture-mutation",
+    "tool-execution": "fixture-mutation",
+    "release": "release-candidate",
+    "cross-cutting-runtime": "release-candidate",
+    "router-policy": "release-candidate",
+    "skill-library-scale": "release-candidate",
+    "model-portability": "release-candidate"
+  }
+}

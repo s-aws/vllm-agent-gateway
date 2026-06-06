@@ -1,0 +1,128 @@
+# Release Channels
+
+Release channels define which validation path a tester should trust before using the local harness through AnythingLLM.
+
+The source of truth is:
+
+```text
+runtime/release_channels.json
+```
+
+The validator is:
+
+```bash
+python scripts/validate_release_channels.py
+```
+
+It is read-only except for writing a report under `runtime-state/release-channels/`.
+
+## Channels
+
+- `dev`: maintainer channel for fast local iteration and setup readiness.
+- `release-candidate`: tester channel for current V1-style founder testing through the workflow-router gateway, AnythingLLM, and both frozen Coinbase fixtures.
+- `stable`: blocked until a passed `v1_acceptance_report` with profile `release-candidate` is supplied to the release-channel validator.
+
+Do not point first-time testers at `stable` while it is blocked. Use `release-candidate`.
+
+## Validate Channel Metadata
+
+From the project root:
+
+```bash
+python scripts/validate_release_channels.py \
+  --output-path runtime-state/release-channels/current.json
+```
+
+Expected markers:
+
+```text
+RELEASE CHANNEL REPORT ...
+RELEASE CHANNEL SUMMARY ...
+RELEASE CHANNEL PASS
+```
+
+The report includes:
+
+- harness and component versions
+- channel IDs
+- required docs, examples, runtime files, ports, env vars, and fixtures
+- setup validator command
+- acceptance validator command
+- stable readiness status
+
+## First-Time Tester Path
+
+From Bash:
+
+```bash
+cd /mnt/c/agentic_agents
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/run_first_time_user_doctor.py
+```
+
+If the doctor passes, run the release-candidate acceptance gate:
+
+```bash
+python3 scripts/validate_v1_acceptance.py \
+  --profile v1.1-release-candidate \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github
+```
+
+The V1.1 profile includes setup doctor, docs-index, release-channel, security policy, workflow, AnythingLLM, JSON output, feedback, observability, model-probe, and protected-fixture proof in one report.
+
+AnythingLLM must point at:
+
+```text
+http://127.0.0.1:8500/v1
+```
+
+The release-candidate acceptance gate includes the external tester onboarding live prompt and linked feedback proof.
+
+Before broader tester distribution, also run the security policy gate:
+
+```bash
+python3 scripts/validate_security_policy.py \
+  --output-path runtime-state/security-policy/release-candidate.json
+```
+
+That gate checks secret exposure, filesystem boundaries, protected fixture policy, command fragments, and onboarding prompt safety. See [README.security-policy.md](README.security-policy.md).
+
+## Stable Readiness
+
+Stable may only be marked active after a release-candidate acceptance report passes.
+
+When stable is active, validate it with:
+
+```bash
+python scripts/validate_release_channels.py \
+  --channel stable \
+  --release-candidate-report runtime-state/v1-acceptance/<passed-report>.json
+```
+
+The supplied report must contain:
+
+- `kind=v1_acceptance_report`
+- `status=passed`
+- `profile=release-candidate`
+
+## Rollback
+
+For setup failures:
+
+```bash
+bash stop-agent-prompt-proxies.sh
+bash start-agent-prompt-proxies.sh
+```
+
+Then rerun:
+
+```bash
+python3 scripts/run_first_time_user_doctor.py
+```
+
+If AnythingLLM was changed, set the Generic OpenAI base URL back to `http://127.0.0.1:8500/v1`.
+
+If a frozen fixture check fails, inspect the fixture state before running more live tests. Protected fixture source files should remain unchanged during release-channel validation.
+
+Examples: [docs/examples/release-channels.md](docs/examples/release-channels.md).

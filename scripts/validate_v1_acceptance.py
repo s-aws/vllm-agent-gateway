@@ -16,6 +16,7 @@ if str(REPO_ROOT) not in sys.path:
 from vllm_agent_gateway.acceptance.v1 import (  # noqa: E402
     DEFAULT_ANYTHINGLLM_API_BASE_URL,
     DEFAULT_CONTROLLER_BASE_URL,
+    DEFAULT_MODEL_BASE_URL,
     DEFAULT_TARGET_ROOTS,
     DEFAULT_WORKSPACE,
     DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL,
@@ -29,6 +30,7 @@ from vllm_agent_gateway.acceptance.profiles import ReleaseGateProfile  # noqa: E
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config-root", default=str(REPO_ROOT))
+    parser.add_argument("--candidate-model-base-url", default=DEFAULT_MODEL_BASE_URL)
     parser.add_argument("--workflow-router-gateway-base-url", default=DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL)
     parser.add_argument("--controller-base-url", default=DEFAULT_CONTROLLER_BASE_URL)
     parser.add_argument("--anythingllm-api-base-url", default=DEFAULT_ANYTHINGLLM_API_BASE_URL)
@@ -41,9 +43,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--python-executable", default=None)
     parser.add_argument(
         "--profile",
-        choices=[ReleaseGateProfile.RELEASE_CANDIDATE.value],
+        choices=[ReleaseGateProfile.RELEASE_CANDIDATE.value, ReleaseGateProfile.V1_1_RELEASE_CANDIDATE.value],
         default=ReleaseGateProfile.RELEASE_CANDIDATE.value,
-        help="V1 acceptance is the full product release-candidate profile.",
+        help="V1 acceptance profile. Use v1.1-release-candidate for the consolidated V1.1 gate.",
     )
     return parser.parse_args()
 
@@ -53,6 +55,7 @@ def main() -> int:
     report = run_v1_acceptance(
         V1AcceptanceConfig(
             config_root=Path(args.config_root),
+            candidate_model_base_url=args.candidate_model_base_url,
             workflow_router_gateway_base_url=args.workflow_router_gateway_base_url,
             controller_base_url=args.controller_base_url,
             anythingllm_api_base_url=args.anythingllm_api_base_url,
@@ -77,6 +80,7 @@ def main() -> int:
                 "suite_count": len(report["suite_runs"]),
                 "json_output_count": len(report["json_output"]),
                 "feedback_count": len(report["feedback"]),
+                "known_limitation_count": len(report.get("known_limitations") or []),
                 "error_count": len(report["errors"]),
             },
             ensure_ascii=True,

@@ -4,6 +4,8 @@ L2 prompts are the next product layer after the validated L1 suite. They combine
 
 L2 is not advanced refactoring. Broad refactor requests remain deferred until the advanced acceptance scope is explicitly reapproved.
 
+The canonical implementation coverage map is `runtime/prompt_skill_coverage.json`; update it whenever an L2 prompt family changes.
+
 ## Acceptance Standard
 
 Each L2 prompt must have:

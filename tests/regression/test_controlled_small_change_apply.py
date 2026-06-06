@@ -13,6 +13,7 @@ from typing import Any
 import pytest
 
 from vllm_agent_gateway.controller_service.server import ControllerServiceConfig, create_server
+from vllm_agent_gateway.controllers.workflow_router import plan as workflow_router_plan
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -352,15 +353,121 @@ def test_workflow_router_disposable_apply_rolls_back_copy_after_mutation_proof(t
     assert body["summary"]["downstream_workflow"] == "implementation.workflow"
     assert body["summary"]["source_changed"] is False
     assert body["summary"]["disposable_copy_changed"] is True
+    assert body["summary"]["approval_state_status"] == "finished"
+    assert body["summary"]["approval_type"] == "disposable_copy_apply"
     assert (target / "README.md").read_text(encoding="utf-8") == source_before
     decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    approval_state = json.loads(Path(body["artifacts"]["approval_state"]).read_text(encoding="utf-8"))
+    assert approval_state["status"] == "finished"
+    assert approval_state["approval_type"] == "disposable_copy_apply"
     proof = decision["disposable_apply"]["mutation_proof"]
+    assert body["summary"]["mutation_sandbox_status"] == "active"
+    assert body["summary"]["mutation_diff_file_count"] == 1
+    assert body["summary"]["mutation_rollback_status"] == "restored"
+    assert "disposable_mutation_proof" in body["artifacts"]
+    assert "disposable_mutation_sandbox_contract" in body["artifacts"]
+    assert "disposable_mutation_diff" in body["artifacts"]
     assert proof["source_changed"] == {}
     assert proof["copy_changed"]["README.md"]["before"] != proof["copy_changed"]["README.md"]["after"]
+    assert proof["kind"] == "disposable_mutation_proof"
+    assert proof["sandbox_contract"]["status"] == "active"
+    assert proof["sandbox_contract"]["allowed_write_root"] == proof["disposable_copy_root"]
+    assert proof["structured_diff"]["changed_file_count"] == 1
+    assert proof["structured_diff"]["records"][0]["path"] == "README.md"
+    assert proof["structured_diff"]["records"][0]["status"] == "changed"
     assert proof["rollback"]["status"] == "restored"
     assert Path(proof["rollback"]["artifact"]).exists()
+    assert Path(proof["artifact"]).exists()
     copy_root = Path(proof["disposable_copy_root"])
     assert (copy_root / "README.md").read_text(encoding="utf-8") == source_before
+
+
+def test_workflow_router_disposable_apply_blocks_out_of_bounds_packet_path(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    source_before = (target / "README.md").read_text(encoding="utf-8")
+    with RunningControllerService(controller_config(tmp_path, target)) as service:
+        status, body = request_json(
+            service.host,
+            service.port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "schema_version": 1,
+                "target_root": str(target),
+                "user_request": "Apply this approved small text edit only to a disposable copy.",
+                "mode": "apply_disposable_copy",
+                "approval": disposable_apply_approval(),
+                "packet_operations": [
+                    {
+                        "kind": "replace_text",
+                        "path": "../outside.md",
+                        "old": "anything",
+                        "new": "nope",
+                    }
+                ],
+                "budgets": {"max_model_calls": 0},
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "blocked"
+    assert body["summary"]["downstream_workflow"] is None
+    assert body["summary"]["disposable_copy_changed"] is False
+    assert body["summary"]["approval_state_status"] == "blocked"
+    assert body["summary"]["approval_type"] == "disposable_copy_apply"
+    assert (target / "README.md").read_text(encoding="utf-8") == source_before
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    approval_state = json.loads(Path(body["artifacts"]["approval_state"]).read_text(encoding="utf-8"))
+    assert approval_state["status"] == "blocked"
+    assert approval_state["approval_status"] == "approved"
+    assert any(blocker["reason"] == "invalid_disposable_operation_path" for blocker in decision["blockers"])
+    assert "disposable_mutation_proof" not in body["artifacts"]
+
+
+def test_workflow_router_disposable_apply_cleanup_failure_fails_closed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = make_target_repo(tmp_path)
+    source_before = (target / "README.md").read_text(encoding="utf-8")
+
+    def missing_backup_artifact(
+        root: Path,
+        packet_operations: list[dict[str, Any]],
+        backup_dir: Path,
+    ) -> dict[str, str]:
+        return {"README.md": str(backup_dir / "missing-readme.bak")}
+
+    monkeypatch.setattr(workflow_router_plan, "backup_operation_targets", missing_backup_artifact)
+    with RunningControllerService(controller_config(tmp_path, target)) as service:
+        status, body = request_json(
+            service.host,
+            service.port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "schema_version": 1,
+                "target_root": str(target),
+                "user_request": "Apply this approved small text edit only to a disposable copy.",
+                "mode": "apply_disposable_copy",
+                "approval": disposable_apply_approval(),
+                "packet_operations": [readme_replace_operation()],
+                "budgets": {"max_model_calls": 0},
+            },
+        )
+
+    assert status == 422
+    assert body["error"]["code"] == "disposable_copy_rollback_failed"
+    assert (target / "README.md").read_text(encoding="utf-8") == source_before
+    proof_paths = sorted((tmp_path / "controller-state").glob("workflow-router/**/disposable-mutation-proof.json"))
+    assert len(proof_paths) == 1
+    proof = json.loads(proof_paths[0].read_text(encoding="utf-8"))
+    assert proof["source_changed"] == {}
+    assert proof["copy_changed"]["README.md"]["before"] != proof["copy_changed"]["README.md"]["after"]
+    assert proof["rollback"]["status"] == "failed"
+    assert proof["rollback"]["blockers"][0]["reason"] == "missing_rollback_backup"
 
 
 def test_natural_workflow_router_disposable_apply_requires_exact_packet_json_and_rolls_back(tmp_path: Path) -> None:

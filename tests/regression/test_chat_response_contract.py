@@ -24,6 +24,7 @@ def required_markers() -> dict[str, list[str]]:
 
 def response_with_code_explanation(tmp_path: Path) -> dict[str, Any]:
     route_decision_path = tmp_path / "route-decision.json"
+    registry_snapshot_path = tmp_path / "registry-snapshot.json"
     code_explanation_path = tmp_path / "code-explanation.json"
     write_json(
         route_decision_path,
@@ -34,6 +35,43 @@ def response_with_code_explanation(tmp_path: Path) -> dict[str, Any]:
             "selected_skills": ["code-explanation-summarizer"],
             "selected_tools": ["structure_index", "git_grep", "read_file"],
             "next_action": "none",
+            "evidence": [
+                {"source": "router_rule", "rule": "l1_explain_code_terms"},
+                {
+                    "source": "skill_registry",
+                    "selection_basis": "capability_contract_shortlist",
+                    "selected_skills": ["code-explanation-summarizer"],
+                    "capability_route_keys": {"code-explanation-summarizer": "code.explanation_summary"},
+                },
+                {
+                    "source": "workflow_registry",
+                    "selected_workflow": "code_investigation.plan",
+                    "description": "Controller-owned code investigation with bounded evidence.",
+                },
+            ],
+        },
+    )
+    write_json(
+        registry_snapshot_path,
+        {
+            "kind": "workflow_router_registry_snapshot",
+            "schema_version": 1,
+            "workflows": {
+                "code_investigation.plan": {
+                    "description": "Controller-owned code investigation with bounded evidence."
+                }
+            },
+            "skills": {
+                "code-explanation-summarizer": {
+                    "description": "Explain a named function, class, or file from bounded code evidence.",
+                    "capability_contract": {"route_key": "code.explanation_summary"},
+                }
+            },
+            "tools": {
+                "structure_index": {"description": "Build a deterministic bounded code structure index or slice."},
+                "git_grep": {"description": "Search tracked repository content with line numbers."},
+                "read_file": {"description": "Read a repository file selected by the controller."},
+            },
         },
     )
     write_json(
@@ -65,6 +103,7 @@ def response_with_code_explanation(tmp_path: Path) -> dict[str, Any]:
         },
         "artifacts": {
             "route_decision": str(route_decision_path),
+            "registry_snapshot": str(registry_snapshot_path),
             "downstream_code_explanation": str(code_explanation_path),
         },
         "warning_count": 0,
@@ -88,7 +127,11 @@ def test_format_a_contract_renders_result_answer_before_artifacts(tmp_path: Path
     assert "- Selected skills: code-explanation-summarizer" in content
     assert "- Selected tools: structure_index; git_grep; read_file" in content
     assert "- Verification: 1 command(s)" in content
-    assert content.index("Result:") < content.index("Answer:") < content.index("Artifacts:")
+    assert "Skill Selection:" in content
+    assert "- Why: Selected code_investigation.plan" in content
+    assert "- Route rules: l1_explain_code_terms" in content
+    assert "- Skills: code-explanation-summarizer (code.explanation_summary)" in content
+    assert content.index("Result:") < content.index("Skill Selection:") < content.index("Answer:") < content.index("Artifacts:")
     assert content.strip().splitlines()[0] != "Artifacts:"
 
 
@@ -105,6 +148,8 @@ def test_json_output_includes_same_chat_contract(tmp_path: Path) -> None:
     assert parsed["chat_contract"]["selected_skills"] == ["code-explanation-summarizer"]
     assert parsed["chat_contract"]["selected_tools"] == ["structure_index", "git_grep", "read_file"]
     assert parsed["chat_contract"]["verification_command_count"] == 1
+    assert parsed["chat_contract"]["selection_explanation"]["route_rules"] == ["l1_explain_code_terms"]
+    assert parsed["selection_explanation"]["skills"][0]["route_key"] == "code.explanation_summary"
 
 
 def test_format_a_skill_lifecycle_audit_is_not_artifact_only(tmp_path: Path) -> None:

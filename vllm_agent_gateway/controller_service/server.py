@@ -214,6 +214,7 @@ NATURAL_IMPLEMENTATION_PREP_EXECUTION_BUDGETS = {
     "max_output_tokens": 2400,
     "timeout_seconds": 45,
 }
+APPROVAL_CONTINUATION_TTL_SECONDS = 24 * 60 * 60
 NATURAL_LIFECYCLE_APPROVAL_REQUIRED_WORKFLOW = "__natural_lifecycle_approval_required__"
 NATURAL_LIFECYCLE_APPROVAL_REQUIRED_DIR = "skill-lifecycle-approval-required"
 NATURAL_ROUTE_DECISION_DIR = "workflow-router-natural-route-decisions"
@@ -1467,6 +1468,122 @@ def verification_records_from_artifacts(artifacts: dict[str, Any]) -> list[Any]:
     return []
 
 
+def route_rules_from_route_decision(route_decision: dict[str, Any]) -> list[str]:
+    evidence = route_decision.get("evidence") if isinstance(route_decision.get("evidence"), list) else []
+    rules: list[str] = []
+    for item in evidence:
+        if isinstance(item, dict) and item.get("source") == "router_rule" and isinstance(item.get("rule"), str):
+            rules.append(item["rule"])
+    return rules
+
+
+def workflow_description_from_decision(
+    route_decision: dict[str, Any],
+    registry_snapshot: dict[str, Any],
+    selected_workflow: str,
+) -> str | None:
+    workflows = registry_snapshot.get("workflows") if isinstance(registry_snapshot.get("workflows"), dict) else {}
+    workflow = workflows.get(selected_workflow) if isinstance(workflows.get(selected_workflow), dict) else {}
+    description = workflow.get("description")
+    if isinstance(description, str) and description:
+        return description
+    evidence = route_decision.get("evidence") if isinstance(route_decision.get("evidence"), list) else []
+    for item in evidence:
+        if (
+            isinstance(item, dict)
+            and item.get("source") == "workflow_registry"
+            and item.get("selected_workflow") == selected_workflow
+            and isinstance(item.get("description"), str)
+        ):
+            return item["description"]
+    return None
+
+
+def capability_route_keys_from_decision(route_decision: dict[str, Any]) -> dict[str, str]:
+    evidence = route_decision.get("evidence") if isinstance(route_decision.get("evidence"), list) else []
+    for item in evidence:
+        if isinstance(item, dict) and item.get("source") == "skill_registry":
+            keys = item.get("capability_route_keys")
+            if isinstance(keys, dict):
+                return {str(key): str(value) for key, value in keys.items() if isinstance(value, str)}
+    return {}
+
+
+def registry_items_by_key(registry_snapshot: dict[str, Any], key: str) -> dict[str, Any]:
+    value = registry_snapshot.get(key)
+    return value if isinstance(value, dict) else {}
+
+
+def skill_selection_explanation_for_response(response: dict[str, Any]) -> dict[str, Any] | None:
+    artifacts = response.get("artifacts") if isinstance(response.get("artifacts"), dict) else {}
+    route_decision = artifact_json_by_key(artifacts, "route_decision") or {}
+    if not route_decision:
+        return None
+    summary = response.get("summary") if isinstance(response.get("summary"), dict) else {}
+    registry_snapshot = artifact_json_by_key(artifacts, "registry_snapshot") or {}
+    selected_workflow = first_string(
+        route_decision.get("selected_workflow"),
+        summary.get("selected_workflow"),
+        summary.get("downstream_workflow"),
+        response.get("workflow"),
+    ) or "unknown"
+    selected_skills = string_items(route_decision.get("selected_skills")) or string_items(summary.get("selected_skill_ids"))
+    selected_tools = string_items(route_decision.get("selected_tools"))
+    route_rules = route_rules_from_route_decision(route_decision)
+    capability_route_keys = capability_route_keys_from_decision(route_decision)
+    skills = registry_items_by_key(registry_snapshot, "skills")
+    tools = registry_items_by_key(registry_snapshot, "tools")
+    workflow_description = workflow_description_from_decision(route_decision, registry_snapshot, selected_workflow)
+    skill_details: list[dict[str, Any]] = []
+    for skill_id in selected_skills[:5]:
+        skill = skills.get(skill_id) if isinstance(skills.get(skill_id), dict) else {}
+        contract = skill.get("capability_contract") if isinstance(skill.get("capability_contract"), dict) else {}
+        route_key = first_string(capability_route_keys.get(skill_id), contract.get("route_key"))
+        reason = f"Selected from registry capability metadata for {selected_workflow}."
+        if route_key:
+            reason = f"{reason} Capability route: {route_key}."
+        skill_details.append(
+            {
+                "skill_id": skill_id,
+                "route_key": route_key,
+                "description": inline_text(skill.get("description"), 180) if isinstance(skill.get("description"), str) else None,
+                "reason": reason,
+            }
+        )
+    tool_details: list[dict[str, Any]] = []
+    for tool_id in selected_tools[:5]:
+        tool = tools.get(tool_id) if isinstance(tools.get(tool_id), dict) else {}
+        tool_details.append(
+            {
+                "tool_id": tool_id,
+                "description": inline_text(tool.get("description"), 160) if isinstance(tool.get("description"), str) else None,
+                "reason": f"Allowed by the selected workflow tool policy for {selected_workflow}.",
+            }
+        )
+    selection_basis = "capability_contract_shortlist" if selected_skills else "route_decision"
+    why_parts = [f"Selected {selected_workflow}"]
+    if route_rules:
+        why_parts.append(f"because router rule(s) matched: {limited_join(route_rules, limit=3)}")
+    if workflow_description:
+        why_parts.append(f"workflow purpose: {inline_text(workflow_description, 180)}")
+    return {
+        "selected_workflow": selected_workflow,
+        "route_rules": route_rules,
+        "workflow_description": workflow_description,
+        "selection_basis": selection_basis,
+        "why": "; ".join(why_parts) + ".",
+        "skills": skill_details,
+        "tools": tool_details,
+        "grounding": [
+            "route_decision.evidence",
+            "route_decision.selected_skills",
+            "route_decision.selected_tools",
+            "registry_snapshot.skills",
+            "registry_snapshot.tools",
+        ],
+    }
+
+
 def chat_contract_for_response(response: dict[str, Any]) -> dict[str, Any]:
     artifacts = response.get("artifacts") if isinstance(response.get("artifacts"), dict) else {}
     summary = response.get("summary") if isinstance(response.get("summary"), dict) else {}
@@ -1511,6 +1628,7 @@ def chat_contract_for_response(response: dict[str, Any]) -> dict[str, Any]:
         "next_action": next_action,
         "verification": verification or "none",
         "verification_command_count": verification_count,
+        "selection_explanation": skill_selection_explanation_for_response(response),
     }
 
 
@@ -1525,6 +1643,30 @@ def append_chat_contract_lines(lines: list[str], response: dict[str, Any]) -> No
     lines.append(f"- Selected tools: {limited_join(contract['selected_tools'], limit=5) or 'none'}")
     lines.append(f"- Next action: {contract['next_action']}")
     lines.append(f"- Verification: {contract['verification']}")
+
+
+def append_skill_selection_summary_lines(lines: list[str], response: dict[str, Any]) -> None:
+    explanation = skill_selection_explanation_for_response(response)
+    if not explanation:
+        return
+    skills = explanation.get("skills") if isinstance(explanation.get("skills"), list) else []
+    tools = explanation.get("tools") if isinstance(explanation.get("tools"), list) else []
+    skill_summaries = []
+    for item in skills[:5]:
+        if not isinstance(item, dict):
+            continue
+        skill_id = item.get("skill_id")
+        route_key = item.get("route_key")
+        if isinstance(skill_id, str):
+            skill_summaries.append(f"{skill_id} ({route_key})" if isinstance(route_key, str) and route_key else skill_id)
+    tool_summaries = [str(item.get("tool_id")) for item in tools[:5] if isinstance(item, dict) and isinstance(item.get("tool_id"), str)]
+    lines.append("")
+    lines.append("Skill Selection:")
+    lines.append(f"- Why: {inline_text(explanation.get('why'), 360)}")
+    lines.append(f"- Route rules: {limited_join([str(rule) for rule in explanation.get('route_rules', [])], limit=5) or 'none'}")
+    lines.append(f"- Skills: {limited_join(skill_summaries, limit=5) or 'none'}")
+    lines.append(f"- Tools: {limited_join(tool_summaries, limit=5) or 'none'}")
+    lines.append(f"- Grounded in: {limited_join([str(item) for item in explanation.get('grounding', [])], limit=5)}")
 
 
 def input_summary(records: Any) -> str:
@@ -2918,9 +3060,28 @@ def append_skill_scaffold_answer(lines: list[str], artifact: dict[str, Any]) -> 
         lines.append(f"- Live suite: {summary.get('live_suite')}")
         lines.append(f"- Batch validation: {summary.get('batch_validation_status')}")
         lines.append(f"- Do not admit: {summary.get('do_not_admit_count', 0)}")
+        if summary.get("authoring_factory_status"):
+            lines.append(f"- Authoring factory: {summary.get('authoring_factory_status')}")
+        if summary.get("promotion_state"):
+            lines.append(f"- Promotion state: {summary.get('promotion_state')}")
         lines.append(f"- Runtime registry changed: {summary.get('runtime_registry_changed')}")
         lines.append(f"- Target repository changed: {summary.get('target_repository_changed')}")
         lines.append(f"- Next action: {summary.get('next_action')}")
+    artifact_paths = artifact.get("artifacts") if isinstance(artifact.get("artifacts"), dict) else {}
+    factory_sidecars = [
+        key
+        for key in (
+            "prompt_coverage_entry",
+            "eval_skeleton",
+            "docs_stub",
+            "docs_example_stub",
+            "regression_test_skeleton",
+            "authoring_factory_report",
+        )
+        if isinstance(artifact_paths.get(key), str)
+    ]
+    if factory_sidecars:
+        lines.append(f"- Factory sidecars: {limited_join(factory_sidecars, limit=6)}")
     do_not_admit = artifact.get("do_not_admit") if isinstance(artifact.get("do_not_admit"), list) else []
     if do_not_admit:
         reasons = []
@@ -3092,6 +3253,23 @@ def append_summary_lines(lines: list[str], summary: Any) -> None:
         lines.append(str(summary))
 
 
+def append_approval_state_lines(lines: list[str], summary: Any) -> None:
+    if not isinstance(summary, dict):
+        return
+    status = summary.get("approval_state_status")
+    if not isinstance(status, str) or not status:
+        return
+    approval_type = summary.get("approval_type")
+    next_action = summary.get("approval_state_next_action")
+    lines.append("")
+    lines.append("Approval:")
+    lines.append(f"- State: {status}")
+    if isinstance(approval_type, str) and approval_type and approval_type != "none":
+        lines.append(f"- Type: {approval_type}")
+    if isinstance(next_action, str) and next_action:
+        lines.append(f"- Next: {next_action}")
+
+
 def append_artifact_lines(lines: list[str], artifacts: dict[str, Any]) -> None:
     if not artifacts:
         return
@@ -3139,7 +3317,9 @@ def assistant_content_format_a(response: dict[str, Any]) -> str:
             ]
         )
     append_chat_contract_lines(lines, response)
+    append_skill_selection_summary_lines(lines, response)
     append_summary_lines(lines, response.get("summary"))
+    append_approval_state_lines(lines, response.get("summary"))
     append_inline_artifact_answer(lines, artifacts)
     append_artifact_lines(lines, artifacts)
     if response.get("run_lookup"):
@@ -3163,6 +3343,7 @@ def assistant_content_json(response: dict[str, Any]) -> str:
             "failure_count": response.get("failure_count", 0),
             "failures": response.get("failures") if isinstance(response.get("failures"), list) else [],
             "chat_contract": chat_contract_for_response(response),
+            "selection_explanation": skill_selection_explanation_for_response(response),
             "tool_policy": response.get("tool_policy"),
             "review_summary": response.get("review_summary"),
             "non_mutation": response.get("non_mutation"),
@@ -3285,6 +3466,84 @@ def load_run_record(config: ControllerServiceConfig, run_id: str) -> dict[str, A
             code="invalid_run_record",
         )
     return value
+
+
+def parse_utc_timestamp(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    normalized = value.strip()
+    if normalized.endswith("Z"):
+        normalized = normalized[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def approval_continuation_marker(record: dict[str, Any]) -> dict[str, Any]:
+    marker = record.get("approval_continuation")
+    return marker if isinstance(marker, dict) else {}
+
+
+def validate_approval_continuation_source(config: ControllerServiceConfig, run_id: str) -> dict[str, Any]:
+    record = load_run_record(config, run_id)
+    marker = approval_continuation_marker(record)
+    marker_status = marker.get("status")
+    if marker_status == "consumed":
+        raise ControllerServiceError(
+            "Approval has already been consumed by a continuation run.",
+            status=HTTPStatus.CONFLICT,
+            code="approval_already_consumed",
+        )
+    if marker_status == "denied":
+        raise ControllerServiceError(
+            "Approval was denied and cannot be continued.",
+            status=HTTPStatus.CONFLICT,
+            code="approval_denied",
+        )
+    summary = record.get("summary") if isinstance(record.get("summary"), dict) else {}
+    if summary.get("approval_state_status") != "waiting_for_approval" or summary.get("approval_type") != "packet_design":
+        raise ControllerServiceError(
+            "The referenced run is not waiting for packet-design approval.",
+            status=HTTPStatus.CONFLICT,
+            code="approval_not_pending",
+        )
+    updated_at = parse_utc_timestamp(record.get("updated_at"))
+    if updated_at is not None:
+        age_seconds = (datetime.now(timezone.utc) - updated_at).total_seconds()
+        if age_seconds > APPROVAL_CONTINUATION_TTL_SECONDS:
+            raise ControllerServiceError(
+                "Packet-design approval has expired; start a fresh planning run.",
+                status=HTTPStatus.CONFLICT,
+                code="approval_expired",
+            )
+    return record
+
+
+def mark_approval_continuation_consumed(
+    config: ControllerServiceConfig,
+    source_run_id: str,
+    continuation_run_id: str | None,
+) -> None:
+    record = load_run_record(config, source_run_id)
+    record["approval_continuation"] = {
+        "status": "consumed",
+        "continuation_run_id": continuation_run_id,
+        "consumed_at": utc_now(),
+    }
+    persist_run_record(config, record)
+
+
+def mark_approval_continuation_denied(config: ControllerServiceConfig, source_run_id: str) -> None:
+    record = load_run_record(config, source_run_id)
+    record["approval_continuation"] = {
+        "status": "denied",
+        "denied_at": utc_now(),
+    }
+    persist_run_record(config, record)
 
 
 def run_record_path(config: ControllerServiceConfig, run_id: str) -> Path:
@@ -3414,6 +3673,17 @@ def approval_continuation_run_id(user_request: str) -> str | None:
     if not any(term in text for term in ("approve", "approved", "approval")):
         return None
     if not any(term in text for term in ("packet", "implementation prep", "implementation_prepping", "implementation-prep")):
+        return None
+    match = RUN_ID_IN_TEXT_RE.search(user_request)
+    return match.group("run_id") if match else None
+
+
+def approval_denial_run_id(user_request: str) -> str | None:
+    text = user_request.lower()
+    denial_terms = ("deny", "denied", "reject", "rejected", "do not approve", "don't approve")
+    if not any(term in text for term in denial_terms):
+        return None
+    if not any(term in text for term in ("packet", "implementation prep", "implementation_prepping", "implementation-prep", "approval")):
         return None
     match = RUN_ID_IN_TEXT_RE.search(user_request)
     return match.group("run_id") if match else None
@@ -4846,6 +5116,7 @@ def natural_approval_continuation_payload(
     approved_run_id = approval_continuation_run_id(user_request)
     if approved_run_id is None:
         return None
+    validate_approval_continuation_source(config, approved_run_id)
     target_root = None
     payload_target = payload.get("target_root")
     if isinstance(payload_target, str) and payload_target.strip():
@@ -4876,6 +5147,7 @@ def natural_approval_continuation_payload(
         },
         "packet_operations": packet_operations_from_natural_request(payload, user_request),
         "context": {
+            "approval_continuation_source_run_id": approved_run_id,
             "allowed_context_tools": ["structure_index", "git_grep", "read_file", "manual"],
             "bounded_context": [
                 {
@@ -4893,6 +5165,19 @@ def natural_approval_continuation_payload(
     if isinstance(role_base_url, str) and role_base_url.strip():
         request["role_base_url"] = role_base_url
     return request
+
+
+def block_denied_natural_approval(user_request: str, config: ControllerServiceConfig) -> None:
+    denied_run_id = approval_denial_run_id(user_request)
+    if denied_run_id is None:
+        return
+    validate_approval_continuation_source(config, denied_run_id)
+    mark_approval_continuation_denied(config, denied_run_id)
+    raise ControllerServiceError(
+        "Packet-design approval was denied. No continuation will run.",
+        status=HTTPStatus.CONFLICT,
+        code="approval_denied",
+    )
 
 
 def disposable_copy_apply_requested(user_request: str) -> bool:
@@ -4973,6 +5258,7 @@ def natural_workflow_router_payload(payload: dict[str, Any], config: ControllerS
     skill_batch_registration_payload = natural_skill_batch_registration_payload(payload, user_request, config)
     if skill_batch_registration_payload is not None:
         return skill_batch_registration_payload
+    block_denied_natural_approval(user_request, config)
     narrowed_objective_payload = natural_narrowed_edit_objective_payload(payload, user_request, config)
     if narrowed_objective_payload is not None:
         return narrowed_objective_payload
@@ -6494,6 +6780,11 @@ def handle_workflow_router_chat_completion(payload: dict[str, Any], config: Cont
         response = handle_skill_scaffold(controller_request, config)
     elif workflow == WORKFLOW_ROUTER_WORKFLOW_ID:
         response = handle_workflow_router_plan(controller_request, config)
+        request_context = controller_request.get("context") if isinstance(controller_request.get("context"), dict) else {}
+        source_run_id = request_context.get("approval_continuation_source_run_id")
+        if isinstance(source_run_id, str) and source_run_id.strip():
+            continuation_run_id = response.get("run_id") if isinstance(response.get("run_id"), str) else None
+            mark_approval_continuation_consumed(config, source_run_id, continuation_run_id)
     else:
         raise ControllerServiceError(
             "Workflow-router chat produced an unsupported controller workflow.",

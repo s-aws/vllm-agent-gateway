@@ -43,12 +43,14 @@ def test_release_gate_profiles_are_distinct_and_ordered() -> None:
         "live-smoke",
         "live-full",
         "release-candidate",
+        "v1.1-release-candidate",
     ]
     offline = release_gate_profile_contract(ReleaseGateProfile.OFFLINE)
     mutation = release_gate_profile_contract(ReleaseGateProfile.MUTATION)
     live_smoke = release_gate_profile_contract(ReleaseGateProfile.LIVE_SMOKE)
     live_full = release_gate_profile_contract(ReleaseGateProfile.LIVE_FULL)
     release_candidate = release_gate_profile_contract(ReleaseGateProfile.RELEASE_CANDIDATE)
+    v1_1_release_candidate = release_gate_profile_contract(ReleaseGateProfile.V1_1_RELEASE_CANDIDATE)
 
     assert not offline.includes_mutation
     assert mutation.includes_mutation
@@ -56,6 +58,8 @@ def test_release_gate_profiles_are_distinct_and_ordered() -> None:
     assert live_full.live_guard_level == LiveGuardLevel.FULL
     assert release_candidate.includes_anythingllm
     assert release_candidate.final_gate
+    assert v1_1_release_candidate.includes_anythingllm
+    assert v1_1_release_candidate.final_gate
 
 
 def test_release_gate_legacy_flags_map_to_profiles() -> None:

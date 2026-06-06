@@ -18,6 +18,7 @@ class ReleaseGateProfile(str, Enum):
     LIVE_SMOKE = "live-smoke"
     LIVE_FULL = "live-full"
     RELEASE_CANDIDATE = "release-candidate"
+    V1_1_RELEASE_CANDIDATE = "v1.1-release-candidate"
 
 
 @dataclass(frozen=True)
@@ -71,6 +72,18 @@ PROFILE_CONTRACTS: dict[ReleaseGateProfile, ReleaseGateProfileContract] = {
     ReleaseGateProfile.RELEASE_CANDIDATE: ReleaseGateProfileContract(
         profile=ReleaseGateProfile.RELEASE_CANDIDATE,
         description="Mutation profile plus all live guards through AnythingLLM.",
+        includes_static=True,
+        includes_mutation=True,
+        live_guard_level=LiveGuardLevel.FULL,
+        includes_anythingllm=True,
+        final_gate=True,
+    ),
+    ReleaseGateProfile.V1_1_RELEASE_CANDIDATE: ReleaseGateProfileContract(
+        profile=ReleaseGateProfile.V1_1_RELEASE_CANDIDATE,
+        description=(
+            "V1.1 final gate with release-candidate live guards plus setup, docs, "
+            "release-channel, security, onboarding, observability, model, and fixture proof."
+        ),
         includes_static=True,
         includes_mutation=True,
         live_guard_level=LiveGuardLevel.FULL,

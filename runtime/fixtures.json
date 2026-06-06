@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "kind": "fixture_manifest",
+  "description": "Controlled fixtures for acceptance, portability, and future multi-repo validation.",
+  "fixtures": [
+    {
+      "id": "coinbase-frozen",
+      "source_path": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "category": "real-world-python-non-git",
+      "description": "Protected frozen Coinbase-style fixture without git metadata.",
+      "protected": true,
+      "disposable_only": true,
+      "watched_paths": [
+        "configuration.py",
+        "core/stealth_order_manager.py",
+        "docs/agents/INVARIANTS.md",
+        "tests/unit/test_order_id_and_followup_rules.py"
+      ]
+    },
+    {
+      "id": "coinbase-frozen-git",
+      "source_path": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "category": "real-world-python-git",
+      "description": "Protected frozen Coinbase-style fixture with git metadata.",
+      "protected": true,
+      "disposable_only": true,
+      "watched_paths": [
+        "configuration.py",
+        "core/stealth_order_manager.py",
+        "docs/agents/INVARIANTS.md",
+        "tests/unit/test_order_id_and_followup_rules.py"
+      ]
+    },
+    {
+      "id": "python-service-generalization",
+      "source_path": "tests/fixtures/generalization/python_service_fixture",
+      "category": "synthetic-python-service",
+      "description": "Small Python service fixture used for non-Coinbase generalization checks.",
+      "protected": true,
+      "disposable_only": true,
+      "watched_paths": [
+        "README.md",
+        "main.py",
+        "service/api.py",
+        "service/orders.py",
+        "database/schema.py",
+        "tests/test_orders.py"
+      ]
+    },
+    {
+      "id": "node-cli-generalization",
+      "source_path": "tests/fixtures/generalization/node_cli_fixture",
+      "category": "synthetic-node-cli",
+      "description": "Small JavaScript/Node CLI fixture used for non-Coinbase configuration and CLI-shape generalization checks.",
+      "protected": true,
+      "disposable_only": true,
+      "watched_paths": [
+        "README.md",
+        "package.json",
+        "src/config.js",
+        "src/index.js",
+        "tests/config.test.js"
+      ]
+    }
+  ]
+}

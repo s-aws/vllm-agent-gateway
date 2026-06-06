@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "kind": "external_tester_onboarding_pack",
+  "pack_id": "external-tester-onboarding-v1",
+  "version": "0.1.0",
+  "owner": "agentic_agents",
+  "release_channel": "release-candidate",
+  "description": "Small read-only first-test prompt set for contextless external testers using AnythingLLM through the workflow-router gateway.",
+  "docs": [
+    "README.external-tester-onboarding.md",
+    "README.getting-started.md",
+    "README.release-channels.md",
+    "README.first-time-user-doctor.md",
+    "README.workflow-feedback.md"
+  ],
+  "examples": [
+    "docs/examples/external-tester-onboarding.md",
+    "docs/examples/release-channels.md",
+    "docs/examples/workflow-feedback.md"
+  ],
+  "cases": [
+    {
+      "case_id": "ONB-001",
+      "title": "Explain One Function",
+      "level": "L1",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "mutation_policy": "read_only",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifact_keys": [
+        "downstream_code_explanation"
+      ],
+      "expected_markers": [
+        "Answer:",
+        "StealthOrderManager.find_stealth_order_by_placed_order_id",
+        "Inputs:",
+        "placed_order_id",
+        "Outputs:",
+        "Side effects:",
+        "Related tests:"
+      ],
+      "troubleshooting_notes": [
+        "If the response is only artifact paths, rerun after confirming the workflow-router gateway is on 8500.",
+        "If no run_id appears, rerun the first-time user doctor.",
+        "If the target root is rejected, restart the harness with both frozen fixtures in CONTROLLER_ALLOWED_TARGET_ROOTS."
+      ]
+    },
+    {
+      "case_id": "ONB-002",
+      "title": "Find Behavior Beginning Point",
+      "level": "L1",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "mutation_policy": "read_only",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, and confidence.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifact_keys": [
+        "downstream_investigation_plan"
+      ],
+      "expected_markers": [
+        "Answer:",
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:",
+        "python -m pytest"
+      ],
+      "troubleshooting_notes": [
+        "If this routes to a CLI entrypoint lookup, record routing feedback with the returned run_id.",
+        "If confidence is missing, ask the tester to keep the original wording and rerun once.",
+        "If repository files changed, stop testing and inspect fixture state."
+      ]
+    },
+    {
+      "case_id": "ONB-003",
+      "title": "Find Related Tests",
+      "level": "L1",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "mutation_policy": "read_only",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find tests related to placed_order_id stealth lookup. Read only. Return test files, matching terms, and recommended test commands.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifact_keys": [
+        "downstream_investigation_plan"
+      ],
+      "expected_markers": [
+        "Answer:",
+        "Related tests:",
+        "Recommended commands:",
+        "python -m pytest"
+      ],
+      "troubleshooting_notes": [
+        "If no test command appears, record answer-quality feedback with the returned run_id.",
+        "If it asks for approval, stop and report the route as wrong.",
+        "If the response names unrelated tests, capture answer-quality feedback."
+      ]
+    },
+    {
+      "case_id": "ONB-004",
+      "title": "Locate Configuration Setting",
+      "level": "L1",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "mutation_policy": "read_only",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where COINBASE_API_KEY environment variable is defined or used. Read only. Return files, references, and likely runtime effect.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifact_keys": [
+        "downstream_configuration_lookup"
+      ],
+      "expected_markers": [
+        "Answer:",
+        "Target: COINBASE_API_KEY",
+        "References:",
+        "Runtime effect:",
+        "configuration.py"
+      ],
+      "troubleshooting_notes": [
+        "If the response prints a secret value, stop testing and record unsafe-output feedback.",
+        "If references are missing, record answer-quality feedback.",
+        "If the request is rejected as unsafe, include the exact response text in tester notes."
+      ]
+    },
+    {
+      "case_id": "ONB-005",
+      "title": "Find Callers And Usages",
+      "level": "L1",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "mutation_policy": "read_only",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find callers/usages of find_stealth_order_by_placed_order_id. Read only. Group by file and explain each usage briefly.",
+      "expected_workflow": "code_context.lookup",
+      "expected_artifact_keys": [
+        "downstream_usage_summary"
+      ],
+      "expected_markers": [
+        "Answer:",
+        "Target: find_stealth_order_by_placed_order_id",
+        "Usage count:",
+        "core/"
+      ],
+      "troubleshooting_notes": [
+        "If this reads as generic search output, record answer-quality feedback.",
+        "If it selects code_investigation.plan, record routing feedback.",
+        "If no usage grouping appears, record missing-output feedback."
+      ]
+    }
+  ],
+  "feedback_templates": {
+    "confusing": {
+      "description": "Use when the tester cannot understand the response or next step.",
+      "message_template": "Record feedback for run {run_id}: confusing: the onboarding response was hard to understand. missing: clearer next action for a first-time tester."
+    },
+    "routing_miss": {
+      "description": "Use when the selected workflow or skill is visibly wrong.",
+      "message_template": "Record feedback for run {run_id}: wrong: onboarding prompt selected the wrong workflow or skill. missing: expected the documented onboarding workflow."
+    },
+    "answer_quality_miss": {
+      "description": "Use when the route is right but the answer lacks expected content.",
+      "message_template": "Record feedback for run {run_id}: useful: onboarding response was visible in chat. missing: expected one of the documented answer markers or source references."
+    },
+    "setup_failure": {
+      "description": "Use after setup is restored when a tester needs to preserve what blocked setup.",
+      "message_template": "Record feedback for run {run_id}: missing: setup failed before prompt testing. confusing: first-time setup instructions did not identify the blocker quickly enough."
+    }
+  }
+}

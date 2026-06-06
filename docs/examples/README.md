@@ -3,11 +3,16 @@
 Examples are grouped by feature so the root README can stay small.
 
 - [Getting Started With AnythingLLM](../../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
+- [External Tester Onboarding](external-tester-onboarding.md): release-candidate first-test prompts, live AnythingLLM validation, and linked feedback capture.
+- [First-Time User Doctor](first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM, and fixtures.
+- [Release Channels](release-channels.md): dev, release-candidate, stable readiness, setup doctor, and acceptance gate examples.
+- [Security Policy](security-policy.md): release-candidate secret, root, fixture, command, and onboarding prompt safety gate examples.
 - [Gateway](gateway.md): startup, shutdown, budget overrides, client URLs, and role ports.
 - [Controller Service](controller-service.md): explicit documenter workflow requests, end-to-end service runner, allowlisted targets, harness adapter, and run lookup.
 - [Workflow Router](workflow-router.md): natural-language route planning, read-only execution, blocked requests, and live validator command.
 - [Task Decomposition](task-decomposition.md): direct and AnythingLLM examples for read-only multi-step work packages, dependencies, approval gates, and JSON output.
 - [Controlled Apply](controlled-apply.md): direct dry-run patch preview, protected real-apply refusal, natural disposable-copy apply, rollback proof, and live validator command.
+- [Mutation Sandbox](mutation-sandbox.md): disposable-copy sandbox contract, structured diff proof, rollback proof, invalid-path blockers, and live validator command.
 - [Execution Planning Harness](execution-planning-harness.md): `execution_planning.plan` envelopes, AnythingLLM pasteable request, expected artifacts, and rejection cases.
 - [AnythingLLM Founder Testing](anythingllm-founder-testing.md): API and UI recipes for skill smoke, workflow envelopes, feedback capture, and frozen-repo checks.
 - [Code Context Lookup](code-context.md): read-only `code_context.lookup` payloads, curated relationship lookup, harness envelope, and raw CodeGraphContext rejection.
@@ -15,9 +20,19 @@ Examples are grouped by feature so the root README can stay small.
 - [Refactor Single Path](refactor-single-path.md): `refactor.single_path` investigation-only and approved dry-run payloads.
 - [Workflow Feedback](workflow-feedback.md): `workflow_feedback.record` direct, gateway, and AnythingLLM envelopes.
 - [Run Inspector](run-inspector.md): latest-run and explicit-run summaries from controller artifacts.
+- [Run Observability](observability.md): recent workflow-run dashboard with route, model, approval, downstream, artifact, failure, mutation, and timing markers.
+- [Run Artifact Diff](run-artifact-diff.md): compare V1, founder-field, and model-portability run reports.
+- [Failure Taxonomy](failure-taxonomy.md): classify existing validation reports into stable failure categories and next actions.
 - [AnythingLLM UI E2E](anythingllm-ui-e2e.md): browser-rendered Desktop UI validation through `/stream-chat`, screenshots, and fixture mutation proof.
+- [Model Portability](model-portability.md): live candidate-model gate and existing acceptance-report classification.
+- [Model Capability Profiles](model-capability-profiles.md): profile generation from portability reports and advisory task-policy review.
 - [Prompt Catalogs](prompt-catalogs.md): founder field catalog validation, prompt matrix validation, and case-change workflow.
+- [Prompt Skill Coverage](prompt-skill-coverage.md): coverage registry validation and gap backlog review.
+- [Fixture Manager](fixture-manager.md): manifest validation, protected snapshots, disposable setup, and cleanup.
 - [Skill Registry](skill-registry.md): metadata validation, deterministic selection explanation, release gate, mutation gate, skill-batch proposal, registration, skill-pack validation/install, scaffold generation, promotion, deprecation, and update examples.
+- [Skill Authoring Factory](skill-authoring-factory.md): dry-run scaffold sidecars, planned coverage entry, eval skeleton, docs stubs, and fail-closed regression tests.
+- [Skill Regression Tiers](skill-regression-tiers.md): tier catalog validation and minimum commands for offline, controller, gateway, AnythingLLM, UI, mutation, and release-candidate proof.
+- [Skill Packaging](skill-packaging.md): packaging policy validation, pack validation, approval-gated install shape, and review order.
 - [Documenter](documenter.md): dry runs, full review, all-file scans, follow-ups, drafts, and resume.
 - [Streaming](streaming.md): deterministic modes, model-assisted modes, bounded large runs, and resume.
 - [Code Structure Indexes](code-structure-indexes.md): tracked/all indexes and bounded slices.

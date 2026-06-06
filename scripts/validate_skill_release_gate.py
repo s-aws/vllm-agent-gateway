@@ -607,7 +607,7 @@ def parse_args() -> argparse.Namespace:
         choices=release_gate_profile_values(),
         default=None,
         help=(
-            "Canonical release profile. Use offline, mutation, live-smoke, live-full, or release-candidate. "
+            "Canonical release profile. Use offline, mutation, live-smoke, live-full, release-candidate, or v1.1-release-candidate. "
             "Legacy --offline-only/--live/--anythingllm flags remain supported as aliases."
         ),
     )

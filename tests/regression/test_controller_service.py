@@ -5027,6 +5027,12 @@ def test_workflow_router_chat_accepts_natural_language_and_uses_latest_user_mess
     assert "I completed workflow_router.plan." in content
     assert "workflow_router.plan completed" in content
     assert "- selected_workflow: code_investigation.plan" in content
+    assert "Skill Selection:" in content
+    assert "- Why: Selected code_investigation.plan" in content
+    assert "- Route rules: l1_find_behavior_start_terms" in content
+    assert "- Skills:" in content
+    assert "- Tools: structure_index; git_grep; read_file" in content
+    assert "- Grounded in: route_decision.evidence" in content
     assert "Artifacts:" in content
     assert sentinel.read_text(encoding="utf-8") == before
     decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
@@ -5082,6 +5088,9 @@ def test_workflow_router_chat_explicit_json_output_format_returns_json_content(t
     assert rendered["status"] == "completed"
     assert rendered["summary"]["selected_workflow"] == "code_investigation.plan"
     assert "route_decision" in rendered["artifacts"]
+    assert rendered["selection_explanation"]["selected_workflow"] == "code_investigation.plan"
+    assert "l1_find_behavior_start_terms" in rendered["selection_explanation"]["route_rules"]
+    assert rendered["chat_contract"]["selection_explanation"]["selected_workflow"] == "code_investigation.plan"
     assert "Artifacts:" not in body["choices"][0]["message"]["content"]
     assert sentinel.read_text(encoding="utf-8") == before
 
@@ -5123,6 +5132,8 @@ def test_workflow_router_chat_natural_json_output_format_returns_json_content(tm
     rendered = json.loads(body["choices"][0]["message"]["content"])
     assert rendered["summary"]["selected_workflow"] == "code_investigation.plan"
     assert rendered["summary"]["target_repo_read"] is True
+    assert rendered["selection_explanation"]["selected_workflow"] == "code_investigation.plan"
+    assert "l1_find_behavior_start_terms" in rendered["selection_explanation"]["route_rules"]
     assert sentinel.read_text(encoding="utf-8") == before
 
 
@@ -5207,6 +5218,9 @@ def test_workflow_router_chat_l1_explain_code_returns_explanation_artifact(tmp_p
     assert compact["summary"]["downstream_status"] == "completed"
     assert compact["summary"]["target_repo_read"] is True
     assert "Answer:" in content
+    assert "Skill Selection:" in content
+    assert "- Route rules: l1_explain_code_terms" in content
+    assert "code-explanation-summarizer" in content
     assert "- Target: StealthOrderManager.find_stealth_order_by_placed_order_id in core/stealth_order_manager.py" in content
     assert "- Inputs:" in content
     assert "placed_order_id (argument)" in content
@@ -6619,11 +6633,23 @@ def test_workflow_router_chat_l1_small_text_edit_without_draft_requests_approval
 
     assert status == 200
     compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
     assert compact["summary"]["route_status"] == "ready"
     assert compact["summary"]["selected_workflow"] == "execution_planning.plan"
     assert compact["summary"]["next_action"] == "request_approval"
+    assert compact["summary"]["approval_state_status"] == "waiting_for_approval"
+    assert compact["summary"]["approval_type"] == "packet_design"
     assert compact["summary"]["target_repo_read"] is False
+    assert "approval_state" in compact["artifacts"]
     assert "downstream_result" not in compact["artifacts"]
+    assert "Approval:" in content
+    assert "- State: waiting_for_approval" in content
+    assert "- Type: packet_design" in content
+    approval_state = json.loads(Path(compact["artifacts"]["approval_state"]).read_text(encoding="utf-8"))
+    assert approval_state["status"] == "waiting_for_approval"
+    assert approval_state["approval_type"] == "packet_design"
+    assert approval_state["expected_approval"]["status"] == "approved_for_packet_design"
+    assert approval_state["next_action"] == "request_approval"
     assert sentinel.read_text(encoding="utf-8") == before
 
 
@@ -6675,9 +6701,14 @@ def test_workflow_router_chat_l1_small_unit_test_drafts_packet_without_mutation(
     assert compact["summary"]["selected_workflow"] == "execution_planning.plan"
     assert compact["summary"]["downstream_workflow"] == "execution_planning.plan"
     assert compact["summary"]["downstream_status"] == "completed"
+    assert compact["summary"]["approval_state_status"] == "finished"
+    assert compact["summary"]["approval_type"] == "packet_design"
     assert "small_unit_test_proposal" in compact["artifacts"]
     assert "downstream_implementation_workflow_report" in compact["artifacts"]
+    assert "approval_state" in compact["artifacts"]
     assert "Draft proposal:" in content
+    assert "Approval:" in content
+    assert "- State: finished" in content
     assert "small_unit_test_proposal" in content
     assert "tests/unit/test_order_id_and_followup_rules.py" in content
     assert "append_text" in content
@@ -6698,6 +6729,9 @@ def test_workflow_router_chat_l1_small_unit_test_drafts_packet_without_mutation(
     assert any(item["check"] == "existing_related_test_file" and item["status"] == "passed" for item in proposal["safety_checks"])
     downstream_state = json.loads(Path(compact["artifacts"]["downstream_run_state"]).read_text(encoding="utf-8"))
     assert downstream_state["summary"]["deterministic_path"] == "l1_small_unit_test"
+    approval_state = json.loads(Path(compact["artifacts"]["approval_state"]).read_text(encoding="utf-8"))
+    assert approval_state["status"] == "finished"
+    assert approval_state["approval_type"] == "packet_design"
     assert downstream_state["summary"]["repo_mutated"] is False
 
 
@@ -7427,6 +7461,242 @@ def test_workflow_router_chat_approval_continuation_runs_implementation_prep_wit
     assert sentinel.read_text(encoding="utf-8") == before
     decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
     assert decision["controller_request_preview"]["packet_operations"] == packet_operations
+
+
+@advanced_workflow
+def test_workflow_router_chat_approval_continuation_rejects_duplicate_approval(
+    tmp_path: Path,
+) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    sentinel = target / "docs" / "agents" / "INVARIANTS.md"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with FakeExecutionPlanningEndpoint() as endpoint:
+        with RunningControllerService(config) as service:
+            host, port = service.base_url
+            status, initial = request_json(
+                host,
+                port,
+                "POST",
+                "/v1/controller/workflow-router/chat/completions",
+                {
+                    "model": "agentic-workflow-router",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": (
+                                f"In {target}, refactor the placed_order_id stealth lookup so there is only one code path. "
+                                "Start from the logic beginning point and investigate first."
+                            ),
+                        }
+                    ],
+                },
+            )
+            assert status == 200
+            run_id = initial["agentic_controller_response"]["run_id"]
+            packet_operations = [
+                {
+                    "kind": "replace_text",
+                    "path": "docs/agents/INVARIANTS.md",
+                    "old": FROZEN_INVARIANT_OLD,
+                    "new": FROZEN_INVARIANT_NEW,
+                }
+            ]
+            approval_message = (
+                f"Approve packet design for run {run_id}. "
+                f"Use packet operations: {json.dumps(packet_operations, ensure_ascii=True)}"
+            )
+            status, continuation = request_json(
+                host,
+                port,
+                "POST",
+                "/v1/controller/workflow-router/chat/completions",
+                {
+                    "model": "agentic-workflow-router",
+                    "role_base_url": endpoint.base_url,
+                    "messages": [{"role": "user", "content": approval_message}],
+                },
+            )
+            assert status == 200
+            status, duplicate = request_json(
+                host,
+                port,
+                "POST",
+                "/v1/controller/workflow-router/chat/completions",
+                {
+                    "model": "agentic-workflow-router",
+                    "role_base_url": endpoint.base_url,
+                    "messages": [{"role": "user", "content": approval_message}],
+                },
+            )
+
+    assert continuation["agentic_controller_response"]["summary"]["approval_state_status"] == "finished"
+    assert status == 409
+    assert duplicate["error"]["code"] == "approval_already_consumed"
+    source_record = json.loads((config.run_registry_root / f"{run_id}.json").read_text(encoding="utf-8"))
+    assert source_record["approval_continuation"]["status"] == "consumed"
+    assert sentinel.read_text(encoding="utf-8") == before
+
+
+@advanced_workflow
+def test_workflow_router_chat_approval_continuation_rejects_denied_approval(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, initial = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, refactor the placed_order_id stealth lookup so there is only one code path. "
+                            "Start from the logic beginning point and investigate first."
+                        ),
+                    }
+                ],
+            },
+        )
+        assert status == 200
+        run_id = initial["agentic_controller_response"]["run_id"]
+        status, denied = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [{"role": "user", "content": f"Deny packet design approval for run {run_id}."}],
+            },
+        )
+        status_after_deny, retry = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [{"role": "user", "content": f"Approve packet design for run {run_id}."}],
+            },
+        )
+
+    assert status == 409
+    assert denied["error"]["code"] == "approval_denied"
+    assert status_after_deny == 409
+    assert retry["error"]["code"] == "approval_denied"
+    source_record = json.loads((config.run_registry_root / f"{run_id}.json").read_text(encoding="utf-8"))
+    assert source_record["approval_continuation"]["status"] == "denied"
+
+
+@advanced_workflow
+def test_workflow_router_chat_approval_continuation_rejects_expired_approval(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, initial = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, refactor the placed_order_id stealth lookup so there is only one code path. "
+                            "Start from the logic beginning point and investigate first."
+                        ),
+                    }
+                ],
+            },
+        )
+        assert status == 200
+        run_id = initial["agentic_controller_response"]["run_id"]
+        record_path = config.run_registry_root / f"{run_id}.json"
+        record = json.loads(record_path.read_text(encoding="utf-8"))
+        record["updated_at"] = "2000-01-01T00:00:00Z"
+        record_path.write_text(json.dumps(record, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+        status, expired = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [{"role": "user", "content": f"Approve packet design for run {run_id}."}],
+            },
+        )
+
+    assert status == 409
+    assert expired["error"]["code"] == "approval_expired"
+
+
+@advanced_workflow
+def test_workflow_router_chat_approval_continuation_rejects_wrong_run_state(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, initial = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, find tests related to placed_order_id stealth lookup. "
+                            "Read only. Return test files, matching terms, and recommended test commands."
+                        ),
+                    }
+                ],
+            },
+        )
+        assert status == 200
+        run_id = initial["agentic_controller_response"]["run_id"]
+        status, wrong_run = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [{"role": "user", "content": f"Approve packet design for run {run_id}."}],
+            },
+        )
+
+    assert status == 409
+    assert wrong_run["error"]["code"] == "approval_not_pending"
 
 
 @advanced_workflow
@@ -8298,6 +8568,7 @@ def test_workflow_router_plan_routes_l1_behavior_start_without_repo_reads(tmp_pa
     assert decision["status"] == "ready"
     assert decision["selected_workflow"] == "code_investigation.plan"
     assert decision["selected_tools"] == ["structure_index", "git_grep", "read_file"]
+    assert any(item.get("rule") == "l1_find_behavior_start_terms" for item in decision["evidence"])
     assert decision["controller_request_preview"]["include_tests"] is True
     assert decision["controller_request_preview"]["target_root"] == str(target.resolve())
     assert "implementation_prep" in decision["approval_required_before"]
@@ -9988,6 +10259,102 @@ def test_skill_scaffold_generates_valid_batch_manifest_and_frontmatter(tmp_path:
     assert sha256_file(config_root / "runtime" / "skill_evals.json") == before_evals
 
 
+def test_skill_scaffold_authoring_factory_generates_sidecars_without_promotion(tmp_path: Path) -> None:
+    config_root = make_skill_registration_root(tmp_path)
+    before_skills = sha256_file(config_root / "runtime" / "skills.json")
+    before_evals = sha256_file(config_root / "runtime" / "skill_evals.json")
+    before_coverage = sha256_file(config_root / "runtime" / "prompt_skill_coverage.json")
+    config = ControllerServiceConfig(
+        config_root=config_root,
+        output_root=tmp_path / ".agentic_controller",
+        allowed_target_roots=(config_root,),
+        port=0,
+    )
+    spec = phase47_scaffold_spec(
+        skill_id="phase80-factory-locator",
+        route_key="code.phase80_factory_lookup",
+        task_types=["phase80_factory_lookup"],
+        trigger_terms=["phase80 factory lookup"],
+        output_artifact="investigation_plan",
+    )
+    spec.update(
+        {
+            "coverage_id": "PHASE80-FACTORY-LOOKUP",
+            "level": "L1",
+            "route_rule": "l1_find_behavior_start_terms",
+            "tool_ids": ["git_grep", "read_file"],
+        }
+    )
+
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/skill-scaffolds",
+            {
+                "workflow": "skill.scaffold",
+                "schema_version": 1,
+                "prompt_family_spec": spec,
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["scaffold_status"] == "ready"
+    assert body["summary"]["authoring_factory_status"] == "draft_sidecars_generated"
+    assert body["summary"]["promotion_state"] == "not_promoted_by_scaffold"
+    expected_artifacts = {
+        "prompt_coverage_entry",
+        "eval_skeleton",
+        "docs_stub",
+        "docs_example_stub",
+        "regression_test_skeleton",
+        "authoring_factory_report",
+    }
+    assert expected_artifacts <= set(body["artifacts"])
+
+    coverage_entry = json.loads(Path(body["artifacts"]["prompt_coverage_entry"]).read_text(encoding="utf-8"))
+    assert coverage_entry["id"] == "PHASE80-FACTORY-LOOKUP"
+    assert coverage_entry["status"] == "planned"
+    assert coverage_entry["skill_ids"] == ["phase80-factory-locator"]
+    assert coverage_entry["tool_ids"] == ["git_grep", "read_file"]
+    assert coverage_entry["promotion_state"] == "not_promoted_by_scaffold"
+
+    eval_skeleton = json.loads(Path(body["artifacts"]["eval_skeleton"]).read_text(encoding="utf-8"))
+    assert eval_skeleton["kind"] == "skill_eval_skeleton"
+    assert {gate["id"] for gate in eval_skeleton["required_gates"]} == {
+        "routing",
+        "artifact_contract",
+        "natural_language_chat_output",
+        "prompt_coverage",
+    }
+    assert all(gate["status"] == "not_run" for gate in eval_skeleton["required_gates"])
+
+    test_skeleton = Path(body["artifacts"]["regression_test_skeleton"]).read_text(encoding="utf-8")
+    assert "test_phase80_factory_locator_routes_to_expected_workflow" in test_skeleton
+    assert "test_phase80_factory_locator_emits_expected_artifact_contract" in test_skeleton
+    assert "test_phase80_factory_locator_chat_output_is_user_visible" in test_skeleton
+    assert "test_phase80_factory_locator_prompt_coverage_entry_is_implemented" in test_skeleton
+    assert test_skeleton.count("pytest.fail") == 4
+
+    docs_stub = Path(body["artifacts"]["docs_stub"]).read_text(encoding="utf-8")
+    assert "not shipped documentation until the skill" in docs_stub
+    factory_report = json.loads(Path(body["artifacts"]["authoring_factory_report"]).read_text(encoding="utf-8"))
+    assert factory_report["kind"] == "skill_authoring_factory_report"
+    assert factory_report["promotion_state"] == "not_promoted_by_scaffold"
+    assert {item["id"]: item["status"] for item in factory_report["checks"]}["test_skeleton"] == "fail_closed"
+    checklist = json.loads(Path(body["artifacts"]["validation_checklist"]).read_text(encoding="utf-8"))
+    checklist_statuses = {item["id"]: item["status"] for item in checklist["checks"]}
+    assert checklist_statuses["authoring_factory_sidecars"] == "generated"
+    assert checklist_statuses["promotion_gate"] == "blocked_until_eval_gates_pass"
+
+    assert sha256_file(config_root / "runtime" / "skills.json") == before_skills
+    assert sha256_file(config_root / "runtime" / "skill_evals.json") == before_evals
+    assert sha256_file(config_root / "runtime" / "prompt_skill_coverage.json") == before_coverage
+    assert not (config_root / ".qwen" / "skills" / "phase80-factory-locator").exists()
+
+
 def test_skill_scaffold_returns_do_not_admit_for_overlapping_intent(tmp_path: Path) -> None:
     config_root = make_skill_registration_root(tmp_path)
     config = ControllerServiceConfig(
@@ -10102,6 +10469,8 @@ def test_workflow_router_chat_natural_skill_scaffold_routes_without_manual_skill
     assert compact["summary"]["skill_id"] == "phase49-log-locator"
     assert "Skill Scaffold:" in content
     assert "phase49-log-locator" in content
+    assert "Authoring factory: draft_sidecars_generated" in content
+    assert "Factory sidecars: prompt_coverage_entry" in content
     route_decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
     assert route_decision["selected_workflow"] == "skill.scaffold"
     assert route_decision["approval_required"] is False

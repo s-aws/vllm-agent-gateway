@@ -47,6 +47,23 @@ SKILL SCALE SUMMARY {"deprecated_skill_count": 0, "do_not_admit_count": 0, "eval
 SKILL SCALE PASS
 ```
 
+## Validate Skill Packaging Policy
+
+This command validates `runtime/skill_pack_policy.json` against the current registry namespaces, strict namespace rules, and required skill-pack manifest fields.
+
+```bash
+cd /mnt/c/agentic_agents
+python3 scripts/validate_skill_packaging_policy.py \
+  --output-path runtime-state/skill-packaging-policy/latest-policy.json
+```
+
+Expected result:
+
+```text
+SKILL PACKAGING POLICY SUMMARY {"error_count": 0, ...}
+SKILL PACKAGING POLICY PASS
+```
+
 ## Validate Selector Scale Stability
 
 This command generates metadata-only synthetic catalogs with 100, 1,000, and 10,000 skills. It checks repeated selector stability for representative L1/L2 requests and rejects deterministic collision fixtures.
@@ -905,7 +922,7 @@ Expected successful install artifacts:
 
 ## Scaffold A Draft Skill
 
-Use `skill.scaffold` when you know the prompt family and want a deterministic draft `SKILL.md`, metadata entry, eval case, validation checklist, and batch manifest. The workflow is artifact-only and does not mutate runtime registries.
+Use `skill.scaffold` when you know the prompt family and want a deterministic draft `SKILL.md`, metadata entry, eval case, validation checklist, batch manifest, planned coverage entry, docs stubs, eval skeleton, and fail-closed regression test skeleton. The workflow is artifact-only and does not mutate runtime registries.
 
 ```bash
 curl -sS http://127.0.0.1:8400/v1/controller/skill-scaffolds \
@@ -924,6 +941,10 @@ curl -sS http://127.0.0.1:8400/v1/controller/skill-scaffolds \
       "task_types": ["example_scaffold_lookup"],
       "output_artifact": "investigation_plan",
       "live_suite": "skill_registry_contract",
+      "coverage_id": "EXAMPLE-SCAFFOLD-LOOKUP",
+      "level": "L1",
+      "route_rule": "l1_find_behavior_start_terms",
+      "tool_ids": ["git_grep", "read_file"],
       "docs": ["README.skill-registry.md", "docs/SKILL_LIBRARY_SCALING_PLAN.md"],
       "problem_solving_steps": [4]
     }
@@ -935,6 +956,12 @@ Expected ready artifacts:
 - `draft_skill_body`
 - `draft_batch_manifest`
 - `batch_validation_report`
+- `prompt_coverage_entry`
+- `eval_skeleton`
+- `docs_stub`
+- `docs_example_stub`
+- `regression_test_skeleton`
+- `authoring_factory_report`
 - `validation_checklist`
 - `skill_scaffold`
 - `run_state`
@@ -943,8 +970,10 @@ To continue from scaffold to admission:
 
 1. Review the generated `draft_skill_body`, `draft_batch_manifest`, and `validation_checklist`.
 2. Keep `output_artifact` on an implemented artifact path; create a separate approved artifact/workflow phase before using a new output artifact.
-3. Convert the generated `batch.json` into a reviewed skill-batch proposal or include it in a governed `skill_pack_manifest`.
-4. Register only through `skill_batch.register` or `skill_pack.install` with explicit approval.
+3. Review `prompt_coverage_entry`, `eval_skeleton`, `docs_stub`, and `regression_test_skeleton`.
+4. Keep the generated regression skeleton fail-closed until routing, artifact contract, chat output, and coverage gates are implemented.
+5. Convert the generated `batch.json` into a reviewed skill-batch proposal or include it in a governed `skill_pack_manifest`.
+6. Register only through `skill_batch.register` or `skill_pack.install` with explicit approval.
 
 An overlapping scaffold returns `do_not_admit` rather than creating a parallel skill:
 

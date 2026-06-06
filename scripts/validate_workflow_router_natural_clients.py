@@ -97,6 +97,56 @@ def natural_request(target_root: str) -> str:
     )
 
 
+def require_approval_state(
+    compact: dict[str, Any],
+    target_root: str,
+    label: str,
+    *,
+    expected_status: str,
+    expected_type: str,
+) -> dict[str, Any]:
+    summary = compact.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError(f"{label} did not include a summary object for {target_root}")
+    wrong_summary = {
+        "approval_state_status": {
+            "expected": expected_status,
+            "actual": summary.get("approval_state_status"),
+        },
+        "approval_type": {
+            "expected": expected_type,
+            "actual": summary.get("approval_type"),
+        },
+    }
+    wrong_summary = {
+        key: value
+        for key, value in wrong_summary.items()
+        if value["actual"] != value["expected"]
+    }
+    if wrong_summary:
+        raise RuntimeError(f"{label} approval summary mismatch for {target_root}: {wrong_summary!r}")
+    artifacts = compact.get("artifacts")
+    if not isinstance(artifacts, dict):
+        raise RuntimeError(f"{label} did not include artifacts for {target_root}")
+    artifact_path = artifacts.get("approval_state")
+    if not isinstance(artifact_path, str) or not Path(artifact_path).exists():
+        raise RuntimeError(f"{label} missing approval_state artifact for {target_root}: {artifact_path!r}")
+    approval_state = json.loads(Path(artifact_path).read_text(encoding="utf-8"))
+    expected = {
+        "status": expected_status,
+        "approval_type": expected_type,
+        "target_root": str(Path(target_root).resolve()),
+    }
+    wrong_state = {
+        key: {"expected": value, "actual": approval_state.get(key)}
+        for key, value in expected.items()
+        if approval_state.get(key) != value
+    }
+    if wrong_state:
+        raise RuntimeError(f"{label} approval_state artifact mismatch for {target_root}: {wrong_state!r}")
+    return approval_state
+
+
 def require_workflow_router_response(response: dict[str, Any], target_root: str, label: str) -> dict[str, Any]:
     compact = response.get("agentic_controller_response")
     if not isinstance(compact, dict):
@@ -114,6 +164,7 @@ def require_workflow_router_response(response: dict[str, Any], target_root: str,
         "downstream_workflow": "refactor.single_path",
         "downstream_status": "completed",
         "target_repo_read": True,
+        "next_action": "request_approval",
     }
     wrong = {
         key: {"expected": expected_value, "actual": summary.get(key)}
@@ -135,6 +186,28 @@ def require_workflow_router_response(response: dict[str, Any], target_root: str,
         raise RuntimeError(f"{label} did not include route_decision artifact")
     if "downstream_refactor_plan" not in artifacts:
         raise RuntimeError(f"{label} did not include downstream_refactor_plan artifact")
+    text = text_response(response)
+    required_text_markers = [
+        "Skill Selection:",
+        "- Why: Selected refactor.single_path",
+        "single_path_refactor_terms",
+        "route_decision.evidence",
+    ]
+    missing_text = [marker for marker in required_text_markers if marker not in text]
+    if missing_text:
+        raise RuntimeError(f"{label} missing skill-selection explanation markers {missing_text} for {target_root}")
+    approval_state = require_approval_state(
+        compact,
+        target_root,
+        label,
+        expected_status="waiting_for_approval",
+        expected_type="packet_design",
+    )
+    if approval_state.get("next_action") != "request_approval":
+        raise RuntimeError(f"{label} approval state did not request approval for {target_root}: {approval_state!r}")
+    expected_approval = approval_state.get("expected_approval")
+    if not isinstance(expected_approval, dict) or expected_approval.get("status") != "approved_for_packet_design":
+        raise RuntimeError(f"{label} approval state missing packet-design expected approval for {target_root}")
     return compact
 
 
@@ -173,6 +246,13 @@ def require_approval_continuation_response(
         raise RuntimeError(f"{label} continuation did not include artifacts")
     route_status = summary.get("route_status")
     if route_status == "blocked" and expect_generated_packet_operations and allow_generated_packet_block:
+        require_approval_state(
+            compact,
+            target_root,
+            label,
+            expected_status="blocked",
+            expected_type="packet_design",
+        )
         if summary.get("next_action") != "request_packet_objective":
             raise RuntimeError(
                 f"{label} blocked generated continuation did not request packet objective for {target_root}: "
@@ -185,6 +265,13 @@ def require_approval_continuation_response(
         raise RuntimeError(f"{label} continuation did not include downstream_implementation_workflow_report")
     if expect_generated_packet_operations and "packet_operation_proposal" not in artifacts:
         raise RuntimeError(f"{label} continuation did not include packet_operation_proposal")
+    require_approval_state(
+        compact,
+        target_root,
+        label,
+        expected_status="finished",
+        expected_type="packet_design",
+    )
     return compact
 
 
@@ -388,7 +475,14 @@ def require_anythingllm_text(body: dict[str, Any], target_root: str) -> str:
         "Artifacts:",
         "refactor.single_path",
         "downstream_workflow",
-        "verification_command_count",
+        "Verification:",
+        "Approval:",
+        "Skill Selection:",
+        "- Why: Selected refactor.single_path",
+        "single_path_refactor_terms",
+        "route_decision.evidence",
+        "waiting_for_approval",
+        "packet_design",
     ]
     missing = [marker for marker in required_markers if marker not in text]
     if missing:
@@ -413,13 +507,17 @@ def require_anythingllm_continuation_text(
         "workflow_router.plan",
         "run_id:",
         "execution_planning.plan",
+        "downstream_workflow",
+        "Approval:",
+        "packet_design",
     ]
     if not (expect_generated_packet_operations and allow_generated_packet_block):
-        required_markers.append("downstream_implementation_workflow_report")
+        required_markers.append("finished")
     if expect_generated_packet_operations:
         required_markers.append("packet_operation_proposal")
         if allow_generated_packet_block:
             required_markers.append("request_packet_objective")
+            required_markers.append("blocked")
     missing = [marker for marker in required_markers if marker not in text]
     if missing:
         raise RuntimeError(f"AnythingLLM continuation missing markers {missing} for {target_root}")

@@ -8,6 +8,7 @@ It is not a runtime tool and it does not expose arbitrary skill bodies to the mo
 
 - `runtime/skills.json`: canonical skill metadata.
 - `runtime/skill_evals.json`: shared eval fixture and eval-case catalog.
+- `runtime/skill_pack_policy.json`: executable packaging policy for layout, namespaces, dependency rules, versioning, import/export, and retirement.
 - `vllm_agent_gateway/skills/registry.py`: registry validation, admission validation, and metadata-only selection.
 - `vllm_agent_gateway/skills/evals.py`: executable eval-catalog validation and optional L1/L2 live-suite mapping.
 - `vllm_agent_gateway/skills/batches.py`: proposed batch validation before appending new skills and eval cases to runtime registries.
@@ -17,6 +18,7 @@ It is not a runtime tool and it does not expose arbitrary skill bodies to the mo
 - `scripts/validate_skill_evals.py`: CLI that writes durable skill eval reports.
 - `scripts/validate_skill_batch.py`: focused CLI for skill-batch dry-run admission reports.
 - `scripts/validate_skill_pack.py`: focused CLI for skill-pack namespace and admission validation.
+- `scripts/validate_skill_packaging_policy.py`: focused CLI for validating the skill-pack packaging policy against registry constants.
 - `scripts/validate_skill_scale.py`: CLI that writes registry-scale coverage reports.
 - `scripts/validate_skill_selector_scale.py`: CLI that writes 100, 1,000, and 10,000 skill selector-scale reports.
 - `scripts/validate_skill_release_gate.py`: canonical profiled release-gate CLI that runs skill registry, eval, scale, selector-scale, prompt catalog, prompt matrix, docs, focused controller regression, mutation, and optional live/AnythingLLM guards.
@@ -92,7 +94,7 @@ python scripts/validate_skill_evals.py --batch-file path/to/skill-batch.json
 
 ## Skill Pack Governance
 
-Phase 46 adds governed skill packs for scaling beyond hand-managed local batches. A pack is a package wrapper around batch-compatible skill metadata and eval cases. It adds pack-level ownership and namespace checks, then reuses the same batch admission and canonical runtime selector path.
+Phase 46 adds governed skill packs for scaling beyond hand-managed local batches. Phase 77 adds the executable packaging policy in `runtime/skill_pack_policy.json` and the deeper strategy in [docs/SKILL_LIBRARY_PACKAGING_STRATEGY.md](docs/SKILL_LIBRARY_PACKAGING_STRATEGY.md). A pack is a package wrapper around batch-compatible skill metadata and eval cases. It adds pack-level ownership and namespace checks, then reuses the same batch admission and canonical runtime selector path.
 
 A skill-pack manifest uses:
 
@@ -111,6 +113,12 @@ Validate a pack:
 
 ```bash
 python scripts/validate_skill_pack.py --pack-file path/to/skill-pack.json
+```
+
+Validate the packaging policy:
+
+```bash
+python scripts/validate_skill_packaging_policy.py
 ```
 
 Direct controller validation:
@@ -143,6 +151,8 @@ Uninstall is intentionally not part of Phase 46.
 
 Phase 47 adds `skill.scaffold`, an artifact-only controller workflow for generating a valid draft skill package from a prompt-family spec.
 
+Phase 80 extends the same `skill.scaffold` path into the skill authoring factory. It still does not mutate runtime registries. It now also generates planned prompt coverage, docs stubs, an eval skeleton, and a fail-closed regression test skeleton from the same prompt-family specification.
+
 The scaffold request requires a `prompt_family_spec` with:
 
 - `skill_id`
@@ -163,11 +173,19 @@ Generated artifacts include:
 - draft `SKILL.md` with frontmatter
 - `batch.json`
 - `batch-validation-report.json`
+- `prompt-coverage-entry.json`
+- `eval-skeleton.json`
+- `docs-stubs/README.<skill_id>.md`
+- `docs-stubs/examples/<skill_id>.md`
+- `test-skeletons/test_<skill_id>_authoring_gate.py`
+- `authoring-factory-report.json`
 - `validation-checklist.json`
 - `skill-scaffold.json`
 - `run-state.json`
 
 The workflow returns `ready` only when the generated batch manifest passes existing batch admission. Overlapping semantic intent, duplicate route keys, missing docs, unsupported workflows, missing eval cases, and unknown artifacts return `do_not_admit` or a structured scaffold error instead of mutating runtime files.
+
+Scaffolded skills are not promoted by scaffolding alone. Generated sidecars carry `promotion_state: not_promoted_by_scaffold`, and the generated pytest skeleton intentionally fails closed until routing, artifact contract, natural-language chat output, and prompt coverage are installed and proved.
 
 Direct endpoint:
 
@@ -185,12 +203,18 @@ Direct endpoint:
     "trigger_terms": ["example pack lookup"],
     "task_types": ["example_pack_lookup"],
     "output_artifact": "investigation_plan",
-    "live_suite": "skill_registry_contract"
+    "live_suite": "skill_registry_contract",
+    "coverage_id": "EXAMPLE-PACK-LOOKUP",
+    "level": "L1",
+    "route_rule": "l1_find_behavior_start_terms",
+    "tool_ids": ["git_grep", "read_file"]
   }
 }
 ```
 
-To register scaffolded output, use the generated `batch.json` as a reviewed source for the existing `skill_batch.propose`/`skill_batch.register` path or as content for a governed skill pack. Do not hand-append scaffold output to `runtime/skills.json`.
+To register scaffolded output, use the generated `batch.json` as a reviewed source for the existing `skill_batch.propose`/`skill_batch.register` path or as content for a governed skill pack. Install the generated prompt coverage entry only after the skill metadata, eval case, docs, route rule, and chat-output proof are in place. Do not hand-append scaffold output to `runtime/skills.json`.
+
+Factory details: [README.skill-authoring-factory.md](README.skill-authoring-factory.md).
 
 ## Natural Lifecycle Chat
 
@@ -259,7 +283,7 @@ Phase 41 adds metadata-only selector-scale checks:
 
 ## Skill Release Gate
 
-Phase 44 adds one release-gate command for the skill system. Phase 68 adds named profiles so the same command can run cheaper diagnostics without weakening the final release-candidate gate.
+Phase 44 adds one release-gate command for the skill system. Phase 68 adds named profiles so the same command can run cheaper diagnostics without weakening the final release-candidate gate. Phase 81 adds the regression tier catalog in `runtime/skill_regression_tiers.json`, which maps common change types to the minimum expected skill-library proof.
 
 ```bash
 python scripts/validate_skill_release_gate.py --profile offline
@@ -284,6 +308,14 @@ python3 scripts/validate_skill_release_gate.py --profile release-candidate
 ```
 
 Use `release-candidate` when `ANYTHINGLLM_API_KEY` is available and AnythingLLM should be included in the proof. Legacy `--offline-only`, `--live`, and `--anythingllm` flags remain supported as aliases.
+
+Validate the tier catalog:
+
+```bash
+python scripts/validate_skill_regression_tiers.py
+```
+
+Tier details: [README.skill-regression-tiers.md](README.skill-regression-tiers.md).
 
 ## Mutation And Fault Injection
 

@@ -15,9 +15,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from vllm_agent_gateway.acceptance.profiles import ReleaseGateProfile
+from vllm_agent_gateway.acceptance.profiles import ReleaseGateProfile, release_gate_profile_contract_json
 
 
+DEFAULT_MODEL_BASE_URL = "http://127.0.0.1:8000/v1"
 DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL = "http://127.0.0.1:8500/v1"
 DEFAULT_CONTROLLER_BASE_URL = "http://127.0.0.1:8400"
 DEFAULT_ANYTHINGLLM_API_BASE_URL = "http://127.0.0.1:3001"
@@ -51,6 +52,7 @@ HEALTH_TARGETS = [
 @dataclass(frozen=True)
 class V1AcceptanceConfig:
     config_root: Path
+    candidate_model_base_url: str = DEFAULT_MODEL_BASE_URL
     workflow_router_gateway_base_url: str = DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL
     controller_base_url: str = DEFAULT_CONTROLLER_BASE_URL
     anythingllm_api_base_url: str = DEFAULT_ANYTHINGLLM_API_BASE_URL
@@ -62,6 +64,18 @@ class V1AcceptanceConfig:
     output_path: Path | None = None
     python_executable: str | None = None
     profile: ReleaseGateProfile = ReleaseGateProfile.RELEASE_CANDIDATE
+
+
+V1_1_KNOWN_LIMITATIONS = [
+    "Advanced broad refactor orchestration remains outside V1.1 acceptance.",
+    "Real repository mutation remains blocked; V1.1 only proves existing approval-gated disposable-copy apply.",
+    "Model capability profiles remain advisory and do not enable automatic model selection.",
+    "V1.1 proves the current local stack and governed fixtures, not universal support for every repository or framework.",
+]
+
+
+def is_v1_1_profile(profile: ReleaseGateProfile) -> bool:
+    return profile == ReleaseGateProfile.V1_1_RELEASE_CANDIDATE
 
 
 def utc_timestamp() -> str:
@@ -229,7 +243,52 @@ def suite_commands(config: V1AcceptanceConfig) -> list[dict[str, Any]]:
     targets: list[str] = []
     for target_root in config.target_roots:
         targets.extend(["--target-root", target_root])
-    return [
+    setup_commands: list[dict[str, Any]] = []
+    if is_v1_1_profile(config.profile):
+        setup_commands = [
+            {
+                "id": "first_time_user_doctor",
+                "description": "Setup preflight for localhost ports, AnythingLLM, controller roots, and protected fixtures",
+                "command": [
+                    python,
+                    str(config.config_root / "scripts" / "run_first_time_user_doctor.py"),
+                    "--workflow-router-gateway-base-url",
+                    config.workflow_router_gateway_base_url,
+                    "--controller-base-url",
+                    config.controller_base_url,
+                    "--anythingllm-api-base-url",
+                    config.anythingllm_api_base_url,
+                    "--workspace",
+                    config.workspace,
+                    "--api-key-env",
+                    config.api_key_env,
+                    "--timeout-seconds",
+                    str(min(60, config.timeout_seconds)),
+                    *targets,
+                ],
+            },
+            {
+                "id": "docs_index",
+                "description": "Ordered project documentation index validation",
+                "command": [
+                    python,
+                    str(config.config_root / "scripts" / "check_docs_index.py"),
+                    "--repo-root",
+                    str(config.config_root),
+                ],
+            },
+            {
+                "id": "release_channels",
+                "description": "Release-channel metadata validation",
+                "command": [
+                    python,
+                    str(config.config_root / "scripts" / "validate_release_channels.py"),
+                    "--config-root",
+                    str(config.config_root),
+                ],
+            },
+        ]
+    base_commands = [
         {
             "id": "representative_l1",
             "description": "L1 read-only plus draft-only representative cases",
@@ -291,6 +350,26 @@ def suite_commands(config: V1AcceptanceConfig) -> list[dict[str, Any]]:
             ],
         },
         {
+            "id": "external_tester_onboarding",
+            "description": "Contextless external-tester onboarding prompt and linked feedback through AnythingLLM",
+            "command": [
+                python,
+                str(config.config_root / "scripts" / "validate_external_tester_onboarding.py"),
+                "--anythingllm-api-base-url",
+                config.anythingllm_api_base_url,
+                "--workspace",
+                config.workspace,
+                "--api-key-env",
+                config.api_key_env,
+                "--timeout-seconds",
+                str(config.timeout_seconds),
+                "--live-anythingllm",
+                "--include-feedback",
+                "--case-id",
+                "ONB-001",
+            ],
+        },
+        {
             "id": "founder_field_prompts",
             "description": "Expanded natural founder prompts through AnythingLLM with fixture mutation proof",
             "command": [
@@ -313,7 +392,7 @@ def suite_commands(config: V1AcceptanceConfig) -> list[dict[str, Any]]:
                 python,
                 str(config.config_root / "scripts" / "validate_skill_release_gate.py"),
                 "--profile",
-                ReleaseGateProfile.RELEASE_CANDIDATE.value,
+                config.profile.value if is_v1_1_profile(config.profile) else ReleaseGateProfile.RELEASE_CANDIDATE.value,
                 "--config-root",
                 str(config.config_root),
                 "--controller-base-url",
@@ -330,6 +409,39 @@ def suite_commands(config: V1AcceptanceConfig) -> list[dict[str, Any]]:
             ],
         },
     ]
+    final_commands: list[dict[str, Any]] = []
+    if is_v1_1_profile(config.profile):
+        final_commands = [
+            {
+                "id": "security_policy",
+                "description": "Release-candidate security policy gate for secrets, roots, fixtures, commands, and onboarding prompts",
+                "command": [
+                    python,
+                    str(config.config_root / "scripts" / "validate_security_policy.py"),
+                    "--config-root",
+                    str(config.config_root),
+                ],
+            },
+            {
+                "id": "run_observability",
+                "description": "Recent workflow-router run observability report",
+                "command": [
+                    python,
+                    str(config.config_root / "scripts" / "report_run_observability.py"),
+                    "--config-root",
+                    str(config.config_root),
+                    "--workflow",
+                    "workflow_router.plan",
+                    "--limit",
+                    "30",
+                    "--format",
+                    "json",
+                    "--output-path",
+                    str(config.config_root / "runtime-state" / "run-observability" / "v1-1-release-candidate.json"),
+                ],
+            },
+        ]
+    return [*setup_commands, *base_commands, *final_commands]
 
 
 def execute_suite_commands(config: V1AcceptanceConfig) -> list[dict[str, Any]]:
@@ -379,6 +491,69 @@ def load_report_from_suite(suite_runs: list[dict[str, Any]], suite_id: str, pref
     return report
 
 
+def suite_by_id(suite_runs: list[dict[str, Any]], suite_id: str) -> dict[str, Any] | None:
+    return next((item for item in suite_runs if item.get("id") == suite_id), None)
+
+
+def suite_status_map(suite_runs: list[dict[str, Any]]) -> dict[str, str]:
+    return {
+        str(item.get("id")): str(item.get("status"))
+        for item in suite_runs
+        if isinstance(item.get("id"), str) and isinstance(item.get("status"), str)
+    }
+
+
+def command_arg_value(command: object, arg_name: str) -> str | None:
+    if not isinstance(command, list):
+        return None
+    for index, item in enumerate(command):
+        if item == arg_name and index + 1 < len(command) and isinstance(command[index + 1], str):
+            return command[index + 1]
+    return None
+
+
+def load_report_from_suite_output_path(suite_runs: list[dict[str, Any]], suite_id: str) -> dict[str, Any]:
+    suite = suite_by_id(suite_runs, suite_id)
+    if not suite:
+        return {"status": "missing_suite", "suite_id": suite_id}
+    raw_path = command_arg_value(suite.get("command"), "--output-path")
+    if not raw_path:
+        return {"status": "missing_output_path", "suite_id": suite_id}
+    path = Path(raw_path)
+    try:
+        report = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "failed_to_load", "suite_id": suite_id, "report_path": str(path), "error": f"{type(exc).__name__}: {exc}"}
+    if not isinstance(report, dict):
+        return {"status": "invalid_report", "suite_id": suite_id, "report_path": str(path)}
+    report["report_path"] = str(path)
+    return report
+
+
+def stdout_json_summary_from_suite(suite_runs: list[dict[str, Any]], suite_id: str, prefix: str) -> dict[str, Any]:
+    suite = suite_by_id(suite_runs, suite_id)
+    if not suite:
+        return {"status": "missing_suite", "suite_id": suite_id}
+    for line in str(suite.get("stdout_tail") or "").splitlines():
+        if line.startswith(prefix):
+            try:
+                summary = json.loads(line[len(prefix) :].strip())
+            except json.JSONDecodeError as exc:
+                return {"status": "failed_to_parse", "suite_id": suite_id, "error": str(exc)}
+            return summary if isinstance(summary, dict) else {"status": "invalid_summary", "suite_id": suite_id}
+    return {"status": "missing_summary", "suite_id": suite_id}
+
+
+def compact_report_summary(report: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "status": report.get("status"),
+        "kind": report.get("kind"),
+        "report_path": report.get("report_path"),
+        "summary": report.get("summary") if isinstance(report.get("summary"), dict) else {},
+        "errors": report.get("errors") if isinstance(report.get("errors"), list) else [],
+    }
+
+
 def founder_field_summary_from_suites(suite_runs: list[dict[str, Any]]) -> dict[str, Any]:
     report = load_report_from_suite(suite_runs, "founder_field_prompts", "FOUNDER FIELD REPORT ")
     cases = report.get("cases") if isinstance(report.get("cases"), list) else []
@@ -388,6 +563,123 @@ def founder_field_summary_from_suites(suite_runs: list[dict[str, Any]]) -> dict[
         "prompt_count": len(cases),
         "summary": report.get("summary") if isinstance(report.get("summary"), dict) else {},
         "errors": report.get("errors") if isinstance(report.get("errors"), list) else [],
+    }
+
+
+def first_time_user_doctor_summary_from_suites(suite_runs: list[dict[str, Any]]) -> dict[str, Any]:
+    return compact_report_summary(load_report_from_suite(suite_runs, "first_time_user_doctor", "FIRST TIME USER DOCTOR REPORT "))
+
+
+def release_channel_summary_from_suites(suite_runs: list[dict[str, Any]]) -> dict[str, Any]:
+    report = load_report_from_suite(suite_runs, "release_channels", "RELEASE CHANNEL REPORT ")
+    summary = compact_report_summary(report)
+    summary["channel_ids"] = report.get("channel_ids") if isinstance(report.get("channel_ids"), list) else []
+    summary["selected_channel"] = report.get("selected_channel")
+    return summary
+
+
+def security_policy_summary_from_suites(suite_runs: list[dict[str, Any]]) -> dict[str, Any]:
+    return compact_report_summary(load_report_from_suite(suite_runs, "security_policy", "SECURITY POLICY REPORT "))
+
+
+def docs_index_summary_from_suites(suite_runs: list[dict[str, Any]]) -> dict[str, Any]:
+    return stdout_json_summary_from_suite(suite_runs, "docs_index", "DOCS INDEX SUMMARY ")
+
+
+def observability_summary_from_suites(suite_runs: list[dict[str, Any]]) -> dict[str, Any]:
+    report = load_report_from_suite_output_path(suite_runs, "run_observability")
+    metrics = report.get("metrics") if isinstance(report.get("metrics"), dict) else {}
+    runs = report.get("runs") if isinstance(report.get("runs"), list) else []
+    status = report.get("status")
+    if status is None and report.get("kind") == "controller_run_observability_report":
+        status = "passed"
+    return {
+        "status": status,
+        "kind": report.get("kind"),
+        "report_path": report.get("report_path"),
+        "run_count": len(runs),
+        "metrics": metrics,
+        "filters": report.get("filters") if isinstance(report.get("filters"), dict) else {},
+    }
+
+
+def openai_base_url(base_url: str) -> str:
+    value = base_url.rstrip("/")
+    return value if value.endswith("/v1") else f"{value}/v1"
+
+
+def model_probe_summary(config: V1AcceptanceConfig) -> dict[str, Any]:
+    url = f"{openai_base_url(config.candidate_model_base_url)}/models"
+    try:
+        status, body = json_request(url, timeout_seconds=min(30, config.timeout_seconds))
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "failed", "url": url, "error": f"{type(exc).__name__}: {exc}", "model_ids": []}
+    data = body.get("data") if isinstance(body, dict) else None
+    model_ids = [
+        item["id"]
+        for item in data or []
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    ]
+    return {
+        "status": "passed" if status == 200 else "failed",
+        "url": url,
+        "http_status": status,
+        "model_ids": model_ids,
+    }
+
+
+def model_portability_summary_for_acceptance(report: dict[str, Any], model_probe: dict[str, Any]) -> dict[str, Any]:
+    error_count = len(report.get("errors") if isinstance(report.get("errors"), list) else [])
+    failed_suites = [
+        item.get("id")
+        for item in report.get("suite_runs") or []
+        if isinstance(item, dict) and item.get("status") != "passed"
+    ]
+    return {
+        "status": "passed" if report.get("status") == "passed" and model_probe.get("status") == "passed" else "failed",
+        "candidate_model_probe": model_probe,
+        "classification_summary": {
+            "harness": error_count,
+            "suite": len(failed_suites),
+            "model_quality": 0,
+            "classifier": 0,
+            "prompt": 0,
+            "unknown": 0,
+        },
+        "failed_suites": failed_suites,
+        "advisory_only": True,
+    }
+
+
+def v1_1_proof_summary(report: dict[str, Any]) -> dict[str, Any]:
+    statuses = suite_status_map(report.get("suite_runs") if isinstance(report.get("suite_runs"), list) else [])
+    return {
+        "route": {
+            "representative_l1": statuses.get("representative_l1"),
+            "representative_l2": statuses.get("representative_l2"),
+            "task_decomposition": statuses.get("task_decomposition"),
+        },
+        "skill": report.get("skill_library_health") if isinstance(report.get("skill_library_health"), dict) else {},
+        "model": report.get("model_portability") if isinstance(report.get("model_portability"), dict) else {},
+        "fixture": {
+            "target_roots": report.get("target_roots"),
+            "fixture_state_recorded": bool(report.get("fixture_state")),
+        },
+        "anythingllm": {
+            "preflight": report.get("anythingllm_preflight"),
+            "json_output_count": len(report.get("json_output") if isinstance(report.get("json_output"), list) else []),
+            "feedback_count": len(report.get("feedback") if isinstance(report.get("feedback"), list) else []),
+        },
+        "mutation": {
+            "controlled_apply": statuses.get("controlled_apply"),
+            "policy": "disposable_copy_only",
+        },
+        "docs": report.get("docs_index") if isinstance(report.get("docs_index"), dict) else {},
+        "security": report.get("security_policy") if isinstance(report.get("security_policy"), dict) else {},
+        "onboarding": {
+            "external_tester_onboarding": statuses.get("external_tester_onboarding"),
+        },
+        "observability": report.get("observability") if isinstance(report.get("observability"), dict) else {},
     }
 
 
@@ -675,8 +967,10 @@ def run_v1_acceptance(config: V1AcceptanceConfig) -> dict[str, Any]:
         "schema_version": 1,
         "kind": "v1_acceptance_report",
         "profile": config.profile.value,
+        "profile_contract": release_gate_profile_contract_json(config.profile),
         "status": "failed",
         "config_root": str(config_root),
+        "candidate_model_base_url": config.candidate_model_base_url,
         "target_roots": list(config.target_roots),
         "workflow_router_gateway_base_url": config.workflow_router_gateway_base_url,
         "controller_base_url": config.controller_base_url,
@@ -686,8 +980,21 @@ def run_v1_acceptance(config: V1AcceptanceConfig) -> dict[str, Any]:
         "health": [],
         "anythingllm_preflight": {},
         "suite_runs": [],
+        "first_time_user_doctor": {},
+        "docs_index": {},
+        "release_channels": {},
+        "security_policy": {},
+        "observability": {},
         "founder_field_summary": {},
         "skill_library_health": {},
+        "model_portability": {},
+        "proof_summary": {},
+        "known_limitations": V1_1_KNOWN_LIMITATIONS if is_v1_1_profile(config.profile) else [],
+        "next_recommended_phase": (
+            "Review V1.1 release-candidate proof, then decide whether to promote stable or plan the next governed L1/L2 expansion."
+            if is_v1_1_profile(config.profile)
+            else ""
+        ),
         "json_output": [],
         "feedback": [],
         "fixture_state": {},
@@ -704,7 +1011,16 @@ def run_v1_acceptance(config: V1AcceptanceConfig) -> dict[str, Any]:
         report["anythingllm_preflight"] = anythingllm_preflight(config, api_key)
         if report["anythingllm_preflight"].get("status") != "passed":
             raise RuntimeError("AnythingLLM preflight failed")
+        model_probe = model_probe_summary(config) if is_v1_1_profile(config.profile) else {}
+        if is_v1_1_profile(config.profile) and model_probe.get("status") != "passed":
+            raise RuntimeError(f"model probe failed: {json.dumps(model_probe, ensure_ascii=True)}")
         report["suite_runs"] = execute_suite_commands(config)
+        if is_v1_1_profile(config.profile):
+            report["first_time_user_doctor"] = first_time_user_doctor_summary_from_suites(report["suite_runs"])
+            report["docs_index"] = docs_index_summary_from_suites(report["suite_runs"])
+            report["release_channels"] = release_channel_summary_from_suites(report["suite_runs"])
+            report["security_policy"] = security_policy_summary_from_suites(report["suite_runs"])
+            report["observability"] = observability_summary_from_suites(report["suite_runs"])
         report["founder_field_summary"] = founder_field_summary_from_suites(report["suite_runs"])
         report["skill_library_health"] = skill_library_health_from_suites(report["suite_runs"])
         failed_suites = [item for item in report["suite_runs"] if item.get("status") != "passed"]
@@ -716,8 +1032,14 @@ def run_v1_acceptance(config: V1AcceptanceConfig) -> dict[str, Any]:
         assert_fixture_state_unchanged(before, config.target_roots, "feedback")
         report["fixture_state"] = fixture_state(config.target_roots)
         report["status"] = "passed"
+        if is_v1_1_profile(config.profile):
+            report["model_portability"] = model_portability_summary_for_acceptance(report, model_probe)
+            report["proof_summary"] = v1_1_proof_summary(report)
     except Exception as exc:  # noqa: BLE001
         report["errors"].append(f"{type(exc).__name__}: {exc}")
+        if is_v1_1_profile(config.profile):
+            report["model_portability"] = model_portability_summary_for_acceptance(report, report.get("model_portability", {}))
+            report["proof_summary"] = v1_1_proof_summary(report)
     write_json(output_path, report)
     report["report_path"] = str(output_path.resolve())
     write_json(output_path, report)

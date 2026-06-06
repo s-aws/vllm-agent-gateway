@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "kind": "release_channel_manifest",
+  "project_id": "agentic_agents_local_harness",
+  "harness_version": "0.1.0",
+  "owner": "agentic_agents",
+  "component_versions": {
+    "gateway_controller": "0.1.0",
+    "skill_registry": "0.1.0",
+    "skill_pack_policy": "1.0.0",
+    "docs": "0.1.0"
+  },
+  "channels": [
+    {
+      "id": "dev",
+      "status": "active",
+      "description": "Fast local development channel for maintainers validating docs, registries, focused regression, and setup readiness.",
+      "release_gate_profile": "offline",
+      "setup_validator": {
+        "id": "first_time_user_doctor",
+        "report_kind": "first_time_user_doctor_report",
+        "command": [
+          "python3",
+          "scripts/run_first_time_user_doctor.py"
+        ]
+      },
+      "acceptance_validator": {
+        "id": "docs_index",
+        "report_kind": "docs_index_report",
+        "command": [
+          "python",
+          "scripts/check_docs_index.py"
+        ]
+      },
+      "required_docs": [
+        "README.md",
+        "README.getting-started.md",
+        "README.external-tester-onboarding.md",
+        "README.first-time-user-doctor.md",
+        "README.release-channels.md",
+        "README.security-policy.md",
+        "README.skill-regression-tiers.md"
+      ],
+      "required_examples": [
+        "docs/examples/external-tester-onboarding.md",
+        "docs/examples/release-channels.md",
+        "docs/examples/security-policy.md"
+      ],
+      "required_runtime_files": [
+        "runtime/roles.json",
+        "runtime/tools.json",
+        "runtime/workflows.json",
+        "runtime/skills.json",
+        "runtime/skill_evals.json",
+        "runtime/skill_pack_policy.json",
+        "runtime/skill_regression_tiers.json",
+        "runtime/external_tester_onboarding.json",
+        "runtime/security_policy.json",
+        "runtime/fixtures.json"
+      ],
+      "required_ports": [
+        {"name": "model", "port": 8000, "path": "/v1/models"},
+        {"name": "llm_gateway", "port": 8300, "path": "/v1/models"},
+        {"name": "workflow_router_gateway", "port": 8500, "path": "/v1/models"},
+        {"name": "controller", "port": 8400, "path": "/health"},
+        {"name": "reviewer_code", "port": 8101, "path": "/v1/models"},
+        {"name": "tester_code", "port": 8102, "path": "/v1/models"},
+        {"name": "architect_default", "port": 8201, "path": "/v1/models"},
+        {"name": "dispatcher_default", "port": 8202, "path": "/v1/models"},
+        {"name": "implementer_default", "port": 8203, "path": "/v1/models"},
+        {"name": "researcher_default", "port": 8204, "path": "/v1/models"},
+        {"name": "documenter_default", "port": 8205, "path": "/v1/models"}
+      ],
+      "required_env_vars": [
+        "ANYTHINGLLM_API_KEY"
+      ],
+      "required_fixtures": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "rollback": {
+        "docs": [
+          "README.release-channels.md",
+          "README.first-time-user-doctor.md",
+          "README.getting-started.md"
+        ],
+        "commands": [
+          "bash stop-agent-prompt-proxies.sh",
+          "bash start-agent-prompt-proxies.sh"
+        ]
+      },
+      "known_limitations": [
+        "This channel is not a stable release promise.",
+        "Advanced refactor orchestration remains outside the tester path."
+      ]
+    },
+    {
+      "id": "release-candidate",
+      "status": "active",
+      "description": "Founder and external tester channel that must pass full Bash-hosted live validation through AnythingLLM and both frozen Coinbase fixtures.",
+      "release_gate_profile": "v1.1-release-candidate",
+      "setup_validator": {
+        "id": "first_time_user_doctor",
+        "report_kind": "first_time_user_doctor_report",
+        "command": [
+          "python3",
+          "scripts/run_first_time_user_doctor.py"
+        ]
+      },
+      "acceptance_validator": {
+        "id": "v1_acceptance",
+        "report_kind": "v1_acceptance_report",
+        "command": [
+          "python3",
+          "scripts/validate_v1_acceptance.py",
+          "--profile",
+          "v1.1-release-candidate",
+          "--target-root",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "--target-root",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ]
+      },
+      "required_docs": [
+        "README.md",
+        "README.getting-started.md",
+        "README.external-tester-onboarding.md",
+        "README.first-time-user-doctor.md",
+        "README.release-channels.md",
+        "README.security-policy.md",
+        "README.workflow-router.md",
+        "README.observability.md",
+        "README.skill-regression-tiers.md"
+      ],
+      "required_examples": [
+        "docs/examples/external-tester-onboarding.md",
+        "docs/examples/release-channels.md",
+        "docs/examples/security-policy.md",
+        "docs/examples/workflow-router.md",
+        "docs/examples/observability.md"
+      ],
+      "required_runtime_files": [
+        "runtime/roles.json",
+        "runtime/tools.json",
+        "runtime/workflows.json",
+        "runtime/skills.json",
+        "runtime/skill_evals.json",
+        "runtime/skill_pack_policy.json",
+        "runtime/skill_regression_tiers.json",
+        "runtime/external_tester_onboarding.json",
+        "runtime/security_policy.json",
+        "runtime/fixtures.json"
+      ],
+      "required_ports": [
+        {"name": "model", "port": 8000, "path": "/v1/models"},
+        {"name": "llm_gateway", "port": 8300, "path": "/v1/models"},
+        {"name": "workflow_router_gateway", "port": 8500, "path": "/v1/models"},
+        {"name": "controller", "port": 8400, "path": "/health"},
+        {"name": "reviewer_code", "port": 8101, "path": "/v1/models"},
+        {"name": "tester_code", "port": 8102, "path": "/v1/models"},
+        {"name": "architect_default", "port": 8201, "path": "/v1/models"},
+        {"name": "dispatcher_default", "port": 8202, "path": "/v1/models"},
+        {"name": "implementer_default", "port": 8203, "path": "/v1/models"},
+        {"name": "researcher_default", "port": 8204, "path": "/v1/models"},
+        {"name": "documenter_default", "port": 8205, "path": "/v1/models"}
+      ],
+      "required_env_vars": [
+        "ANYTHINGLLM_API_KEY"
+      ],
+      "required_fixtures": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "rollback": {
+        "docs": [
+          "README.release-channels.md",
+          "README.first-time-user-doctor.md",
+          "README.getting-started.md"
+        ],
+        "commands": [
+          "bash stop-agent-prompt-proxies.sh",
+          "bash start-agent-prompt-proxies.sh"
+        ]
+      },
+      "known_limitations": [
+        "Release candidate proves current L1/L2 tester workflows, not deferred advanced refactor orchestration.",
+        "AnythingLLM must point at http://127.0.0.1:8500/v1 for natural workflow testing."
+      ]
+    },
+    {
+      "id": "stable",
+      "status": "blocked",
+      "description": "Stable tester channel. It may only become active after a passed release-candidate V1 acceptance report is supplied to the release-channel validator.",
+      "release_gate_profile": "v1.1-release-candidate",
+      "setup_validator": {
+        "id": "first_time_user_doctor",
+        "report_kind": "first_time_user_doctor_report",
+        "command": [
+          "python3",
+          "scripts/run_first_time_user_doctor.py"
+        ]
+      },
+      "acceptance_validator": {
+        "id": "v1_acceptance",
+        "report_kind": "v1_acceptance_report",
+        "command": [
+          "python3",
+          "scripts/validate_v1_acceptance.py",
+          "--profile",
+          "v1.1-release-candidate",
+          "--target-root",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "--target-root",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ]
+      },
+      "required_docs": [
+        "README.md",
+        "README.getting-started.md",
+        "README.external-tester-onboarding.md",
+        "README.first-time-user-doctor.md",
+        "README.release-channels.md",
+        "README.security-policy.md",
+        "README.workflow-router.md",
+        "README.observability.md",
+        "README.skill-regression-tiers.md"
+      ],
+      "required_examples": [
+        "docs/examples/external-tester-onboarding.md",
+        "docs/examples/release-channels.md",
+        "docs/examples/security-policy.md",
+        "docs/examples/workflow-router.md",
+        "docs/examples/observability.md"
+      ],
+      "required_runtime_files": [
+        "runtime/roles.json",
+        "runtime/tools.json",
+        "runtime/workflows.json",
+        "runtime/skills.json",
+        "runtime/skill_evals.json",
+        "runtime/skill_pack_policy.json",
+        "runtime/skill_regression_tiers.json",
+        "runtime/external_tester_onboarding.json",
+        "runtime/security_policy.json",
+        "runtime/fixtures.json"
+      ],
+      "required_ports": [
+        {"name": "model", "port": 8000, "path": "/v1/models"},
+        {"name": "llm_gateway", "port": 8300, "path": "/v1/models"},
+        {"name": "workflow_router_gateway", "port": 8500, "path": "/v1/models"},
+        {"name": "controller", "port": 8400, "path": "/health"},
+        {"name": "reviewer_code", "port": 8101, "path": "/v1/models"},
+        {"name": "tester_code", "port": 8102, "path": "/v1/models"},
+        {"name": "architect_default", "port": 8201, "path": "/v1/models"},
+        {"name": "dispatcher_default", "port": 8202, "path": "/v1/models"},
+        {"name": "implementer_default", "port": 8203, "path": "/v1/models"},
+        {"name": "researcher_default", "port": 8204, "path": "/v1/models"},
+        {"name": "documenter_default", "port": 8205, "path": "/v1/models"}
+      ],
+      "required_env_vars": [
+        "ANYTHINGLLM_API_KEY"
+      ],
+      "required_fixtures": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "rollback": {
+        "docs": [
+          "README.release-channels.md",
+          "README.first-time-user-doctor.md",
+          "README.getting-started.md"
+        ],
+        "commands": [
+          "bash stop-agent-prompt-proxies.sh",
+          "bash start-agent-prompt-proxies.sh"
+        ]
+      },
+      "known_limitations": [
+        "Blocked until a passed release-candidate V1 acceptance report exists.",
+        "Stable is not the default tester channel during Phase 90."
+      ]
+    }
+  ]
+}

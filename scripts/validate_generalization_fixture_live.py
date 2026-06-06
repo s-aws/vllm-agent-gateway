@@ -4,11 +4,9 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import re
-import shutil
 import urllib.error
 import urllib.request
 import uuid
@@ -16,6 +14,14 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from vllm_agent_gateway.fixtures.manager import (
+    FixtureEntry,
+    cleanup_run as managed_cleanup_run,
+    copy_fixture as managed_copy_fixture,
+    hash_tree as managed_hash_tree,
+    sha256_file as managed_sha256_file,
+)
 
 
 DEFAULT_CONFIG_ROOT = "/mnt/c/agentic_agents"
@@ -192,37 +198,31 @@ def text_response(body: dict[str, Any]) -> str:
 
 
 def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+    return managed_sha256_file(path)
 
 
 def hash_tree(root: Path) -> dict[str, str]:
-    if not root.is_dir():
-        raise RuntimeError(f"Fixture root does not exist: {root}")
-    hashes: dict[str, str] = {}
-    for path in sorted(item for item in root.rglob("*") if item.is_file()):
-        hashes[path.relative_to(root).as_posix()] = sha256_file(path)
-    if not hashes:
-        raise RuntimeError(f"Fixture root has no files: {root}")
-    return hashes
+    return managed_hash_tree(root)
 
 
 def copy_disposable_fixture(template_root: Path, fixture_root: Path, *, run_id: str) -> Path:
-    destination = fixture_root / run_id / "python_service_fixture"
-    if destination.exists():
-        shutil.rmtree(destination)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(template_root, destination)
-    return destination
+    watched_paths = tuple(sorted(hash_tree(template_root)))
+    entry = FixtureEntry(
+        fixture_id=template_root.name,
+        source_path=template_root.resolve(),
+        category="generalization",
+        protected=True,
+        disposable_only=True,
+        watched_paths=watched_paths,
+        description="Generalization validator disposable fixture.",
+    )
+    result = managed_copy_fixture(entry, fixture_root, run_id=run_id)
+    return Path(result["copy_root"])
 
 
 def remove_fixture(path: Path) -> bool:
-    if path.exists():
-        shutil.rmtree(path)
-    return not path.exists()
+    result = managed_cleanup_run(path.parent, run_id=path.name)
+    return bool(result["removed"])
 
 
 def validate_port_health(timeout_seconds: int) -> list[dict[str, Any]]:
