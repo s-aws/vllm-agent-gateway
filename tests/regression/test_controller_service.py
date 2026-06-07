@@ -457,8 +457,11 @@ class FakeEndpoint:
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Content-Length", str(len(data)))
+                self.send_header("Connection", "close")
                 self.end_headers()
                 self.wfile.write(data)
+                self.wfile.flush()
+                self.close_connection = True
 
             def log_message(self, format: str, *args: object) -> None:
                 return
@@ -506,8 +509,11 @@ class FakeRouterModelEndpoint:
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Content-Length", str(len(data)))
+                self.send_header("Connection", "close")
                 self.end_headers()
                 self.wfile.write(data)
+                self.wfile.flush()
+                self.close_connection = True
 
             def log_message(self, format: str, *args: object) -> None:
                 return
@@ -1047,8 +1053,11 @@ class FakeExecutionPlanningEndpoint:
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Content-Length", str(len(data)))
+                self.send_header("Connection", "close")
                 self.end_headers()
                 self.wfile.write(data)
+                self.wfile.flush()
+                self.close_connection = True
 
             def log_message(self, format: str, *args: object) -> None:
                 return
@@ -1079,8 +1088,10 @@ def test_controller_service_health_and_direct_chat_rejection(tmp_path: Path) -> 
     with RunningControllerService(config) as service:
         host, port = service.base_url
 
-        status, body = request_json(host, port, "GET", "/health")
+        status, raw_body, headers = request_raw(host, port, "GET", "/health")
+        body = json.loads(raw_body)
         assert status == 200
+        assert headers["Connection"] == "close"
         assert body["status"] == "ok"
         assert body["kind"] == "controller_service"
 
@@ -3143,6 +3154,30 @@ def test_workflow_router_mode_inference_uses_skill_batch_proposal_classifier() -
     )
 
 
+def test_workflow_router_mode_inference_executes_common_read_only_coding_requests() -> None:
+    prompts = [
+        "In /mnt/c/repo, explain resolve_order_status in service/orders.py. Don't change files.",
+        "In /mnt/c/repo, where is DEFAULT_PROFILE defined or used as configuration?",
+        "In /mnt/c/repo, compare the placed_order_id lookup path with the client_order_id index path.",
+        "In /mnt/c/repo, map the request flow for request_stealth_orders from dashboard message to snapshot.",
+        "In /mnt/c/repo, identify the change surface for adjusting placed_order_id. Stop before implementation.",
+    ]
+
+    for prompt in prompts:
+        assert infer_workflow_router_mode(prompt) == "execute_read_only"
+
+
+def test_workflow_router_mode_inference_keeps_l1_implementation_requests_plan_only() -> None:
+    prompts = [
+        "In /mnt/c/repo, add a small unit test for resolve_order_status.",
+        "In /mnt/c/repo, fix the failing test test_resolve_order_status.",
+        "In /mnt/c/repo, change README.md line 3 to say Ready.",
+    ]
+
+    for prompt in prompts:
+        assert infer_workflow_router_mode(prompt) == "plan_only"
+
+
 def test_skill_batch_registration_endpoint_installs_approved_ready_proposal(tmp_path: Path) -> None:
     config_root = make_skill_registration_root(tmp_path)
     output_root = tmp_path / "controller-output"
@@ -5130,6 +5165,11 @@ def test_workflow_router_chat_accepts_natural_language_and_uses_latest_user_mess
     assert "- Tools: structure_index; git_grep; read_file" in content
     assert "- Rejected candidates:" in content
     assert "- Grounded in: route_decision.evidence" in content
+    assert "Answer:" in content
+    assert "- Beginning point:" in content
+    assert "- Related tests:" in content
+    assert "- Recommended commands:" in content
+    assert "- Entrypoints:" not in content
     assert "route_decision.selection_audit" in content
     assert "Artifacts:" in content
     assert sentinel.read_text(encoding="utf-8") == before
@@ -6626,6 +6666,59 @@ def test_workflow_router_chat_l2_change_surface_summary_returns_artifact(tmp_pat
     assert surface["implementation_status"] == "not_ready_without_approval"
     assert any(item["path"] == "core/stealth_order_manager.py" for item in surface["change_surface_files"])
     assert surface["mutation_policy"] == "read_only_no_source_mutation"
+
+
+def test_workflow_router_chat_l2_change_surface_summary_handles_non_git_doc_heavy_fixture(tmp_path: Path) -> None:
+    target = make_l1_expansion_repo(tmp_path, initialize_git=False)
+    write_text(
+        target / "ID_USAGE_ANALYSIS.md",
+        "\n".join(f"placed_order_id documentation reference {index}" for index in range(40)) + "\n",
+    )
+    sentinel = target / "core" / "stealth_order_manager.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, identify the minimal safe change surface for changing placed_order_id stealth lookup behavior. "
+                            "Read only. Return files that would need review, related tests, risk level, gaps, and verification commands. "
+                            "Stop before implementation."
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "Answer:" in content
+    assert "- Change surface files:" in content
+    assert "core/stealth_order_manager.py" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    surface = json.loads(Path(downstream["artifact_paths"]["change_surface_summary"]).read_text(encoding="utf-8"))
+    assert any(item["path"] == "core/stealth_order_manager.py" for item in surface["change_surface_files"])
+    evidence = json.loads(Path(downstream["artifact_paths"]["investigation_evidence"]).read_text(encoding="utf-8"))
+    assert evidence["queries"][0] == "placed_order_id"
+    assert any(match["path"] == "core/stealth_order_manager.py" for match in evidence["grep_matches"])
 
 
 def test_workflow_router_chat_l2_ci_log_triage_returns_artifact(tmp_path: Path) -> None:

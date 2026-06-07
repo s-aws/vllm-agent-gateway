@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "kind": "v1_acceptance_report",
+  "status": "passed",
+  "profile": "v1.1-release-candidate",
+  "proof_kind": "stable_channel_activation_proof",
+  "source_phase": 91,
+  "source_report": "runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json",
+  "retention_reason": "runtime-state is local-only; stable release-channel validation needs committed proof metadata for contextless test runs.",
+  "known_boundary": "Stable covers current L1/L2 tester workflows, setup, security, feedback, observability, and disposable-copy apply proof. Advanced broad refactor orchestration remains deferred."
+}

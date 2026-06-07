@@ -6,6 +6,7 @@ from pathlib import Path
 
 from vllm_agent_gateway.controllers.code_investigation.plan import (
     CodeInvestigationRequest,
+    build_table_read_write_lookup,
     data_model_target_from_request,
     is_endpoint_route_lookup_request,
     is_table_read_write_lookup_request,
@@ -18,6 +19,7 @@ from vllm_agent_gateway.controllers.workflow_router.plan import (
     extract_queries,
     is_l1_endpoint_route_lookup_request,
     is_l2_table_read_write_lookup_request,
+    relationship_queries_from_request,
     workflow_kind_for_request,
 )
 from vllm_agent_gateway.skills.registry import load_skill_registry
@@ -26,6 +28,7 @@ from vllm_agent_gateway.skills.registry import load_skill_registry
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "scripts" / "validate_generalization_fixture_live.py"
 TEMPLATE_ROOT = REPO_ROOT / "tests" / "fixtures" / "generalization" / "python_service_fixture"
+GO_FIXTURE_ROOT = REPO_ROOT / "tests" / "fixtures" / "generalization" / "go_http_fixture"
 
 
 def load_module():
@@ -79,6 +82,39 @@ def test_data_model_target_prefers_schema_subject_over_target_root_path() -> Non
     assert data_model_target_from_request(prompt, ["agentic_agents"], "find orders table schema only") == "orders"
 
 
+def test_configuration_query_extracts_natural_coinbase_api_key_phrase() -> None:
+    prompt = (
+        "In /mnt/c/coinbase_testing_repo_frozen_tmp, where is the Coinbase API key environment variable used? "
+        "Do not edit. Include the files and runtime effect."
+    )
+
+    assert extract_queries(prompt)[0] == "COINBASE_API_KEY"
+    request = CodeInvestigationRequest(
+        user_request=prompt,
+        behavior="where Coinbase environment variable used edit",
+    )
+    assert query_candidates(request, [])[0] == "COINBASE_API_KEY"
+
+
+def test_data_model_target_extracts_table_subject_from_read_write_prompt() -> None:
+    prompt = (
+        "In /mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture, "
+        "find where the orders table is defined, read, and written. Don't change files. "
+        "Return definition sites, read sites, write sites, gaps, and source refs."
+    )
+
+    assert data_model_target_from_request(prompt, ["agentic_agents"], "find where orders table defined read") == "orders"
+
+
+def test_data_model_target_extracts_plural_schema_subject() -> None:
+    prompt = (
+        "In /mnt/c/coinbase_testing_repo_frozen_tmp, list the schema fields for stealth orders. "
+        "Read only. Include model files, fields, and any gaps."
+    )
+
+    assert data_model_target_from_request(prompt, ["coinbase_testing_repo_frozen_tmp"], "stealth") == "stealth_orders"
+
+
 def test_data_model_target_extracts_schema_fields_for_subject() -> None:
     prompt = (
         "In C:/tmp/repo, find the database schema fields for stealth_orders. "
@@ -86,6 +122,44 @@ def test_data_model_target_extracts_schema_fields_for_subject() -> None:
     )
 
     assert data_model_target_from_request(prompt, ["agentic_agents"], "find database schema fields") == "stealth_orders"
+
+
+def test_dependency_import_lookup_handles_import_or_depend_on_phrase() -> None:
+    prompt = (
+        "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, what does core/stealth_order_manager.py "
+        "import or depend on? Read only. Include local dependencies and files."
+    )
+
+    queries = extract_queries(prompt)
+    relationships = relationship_queries_from_request(prompt, queries)
+
+    assert queries[0] == "stealth_order_manager"
+    assert relationships == [{"kind": "imports", "symbol": "stealth_order_manager", "max_results": 25}]
+
+
+def test_table_read_write_lookup_scans_go_and_sql_fixture_files() -> None:
+    request = CodeInvestigationRequest(
+        target_root=GO_FIXTURE_ROOT,
+        user_request=(
+            "find where the orders table is defined, read, and written. "
+            "Return definition sites, read sites, write sites, gaps, and source refs."
+        ),
+        behavior="find where orders table defined read",
+    )
+
+    artifact = build_table_read_write_lookup(
+        request,
+        target_root=GO_FIXTURE_ROOT,
+        queries=[],
+        matches=[],
+        warnings=[],
+    )
+
+    assert artifact["target_table"] == "orders"
+    assert artifact["status"] == "ready"
+    assert any(site["path"] == "migrations/001_create_orders.sql" for site in artifact["definition_sites"])
+    assert any(site["path"] == "internal/orders/sql_repository.go" for site in artifact["read_sites"])
+    assert any(site["path"] == "internal/orders/sql_repository.go" for site in artifact["write_sites"])
 
 
 def test_generalization_fixture_schema_fields_are_extractable() -> None:
@@ -117,6 +191,32 @@ def test_change_boundary_prompt_extracts_concrete_behavior_subject() -> None:
 
     request = CodeInvestigationRequest(user_request=prompt, behavior="identify files touch files touch minimal")
     assert query_candidates(request, [])[:2] == ["order_status", "order status"]
+
+
+def test_change_boundary_prompt_promotes_atomic_snake_case_subject_terms() -> None:
+    prompt = (
+        "In /mnt/c/coinbase_testing_repo_frozen_tmp, identify the minimal safe change surface "
+        "for changing placed_order_id stealth lookup behavior. Read only. Return files that would "
+        "need review, related tests, risk level, gaps, and verification commands. Stop before implementation."
+    )
+
+    assert change_subject_queries_from_request(prompt)[:3] == [
+        "placed_order_id",
+        "placed_order_id_stealth_lookup",
+        "placed_order_id stealth lookup",
+    ]
+    assert extract_queries(prompt)[:3] == [
+        "placed_order_id",
+        "placed_order_id_stealth_lookup",
+        "placed_order_id stealth lookup",
+    ]
+
+    request = CodeInvestigationRequest(user_request=prompt, behavior="placed_order_id_stealth_lookup")
+    assert query_candidates(request, [])[:3] == [
+        "placed_order_id",
+        "placed_order_id_stealth_lookup",
+        "placed_order_id stealth lookup",
+    ]
 
 
 def test_l2_test_selection_rule_promotes_specific_skill_within_budget() -> None:

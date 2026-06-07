@@ -21,6 +21,8 @@ The report should include:
 - one case per target root
 - `stream_chat_seen=true`
 - marker hits for `workflow_router.plan completed`, `selected_workflow: code_investigation.plan`, `run_id:`, and `Answer:`
+- semantic marker hits for the submitted case, such as `Beginning point:`, `Related tests:`, and `Recommended commands:` for `L1-001`
+- no rejected markers, such as `Entrypoints:` for the `L1-001` behavior-start case
 - `fixture_unchanged=true`
 - before/after screenshots for each prompt
 
@@ -53,7 +55,7 @@ pip install playwright
 
 `Executable doesn't exist`
 
-The Python package is installed, but Playwright's bundled browser is not. This validator uses system Chrome, so install Chrome or pass a working channel with `--browser-channel`.
+The Python package is installed, but the selected Playwright browser is not. Install bundled Chromium with `python -m playwright install chromium`, or pass a working system channel such as `--browser-channel chrome` from Windows.
 
 `npx was not found`
 

@@ -209,17 +209,19 @@ Build order:
 Next roadmap gate:
 
 ```text
-Phases 92 through 105 are complete. Phase 106 Chat Answer Artifact Priority And L1/L2 Regression Repair is founder-approved and active. Phases 107 through 119 are founder-approved and pending completion of the lower-numbered phases.
+Phases 92 through 110 are complete. Phase 111 Closed-Loop Eval Repair Execution Gate is founder-approved and active. Phases 112 through 119 are founder-approved and pending completion of the lower-numbered phases.
 ```
 
 Next implementation target:
 
 ```text
-Complete Phase 106 Chat Answer Artifact Priority And L1/L2 Regression Repair.
+Complete Phase 111 Closed-Loop Eval Repair Execution Gate.
 Fix the current local-model chat-quality failures before any advanced-refactor work resumes.
 ```
 
-Reason: Phase 57 made the founder field suite part of V1 acceptance, Phase 58 added the prompt matrix, Phase 59 added semantic answer quality gates, Phase 60 added user-facing refined prompts, Phase 61 produced a validated Batch D skill-scaling proposal without registry mutation, Phase 62 registered Batch D as draft skills through the existing lifecycle, Phase 63 proved and promoted Batch D through live gateway and AnythingLLM validation, Phase 64 added Batch D prompts to the founder field suite with live V1 acceptance proof, Phase 65 added skill-library health and Batch D proof to the V1 acceptance path, Phase 66 proved the harness against a non-Coinbase disposable Python service fixture, Phase 67 made AnythingLLM feedback actionable, Phase 68 split release gates into diagnosable profiles, Phase 69 added a latest-run inspector, Phase 70 made prompt catalogs governed fixtures instead of scattered script literals, Phase 71 proved the browser-rendered AnythingLLM Desktop UI path through `/stream-chat` with screenshots and fixture mutation proof, Phase 72 added a model portability gate that wraps the existing V1 acceptance path, probes the candidate `/v1/models` endpoint, and classifies misses as harness, classifier, prompt, model-quality, or unknown issues, Phase 73 added read-only run artifact diffing for V1 acceptance, founder-field, and model-portability reports, Phase 74 added a manifest-driven fixture manager with protected source snapshots, disposable setup, cleanup, and integration into the existing generalization fixture copy helpers, Phase 75 added a read-only failure taxonomy report so failures across release gates can be classified consistently instead of reinterpreted from raw logs, Phase 76 added a first-time user doctor so setup failures can be detected before testers try AnythingLLM prompts, Phase 77 added governed skill-library packaging policy before scaling toward large skill packs, Phase 78 turned portability evidence into advisory model capability profiles and a routing policy without enabling automatic model selection, Phase 79 added a canonical prompt-to-skill coverage map with a validator and gap backlog, Phase 80 extended the existing `skill.scaffold` path into a dry-run authoring factory with coverage, docs, eval, fail-closed test, and live AnythingLLM proof, Phase 81 added an explicit skill regression tier catalog with offline, controller, gateway, AnythingLLM API, UI, fixture-mutation, and release-candidate proof boundaries, Phase 82 expanded live validation to a synthetic Node CLI fixture plus both frozen Coinbase fixtures, Phase 83 added a disposable-copy mutation sandbox contract, structured diff proof, direct mutation proof artifacts, path guardrails, and rollback-failure tests around the single existing implementation workflow, Phase 84 made approval states visible in chat and stateful in controller run records, Phase 85 added a read-only observability report with route, model, skill, tool, approval, downstream, artifact, mutation, timing, and filter proof from recent live runs, Phase 86 made normal workflow-router chat explain selected workflow, skills, tools, route rules, and registry grounding in both FormatA and JSON output, Phase 87 added versioned release-channel metadata plus setup validation, Phase 88 added a contextless external tester onboarding pack with live AnythingLLM feedback proof inside the release-candidate gate, Phase 89 added the release-candidate security policy gate for secret exposure, filesystem boundaries, protected fixture policy, command fragments, and onboarding prompt safety, Phase 90 consolidated those gates into a passed V1.1 release-candidate profile, Phase 91 promoted stable-channel handoff, Phase 92 converted stable tester and blind-review feedback into fixed current-path issues or explicit Phase 93+ backlog work, Phase 93 added a governed 30-prompt natural-language capability gap backlog with validation gates, Phase 94 added a runtime selector audit contract with stable selected/rejected workflow, skill, and tool proof through Bash gateway, localhost model, controller, both frozen fixtures, and AnythingLLM, Phase 95 added route-owned context-source selection with AST/text/config/test/relationship source audits, unsupported-layout blocking, generated non-Coinbase fixture proof, Bash gateway proof, and AnythingLLM proof, Phase 96 expanded draft-only implementation prep for small text edits and approved-investigation packet prep while preserving `implementation.workflow` as the single implementation path, adding enriched direct/gateway/AnythingLLM proof, fixture digests, verification commands, generic packet seeds, bare README support, and function-definition snippet preference, Phase 97 bound natural packet-design approvals to source run identity, rejected duplicate/denied/wrong-run/target-mismatch/source-apply continuations, added deterministic approval-continuation packet prep, converted workflow-router gateway approval failures into chat-visible OpenAI responses, and proved the path through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, and full Bash regression, Phase 98 expanded disposable-copy apply proof for existing-file `append_text`, multi-operation `replace_text` plus `append_text`, source-tree digest guards, chat-visible structured diff summaries, and fail-closed `create_file` refusal through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, docs-index proof, and full Bash regression, Phase 99 added four small deterministic Batch E L2 skills with routing proof, evals, prompt coverage, live gateway and AnythingLLM validation on both frozen fixtures, contextless subagent audit hardening, and full Bash regression, Phase 100 converted model capability profiles into an active fail-closed routing gate with chat-visible route evidence, current localhost model proof, task-class enforcement, live gateway and AnythingLLM validation, contextless subagent audit hardening, and full Bash regression, Phase 101 added a Go HTTP service fixture, expanded multi-repo validation across Coinbase, Python service, Node CLI, and Go HTTP layouts, recorded repo-layout limitations, proved gateway plus AnythingLLM paths, kept Coinbase V1.1 acceptance intact, and passed full Bash regression, Phase 102 added versioned dependency-aware task-decomposition work packages, chat-visible FormatA and JSON contracts, advanced-refactor deferral proof, live gateway plus AnythingLLM validation, and full Bash regression, Phase 103 added a productized install/start/validate/reset/rerun command surface over existing setup scripts and proof gates, Phase 104 added read-only eval-driven repair recommendations with contextless verifier hardening and full Bash regression, and Phase 105 added a fail-closed advanced-refactor readiness gate with prerequisite evidence validation, pilot-scope limits, live gateway plus AnythingLLM proof, contextless verifier hardening, and full Bash regression.
+Reason: Phase 57 made the founder field suite part of V1 acceptance, Phase 58 added the prompt matrix, Phase 59 added semantic answer quality gates, Phase 60 added user-facing refined prompts, Phase 61 produced a validated Batch D skill-scaling proposal without registry mutation, Phase 62 registered Batch D as draft skills through the existing lifecycle, Phase 63 proved and promoted Batch D through live gateway and AnythingLLM validation, Phase 64 added Batch D prompts to the founder field suite with live V1 acceptance proof, Phase 65 added skill-library health and Batch D proof to the V1 acceptance path, Phase 66 proved the harness against a non-Coinbase disposable Python service fixture, Phase 67 made AnythingLLM feedback actionable, Phase 68 split release gates into diagnosable profiles, Phase 69 added a latest-run inspector, Phase 70 made prompt catalogs governed fixtures instead of scattered script literals, Phase 71 proved the browser-rendered AnythingLLM Desktop UI path through `/stream-chat` with screenshots and fixture mutation proof, Phase 72 added a model portability gate that wraps the existing V1 acceptance path, probes the candidate `/v1/models` endpoint, and classifies misses as harness, classifier, prompt, model-quality, or unknown issues, Phase 73 added read-only run artifact diffing for V1 acceptance, founder-field, and model-portability reports, Phase 74 added a manifest-driven fixture manager with protected source snapshots, disposable setup, cleanup, and integration into the existing generalization fixture copy helpers, Phase 75 added a read-only failure taxonomy report so failures across release gates can be classified consistently instead of reinterpreted from raw logs, Phase 76 added a first-time user doctor so setup failures can be detected before testers try AnythingLLM prompts, Phase 77 added governed skill-library packaging policy before scaling toward large skill packs, Phase 78 turned portability evidence into advisory model capability profiles and a routing policy without enabling automatic model selection, Phase 79 added a canonical prompt-to-skill coverage map with a validator and gap backlog, Phase 80 extended the existing `skill.scaffold` path into a dry-run authoring factory with coverage, docs, eval, fail-closed test, and live AnythingLLM proof, Phase 81 added an explicit skill regression tier catalog with offline, controller, gateway, AnythingLLM API, UI, fixture-mutation, and release-candidate proof boundaries, Phase 82 expanded live validation to a synthetic Node CLI fixture plus both frozen Coinbase fixtures, Phase 83 added a disposable-copy mutation sandbox contract, structured diff proof, direct mutation proof artifacts, path guardrails, and rollback-failure tests around the single existing implementation workflow, Phase 84 made approval states visible in chat and stateful in controller run records, Phase 85 added a read-only observability report with route, model, skill, tool, approval, downstream, artifact, mutation, timing, and filter proof from recent live runs, Phase 86 made normal workflow-router chat explain selected workflow, skills, tools, route rules, and registry grounding in both FormatA and JSON output, Phase 87 added versioned release-channel metadata plus setup validation, Phase 88 added a contextless external tester onboarding pack with live AnythingLLM feedback proof inside the release-candidate gate, Phase 89 added the release-candidate security policy gate for secret exposure, filesystem boundaries, protected fixture policy, command fragments, and onboarding prompt safety, Phase 90 consolidated those gates into a passed V1.1 release-candidate profile, Phase 91 promoted stable-channel handoff, Phase 92 converted stable tester and blind-review feedback into fixed current-path issues or explicit Phase 93+ backlog work, Phase 93 added a governed 30-prompt natural-language capability gap backlog with validation gates, Phase 94 added a runtime selector audit contract with stable selected/rejected workflow, skill, and tool proof through Bash gateway, localhost model, controller, both frozen fixtures, and AnythingLLM, Phase 95 added route-owned context-source selection with AST/text/config/test/relationship source audits, unsupported-layout blocking, generated non-Coinbase fixture proof, Bash gateway proof, and AnythingLLM proof, Phase 96 expanded draft-only implementation prep for small text edits and approved-investigation packet prep while preserving `implementation.workflow` as the single implementation path, adding enriched direct/gateway/AnythingLLM proof, fixture digests, verification commands, generic packet seeds, bare README support, and function-definition snippet preference, Phase 97 bound natural packet-design approvals to source run identity, rejected duplicate/denied/wrong-run/target-mismatch/source-apply continuations, added deterministic approval-continuation packet prep, converted workflow-router gateway approval failures into chat-visible OpenAI responses, and proved the path through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, and full Bash regression, Phase 98 expanded disposable-copy apply proof for existing-file `append_text`, multi-operation `replace_text` plus `append_text`, source-tree digest guards, chat-visible structured diff summaries, and fail-closed `create_file` refusal through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, docs-index proof, and full Bash regression, Phase 99 added four small deterministic Batch E L2 skills with routing proof, evals, prompt coverage, live gateway and AnythingLLM validation on both frozen fixtures, contextless subagent audit hardening, and full Bash regression, Phase 100 converted model capability profiles into an active fail-closed routing gate with chat-visible route evidence, current localhost model proof, task-class enforcement, live gateway and AnythingLLM validation, contextless subagent audit hardening, and full Bash regression, Phase 101 added a Go HTTP service fixture, expanded multi-repo validation across Coinbase, Python service, Node CLI, and Go HTTP layouts, recorded repo-layout limitations, proved gateway plus AnythingLLM paths, kept Coinbase V1.1 acceptance intact, and passed full Bash regression, Phase 102 added versioned dependency-aware task-decomposition work packages, chat-visible FormatA and JSON contracts, advanced-refactor deferral proof, live gateway plus AnythingLLM validation, and full Bash regression, Phase 103 added a productized install/start/validate/reset/rerun command surface over existing setup scripts and proof gates, Phase 104 added read-only eval-driven repair recommendations with contextless verifier hardening and full Bash regression, Phase 105 added a fail-closed advanced-refactor readiness gate with prerequisite evidence validation, pilot-scope limits, live gateway plus AnythingLLM proof, contextless verifier hardening, and full Bash regression, Phase 106 fixed current L1/L2 chat-answer quality regressions with route-aware answer artifact priority, non-git source-ranking repair, committed stable proof retention, deterministic JSON response lifecycle hardening, live gateway plus AnythingLLM proof, contextless verifier hardening, and full Bash regression, Phase 107 made the browser-visible AnythingLLM UI E2E gate semantic with `L1-001` fail-closed wrong-answer markers, `L1-002` holdout proof, screenshots, fixture mutation proof, and full Bash regression, and Phase 108 made generated `runtime-state/` artifacts local-only with a committed proof-retention policy, release-channel hygiene integration, contextless verifier hardening, and full Bash regression.
+
+Phase 109 then added the consolidated release-adherence gate, fixed Bash-hosted UI E2E portability gaps found by the gate, hardened the gate after a bounded contextless audit, proved current localhost model readiness through Bash, AnythingLLM, UI semantic E2E, both frozen fixtures, latency measurement, and full Bash regression, and left the model-profile warning documented as the intentional real-apply boundary rather than an unmeasured latency gap. Phase 110 added a governed semi-well-defined prompt suite, fixed natural read-only mode inference, config/schema/dependency/table lookup generalization gaps, startup fixture allowlisting, and stale skill expectations, then proved 24 natural prompts through gateway and AnythingLLM with live localhost model scoring above the stable thresholds and no fixture mutation.
 
 ## Foreseeable Approval Queue
 
@@ -303,12 +305,12 @@ Approved current-model release-readiness phases:
 
 These phases were approved after the post-Phase-105 readiness review found current local-model product gaps that should be closed before any advanced-refactor work resumes.
 
-1. Phase 106: Chat Answer Artifact Priority And L1/L2 Regression Repair - approved; active
-2. Phase 107: AnythingLLM UI Semantic E2E Gate - approved; pending Phase 106
-3. Phase 108: Runtime-State Repository Hygiene And Proof Retention - approved; pending Phase 107
-4. Phase 109: Current Local Model Release-Adherence Gate - approved; pending Phase 108
-5. Phase 110: Semi-Well-Defined Prompt Generalization Suite - approved; pending Phase 109
-6. Phase 111: Closed-Loop Eval Repair Execution Gate - approved; pending Phase 110
+1. Phase 106: Chat Answer Artifact Priority And L1/L2 Regression Repair - complete
+2. Phase 107: AnythingLLM UI Semantic E2E Gate - complete
+3. Phase 108: Runtime-State Repository Hygiene And Proof Retention - complete
+4. Phase 109: Current Local Model Release-Adherence Gate - complete
+5. Phase 110: Semi-Well-Defined Prompt Generalization Suite - complete
+6. Phase 111: Closed-Loop Eval Repair Execution Gate - approved; active
 
 Approved engineering-tenet audit phases:
 
@@ -5631,7 +5633,7 @@ Validation proof:
 
 ### Approved Phase 106: Chat Answer Artifact Priority And L1/L2 Regression Repair
 
-Status: Approved; active.
+Status: Complete.
 
 Goal: make current L1/L2 chat output reliably answer the user's requested task before advanced-refactor work resumes.
 
@@ -5653,17 +5655,50 @@ Implementation tasks:
 
 Acceptance proof:
 
-- Full L1 gateway-only suite passes all cases on both frozen fixtures.
-- Full L2 gateway-only suite passes all cases on both frozen fixtures.
-- `L1-001` gateway and AnythingLLM runs pass both frozen fixtures and include `Beginning point:`, `Related tests:`, and `Recommended commands:` in chat.
-- `L2-009` gateway and AnythingLLM runs pass both frozen fixtures and include `core/stealth_order_manager.py` when the prompt asks for the `placed_order_id` stealth lookup change surface.
-- The fix preserves route, skill, and tool selection evidence; it does not add a second routing or editing path.
-- Protected frozen fixture hashes remain unchanged.
-- Full Bash regression passes after non-agent code changes.
+- Implemented route-aware inline answer artifact priority in [vllm_agent_gateway/controller_service/server.py](../vllm_agent_gateway/controller_service/server.py) so `l1_find_behavior_start_terms` promotes `downstream_investigation_plan` without globally reordering unrelated artifacts.
+- Implemented source-search repair in [vllm_agent_gateway/controllers/natural_query.py](../vllm_agent_gateway/controllers/natural_query.py) and [vllm_agent_gateway/controllers/code_context/lookup.py](../vllm_agent_gateway/controllers/code_context/lookup.py): query variants now prefer atomic snake_case terms such as `placed_order_id`, and grep fallback caps per-file matches so doc-heavy non-git fixtures cannot consume the full evidence budget.
+- Added focused regression coverage:
+  - `test_format_a_behavior_start_prefers_investigation_plan_over_cli_lookup`
+  - `test_workflow_router_chat_l2_change_surface_summary_handles_non_git_doc_heavy_fixture`
+  - `test_change_boundary_prompt_promotes_atomic_snake_case_subject_terms`
+  - `test_controller_service_health_and_direct_chat_rejection` now asserts JSON responses advertise `Connection: close`.
+- Tightened controller/test HTTP response lifecycle after full-suite Windows socket resets surfaced during verification: JSON responses now flush and close deterministically, and local fake HTTP endpoints mirror that behavior. The retry path was deliberately not added because it would mask server lifecycle bugs.
+- Repaired release-channel reproducibility after `runtime-state/` became local-only by adding committed proof `runtime/release_proofs/v1-1-release-candidate-stable-proof.json`, updating stable `activated_from_report`, and updating current stable/release docs to avoid depending on ignored runtime reports.
+- Contextless bounded subagent audit agreed with the selected fixes: artifact priority should be route-aware, query extraction should emit `placed_order_id` before combined/prose variants, grep fallback should cap per-file matches, and retries should not be the primary fix.
+- Focused regression passed:
+  - `python -m pytest tests/regression/test_chat_response_contract.py::test_format_a_behavior_start_prefers_investigation_plan_over_cli_lookup -q`
+  - `python -m pytest tests/regression/test_controller_service.py::test_workflow_router_chat_l2_change_surface_summary_handles_non_git_doc_heavy_fixture -q`
+  - `python -m pytest tests/regression/test_generalization_fixture.py::test_change_boundary_prompt_extracts_concrete_behavior_subject tests/regression/test_generalization_fixture.py::test_change_boundary_prompt_promotes_atomic_snake_case_subject_terms -q`
+  - `python -m pytest tests/regression/test_release_channels.py -q` with `5 passed`
+  - `python -m pytest tests/regression/test_controller_service.py -q` with `184 passed, 23 deselected`
+- Full L1 gateway-only suite passed all 24 cases on both frozen fixtures:
+  - `/mnt/c/coinbase_testing_repo_frozen_tmp`: first run `workflow-router-20260607T121613333307Z`, last run `workflow-router-20260607T122022388965Z`
+  - `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: first run `workflow-router-20260607T122035750027Z`, last run `workflow-router-20260607T122428714383Z`
+- Full L2 gateway-only suite passed all 12 cases on both frozen fixtures:
+  - `/mnt/c/coinbase_testing_repo_frozen_tmp`: first run `workflow-router-20260607T122450700243Z`, last run `workflow-router-20260607T122725700777Z`
+  - `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: first run `workflow-router-20260607T122739106148Z`, last run `workflow-router-20260607T122947203982Z`
+- Post-restart targeted `L1-001` gateway and AnythingLLM validation passed both frozen fixtures:
+  - gateway non-git `workflow-router-20260607T133041122269Z`
+  - gateway git `workflow-router-20260607T133053277455Z`
+  - AnythingLLM non-git `workflow-router-20260607T133104688319Z`
+  - AnythingLLM git `workflow-router-20260607T133117280323Z`
+- Post-restart targeted `L2-009` gateway and AnythingLLM validation passed both frozen fixtures and included `core/stealth_order_manager.py`:
+  - gateway non-git `workflow-router-20260607T133136213654Z`
+  - gateway git `workflow-router-20260607T133152788885Z`
+  - AnythingLLM non-git `workflow-router-20260607T133204660386Z`
+  - AnythingLLM git `workflow-router-20260607T133221346255Z`
+- All featured localhost ports passed from Bash after restart: `8000`, `8300`, `8500`, `8400`, `8101`, `8102`, `8201`, `8202`, `8203`, `8204`, and `8205`.
+- Full Bash regression passed after non-agent code changes: `526 passed, 4 skipped, 23 deselected`.
+- Windows full regression exposed environment-level local socket exhaustion/reset behavior during dense in-process HTTP tests; focused Windows regression and the full controller-service file pass after response lifecycle hardening, and Bash remains the required runtime validation path for this project.
+- Protected fixture proof:
+  - L1/L2 live validators completed their built-in watched-hash checks.
+  - `python3 scripts/manage_fixtures.py snapshot --include-tree-hashes --report-path runtime-state/fixtures/phase106-post-live-snapshot.json` passed.
+  - `git -C C:\coinbase_testing_repo_frozen_tmp.github status --short` returned clean output.
+  - Watched hashes matched across both frozen fixtures: `core/stealth_order_manager.py=aa3aabd03b8d88ddfbdf61e0f849165ae4dc4cf05ec1dd8b7a4389b12729057e`, `tests/unit/test_order_id_and_followup_rules.py=9e80dde29afc08c205eee16c327cedbc52720e7fb852dbae93807e40d11c2321`.
 
 ### Approved Phase 107: AnythingLLM UI Semantic E2E Gate
 
-Status: Approved; pending Phase 106.
+Status: Complete.
 
 Goal: make the browser-visible AnythingLLM UI validator prove useful answer content, not only transport and marker presence.
 
@@ -5683,14 +5718,28 @@ Implementation tasks:
 
 Acceptance proof:
 
-- UI E2E fails against the current known-bad `L1-001` renderer before Phase 106 is fixed or uses a controlled negative fixture proving the semantic gate fails closed.
-- UI E2E passes after Phase 106 with case-specific semantic markers on both frozen fixtures.
-- The report records semantic marker hits, rejected wrong-answer markers, screenshots, stream-chat proof, run IDs, and fixture mutation proof.
-- The validator remains Windows/Chrome-specific where appropriate, while runtime stack validation remains Bash-hosted.
+- Implemented a governed UI prompt case catalog in [vllm_agent_gateway/anythingllm_ui_e2e.py](../vllm_agent_gateway/anythingllm_ui_e2e.py) with:
+  - `L1-001` required markers: `Beginning point:`, `Related tests:`, `Recommended commands:`
+  - `L1-001` rejected markers: `Entrypoints:`, `python main.py`
+  - `L1-002` holdout required markers: function name, `Inputs:`, `Outputs:`, `Side effects:`, and `Related tests:`
+- UI E2E reports now record `case_id`, semantic required markers, missing required markers, rejected markers, rejected markers present, screenshots, `/stream-chat` proof, and per-case run IDs.
+- Controlled fail-closed regression passed: `test_l1_001_semantic_contract_rejects_old_entrypoint_answer` proves the previous marker-present `Entrypoints: main.py` answer fails the semantic gate.
+- Focused regression passed: `python -m pytest tests/regression/test_anythingllm_ui_e2e.py -q` with `10 passed`.
+- Cross-check focused regression passed: `python -m pytest tests/regression/test_anythingllm_ui_e2e.py tests/regression/test_chat_response_contract.py tests/regression/test_controller_service.py::test_workflow_router_chat_accepts_natural_language_and_uses_latest_user_message tests/regression/test_controller_service.py::test_workflow_router_chat_l2_change_surface_summary_handles_non_git_doc_heavy_fixture -q` with `17 passed`.
+- Docs index passed after UI E2E docs update: `python scripts\check_docs_index.py` with `expected_count=120`, `linked_count=120`, and `orphaned_docs=[]`.
+- Live Windows/Chrome AnythingLLM UI E2E passed: `python scripts\validate_anythingllm_ui_e2e.py --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --timeout-seconds 420 --output-path runtime-state\anythingllm-ui\phase107-ui-semantic-e2e.json` returned `status=passed`, `case_count=4`, `fixture_unchanged=true`, and `error_count=0`.
+- Live UI run IDs:
+  - `L1-001` non-git: `workflow-router-20260607T135418183547Z`
+  - `L1-002` non-git: `workflow-router-20260607T135436553101Z`
+  - `L1-001` git: `workflow-router-20260607T135452890267Z`
+  - `L1-002` git: `workflow-router-20260607T135506589271Z`
+- Live UI screenshots were written under `runtime-state\anythingllm-ui\phase107-ui-semantic-e2e\`.
+- Protected git-enabled frozen fixture stayed clean: `git -C C:\coinbase_testing_repo_frozen_tmp.github status --short` returned clean output.
+- Full Bash regression passed after non-agent code changes: `530 passed, 4 skipped, 23 deselected`.
 
 ### Approved Phase 108: Runtime-State Repository Hygiene And Proof Retention
 
-Status: Approved; pending Phase 107.
+Status: Complete.
 
 Goal: stop generated runtime artifacts from being committed while preserving enough canonical proof for contextless agents and testers.
 
@@ -5717,9 +5766,22 @@ Acceptance proof:
 - Docs index passes.
 - No validation capability is lost; validators continue writing local reports under ignored runtime-state or the private controller state root.
 
+Closeout proof:
+
+- Added [README.runtime-state.md](../README.runtime-state.md), [docs/examples/runtime-state.md](examples/runtime-state.md), [vllm_agent_gateway/acceptance/runtime_state_hygiene.py](../vllm_agent_gateway/acceptance/runtime_state_hygiene.py), and [scripts/check_runtime_state_hygiene.py](../scripts/check_runtime_state_hygiene.py).
+- Runtime-state hygiene now checks tracked generated files, broad ignore coverage for top-level/nested/controller-artifact report paths, committed stable proof metadata, release-channel stable metadata alignment, and docs-index validity.
+- Release-channel validation now includes `runtime_state.hygiene`, so `RELEASE CHANNEL PASS` cannot hide tracked runtime-state files or missing proof-retention metadata.
+- Contextless subagent audit found four tightening gaps: release-channel integration, weak proof validation, too-narrow ignore probe, and docs-index enforcement. All four were implemented before closeout.
+- Passed: `python -m pytest tests\regression\test_runtime_state_hygiene.py -q` with `9` passed.
+- Passed: `python -m pytest tests\regression\test_release_channels.py -q` with `5` passed.
+- Passed: `python scripts\check_runtime_state_hygiene.py --output-path runtime-state\runtime-state-hygiene\phase108-after-tightening.json` with `status=passed`, `check_count=4`, and `failed_check_ids=[]`.
+- Passed: `python scripts\validate_release_channels.py --output-path runtime-state\release-channels\phase108-release-channels-after-tightening.json` with `status=passed`, `check_count=6`, and `failed_check_ids=[]`.
+- Passed: `python scripts\check_docs_index.py` with `expected_count=122`, `linked_count=122`, and `orphaned_docs=[]`.
+- Passed: Bash full regression `bash -lc "cd /mnt/c/agentic_agents && python -m pytest tests/regression/ -v"` with `539 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 109: Current Local Model Release-Adherence Gate
 
-Status: Approved; pending Phase 108.
+Status: Complete.
 
 Goal: create one consolidated gate that answers whether the current localhost model and harness are releasable for normal founder/testing use.
 
@@ -5744,9 +5806,22 @@ Acceptance proof:
 - The report includes current model name, port evidence, route/skill/tool proof, answer-quality proof, UI semantic proof, fixture mutation proof, latency summary, and actionable failure classifications.
 - Full Bash regression passes after non-agent code changes.
 
-### Approved Phase 110: Semi-Well-Defined Prompt Generalization Suite
+Closeout proof:
 
-Status: Approved; pending Phase 109.
+- Added [README.release-adherence.md](../README.release-adherence.md), [docs/examples/release-adherence.md](examples/release-adherence.md), [vllm_agent_gateway/acceptance/release_adherence.py](../vllm_agent_gateway/acceptance/release_adherence.py), and [scripts/validate_release_adherence.py](../scripts/validate_release_adherence.py).
+- Added suite duration capture to V1.1 acceptance reports so model capability profile latency is measured instead of unknown.
+- Fixed Bash-hosted UI E2E portability gaps surfaced by the consolidated gate: `/mnt/c/...` fixture paths now prefer existing WSL paths before Windows conversion, the static UI server no longer depends on Windows `npx.cmd`, and the default browser uses Playwright bundled Chromium unless a channel is explicitly provided.
+- Installed WSL Playwright Chromium for the live Bash UI proof with `python3 -m playwright install chromium`.
+- Initial live release-adherence run failed on Bash fixture path normalization and then on Windows `npx.cmd`; both failures were retained as Phase 109 evidence and fixed before final acceptance.
+- Bounded contextless audit found real gaps after the first passing run: candidate model probe failures could be hidden, the accepted profile warning was too broad, evidence categories were under-enforced, Bash UI portability depended on cached extraction state, Markdown was too thin for founder review, and fixture proof needed to distinguish unchanged-during-run from pristine source state. Those gaps were fixed before final acceptance.
+- Passed: fresh Bash UI semantic E2E with forced AnythingLLM extraction refresh, `python3 scripts/validate_anythingllm_ui_e2e.py --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --refresh-extract --timeout-seconds 420 --output-path runtime-state/anythingllm-ui/phase109-refresh-extract-ui-e2e.json`, with `status=passed`, `case_count=4`, `fixture_unchanged=true`, and `error_count=0`.
+- Passed: tightened Bash release-adherence gate `python3 scripts/validate_release_adherence.py --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --refresh-extract --timeout-seconds 900 --command-timeout-seconds 3600 --output-path runtime-state/release-adherence/phase109-live-final-tightened-2.json` with `status=passed`, `readiness_status=releasable`, `blocker_count=0`, `warning_count=1`, `latency_measured=true`, and model ID `Qwen3-Coder-30B-A3B-Instruct`.
+- The remaining warning is accepted because latency is measured and `safe_apply_readiness=partially_proven` only reflects the intentional real-repository mutation boundary.
+- Passed: Bash full regression `bash -lc "cd /mnt/c/agentic_agents && python -m pytest tests/regression/ -v"` with `550 passed`, `4 skipped`, and `23 deselected`.
+
+### Phase 110: Semi-Well-Defined Prompt Generalization Suite
+
+Status: Complete.
 
 Goal: prove the product works for semi-well-defined natural coding prompts, not only exact governed prompt wording.
 
@@ -5771,9 +5846,28 @@ Acceptance proof:
 - Accepted findings either become current-phase fixes or proposed roadmap work with exact evidence.
 - No prompt requires manual skill injection, controller JSON, or internal workflow names.
 
+Implementation completed:
+
+- Added `runtime/prompt_catalogs/semi_well_defined_v1.json` with 24 governed semi-well-defined natural prompts and 2 fail-closed boundary prompts across current supported L1/L2 capabilities.
+- Added `vllm_agent_gateway/acceptance/semi_well_defined_prompts.py`, `scripts/validate_semi_well_defined_prompts.py`, `tests/regression/test_semi_well_defined_prompts.py`, `README.semi-well-defined-prompts.md`, and `docs/examples/semi-well-defined-prompts.md`.
+- Fixed natural workflow-router mode inference so common read-only coding requests such as explain, where/which lookup, compare, map, diagnose, summarize, no-change, and stop-before-implementation execute the read-only path instead of returning only route metadata.
+- Fixed startup defaults so `start-agent-prompt-proxies.sh` allowlists the project root plus both frozen Coinbase fixtures when present.
+- Fixed deterministic artifact quality for natural prompts: `Coinbase API key` maps to `COINBASE_API_KEY`, plural schema subjects like `stealth orders` map to `stealth_orders`, dependency prompts recognize `import or depend on`, endpoint handler evidence prioritizes concrete handlers, and table read/write lookup scans `.go`, `.sql`, JS/TS, and Python files with multiline SQL context.
+- Corrected stale Phase 110 expected skill IDs to the active registry selections: `change-surface-summarizer` and `request-flow-mapper`.
+
+Validation proof:
+
+- Passed: offline Phase 110 gate `python scripts\validate_semi_well_defined_prompts.py --output-path runtime-state\semi-well-defined-prompts\phase110-offline-post-natural-fixes-2.json` with `case_count=24`, `route_passed=24`, `boundary_passed=2`, and `catalog_error_count=0`.
+- Passed: focused regression `python -m pytest tests\regression\test_generalization_fixture.py tests\regression\test_semi_well_defined_prompts.py -q` with `22 passed`.
+- Passed: focused controller regression `python -m pytest tests\regression\test_controller_service.py -q -k "workflow_router_chat_l1_configuration_lookup_returns_config_artifact or workflow_router_chat_l1_endpoint_route_lookup_returns_handler_artifact or workflow_router_chat_l1_dependency_lookup_returns_import_artifact or workflow_router_chat_l2_table_read_write_lookup_returns_artifact or workflow_router_mode_inference"` with `7 passed` and `202 deselected`.
+- Passed: Bash first-time user doctor `python3 scripts/run_first_time_user_doctor.py --timeout-seconds 30 --output-path runtime-state/first-time-user-doctor/phase110-post-natural-fixes-doctor.json` with `28 passed`, `1 warning`, and `0 failed`.
+- Passed: focused live repair validation `python3 scripts/validate_semi_well_defined_prompts.py --live --case-id P06 --case-id P08 --case-id P11 --case-id P12 --case-id P19 --timeout-seconds 900 --output-path runtime-state/semi-well-defined-prompts/phase110-live-focused-post-natural-fixes.json` with `live_passed=10`, `live_failed=0`, `minimum_score=97`, `mean_score=97.6`, and `fixture_unchanged=true`.
+- Passed: full live Phase 110 validation `python3 scripts/validate_semi_well_defined_prompts.py --live --timeout-seconds 900 --output-path runtime-state/semi-well-defined-prompts/phase110-live-full-final.json` with `client_case_count=48`, `live_passed=48`, `live_failed=0`, `route_passed=24`, `boundary_passed=2`, `minimum_score=97`, `mean_score=98.88`, and `fixture_unchanged=true`.
+- Passed: full Bash regression `bash -lc "cd /mnt/c/agentic_agents && python -m pytest tests/regression/ -v"` with `562 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 111: Closed-Loop Eval Repair Execution Gate
 
-Status: Approved; pending Phase 110.
+Status: Approved; active.
 
 Goal: prove the project can turn a failed local-model/harness eval into an accepted fix and verified holdout pass.
 
@@ -6031,4 +6125,4 @@ When a new Codex session starts, do this:
 6. Run regression after non-agent code changes.
 7. Follow the Structured Development Rule in this roadmap for every non-trivial change: define the problem, gather evidence, identify root cause, design the smallest correction, implement, verify, inspect artifacts, and document the result.
 
-Phases 43 through 105 are complete. Phase 106 is approved and active. Phases 107 through 119 are approved and pending completion of the lower-numbered phases.
+Phases 43 through 110 are complete. Phase 111 is approved and active. Phases 112 through 119 are approved and pending completion of the lower-numbered phases.

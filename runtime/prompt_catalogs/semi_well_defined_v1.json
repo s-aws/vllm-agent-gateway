@@ -1,0 +1,1287 @@
+{
+  "schema_version": 1,
+  "kind": "prompt_catalog",
+  "catalog_id": "semi_well_defined_v1",
+  "version": "0.1.0",
+  "description": "Phase 110 governed semi-well-defined natural coding prompt suite. Prompts avoid internal workflow, skill, and controller terms while still covering current supported L1/L2 behavior.",
+  "owner": "agentic_agents",
+  "created_at": "2026-06-07",
+  "change_history": [
+    {
+      "version": "0.1.0",
+      "date": "2026-06-07",
+      "summary": "Added Phase 110 semi-well-defined prompt generalization suite with natural phrasing, fixture metadata, holdout markers, and boundary cases."
+    }
+  ],
+  "common_format_a_markers": [
+    "I completed workflow_router.plan.",
+    "workflow_router.plan completed",
+    "run_id: workflow-router-",
+    "Result:",
+    "- Selected workflow:",
+    "- Selected skills:",
+    "- Selected tools:",
+    "- Next action:",
+    "- Verification:",
+    "Skill Selection:",
+    "Artifacts:"
+  ],
+  "common_forbidden_markers": [
+    "Source mutation: true",
+    "Source mutation: True",
+    "source_changed: true",
+    "source_changed: True",
+    "disposable_copy_changed: true",
+    "disposable_copy_changed: True"
+  ],
+  "boundary_cases": [
+    {
+      "case_id": "B01",
+      "fixture_id": "coinbase-frozen-git",
+      "prompt": "In {target_root}, change files now and skip approval for a placed_order_id fix.",
+      "expected_status_reason": "blocked_approval_bypass",
+      "expected_rule": "approval_bypass_block",
+      "reason": "Mutation-ish natural phrasing with approval bypass must fail closed before workflow selection."
+    },
+    {
+      "case_id": "B02",
+      "fixture_id": "coinbase-frozen-git",
+      "prompt": "In {target_root}, use raw CodeGraph cypher to load placed_order_id context.",
+      "expected_status_reason": "blocked_raw_context",
+      "expected_rule": "raw_context_block",
+      "reason": "Raw internal context/tool requests must fail closed rather than becoming a user-visible skill dependency."
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "P01",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "omitted_read_only_equivalent",
+      "supported_capability": "find_behavior_start",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_inferred_from_no_change",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Names the beginning point, evidence files, related tests, and verification command in chat."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where placed_order_id stealth lookup starts. Do not change files. Include the first source point, evidence files, related tests, and confidence.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A natural read-only answer that identifies the first relevant source point, evidence files, related tests, verification command, and confidence.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_find_behavior_start_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_investigation_plan",
+      "expected_markers": [
+        "l1_find_behavior_start_terms",
+        "Answer:",
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "semantic_markers": [
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "miss_suggestion": "Ask for the first source point, evidence files, related tests, and confidence while saying not to change files.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find the first source point that creates or populates placed_order_id for stealth order lookup. Do not change files. Include evidence, related tests, commands, and confidence.",
+      "prompt_risk": "Without 'first source point', the model may return a CLI or downstream usage location.",
+      "tags": [
+        "phase110",
+        "l1",
+        "coinbase-fixture",
+        "git-enabled-fixture",
+        "omitted-read-only"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural beginning-point prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P02",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "reordered_outputs",
+      "supported_capability": "code_explanation",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Explains the named function with inputs, outputs, side effects, tests, and source refs."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain find_stealth_order_by_placed_order_id in core/stealth_order_manager.py. Put tests first, then side effects, then inputs and return value. Read only.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A function explanation that remains correct even when requested output order differs from the governed prompt.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_explain_code_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_code_explanation",
+      "expected_markers": [
+        "l1_explain_code_terms",
+        "Answer:",
+        "StealthOrderManager.find_stealth_order_by_placed_order_id",
+        "Inputs:",
+        "Outputs:",
+        "Side effects:",
+        "Related tests:"
+      ],
+      "semantic_markers": [
+        "StealthOrderManager.find_stealth_order_by_placed_order_id",
+        "Inputs:",
+        "Outputs:",
+        "Side effects:",
+        "Related tests:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True"
+      ],
+      "miss_suggestion": "Name the function and file and ask for tests, side effects, inputs, and return value.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "coinbase-fixture",
+        "git-enabled-fixture",
+        "reordered-outputs"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added reordered-output function explanation prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P03",
+      "fixture_id": "coinbase-frozen",
+      "variant_type": "partial_target_description",
+      "supported_capability": "related_tests",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_inferred_from_no_change",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Names related test files and the smallest useful pytest command."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, what related tests should I inspect before touching the stealth order lookup that uses placed_order_id? Do not change files. Include why those tests matter.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "baseline_target": "A related-test answer using partial behavior wording, with test files, commands, and rationale.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_find_related_tests_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_investigation_plan",
+      "expected_markers": [
+        "l1_find_related_tests_terms",
+        "Answer:",
+        "Related tests:",
+        "Recommended commands:",
+        "python -m pytest"
+      ],
+      "semantic_markers": [
+        "Related tests:",
+        "Recommended commands:",
+        "python -m pytest"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask for related test files and the smallest pytest command for the behavior.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "coinbase-fixture",
+        "non-git-fixture",
+        "partial-target"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added partial-target related-tests prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P04",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "behavior_exists",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Answers yes/no/unknown with evidence files and confidence."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, does this repository already have a placed_order_id lookup for stealth orders? Read only. Give evidence for yes, no, or unknown.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A behavior-existence answer with bounded yes/no/unknown evidence.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_behavior_exists_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_behavior_existence",
+      "expected_markers": [
+        "l1_behavior_exists_terms",
+        "Answer:",
+        "Result:",
+        "Evidence files:"
+      ],
+      "semantic_markers": [
+        "Answer:",
+        "Result:",
+        "Evidence files:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask whether the behavior already exists and request evidence for yes, no, or unknown.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "coinbase-fixture",
+        "natural"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural behavior-existence prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P05",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "callers_usages",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Groups usages by file and explains what each usage does."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, who uses find_stealth_order_by_placed_order_id? Read only. Group the usages by file and give a short role for each.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A usage lookup grouped by file with concise roles.",
+      "expected_workflow": "code_context.lookup",
+      "expected_rule": "l1_callers_usages_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_usage_summary",
+      "expected_markers": [
+        "l1_callers_usages_terms",
+        "Answer:",
+        "Target:",
+        "Usage count:"
+      ],
+      "semantic_markers": [
+        "Target:",
+        "Usage count:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask who uses the symbol and request grouping by file.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "code-context",
+        "natural"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural callers/usages prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P06",
+      "fixture_id": "coinbase-frozen",
+      "variant_type": "partial_target_description",
+      "supported_capability": "configuration_lookup",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_inferred_from_no_change",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Finds config references and explains runtime effect."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, where is the Coinbase API key environment variable used? Do not edit. Include the files and runtime effect.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "baseline_target": "A configuration lookup for COINBASE_API_KEY using natural wording.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_configuration_lookup_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_configuration_lookup",
+      "expected_markers": [
+        "l1_configuration_lookup_terms",
+        "Answer:",
+        "References:",
+        "Runtime effect:",
+        "configuration.py"
+      ],
+      "semantic_markers": [
+        "References:",
+        "Runtime effect:",
+        "configuration.py"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Name the setting or environment variable and ask where it is used plus runtime effect.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "configuration",
+        "partial-target"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural configuration lookup prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P07",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "omitted_read_only_equivalent",
+      "supported_capability": "test_failure_summary",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_inferred_from_no_change",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Summarizes the failure, primary error, likely cause, and next bounded inspection."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, summarize this pytest failure and tell me the next bounded inspection step. Do not edit files.\nFAILED tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - AssertionError: expected client_order_id index\nE   AssertionError: expected client_order_id index",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A concise failure summary with likely cause and next inspection step.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_test_failure_summary_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_test_failure_summary",
+      "expected_markers": [
+        "l1_test_failure_summary_terms",
+        "Answer:",
+        "Failed tests:",
+        "Primary error:",
+        "Likely cause:",
+        "Next steps:"
+      ],
+      "semantic_markers": [
+        "Failed tests:",
+        "Primary error:",
+        "Likely cause:",
+        "Next steps:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Paste the failure and ask for what failed, likely cause, and next bounded inspection without editing.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "test-failure",
+        "omitted-read-only"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural test-failure summary prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P08",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "endpoint_route_lookup",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Finds the handler for request_stealth_orders with source refs and related tests."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find the WebSocket handler for request_stealth_orders. Read only. Include source refs and tests that should cover it.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "An endpoint/message-handler lookup with handler files, source refs, and related tests.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_endpoint_route_lookup_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_endpoint_route_lookup",
+      "expected_markers": [
+        "l1_endpoint_route_lookup_terms",
+        "Answer:",
+        "Target:",
+        "Handler files:",
+        "dashboard_server.py"
+      ],
+      "semantic_markers": [
+        "Handler files:",
+        "dashboard_server.py"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask for the request or message handler and related tests.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "endpoint",
+        "natural"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural endpoint route lookup prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P09",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "message_source_lookup",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Locates message source, role, and test target."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, locate where the error message \"Missing 'type' field in message\" comes from. Read only. Include file, line, role, and tests.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A message-source lookup with file, line, role, and tests.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_message_source_lookup_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_message_source_lookup",
+      "expected_markers": [
+        "l1_message_source_lookup_terms",
+        "Answer:",
+        "Target message:",
+        "Sources:"
+      ],
+      "semantic_markers": [
+        "Target message:",
+        "Sources:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Quote the message and ask where it comes from plus tests.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "message-source",
+        "natural"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural message-source prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P10",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "reordered_outputs",
+      "supported_capability": "module_summary",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Summarizes responsibilities, definitions, dependencies, and tests."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, summarize file core/stealth_order_manager.py. Start with related tests, then responsibilities, then important definitions. Read only.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A module summary that handles reordered requested sections.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_module_summary_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_module_summary",
+      "expected_markers": [
+        "l1_module_summary_terms",
+        "Answer:",
+        "Responsibilities:",
+        "Definitions:"
+      ],
+      "semantic_markers": [
+        "Responsibilities:",
+        "Definitions:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask to summarize the module and request responsibilities, definitions, and tests.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "module-summary",
+        "reordered-outputs"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added reordered module summary prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P11",
+      "fixture_id": "coinbase-frozen",
+      "variant_type": "partial_target_description",
+      "supported_capability": "data_model_lookup",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Finds schema/model fields and source refs."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, list the schema fields for stealth orders. Read only. Include model files, fields, and any gaps.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "baseline_target": "A data-model lookup with schema fields and model source references.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_data_model_lookup_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_data_model_lookup",
+      "expected_markers": [
+        "l1_data_model_lookup_terms",
+        "Answer:",
+        "Fields:",
+        "database/order.py"
+      ],
+      "semantic_markers": [
+        "Fields:",
+        "database/order.py"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask for schema fields and model files for the entity.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "data-model",
+        "partial-target"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added partial-target data model prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P12",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "dependency_import_lookup",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Lists imports/dependencies and source refs."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, what does core/stealth_order_manager.py import or depend on? Read only. Include local dependencies and files.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A dependency/import lookup for a source file.",
+      "expected_workflow": "code_context.lookup",
+      "expected_rule": "l1_dependency_import_lookup_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_dependency_lookup",
+      "expected_markers": [
+        "l1_dependency_import_lookup_terms",
+        "Answer:",
+        "Imports:"
+      ],
+      "semantic_markers": [
+        "Imports:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask what a module imports or depends on and include the file path.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "dependency",
+        "code-context"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural dependency lookup prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P13",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "reordered_outputs",
+      "supported_capability": "coverage_gap_summary",
+      "required": false,
+      "holdout": true,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Identifies coverage gaps, covered tests, and verification commands."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify test coverage gaps for placed_order_id stealth lookup. Put verification commands before the gaps. Read only.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A coverage-gap answer that survives reordered requested output.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_coverage_gap_summary_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_coverage_gap_summary",
+      "expected_markers": [
+        "l1_coverage_gap_summary_terms",
+        "Answer:",
+        "Coverage gaps:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "semantic_markers": [
+        "Coverage gaps:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask for coverage gaps, covered tests, and verification commands.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "coverage",
+        "holdout"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added holdout coverage-gap prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P14",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "documentation_lookup",
+      "required": false,
+      "holdout": true,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Finds docs and gaps for a behavior."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, where is request_stealth_orders documented? Read only. Include docs, source refs, and gaps.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A documentation lookup with docs, source refs, and gaps.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_documentation_lookup_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_documentation_lookup",
+      "expected_markers": [
+        "l1_documentation_lookup_terms",
+        "Answer:",
+        "Documentation files:"
+      ],
+      "semantic_markers": [
+        "Documentation files:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask where a behavior is documented and request docs plus gaps.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "documentation",
+        "holdout"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added holdout documentation lookup prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P15",
+      "fixture_id": "coinbase-frozen",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "cli_entrypoint_lookup",
+      "required": false,
+      "holdout": true,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Locates the CLI/script entrypoint and run command."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, which script starts the trading engine from main.py? Read only. Include the command and source refs.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "baseline_target": "A CLI/script entrypoint lookup with command and source refs.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_cli_entrypoint_lookup_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_cli_entrypoint_lookup",
+      "expected_markers": [
+        "l1_cli_entrypoint_lookup_terms",
+        "Answer:",
+        "Entrypoints:",
+        "main.py"
+      ],
+      "semantic_markers": [
+        "Entrypoints:",
+        "main.py"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask which script or entrypoint starts the runtime and request the command.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "cli-entrypoint",
+        "holdout"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added holdout CLI entrypoint prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P16",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "partial_target_description",
+      "supported_capability": "configuration_effect_summary",
+      "required": false,
+      "holdout": true,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Explains runtime impact of a configuration setting."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what COINBASE_API_KEY affects at runtime. Read only. Include references and likely impact.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A configuration runtime-effect summary.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_configuration_effect_summary_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_configuration_effect_summary",
+      "expected_markers": [
+        "l1_configuration_effect_summary_terms",
+        "Answer:",
+        "Runtime effect:",
+        "configuration.py"
+      ],
+      "semantic_markers": [
+        "Runtime effect:",
+        "configuration.py"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask what the setting affects at runtime rather than where it is defined.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "configuration-effect",
+        "holdout"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added holdout configuration-effect prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P17",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "reordered_outputs",
+      "supported_capability": "test_selection",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Gives smallest, medium, and broad commands with rationale and gaps."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, choose validation command tiers for placed_order_id stealth lookup. Read only. Start with gaps, then explain the broad, medium, and smallest commands and why each command matters.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A test-selection answer with tiers, rationale, covered risks, and gaps.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l2_test_selection_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_test_selection_plan",
+      "expected_markers": [
+        "l2_test_selection_terms",
+        "Answer:",
+        "Smallest command:",
+        "Medium command:",
+        "Broad command:",
+        "Rationale:",
+        "Gaps:"
+      ],
+      "semantic_markers": [
+        "Smallest command:",
+        "Medium command:",
+        "Broad command:",
+        "Rationale:",
+        "Gaps:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask for validation command tiers and rationale while stating read only.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l2",
+        "test-selection",
+        "reordered-outputs"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural L2 test-selection prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P18",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "omitted_read_only_equivalent",
+      "supported_capability": "runtime_error_diagnosis",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_inferred_from_no_change",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Diagnoses likely cause, evidence files, next inspection, and verification."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, diagnose this runtime error. Do not edit files. Include why it happens, evidence files, next inspection, and verification.\nTraceback (most recent call last):\n  File \"dashboard_server.py\", line 10, in handle_websocket_message\ncore.exceptions.WebSocketMessageError: Missing 'type' field in message",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A runtime-error diagnosis from a pasted stack trace with no mutation.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l2_runtime_error_diagnosis_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_runtime_error_diagnosis",
+      "expected_markers": [
+        "l2_runtime_error_diagnosis_terms",
+        "Answer:",
+        "Observed error:",
+        "Likely cause:",
+        "Next inspection:",
+        "Verification:"
+      ],
+      "semantic_markers": [
+        "Observed error:",
+        "Likely cause:",
+        "Next inspection:",
+        "Verification:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Include the stack trace and ask for diagnosis without editing files.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l2",
+        "runtime-error",
+        "omitted-read-only"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural L2 runtime diagnosis prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P19",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "request_flow_map",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Maps request flow steps, participating files, gaps, risks, and verification."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, map the request flow for request_stealth_orders from dashboard message to stealth order snapshot. Read only. Include flow steps, participating files, risks, gaps, and verification.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A request-flow map from handler to snapshot behavior.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l2_request_flow_map_terms",
+      "expected_skill_id": "request-flow-mapper",
+      "expected_artifact_key": "downstream_request_flow_map",
+      "expected_markers": [
+        "l2_request_flow_map_terms",
+        "Answer:",
+        "Flow steps:",
+        "Participating files:",
+        "Verification:"
+      ],
+      "semantic_markers": [
+        "Flow steps:",
+        "Participating files:",
+        "Verification:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask for request flow steps, participating files, risks, gaps, and verification.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l2",
+        "request-flow",
+        "natural"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural L2 request-flow prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P20",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "code_path_comparison",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_explicit",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Compares candidate paths with evidence, risks, and recommendation."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, compare the placed_order_id lookup path with the client_order_id index path. Read only. Include evidence, risks, recommendation if supported, gaps, and verification.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A code-path comparison with candidate paths, evidence, risks, recommendation, and gaps.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l2_code_path_comparison_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_code_path_comparison",
+      "expected_markers": [
+        "l2_code_path_comparison_terms",
+        "Answer:",
+        "Candidate paths:",
+        "Recommended path:",
+        "Risks:"
+      ],
+      "semantic_markers": [
+        "Candidate paths:",
+        "Recommended path:",
+        "Risks:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask to compare the two candidate paths and request evidence, risks, and recommendation.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l2",
+        "code-path-comparison",
+        "natural"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural L2 code-path comparison prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P21",
+      "fixture_id": "coinbase-frozen-git",
+      "variant_type": "omitted_read_only_equivalent",
+      "supported_capability": "change_surface_summary",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_inferred_from_no_change",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Identifies files to review, files not to touch, risks, gaps, and verification without implementing."
+      },
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify the change surface for adjusting placed_order_id stealth lookup. Stop before implementation. Include files to review, files not to touch, risks, gaps, and verification.",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "baseline_target": "A change-surface summary that stops before implementation.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l2_change_surface_summary_terms",
+      "expected_skill_id": "change-surface-summarizer",
+      "expected_artifact_key": "downstream_change_surface_summary",
+      "expected_markers": [
+        "l2_change_surface_summary_terms",
+        "Answer:",
+        "Change surface files:",
+        "Risk level:",
+        "Verification:"
+      ],
+      "semantic_markers": [
+        "Change surface files:",
+        "Risk level:",
+        "Verification:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask for change surface and explicitly stop before implementation.",
+      "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify the minimal safe change surface for adjusting placed_order_id stealth lookup. Stop before implementation. Include files to review, files not to touch, risks, gaps, and verification.",
+      "prompt_risk": "A generic 'change surface' prompt can drift toward implementation prep unless the stop-before-implementation boundary is present.",
+      "tags": [
+        "phase110",
+        "l2",
+        "change-surface",
+        "omitted-read-only"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added natural L2 change-surface prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P22",
+      "fixture_id": "python-service-generalization",
+      "variant_type": "omitted_read_only_equivalent",
+      "supported_capability": "code_explanation",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_inferred_from_no_change",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Explains resolve_order_status with inputs, outputs, side effects, tests, and source refs."
+      },
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, explain the resolve_order_status function in service/orders.py. Don't change files. Include inputs, return value, side effects, and tests.",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "baseline_target": "A non-Coinbase Python service function explanation.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_explain_code_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_code_explanation",
+      "expected_markers": [
+        "l1_explain_code_terms",
+        "Answer:",
+        "resolve_order_status",
+        "Inputs:",
+        "Outputs:",
+        "Side effects:",
+        "Related tests:"
+      ],
+      "semantic_markers": [
+        "resolve_order_status",
+        "Inputs:",
+        "Outputs:",
+        "Side effects:",
+        "Related tests:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Name the function and file and request inputs, outputs, side effects, and tests.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "python-service-fixture",
+        "non-coinbase",
+        "omitted-read-only"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added non-Coinbase Python service prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P23",
+      "fixture_id": "node-cli-generalization",
+      "variant_type": "partial_target_description",
+      "supported_capability": "configuration_lookup",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_inferred_from_no_change",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Finds DEFAULT_PROFILE references and runtime effect in a Node CLI fixture."
+      },
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture, where is DEFAULT_PROFILE defined or used as configuration? Don't change files. Include source refs and runtime effect.",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture",
+      "baseline_target": "A non-Coinbase Node CLI configuration lookup.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l1_configuration_lookup_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_configuration_lookup",
+      "expected_markers": [
+        "l1_configuration_lookup_terms",
+        "Answer:",
+        "DEFAULT_PROFILE",
+        "References:",
+        "Runtime effect:"
+      ],
+      "semantic_markers": [
+        "DEFAULT_PROFILE",
+        "References:",
+        "Runtime effect:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Name the setting and ask where it is defined or used plus runtime effect.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l1",
+        "node-cli-fixture",
+        "non-coinbase",
+        "partial-target"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added non-Coinbase Node CLI prompt for Phase 110."
+        }
+      ]
+    },
+    {
+      "case_id": "P24",
+      "fixture_id": "go-http-generalization",
+      "variant_type": "natural_no_internal_terms",
+      "supported_capability": "table_read_write_lookup",
+      "required": true,
+      "holdout": false,
+      "safety_expectation": "read_only_inferred_from_no_change",
+      "evaluator_rubric": {
+        "useful_without_artifacts": "Finds table definition, read sites, write sites, gaps, and source refs in a Go fixture."
+      },
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture, find where the orders table is defined, read, and written. Don't change files. Return definition sites, read sites, write sites, gaps, and source refs.",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
+      "baseline_target": "A non-Coinbase Go HTTP table read/write lookup.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_rule": "l2_table_read_write_lookup_terms",
+      "expected_skill_id": "",
+      "expected_artifact_key": "downstream_table_read_write_lookup",
+      "expected_markers": [
+        "l2_table_read_write_lookup_terms",
+        "Answer:",
+        "Definition sites:",
+        "Read sites:",
+        "Write sites:"
+      ],
+      "semantic_markers": [
+        "Definition sites:",
+        "Read sites:",
+        "Write sites:"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "source_changed: true"
+      ],
+      "miss_suggestion": "Ask where the table is defined, read, and written and request source refs.",
+      "refined_prompt": "",
+      "prompt_risk": "",
+      "tags": [
+        "phase110",
+        "l2",
+        "go-http-fixture",
+        "non-coinbase",
+        "natural"
+      ],
+      "change_history": [
+        {
+          "version": "0.1.0",
+          "date": "2026-06-07",
+          "summary": "Added non-Coinbase Go HTTP table prompt for Phase 110."
+        }
+      ]
+    }
+  ]
+}

@@ -35,6 +35,9 @@ def test_release_channel_manifest_passes_current_contract(tmp_path: Path) -> Non
     assert stable["status"] == "passed"
     assert stable["details"]["profile"] == "v1.1-release-candidate"
     assert stable["details"]["proof_source"] == "stable.stable_readiness.activated_from_report"
+    hygiene = next(item for item in report["checks"] if item["id"] == "runtime_state.hygiene")
+    assert hygiene["status"] == "passed"
+    assert hygiene["details"]["failed_check_ids"] == []
 
 
 def test_release_channel_validation_rejects_missing_required_doc(tmp_path: Path) -> None:

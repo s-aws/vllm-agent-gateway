@@ -66,6 +66,7 @@ from vllm_agent_gateway.model_capability_routing import (
 )
 from vllm_agent_gateway.controllers.natural_query import (
     change_subject_queries_from_request,
+    configuration_queries_from_request,
     strip_filesystem_paths,
 )
 from vllm_agent_gateway.skills.registry import (
@@ -841,7 +842,7 @@ def is_l1_data_model_lookup_request(text: str) -> bool:
 def is_l1_dependency_import_lookup_request(text: str) -> bool:
     if any(term in text for term in ("add", "create", "implement", "fix failing", "fix test", "refactor")):
         return False
-    dependency_terms = ("imports", "imported by", "dependencies", "depends on", "module dependencies", "what does")
+    dependency_terms = ("imports", "imported by", "dependencies", "depends on", "depend on", "module dependencies", "what does")
     target_terms = ("import", "dependency", "dependencies", ".py", "module")
     return any(term in text for term in dependency_terms) and any(term in text for term in target_terms)
 
@@ -1572,6 +1573,11 @@ def extract_queries(user_request: str, limit: int = 5) -> list[str]:
             append_unique(queries, value, limit=limit)
             if len(queries) >= limit:
                 return queries
+    if is_l1_configuration_lookup_request(lower_request(user_request)):
+        for value in configuration_queries_from_request(user_request, limit=limit):
+            append_unique(queries, value, limit=limit)
+            if len(queries) >= limit:
+                return queries
     for pattern in (r"`([^`]{3,120})`", r'"([^"]{3,120})"', r"'([^']{3,120})'"):
         for match in re.finditer(pattern, query_source):
             value = match.group(1).strip()
@@ -1605,7 +1611,7 @@ def relationship_queries_from_request(user_request: str, queries: list[str], lim
     symbol = queries[0]
     if any(term in text for term in ("callees", "callee")):
         return [{"kind": "callees", "symbol": symbol, "max_results": limit}]
-    if any(term in text for term in ("imports", "importers")):
+    if any(term in text for term in ("imports", "importers", "import or depend", "depend on", "depends on", "dependencies")):
         return [{"kind": "imports", "symbol": symbol, "max_results": limit}]
     if is_l1_callers_usages_request(text):
         return [{"kind": "callers", "symbol": symbol, "max_results": limit}]

@@ -59,7 +59,7 @@ The reset action only stops the harness through `stop-agent-prompt-proxies.sh`. 
 
 ```bash
 python3 scripts/run_productized_setup.py rerun --execute \
-  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json \
+  --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
   --output-path runtime-state/productized-setup/rerun-stable.json

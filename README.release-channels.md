@@ -16,6 +16,8 @@ python scripts/validate_release_channels.py
 
 It is read-only except for writing a report under `runtime-state/release-channels/`.
 
+Generated `runtime-state/` reports are local-only. Durable release proof metadata belongs under `runtime/release_proofs/`; see [README.runtime-state.md](README.runtime-state.md).
+
 ## Channels
 
 - `dev`: maintainer channel for fast local iteration and setup readiness.
@@ -49,6 +51,7 @@ The report includes:
 - setup validator command
 - acceptance validator command
 - stable readiness status
+- runtime-state hygiene status for ignored generated reports and committed proof metadata
 
 ## First-Time Tester Path
 
@@ -90,10 +93,10 @@ That gate checks secret exposure, filesystem boundaries, protected fixture polic
 
 ## Stable Readiness
 
-Stable may only be marked active after a release-candidate acceptance report passes. The current activation proof is:
+Stable may only be marked active after a release-candidate acceptance report passes. Because `runtime-state/` is local-only, the current committed activation proof is:
 
 ```text
-runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json
+runtime/release_proofs/v1-1-release-candidate-stable-proof.json
 ```
 
 When stable is active, validate it with:
@@ -101,7 +104,7 @@ When stable is active, validate it with:
 ```bash
 python scripts/validate_release_channels.py \
   --channel stable \
-  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json
+  --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json
 ```
 
 The supplied report must contain:
@@ -114,7 +117,7 @@ Run the full stable handoff smoke before sending testers to the stable channel:
 
 ```bash
 python3 scripts/validate_stable_handoff.py \
-  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json \
+  --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github
 ```

@@ -11,6 +11,9 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [First-Time User Doctor README](../README.first-time-user-doctor.md): setup preflight for localhost ports, controller roots, AnythingLLM, and frozen fixtures.
 - [Release Channels README](../README.release-channels.md): dev, release-candidate, and stable channel metadata, setup validator, stable readiness, and rollback path.
 - [Stable Handoff README](../README.stable-handoff.md): stable-channel smoke validation, first external tester prompt, feedback capture, and rollback.
+- [Runtime-State Hygiene README](../README.runtime-state.md): local-only generated report policy, committed release proof metadata, and hygiene validation.
+- [Release Adherence README](../README.release-adherence.md): consolidated current-local-model release gate for founder/testing readiness.
+- [Semi-Well-Defined Prompt Generalization README](../README.semi-well-defined-prompts.md): Phase 110 natural prompt generalization gate for current local-model chat quality.
 - [Security Policy README](../README.security-policy.md): release-candidate gate for secret exposure, filesystem boundaries, protected fixtures, command fragments, and onboarding prompt safety.
 - [Gateway Feature README](../README.gateway.md): runtime architecture, vLLM gateway behavior, role prompt proxies, ports, and client connection notes.
 - [Controller Service README](../README.controller-service.md): explicit HTTP workflow service, end-to-end documenter service example, allowlisted target roots, and run lookup.
@@ -71,6 +74,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Eval Repair Loop README](../README.eval-repair-loop.md): read-only repair recommendations with target/holdout rerun gates and hard-stop validation.
 - [Advanced Refactor Readiness README](../README.advanced-refactor-readiness.md): fail-closed Phase 105 prerequisite report and stable-promotion blocker for advanced refactor pilots.
 - [Founder Field Tests README](../README.founder-field-tests.md): V1 founder field-test prompts through AnythingLLM with reviewable Markdown and JSON reports.
+- [Semi-Well-Defined Prompt Generalization README](../README.semi-well-defined-prompts.md): natural L1/L2 prompt generalization suite with score thresholds and fixture proof.
 - [Bounded Recursive Testing README](../README.bounded-recursive-testing.md): fresh no-context evaluator loops for usability, route, answer, setup, safety, and roadmap-drift findings.
 - [AnythingLLM UI E2E README](../README.anythingllm-ui-e2e.md): Desktop UI bundle rendering and chat submission proof through the real AnythingLLM backend.
 - [Model Portability README](../README.model-portability.md): Phase 72 candidate-model gate using the existing V1 acceptance path and failure classification.
@@ -115,6 +119,9 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [First-Time User Doctor Examples](examples/first-time-user-doctor.md)
 - [Release Channel Examples](examples/release-channels.md)
 - [Stable Handoff Examples](examples/stable-handoff.md)
+- [Runtime-State Examples](examples/runtime-state.md)
+- [Release Adherence Examples](examples/release-adherence.md)
+- [Semi-Well-Defined Prompt Examples](examples/semi-well-defined-prompts.md)
 - [Security Policy Examples](examples/security-policy.md)
 - [Controller Service Examples](examples/controller-service.md)
 - [Workflow Router Examples](examples/workflow-router.md)
@@ -159,6 +166,10 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [V1 Release Candidate Report](V1_RELEASE_CANDIDATE.md): supported V1 prompt families, unsupported boundaries, known limitations, validation evidence, and re-run commands.
 - [Release Channel Examples](examples/release-channels.md): setup channel validation, release-candidate acceptance, and stable readiness examples.
 - [Stable Handoff Examples](examples/stable-handoff.md): stable-channel validation, handoff smoke, first prompt, feedback, and rollback examples.
+- [Runtime-State Hygiene README](../README.runtime-state.md): clean-clone proof retention policy and repository hygiene gate.
+- [Runtime-State Examples](examples/runtime-state.md): git ignore checks, runtime-state index cleanup, and stable proof validation commands.
+- [Release Adherence README](../README.release-adherence.md): Phase 109 consolidated current-local-model release gate and finding classes.
+- [Release Adherence Examples](examples/release-adherence.md): Bash command and report review workflow for current localhost release readiness.
 - [Security Policy Examples](examples/security-policy.md): release-candidate security policy validation and failure review.
 - [V1 Founder Field Test Results](V1_FOUNDER_FIELD_TEST_RESULTS.md): expanded AnythingLLM field test, contextless baseline, initial differences, fixes, Batch D prompt proof, skill-library release-gate integration, final run IDs, and prompt suggestions.
 - [Phase 92 Feedback Triage](PHASE92_FEEDBACK_TRIAGE.md): grouped stable tester and blind-review findings, current fixes, deferred roadmap items, rejected issues, and closeout proof.

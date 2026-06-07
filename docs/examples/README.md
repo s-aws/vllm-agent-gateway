@@ -8,6 +8,9 @@ Examples are grouped by feature so the root README can stay small.
 - [First-Time User Doctor](first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM, and fixtures.
 - [Release Channels](release-channels.md): dev, release-candidate, stable readiness, setup doctor, and acceptance gate examples.
 - [Stable Handoff](stable-handoff.md): stable-channel validation, handoff smoke, first tester prompt, feedback, and rollback.
+- [Runtime State](runtime-state.md): local-only runtime reports, git hygiene commands, and stable proof metadata validation.
+- [Release Adherence](release-adherence.md): consolidated current-local-model gate, blocker classifications, and report review.
+- [Semi-Well-Defined Prompts](semi-well-defined-prompts.md): Phase 110 natural prompt generalization gate through gateway and AnythingLLM.
 - [Security Policy](security-policy.md): release-candidate secret, root, fixture, command, and onboarding prompt safety gate examples.
 - [Gateway](gateway.md): startup, shutdown, budget overrides, client URLs, and role ports.
 - [Controller Service](controller-service.md): explicit documenter workflow requests, end-to-end service runner, allowlisted targets, harness adapter, and run lookup.

@@ -24,6 +24,9 @@ First-time AnythingLLM testers should start here:
 - [README.first-time-user-doctor.md](README.first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM config, and frozen fixtures.
 - [README.release-channels.md](README.release-channels.md): dev, release-candidate, and stable channel metadata plus setup validation.
 - [README.stable-handoff.md](README.stable-handoff.md): stable-channel external tester handoff, smoke validation, first prompt, feedback, and rollback.
+- [README.runtime-state.md](README.runtime-state.md): local-only runtime report policy, committed proof metadata, and hygiene validation.
+- [README.release-adherence.md](README.release-adherence.md): consolidated current-local-model release gate for founder/testing readiness.
+- [README.semi-well-defined-prompts.md](README.semi-well-defined-prompts.md): Phase 110 natural prompt generalization gate for current local-model chat quality.
 - [README.security-policy.md](README.security-policy.md): release-candidate security policy gate for secrets, roots, fixtures, commands, and onboarding prompts.
 
 Tested setup:
@@ -103,6 +106,9 @@ Feature docs:
 - [README.first-time-user-doctor.md](README.first-time-user-doctor.md): first-time setup doctor for ports, AnythingLLM, controller roots, and fixtures
 - [README.release-channels.md](README.release-channels.md): release channel manifest, setup validator, stable readiness, and rollback path
 - [README.stable-handoff.md](README.stable-handoff.md): stable-channel smoke validation, first external tester prompt, feedback capture, and rollback
+- [README.runtime-state.md](README.runtime-state.md): local-only runtime reports, committed release proof metadata, and repository hygiene gate
+- [README.release-adherence.md](README.release-adherence.md): one JSON/Markdown gate for current local model release readiness
+- [README.semi-well-defined-prompts.md](README.semi-well-defined-prompts.md): semi-well-defined natural prompt suite with route, semantic, score, fixture, gateway, and AnythingLLM proof
 - [README.security-policy.md](README.security-policy.md): security policy validator for secret exposure, filesystem boundaries, fixture safety, command fragments, and onboarding prompt safety
 - [README.gateway.md](README.gateway.md): gateway, role proxies, ports, setup, and client notes
 - [README.controller-service.md](README.controller-service.md): explicit HTTP controller workflow service and run lookup

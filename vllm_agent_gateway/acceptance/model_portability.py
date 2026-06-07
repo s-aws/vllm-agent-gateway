@@ -403,10 +403,25 @@ def run_model_portability(config: ModelPortabilityConfig) -> dict[str, Any]:
             acceptance_report.get("report_path")
             or (config.acceptance_report_path.resolve() if config.acceptance_report_path else "")
         )
-        failures = acceptance_failure_records(acceptance_report)
+        probe_failures: list[dict[str, Any]] = []
+        if not config.skip_model_probe and report.get("candidate_model_probe", {}).get("status") != "passed":
+            probe_failures.append(
+                failure_record(
+                    "candidate_model_probe",
+                    "Candidate model probe failed: "
+                    + json.dumps(report.get("candidate_model_probe", {}), ensure_ascii=True, sort_keys=True),
+                )
+            )
+        failures = dedupe_failure_records([*probe_failures, *acceptance_failure_records(acceptance_report)])
         report["classified_failures"] = failures
         report["classification_summary"] = classification_summary(failures)
-        report["status"] = "passed" if acceptance_report.get("status") == "passed" and not failures else "failed"
+        report["status"] = (
+            "passed"
+            if acceptance_report.get("status") == "passed"
+            and (config.skip_model_probe or report.get("candidate_model_probe", {}).get("status") == "passed")
+            and not failures
+            else "failed"
+        )
     except Exception as exc:  # noqa: BLE001
         record = failure_record("model_portability", f"{type(exc).__name__}: {exc}")
         report["errors"].append(record["message"])

@@ -11,6 +11,12 @@ from pathlib import Path
 from typing import Any
 
 from vllm_agent_gateway.acceptance.profiles import ReleaseGateProfile, release_gate_profile_values
+from vllm_agent_gateway.acceptance.runtime_state_hygiene import (
+    RuntimeStateHygieneConfig,
+    RuntimeStateHygieneStatus,
+    collect_runtime_state_hygiene_checks,
+    status_counts as runtime_state_status_counts,
+)
 from vllm_agent_gateway.acceptance.v1 import DEFAULT_TARGET_ROOTS, HEALTH_TARGETS
 
 
@@ -395,6 +401,36 @@ def stable_readiness_checks(
     ]
 
 
+def runtime_state_hygiene_release_check(config_root: Path) -> dict[str, Any]:
+    try:
+        hygiene_checks = collect_runtime_state_hygiene_checks(RuntimeStateHygieneConfig(config_root=config_root))
+    except Exception as exc:  # noqa: BLE001
+        return failed_check(
+            "runtime_state.hygiene",
+            f"Runtime-state hygiene could not be validated: {type(exc).__name__}: {exc}",
+            category="runtime_state",
+            next_action="Run scripts/check_runtime_state_hygiene.py and fix the failed repository hygiene condition.",
+        )
+    failed_ids = [item["id"] for item in hygiene_checks if item.get("status") == RuntimeStateHygieneStatus.FAILED.value]
+    return check(
+        "runtime_state.hygiene",
+        ReleaseChannelCheckStatus.PASSED if not failed_ids else ReleaseChannelCheckStatus.FAILED,
+        "Runtime-state generated reports are ignored and durable proof metadata is retained."
+        if not failed_ids
+        else "Runtime-state hygiene failed; release-channel validation cannot pass.",
+        category="runtime_state",
+        details={
+            "check_count": len(hygiene_checks),
+            "status_counts": runtime_state_status_counts(hygiene_checks),
+            "failed_check_ids": failed_ids,
+            "checks": hygiene_checks,
+        },
+        next_action=""
+        if not failed_ids
+        else "Run scripts/check_runtime_state_hygiene.py and fix tracked runtime-state files, ignore coverage, proof metadata, or docs links.",
+    )
+
+
 def validate_release_channels(config: ReleaseChannelValidationConfig) -> dict[str, Any]:
     config_root = config.config_root.resolve()
     manifest_path = resolve_manifest_path(config_root, config.manifest_path)
@@ -428,6 +464,7 @@ def validate_release_channels(config: ReleaseChannelValidationConfig) -> dict[st
                 release_candidate_report_path=config.release_candidate_report_path,
                 channel=config.channel,
             ),
+            runtime_state_hygiene_release_check(config_root),
         ]
     except Exception as exc:  # noqa: BLE001
         checks = [

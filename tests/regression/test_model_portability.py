@@ -106,6 +106,47 @@ def test_model_portability_offline_report_passes_when_v1_acceptance_passes(tmp_p
     assert output_path.exists()
 
 
+def test_model_portability_live_probe_failure_blocks_even_with_passing_acceptance(tmp_path: Path, monkeypatch) -> None:
+    acceptance_path = tmp_path / "acceptance.json"
+    output_path = tmp_path / "portability.json"
+    acceptance_path.write_text(
+        json.dumps(
+            {
+                "kind": "v1_acceptance_report",
+                "status": "passed",
+                "profile": "release-candidate",
+                "report_path": str(acceptance_path),
+                "target_roots": ["/mnt/c/coinbase_testing_repo_frozen_tmp"],
+                "suite_runs": [{"id": "representative_l1", "status": "passed"}],
+                "errors": [],
+                "founder_field_summary": {"status": "passed", "summary": {"passed": 34, "failed": 0}, "errors": []},
+                "skill_library_health": {"status": "passed"},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        "vllm_agent_gateway.acceptance.model_portability.probe_model_base_url",
+        lambda *_args, **_kwargs: {"status": "failed", "error": "connection refused", "model_ids": []},
+    )
+
+    report = run_model_portability(
+        ModelPortabilityConfig(
+            config_root=tmp_path,
+            candidate_id="probe-fail-candidate",
+            output_path=output_path,
+            acceptance_report_path=acceptance_path,
+            skip_live_acceptance=True,
+            skip_model_probe=False,
+        )
+    )
+
+    assert report["status"] == "failed"
+    assert report["classification_summary"][ModelPortabilityIssue.HARNESS.value] >= 1
+    assert any(record["source"] == "candidate_model_probe" for record in report["classified_failures"])
+
+
 def test_model_portability_offline_report_fails_with_classified_acceptance_miss(tmp_path: Path) -> None:
     acceptance_path = tmp_path / "acceptance.json"
     output_path = tmp_path / "portability.json"

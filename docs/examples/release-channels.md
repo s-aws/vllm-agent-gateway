@@ -49,12 +49,12 @@ The report profile should be `v1.1-release-candidate`.
 
 ## Prove Stable Readiness
 
-Run this before handing the stable channel to testers. The current stable activation proof is the Phase 90 V1.1 release-candidate report.
+Run this before handing the stable channel to testers. The current stable activation proof is committed under `runtime/release_proofs/` because `runtime-state/` is local-only.
 
 ```bash
 python3 scripts/validate_release_channels.py \
   --channel stable \
-  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json \
+  --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --output-path runtime-state/release-channels/stable-readiness.json
 ```
 
@@ -70,7 +70,7 @@ If the report fails, stop stable handoff and continue using `release-candidate` 
 
 ```bash
 python3 scripts/validate_stable_handoff.py \
-  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json \
+  --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
   --output-path runtime-state/stable-handoff/stable-smoke.json

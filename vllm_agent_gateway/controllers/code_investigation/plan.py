@@ -23,7 +23,10 @@ from vllm_agent_gateway.controllers.code_context.lookup import (
     utc_now,
     write_json,
 )
-from vllm_agent_gateway.controllers.natural_query import change_subject_queries_from_request
+from vllm_agent_gateway.controllers.natural_query import (
+    change_subject_queries_from_request,
+    configuration_queries_from_request,
+)
 from vllm_agent_gateway.controllers.verification import (
     controller_verification_commands,
     discover_related_tests_from_values,
@@ -37,6 +40,7 @@ DEFAULT_OUTPUT_DIR = "code-investigation"
 DEFAULT_MAX_RESULTS = 50
 DEFAULT_MAX_FILES = 10
 TABLE_ACCESS_SCAN_FILE_LIMIT = 500
+TABLE_ACCESS_SCAN_EXTENSIONS = {".go", ".js", ".jsx", ".py", ".sql", ".ts", ".tsx"}
 MAX_QUERY_COUNT = 8
 ALLOWED_CONTEXT_TOOLS = CODE_CONTEXT_ALLOWED_CONTEXT_TOOLS - {"codegraph_context"}
 IGNORED_SCAN_DIRS = {
@@ -248,6 +252,9 @@ def query_candidates(request: CodeInvestigationRequest, hints: list[dict[str, An
     candidates: list[str] = []
     if is_change_surface_summary_request(request.user_request):
         for query in change_subject_queries_from_request(request.user_request, limit=MAX_QUERY_COUNT):
+            append_unique(candidates, query, limit=MAX_QUERY_COUNT)
+    if is_configuration_lookup_request(request.user_request) or is_configuration_effect_summary_request(request.user_request):
+        for query in configuration_queries_from_request(request.user_request, limit=MAX_QUERY_COUNT):
             append_unique(candidates, query, limit=MAX_QUERY_COUNT)
     for query in request.queries:
         append_unique(candidates, query, limit=MAX_QUERY_COUNT)
@@ -1966,6 +1973,22 @@ def route_handler_records(matches: list[dict[str, Any]]) -> list[dict[str, Any]]
                 "source": match.get("source") or "bounded_investigation",
             }
         )
+    role_priority = {
+        "decorated_http_route": 0,
+        "websocket_message_handler": 0,
+        "documented_http_endpoint": 1,
+        "handler_reference": 2,
+        "route_or_handler_reference": 3,
+    }
+    handlers.sort(
+        key=lambda item: (
+            role_priority.get(str(item.get("role")), 9),
+            1 if str(item.get("path", "")).startswith("docs/") else 0,
+            1 if not str(item.get("path", "")).endswith(".py") else 0,
+            str(item.get("path", "")),
+            item.get("line") if isinstance(item.get("line"), int) else 0,
+        )
+    )
     return handlers[:20]
 
 
@@ -2259,6 +2282,21 @@ def table_schema_fields(target_root: Path, rel_path: str, table_name: str) -> li
     return fields[:80]
 
 
+def canonical_data_model_target(candidate: str) -> str:
+    words = re.findall(r"[A-Za-z_][A-Za-z0-9_]*", candidate)
+    leading_stop_words = {"a", "an", "the"}
+    trailing_stop_words = {"any", "fields", "gaps", "include", "model", "only", "read", "return", "source"}
+    while words and words[0].lower() in leading_stop_words:
+        words.pop(0)
+    while words and words[-1].lower() in trailing_stop_words:
+        words.pop()
+    if not words:
+        return candidate.strip()
+    if len(words) == 1:
+        return words[0]
+    return "_".join(word.lower() for word in words)
+
+
 def data_model_target_from_request(user_request: str, queries: list[str], fallback: str) -> str:
     text = re.sub(r"(?:/[^\s,]+|[A-Za-z]:\\[^\s,]+)", " ", user_request)
     normalized = re.sub(r"[^A-Za-z0-9_ ]+", " ", text)
@@ -2281,19 +2319,24 @@ def data_model_target_from_request(user_request: str, queries: list[str], fallba
         "an",
     }
     patterns = (
-        r"\bdatabase\s+schema\s+fields\s+(?:for|of)\s+([A-Za-z_][A-Za-z0-9_]*)\b",
-        r"\bschema\s+fields\s+(?:for|of)\s+([A-Za-z_][A-Za-z0-9_]*)\b",
-        r"\bfields\s+(?:for|of)\s+([A-Za-z_][A-Za-z0-9_]*)\b",
-        r"\b([A-Za-z_][A-Za-z0-9_]*)\s+table\s+schema\b",
-        r"\btable\s+schema\s+(?:for|of)\s+([A-Za-z_][A-Za-z0-9_]*)\b",
-        r"\b([A-Za-z_][A-Za-z0-9_]*)\s+database\s+schema\b",
-        r"\b([A-Za-z_][A-Za-z0-9_]*)\s+schema\b",
+        r"\bdatabase\s+schema\s+fields\s+(?:for|of)\s+([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\b",
+        r"\bschema\s+fields\s+(?:for|of)\s+([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\b",
+        r"\bfields\s+(?:for|of)\s+([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\b",
+        r"\bwhere\s+(?:the\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\s+table\b",
+        r"\bfind\s+where\s+(?:the\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\s+table\b",
+        r"\blocate\s+(?:the\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\s+table\b",
+        r"\b([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\s+table\s+(?:is\s+)?(?:defined|read|written|created|used)\b",
+        r"\b([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\s+table\s+schema\b",
+        r"\btable\s+schema\s+(?:for|of)\s+([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\b",
+        r"\btable\s+(?:for|of)\s+([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\b",
+        r"\b([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\s+database\s+schema\b",
+        r"\b([A-Za-z_][A-Za-z0-9_]*(?:\s+[A-Za-z_][A-Za-z0-9_]*)?)\s+schema\b",
     )
     for pattern in patterns:
         for match in re.finditer(pattern, normalized, re.IGNORECASE):
             candidate = match.group(1)
             if candidate.lower() not in skip:
-                return candidate
+                return canonical_data_model_target(candidate)
     for query in queries:
         candidate = query.strip()
         if candidate and "/" not in candidate and "\\" not in candidate and candidate.lower() not in skip:
@@ -2486,9 +2529,11 @@ def table_access_sites_from_files(
             if isinstance(path, str):
                 seen.add((path, line, role))
     scanned = 0
-    for path in sorted(target_root.rglob("*.py")):
+    for path in sorted(target_root.rglob("*")):
         if scanned >= max_files:
             break
+        if not path.is_file() or path.suffix.lower() not in TABLE_ACCESS_SCAN_EXTENSIONS:
+            continue
         try:
             rel_path = path.relative_to(target_root).as_posix()
         except ValueError:
@@ -2504,6 +2549,10 @@ def table_access_sites_from_files(
             continue
         for line_no, line in enumerate(lines, 1):
             role = table_access_role(line, table_name)
+            if role is None and table_name.lower() in line.lower():
+                context_start = max(0, line_no - 3)
+                context_end = min(len(lines), line_no + 2)
+                role = table_access_role(" ".join(lines[context_start:context_end]), table_name)
             if role is None:
                 continue
             key = (rel_path, line_no, role)

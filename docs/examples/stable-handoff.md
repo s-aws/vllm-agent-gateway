@@ -6,7 +6,7 @@
 cd /mnt/c/agentic_agents
 python3 scripts/validate_release_channels.py \
   --channel stable \
-  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json \
+  --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --output-path runtime-state/release-channels/stable-readiness.json
 ```
 
@@ -22,7 +22,7 @@ RELEASE CHANNEL PASS
 cd /mnt/c/agentic_agents
 export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
 python3 scripts/validate_stable_handoff.py \
-  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json \
+  --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \

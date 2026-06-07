@@ -86,11 +86,13 @@ Phase 55 validation ran against:
 - role ports `8101`, `8102`, `8201`, `8202`, `8203`, `8204`, and `8205`
 - AnythingLLM workspace API
 
-Latest V1.1 release-candidate report:
+Latest committed stable activation proof:
 
 ```text
-runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json
+runtime/release_proofs/v1-1-release-candidate-stable-proof.json
 ```
+
+The original full Phase 90 V1.1 acceptance report remains local-only under `runtime-state/v1-acceptance/` when present.
 
 Latest validation results:
 

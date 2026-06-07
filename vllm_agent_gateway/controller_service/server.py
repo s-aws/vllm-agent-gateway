@@ -1450,6 +1450,12 @@ def inline_artifact_by_kind(
     return None
 
 
+def promoted_inline_artifact_keys(kind: InlineArtifactKind) -> tuple[tuple[InlineArtifactKind, tuple[str, ...]], ...]:
+    selected = [item for item in INLINE_ARTIFACT_KEYS if item[0] == kind]
+    remainder = [item for item in INLINE_ARTIFACT_KEYS if item[0] != kind]
+    return tuple([*selected, *remainder])
+
+
 def artifact_json_by_key(artifacts: dict[str, Any], key: str) -> dict[str, Any] | None:
     return read_inline_artifact(artifacts.get(key))
 
@@ -1509,6 +1515,19 @@ def route_rules_from_route_decision(route_decision: dict[str, Any]) -> list[str]
         if isinstance(item, dict) and item.get("source") == "router_rule" and isinstance(item.get("rule"), str):
             rules.append(item["rule"])
     return rules
+
+
+def inline_artifact_keys_for_response(
+    response: dict[str, Any] | None,
+    artifacts: dict[str, Any],
+) -> tuple[tuple[InlineArtifactKind, tuple[str, ...]], ...]:
+    if not isinstance(response, dict):
+        return INLINE_ARTIFACT_KEYS
+    route_decision = artifact_json_by_key(artifacts, "route_decision") or {}
+    route_rules = set(route_rules_from_route_decision(route_decision))
+    if "l1_find_behavior_start_terms" in route_rules:
+        return promoted_inline_artifact_keys(InlineArtifactKind.INVESTIGATION_PLAN)
+    return INLINE_ARTIFACT_KEYS
 
 
 def workflow_description_from_decision(
@@ -3557,7 +3576,11 @@ def append_disposable_mutation_diff_answer(lines: list[str], artifact: dict[str,
     return True
 
 
-def append_inline_artifact_answer(lines: list[str], artifacts: dict[str, Any]) -> None:
+def append_inline_artifact_answer(
+    lines: list[str],
+    artifacts: dict[str, Any],
+    response: dict[str, Any] | None = None,
+) -> None:
     renderers = {
         InlineArtifactKind.CODE_EXPLANATION: append_code_explanation_answer,
         InlineArtifactKind.BEHAVIOR_EXISTENCE: append_behavior_existence_answer,
@@ -3600,7 +3623,7 @@ def append_inline_artifact_answer(lines: list[str], artifacts: dict[str, Any]) -
         InlineArtifactKind.SKILL_SCAFFOLD: append_skill_scaffold_answer,
         InlineArtifactKind.TASK_DECOMPOSITION: append_task_decomposition_answer,
     }
-    for kind, _keys in INLINE_ARTIFACT_KEYS:
+    for kind, _keys in inline_artifact_keys_for_response(response, artifacts):
         artifact = inline_artifact_by_kind(artifacts, kind)
         if artifact is None:
             continue
@@ -3724,7 +3747,7 @@ def assistant_content_format_a(response: dict[str, Any]) -> str:
     append_context_source_summary_lines(lines, response)
     append_summary_lines(lines, response.get("summary"))
     append_approval_state_lines(lines, response.get("summary"))
-    append_inline_artifact_answer(lines, artifacts)
+    append_inline_artifact_answer(lines, artifacts, response)
     append_artifact_lines(lines, artifacts)
     if response.get("run_lookup"):
         lines.append("")
@@ -4158,16 +4181,41 @@ def infer_workflow_router_mode(user_request: str) -> str:
         "inspect",
         "look up",
         "find",
+        "explain",
+        "what does",
+        "what is",
+        "where is",
+        "where are",
+        "which script",
+        "which file",
+        "which tests",
+        "summarize",
+        "map the",
+        "compare",
+        "identify the change surface",
         "start at",
         "beginning point",
         "diagnose",
         "root cause",
         "why did",
         "why does",
+        "source refs",
+        "references",
+        "return value",
+        "side effects",
+        "related tests",
+        "stop before implementation",
         "read-only",
         "read only",
         "do not edit",
+        "do not change",
         "do not mutate",
+        "don't edit",
+        "don't change",
+        "don't mutate",
+        "without editing",
+        "without changing",
+        "without mutating",
     }
     if any(term in text for term in read_only_terms):
         return "execute_read_only"
@@ -7775,9 +7823,11 @@ class ControllerRequestHandler(BaseHTTPRequestHandler):
         self.send_response(int(status))
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(data)))
+        self.send_header("Connection", "close")
         self.end_headers()
         self.wfile.write(data)
         self.wfile.flush()
+        self.close_connection = True
 
     def write_chat_completion_stream(self, value: dict[str, Any]) -> None:
         lines: list[bytes] = []

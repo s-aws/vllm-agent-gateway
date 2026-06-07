@@ -38,12 +38,16 @@
         "README.external-tester-onboarding.md",
         "README.first-time-user-doctor.md",
         "README.release-channels.md",
+        "README.runtime-state.md",
+        "README.release-adherence.md",
         "README.security-policy.md",
         "README.skill-regression-tiers.md"
       ],
       "required_examples": [
         "docs/examples/external-tester-onboarding.md",
         "docs/examples/release-channels.md",
+        "docs/examples/runtime-state.md",
+        "docs/examples/release-adherence.md",
         "docs/examples/security-policy.md"
       ],
       "required_runtime_files": [
@@ -127,6 +131,8 @@
         "README.external-tester-onboarding.md",
         "README.first-time-user-doctor.md",
         "README.release-channels.md",
+        "README.runtime-state.md",
+        "README.release-adherence.md",
         "README.security-policy.md",
         "README.workflow-router.md",
         "README.observability.md",
@@ -135,6 +141,8 @@
       "required_examples": [
         "docs/examples/external-tester-onboarding.md",
         "docs/examples/release-channels.md",
+        "docs/examples/runtime-state.md",
+        "docs/examples/release-adherence.md",
         "docs/examples/security-policy.md",
         "docs/examples/workflow-router.md",
         "docs/examples/observability.md"
@@ -195,7 +203,7 @@
       "stable_readiness": {
         "activated_at": "2026-06-06",
         "activated_by": "founder_approved_phase_91",
-        "activated_from_report": "runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json",
+        "activated_from_report": "runtime/release_proofs/v1-1-release-candidate-stable-proof.json",
         "activated_profile": "v1.1-release-candidate",
         "known_boundary": "Stable covers current L1/L2 tester workflows, setup, security, feedback, observability, and disposable-copy apply proof. Advanced broad refactor orchestration remains deferred."
       },
@@ -227,6 +235,8 @@
         "README.external-tester-onboarding.md",
         "README.first-time-user-doctor.md",
         "README.release-channels.md",
+        "README.runtime-state.md",
+        "README.release-adherence.md",
         "README.security-policy.md",
         "README.stable-handoff.md",
         "README.workflow-router.md",
@@ -236,6 +246,8 @@
       "required_examples": [
         "docs/examples/external-tester-onboarding.md",
         "docs/examples/release-channels.md",
+        "docs/examples/runtime-state.md",
+        "docs/examples/release-adherence.md",
         "docs/examples/security-policy.md",
         "docs/examples/stable-handoff.md",
         "docs/examples/workflow-router.md",

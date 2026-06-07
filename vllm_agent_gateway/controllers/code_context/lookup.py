@@ -26,6 +26,7 @@ SCHEMA_VERSION = 1
 DEFAULT_OUTPUT_DIR = "code-context"
 DEFAULT_MAX_RESULTS = 25
 DEFAULT_MAX_FILES = 5
+DEFAULT_GREP_MAX_MATCHES_PER_FILE = 3
 DEFAULT_CONTEXT_TOOLS = ["structure_index", "git_grep", "read_file"]
 ALLOWED_CONTEXT_TOOLS = {"structure_index", "git_grep", "read_file", "codegraph_context"}
 FORBIDDEN_CONTEXT_TERMS = {
@@ -220,9 +221,16 @@ def target_is_git_toplevel(target_root: Path) -> bool:
         return False
 
 
-def scan_exact_matches(target_root: Path, query: str, max_results: int) -> list[dict[str, Any]]:
+def scan_exact_matches(
+    target_root: Path,
+    query: str,
+    max_results: int,
+    *,
+    max_matches_per_file: int = DEFAULT_GREP_MAX_MATCHES_PER_FILE,
+) -> list[dict[str, Any]]:
     matches: list[dict[str, Any]] = []
     root = target_root.resolve()
+    path_match_counts: dict[str, int] = {}
     for current_root, dirnames, filenames in os.walk(root):
         dirnames[:] = [
             name
@@ -243,7 +251,10 @@ def scan_exact_matches(target_root: Path, query: str, max_results: int) -> list[
                 continue
             for line_no, line in enumerate(text.splitlines(), 1):
                 if query in line:
+                    if path_match_counts.get(rel_path, 0) >= max_matches_per_file:
+                        continue
                     matches.append({"path": rel_path, "line": line_no, "text": line[:500], "source": "scan_files"})
+                    path_match_counts[rel_path] = path_match_counts.get(rel_path, 0) + 1
                     if len(matches) >= max_results:
                         return matches
     return matches
@@ -268,6 +279,7 @@ def run_git_grep(target_root: Path, query: str, max_results: int) -> tuple[list[
             {"source": "git_grep", "reason": "git_grep_failed", "detail": result.stderr, "fallback": "scan_files"}
         ]
     matches: list[dict[str, Any]] = []
+    path_match_counts: dict[str, int] = {}
     for line in result.stdout.splitlines():
         if not line:
             continue
@@ -275,11 +287,14 @@ def run_git_grep(target_root: Path, query: str, max_results: int) -> tuple[list[
         if len(parts) != 3:
             continue
         path, line_no, text = parts
+        if path_match_counts.get(path, 0) >= DEFAULT_GREP_MAX_MATCHES_PER_FILE:
+            continue
         try:
             parsed_line = int(line_no)
         except ValueError:
             parsed_line = None
         matches.append({"path": path, "line": parsed_line, "text": text[:500], "source": "git_grep"})
+        path_match_counts[path] = path_match_counts.get(path, 0) + 1
         if len(matches) >= max_results:
             break
     return matches, []
@@ -438,7 +453,10 @@ def dependency_lookup_requested(request: CodeContextLookupRequest) -> bool:
     if any(item.get("kind") == "imports" for item in request.relationship_queries):
         return True
     lowered = request.query.lower()
-    return any(term in lowered for term in ("imports", "importers", "dependencies", "depends on", "module dependency"))
+    return any(
+        term in lowered
+        for term in ("imports", "importers", "dependencies", "depends on", "depend on", "module dependency")
+    )
 
 
 def dependency_target(request: CodeContextLookupRequest, paths: list[str]) -> str:

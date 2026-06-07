@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--extract-root", default=None)
     parser.add_argument("--refresh-extract", action="store_true")
     parser.add_argument("--npx-command", default=None)
-    parser.add_argument("--browser-channel", default="chrome")
+    parser.add_argument("--browser-channel", default="")
     parser.add_argument("--timeout-seconds", type=int, default=420)
     parser.add_argument("--static-port", type=int, default=None)
     return parser.parse_args()

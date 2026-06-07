@@ -28,7 +28,7 @@ from vllm_agent_gateway.acceptance.v1 import (
 
 
 SCHEMA_VERSION = 1
-DEFAULT_RELEASE_CANDIDATE_REPORT_PATH = Path("runtime-state") / "v1-acceptance" / "phase90-v1-1-acceptance-final.json"
+DEFAULT_RELEASE_CANDIDATE_REPORT_PATH = Path("runtime") / "release_proofs" / "v1-1-release-candidate-stable-proof.json"
 DEFAULT_REPORT_DIR = Path("runtime-state") / "stable-handoff"
 ONBOARDING_SMOKE_CASE_ID = "ONB-001"
 

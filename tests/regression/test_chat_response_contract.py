@@ -201,6 +201,78 @@ def test_format_a_contract_renders_result_answer_before_artifacts(tmp_path: Path
     assert content.strip().splitlines()[0] != "Artifacts:"
 
 
+def test_format_a_behavior_start_prefers_investigation_plan_over_cli_lookup(tmp_path: Path) -> None:
+    route_decision_path = tmp_path / "route-decision.json"
+    cli_lookup_path = tmp_path / "cli-entrypoint-lookup.json"
+    investigation_plan_path = tmp_path / "investigation-plan.json"
+    write_json(
+        route_decision_path,
+        {
+            "kind": "workflow_route_decision",
+            "selected_workflow": "code_investigation.plan",
+            "evidence": [{"source": "router_rule", "rule": "l1_find_behavior_start_terms"}],
+        },
+    )
+    write_json(
+        cli_lookup_path,
+        {
+            "kind": "cli_entrypoint_lookup",
+            "status": "ready",
+            "target": "placed_order_id",
+            "entrypoints": [
+                {"path": "main.py", "line": 65, "kind": "python_main_guard", "command": ["python", "main.py"]}
+            ],
+            "mutation_policy": "read_only_no_source_mutation",
+        },
+    )
+    write_json(
+        investigation_plan_path,
+        {
+            "kind": "code_investigation_plan",
+            "status": "ready",
+            "likely_beginning_point": {
+                "path": "core/stealth_order_manager.py",
+                "line": 4169,
+                "reason": "First source point with bounded exact-text evidence.",
+            },
+            "related_tests": [{"path": "tests/unit/test_order_id_and_followup_rules.py", "line": 8}],
+            "verification_plan": {
+                "verification_commands": [
+                    {
+                        "command": [
+                            "python",
+                            "-m",
+                            "pytest",
+                            "tests/unit/test_order_id_and_followup_rules.py",
+                        ]
+                    }
+                ]
+            },
+        },
+    )
+    response = {
+        "run_id": "workflow-router-behavior-start",
+        "workflow": "workflow_router.plan",
+        "status": "completed",
+        "summary": {"selected_workflow": "code_investigation.plan", "downstream_status": "completed"},
+        "artifacts": {
+            "route_decision": str(route_decision_path),
+            "downstream_cli_entrypoint_lookup": str(cli_lookup_path),
+            "downstream_investigation_plan": str(investigation_plan_path),
+        },
+        "warning_count": 0,
+        "failure_count": 0,
+    }
+
+    content = assistant_content_for_controller_response(response, ControllerOutputFormat.FORMAT_A)
+
+    assert "Answer:" in content
+    assert "- Beginning point: core/stealth_order_manager.py:4169" in content
+    assert "- Related tests: tests/unit/test_order_id_and_followup_rules.py:8" in content
+    assert "- Recommended commands: python -m pytest tests/unit/test_order_id_and_followup_rules.py" in content
+    assert "- Entrypoints:" not in content
+
+
 def test_json_output_includes_same_chat_contract(tmp_path: Path) -> None:
     rendered = assistant_content_for_controller_response(
         response_with_code_explanation(tmp_path),

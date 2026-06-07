@@ -31,6 +31,20 @@ def _identifier_variant(value: str) -> str | None:
     return "_".join(word.lower() for word in words)
 
 
+def _change_subject_query_variants(subject: str) -> list[str]:
+    words = re.findall(r"[A-Za-z0-9_]+", subject)
+    variants: list[str] = []
+    for word in words:
+        if "_" in word and word not in variants:
+            variants.append(word)
+    identifier = _identifier_variant(subject)
+    if identifier and identifier not in variants:
+        variants.append(identifier)
+    if subject and subject not in variants:
+        variants.append(subject)
+    return variants
+
+
 def change_subject_queries_from_request(user_request: str, *, limit: int = 4) -> list[str]:
     """Extract concrete behavior terms from change-boundary prompts.
 
@@ -55,10 +69,19 @@ def change_subject_queries_from_request(user_request: str, *, limit: int = 4) ->
             lowered = subject.lower()
             if "change surface" in lowered or "change boundary" in lowered or "files to touch" in lowered:
                 continue
-            identifier = _identifier_variant(subject)
-            for value in (identifier, subject):
+            for value in _change_subject_query_variants(subject):
                 if value and value not in candidates:
                     candidates.append(value)
                     if len(candidates) >= limit:
                         return candidates
+    return candidates[:limit]
+
+
+def configuration_queries_from_request(user_request: str, *, limit: int = 4) -> list[str]:
+    """Extract concrete configuration identifiers from natural config wording."""
+
+    query_source = strip_filesystem_paths(user_request)
+    candidates: list[str] = []
+    if re.search(r"\bcoinbase\s+api\s+key\b", query_source, flags=re.I):
+        candidates.append("COINBASE_API_KEY")
     return candidates[:limit]

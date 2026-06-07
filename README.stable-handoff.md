@@ -7,7 +7,8 @@ Use this handoff only for the current product surface: natural-language L1/L2 re
 ## What Stable Means
 
 - `runtime/release_channels.json` marks `stable` as `active`.
-- Stable activation points at `runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json`.
+- Stable activation points at the committed proof `runtime/release_proofs/v1-1-release-candidate-stable-proof.json`.
+- Generated `runtime-state/` reports are local-only; committed proof metadata is the clean-clone source of truth.
 - The activation report is a passed `v1_acceptance_report` with profile `v1.1-release-candidate`.
 - First-time testers still use AnythingLLM pointed at `http://127.0.0.1:8500/v1`.
 - The stable smoke command reruns setup, release-channel validation, security policy, one live onboarding prompt, feedback capture, and protected-fixture checks.
@@ -35,7 +36,7 @@ Run from Bash:
 cd /mnt/c/agentic_agents
 export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
 python3 scripts/validate_stable_handoff.py \
-  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json \
+  --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
@@ -105,7 +106,7 @@ Then rerun:
 ```bash
 python3 scripts/run_first_time_user_doctor.py
 python3 scripts/validate_stable_handoff.py \
-  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json
+  --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json
 ```
 
 If protected fixture state changes, do not run more live tests until fixture hashes and git status are inspected.

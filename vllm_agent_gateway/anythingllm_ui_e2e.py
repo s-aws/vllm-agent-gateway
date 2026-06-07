@@ -9,6 +9,7 @@ import os
 import shutil
 import socket
 import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -18,7 +19,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from vllm_agent_gateway.run_inspector import mnt_path_to_windows
+from vllm_agent_gateway.run_inspector import mnt_path_to_windows, resolved_existing_path
 
 
 DEFAULT_ANYTHINGLLM_API_BASE_URL = "http://127.0.0.1:3001"
@@ -70,9 +71,61 @@ class AnythingLLMUiE2EConfig:
     extract_root: Path | None = None
     refresh_extract: bool = False
     npx_command: str | None = None
-    browser_channel: str = "chrome"
+    browser_channel: str = ""
     timeout_seconds: int = 420
     static_port: int | None = None
+
+
+@dataclass(frozen=True)
+class UiPromptCase:
+    case_id: str
+    name: str
+    required_markers: tuple[str, ...]
+    rejected_markers: tuple[str, ...]
+    prompt_template: str
+
+    def prompt(self, target_root: str, tag: str) -> str:
+        return self.prompt_template.format(target_root=target_root, tag=tag)
+
+
+UI_PROMPT_CASES: tuple[UiPromptCase, ...] = (
+    UiPromptCase(
+        case_id="L1-001",
+        name="Find Where Behavior Starts",
+        required_markers=(
+            "Beginning point:",
+            "Related tests:",
+            "Recommended commands:",
+        ),
+        rejected_markers=(
+            "Entrypoints:",
+            "python main.py",
+        ),
+        prompt_template=(
+            "In {target_root}, find where the placed_order_id stealth lookup begins. "
+            "Read only. Return the entrypoint, evidence files, related tests, and confidence. "
+            "Tracking tag: {tag}"
+        ),
+    ),
+    UiPromptCase(
+        case_id="L1-002",
+        name="Explain A Function Or File",
+        required_markers=(
+            "StealthOrderManager.find_stealth_order_by_placed_order_id",
+            "Inputs:",
+            "placed_order_id",
+            "Outputs:",
+            "Side effects:",
+            "Related tests:",
+        ),
+        rejected_markers=(),
+        prompt_template=(
+            "In {target_root}, explain what find_stealth_order_by_placed_order_id does "
+            "in core/stealth_order_manager.py. Read only. Include key inputs, outputs, "
+            "side effects, and tests. Tracking tag: {tag}"
+        ),
+    ),
+)
 
 
 def utc_timestamp() -> str:
@@ -113,6 +166,9 @@ def json_request(
 
 
 def host_path(path_value: str) -> Path:
+    existing = resolved_existing_path(path_value)
+    if existing is not None:
+        return existing
     converted = mnt_path_to_windows(path_value)
     if converted is not None:
         return converted
@@ -189,14 +245,24 @@ def anythingllm_preflight(config: AnythingLLMUiE2EConfig, api_key: str) -> dict[
 def default_app_asar_path() -> Path:
     local_app_data = os.environ.get("LOCALAPPDATA")
     if not local_app_data:
-        return Path("C:/Users") / os.environ.get("USERNAME", "") / "AppData/Local/Programs/AnythingLLM/resources/app.asar"
+        username = os.environ.get("USERNAME") or os.environ.get("USER") or ""
+        candidates: list[Path] = []
+        if username:
+            candidates.append(Path("C:/Users") / username / "AppData/Local/Programs/AnythingLLM/resources/app.asar")
+            candidates.append(Path("/mnt/c/Users") / username / "AppData/Local/Programs/AnythingLLM/resources/app.asar")
+        candidates.extend(sorted(Path("/mnt/c/Users").glob("*/AppData/Local/Programs/AnythingLLM/resources/app.asar")))
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        return candidates[0] if candidates else Path("C:/Users") / username / "AppData/Local/Programs/AnythingLLM/resources/app.asar"
     return Path(local_app_data) / "Programs" / "AnythingLLM" / "resources" / "app.asar"
 
 
 def find_npx_command(explicit: str | None = None) -> str:
     if explicit:
         return explicit
-    for candidate in ("npx.cmd", "npx"):
+    candidates = ("npx.cmd", "npx") if os.name == "nt" else ("npx",)
+    for candidate in candidates:
         resolved = shutil.which(candidate)
         if resolved:
             return resolved
@@ -222,7 +288,8 @@ def resolve_ui_dist_root(config: AnythingLLMUiE2EConfig) -> Path:
         shutil.rmtree(extract_root)
     extract_root.parent.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
-    env["NODE_OPTIONS"] = "--use-system-ca"
+    if os.name == "nt":
+        env["NODE_OPTIONS"] = "--use-system-ca"
     command = [find_npx_command(config.npx_command), "--yes", "asar", "extract", str(app_asar), str(extract_root)]
     result = subprocess.run(command, check=False, capture_output=True, text=True, env=env)
     if result.returncode != 0:
@@ -255,21 +322,18 @@ def wait_for_http(url: str, timeout_seconds: int) -> None:
     raise RuntimeError(f"static UI server did not become ready at {url}: {last_error}")
 
 
-def start_static_server(dist_root: Path, *, port: int, npx_command: str) -> subprocess.Popen[str]:
+def start_static_server(dist_root: Path, *, port: int) -> subprocess.Popen[str]:
     env = os.environ.copy()
     env["NODE_OPTIONS"] = "--use-system-ca"
     command = [
-        npx_command,
-        "--yes",
-        "http-server",
-        str(dist_root),
-        "-p",
+        sys.executable,
+        "-m",
+        "http.server",
         str(port),
-        "-a",
+        "--bind",
         "127.0.0.1",
-        "--cors",
-        "-c-1",
-        "--silent",
+        "--directory",
+        str(dist_root),
     ]
     return subprocess.Popen(
         command,
@@ -387,11 +451,7 @@ def tracking_tag(target_root: str) -> str:
 
 
 def prompt_for_target(target_root: str, tag: str) -> str:
-    return (
-        f"In {target_root}, find where the placed_order_id stealth lookup begins. "
-        "Read only. Return the entrypoint, evidence files, related tests, and confidence. "
-        f"Tracking tag: {tag}"
-    )
+    return UI_PROMPT_CASES[0].prompt(target_root, tag)
 
 
 def segment_after_new_tag(text: str, tag: str, minimum_index: int) -> str:
@@ -410,7 +470,33 @@ def ui_case_passed(case: dict[str, Any], markers: tuple[str, ...] = DEFAULT_MARK
     hits = case.get("marker_hits_after_tag")
     if not isinstance(hits, dict):
         return False
-    return all(bool(hits.get(marker)) for marker in markers) and bool(case.get("stream_chat_seen"))
+    if not all(bool(hits.get(marker)) for marker in markers):
+        return False
+    semantic_hits = case.get("semantic_marker_hits_after_tag")
+    if isinstance(semantic_hits, dict) and not all(bool(value) for value in semantic_hits.values()):
+        return False
+    rejected_hits = case.get("rejected_marker_hits_after_tag")
+    if isinstance(rejected_hits, dict) and any(bool(value) for value in rejected_hits.values()):
+        return False
+    return bool(case.get("stream_chat_seen"))
+
+
+def semantic_status_for_segment(segment: str, case: UiPromptCase) -> dict[str, Any]:
+    required_hits = marker_hits(segment, case.required_markers)
+    rejected_hits = marker_hits(segment, case.rejected_markers)
+    missing_required = [marker for marker, present in required_hits.items() if not present]
+    rejected_present = [marker for marker, present in rejected_hits.items() if present]
+    return {
+        "semantic_status": AnythingLLMUiE2EStatus.PASSED.value
+        if not missing_required and not rejected_present
+        else AnythingLLMUiE2EStatus.FAILED.value,
+        "required_markers": list(case.required_markers),
+        "semantic_marker_hits_after_tag": required_hits,
+        "missing_required_markers": missing_required,
+        "rejected_markers": list(case.rejected_markers),
+        "rejected_marker_hits_after_tag": rejected_hits,
+        "rejected_markers_present": rejected_present,
+    }
 
 
 def non_ignored_request_failures(failures: list[dict[str, str]]) -> list[dict[str, str]]:
@@ -444,12 +530,13 @@ def run_browser_case(
     page: Any,
     workspace: str,
     target_root: str,
+    case: UiPromptCase,
     tag: str,
     static_origin: str,
     screenshot_dir: Path,
     timeout_seconds: int,
 ) -> dict[str, Any]:
-    prompt = prompt_for_target(target_root, tag)
+    prompt = case.prompt(target_root, tag)
     ui_url = f"{static_origin}/#/workspace/{workspace}"
     page.goto(ui_url, wait_until="load", timeout=60_000)
     page.wait_for_selector("textarea", timeout=60_000)
@@ -472,15 +559,20 @@ def run_browser_case(
     snapshots: list[dict[str, Any]] = []
     latest_segment = ""
     latest_hits = marker_hits("")
+    latest_semantic_status = semantic_status_for_segment("", case)
     while time.time() < deadline:
         text = body_text(page)
         latest_segment = segment_after_new_tag(text, tag, len(initial_text))
         latest_hits = marker_hits(latest_segment)
+        latest_semantic_status = semantic_status_for_segment(latest_segment, case)
         snapshots.append(
             {
                 "elapsed_seconds": int(timeout_seconds - max(0, deadline - time.time())),
                 "segment_length": len(latest_segment),
                 "marker_hits_after_tag": latest_hits,
+                "semantic_marker_hits_after_tag": latest_semantic_status["semantic_marker_hits_after_tag"],
+                "missing_required_markers": latest_semantic_status["missing_required_markers"],
+                "rejected_markers_present": latest_semantic_status["rejected_markers_present"],
                 "segment_tail": latest_segment[-1200:],
             }
         )
@@ -490,7 +582,11 @@ def run_browser_case(
             and int(item.get("status", 0)) == 200
             for item in responses
         )
-        if all(latest_hits.values()) and stream_chat_seen:
+        if (
+            all(latest_hits.values())
+            and latest_semantic_status["semantic_status"] == AnythingLLMUiE2EStatus.PASSED.value
+            and stream_chat_seen
+        ):
             break
         time.sleep(5)
 
@@ -502,13 +598,20 @@ def run_browser_case(
         for item in responses
     )
     result = {
+        "case_id": case.case_id,
+        "case_name": case.name,
         "target_root": target_root,
         "tracking_tag": tag,
         "prompt": prompt,
         "status": AnythingLLMUiE2EStatus.PASSED.value
-        if all(latest_hits.values()) and stream_chat_seen
+        if (
+            all(latest_hits.values())
+            and latest_semantic_status["semantic_status"] == AnythingLLMUiE2EStatus.PASSED.value
+            and stream_chat_seen
+        )
         else AnythingLLMUiE2EStatus.FAILED.value,
         "marker_hits_after_tag": latest_hits,
+        **latest_semantic_status,
         "stream_chat_seen": stream_chat_seen,
         "stream_chat_response_count": sum(1 for item in responses if "/stream-chat" in str(item.get("url", ""))),
         "segment_after_tag_tail": latest_segment[-8000:],
@@ -541,7 +644,10 @@ def run_browser_validation(
     responses: list[dict[str, Any]] = []
 
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(channel=config.browser_channel, headless=True)
+        launch_options: dict[str, Any] = {"headless": True}
+        if config.browser_channel:
+            launch_options["channel"] = config.browser_channel
+        browser = playwright.chromium.launch(**launch_options)
         context = browser.new_context(viewport={"width": 1440, "height": 1000})
         context._phase71_responses = responses  # type: ignore[attr-defined]
         context.add_init_script(build_electron_require_shim(config.anythingllm_api_base_url))
@@ -572,17 +678,19 @@ def run_browser_validation(
         )
 
         for target_root in config.target_roots:
-            cases.append(
-                run_browser_case(
-                    page=page,
-                    workspace=config.workspace,
-                    target_root=target_root,
-                    tag=tracking_tag(target_root),
-                    static_origin=static_origin,
-                    screenshot_dir=screenshot_dir,
-                    timeout_seconds=config.timeout_seconds,
+            for case in UI_PROMPT_CASES:
+                cases.append(
+                    run_browser_case(
+                        page=page,
+                        workspace=config.workspace,
+                        target_root=target_root,
+                        case=case,
+                        tag=tracking_tag(f"{target_root}-{case.case_id}"),
+                        static_origin=static_origin,
+                        screenshot_dir=screenshot_dir,
+                        timeout_seconds=config.timeout_seconds,
+                    )
                 )
-            )
         browser.close()
 
     ignored_failures = ignored_request_failures(request_failures)
@@ -636,8 +744,7 @@ def run_anythingllm_ui_e2e(config: AnythingLLMUiE2EConfig) -> dict[str, Any]:
 
         dist_root = resolve_ui_dist_root(config)
         port = config.static_port or free_port()
-        npx_command = find_npx_command(config.npx_command)
-        server = start_static_server(dist_root, port=port, npx_command=npx_command)
+        server = start_static_server(dist_root, port=port)
         wait_for_http(f"http://127.0.0.1:{port}/", timeout_seconds=30)
 
         mimetypes.add_type("application/javascript", ".js")

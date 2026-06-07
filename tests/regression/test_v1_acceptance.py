@@ -6,6 +6,7 @@ from pathlib import Path
 from vllm_agent_gateway.acceptance.v1 import (
     V1AcceptanceConfig,
     acceptance_failure_guidance,
+    execute_suite_commands,
     founder_field_summary_from_suites,
     require_feedback_record_context,
     run_id_from_text,
@@ -99,6 +100,27 @@ def test_v1_1_acceptance_suite_commands_cover_consolidated_release_gate() -> Non
     assert "v1.1-release-candidate" in by_id["skill_library_release_gate"]
     assert by_id["first_time_user_doctor"].count("--target-root") == 2
     assert by_id["skill_library_release_gate"].count("--target-root") == 2
+
+
+def test_v1_acceptance_suite_command_results_include_duration(monkeypatch) -> None:
+    class Result:
+        returncode = 0
+        stdout = "ok"
+        stderr = ""
+
+    monkeypatch.setattr(v1_acceptance.subprocess, "run", lambda *_args, **_kwargs: Result())
+
+    results = execute_suite_commands(
+        V1AcceptanceConfig(
+            config_root=REPO_ROOT,
+            target_roots=("/mnt/c/coinbase_testing_repo_frozen_tmp",),
+            command_timeout_seconds=1,
+            python_executable="python3",
+        )
+    )
+
+    assert results
+    assert all(item["duration_seconds"] >= 0 for item in results)
 
 
 def test_v1_acceptance_run_id_from_text_extracts_workflow_router_id() -> None:

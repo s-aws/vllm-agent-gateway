@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 import uuid
@@ -447,6 +448,7 @@ def suite_commands(config: V1AcceptanceConfig) -> list[dict[str, Any]]:
 def execute_suite_commands(config: V1AcceptanceConfig) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     for item in suite_commands(config):
+        started_at = time.monotonic()
         result = subprocess.run(
             item["command"],
             check=False,
@@ -454,11 +456,13 @@ def execute_suite_commands(config: V1AcceptanceConfig) -> list[dict[str, Any]]:
             text=True,
             timeout=config.command_timeout_seconds,
         )
+        duration_seconds = time.monotonic() - started_at
         results.append(
             {
                 **item,
                 "status": "passed" if result.returncode == 0 else "failed",
                 "returncode": result.returncode,
+                "duration_seconds": duration_seconds,
                 "stdout_tail": result.stdout[-4000:],
                 "stderr_tail": result.stderr[-4000:],
             }
