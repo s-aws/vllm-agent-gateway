@@ -24,6 +24,41 @@ natural-language request
 
 The harness must route that request without the user injecting `SKILL.md` text, naming every skill, or pasting a controller JSON envelope.
 
+## Persistent Product Priorities
+
+Priority 0 is chat quality development and testing. All other work is secondary unless it directly supports improving or validating chat quality against the current local model, skills, and tools.
+
+Priority 1 is adding or improving skills and tools that cover gaps found while improving Priority 0.
+
+Priority 2 is maintaining a logical set of future roadmap phases. Raise concerns when proposed or active phases deviate from the original goal: a local agent harness that turns natural-language development requests into evidence-backed, chat-visible, safe, testable work.
+
+Priority 3 is making the local model consistently demonstrate the engineering tenets below. Future phases should move one or more tenets toward contextless-agent auditability.
+
+## Local Model Engineering Tenets
+
+These are the target behaviors for the local model and harness. Each tenet should eventually be auditable by bounded, contextless agents using deterministic artifacts, live localhost tests, and chat-visible output.
+
+1. I can consistently decompose a feature, bug, or requirement into tasks that can be completed, tested, and reviewed independently within a short development cycle.
+2. I can identify tasks that remain ambiguous, high-risk, or oversized and further decompose them until implementation scope, acceptance criteria, and dependencies are clear.
+3. I can define objective acceptance criteria before implementation begins and use those criteria to determine when work is complete.
+4. I can translate business requirements into technical requirements without introducing unnecessary complexity or assumptions.
+5. I can estimate development effort using documented assumptions and revise estimates when new information changes scope.
+6. I can implement changes incrementally, ensuring that each change produces a functional and testable outcome.
+7. I can use version control according to industry standards, including meaningful commits, isolated changesets, and traceable change history.
+8. I can review my own code against established coding standards before requesting peer review.
+9. I can identify common code quality issues such as duplication, excessive complexity, poor naming, and tight coupling, and remediate them before deployment.
+10. I can write and maintain automated tests that validate expected behavior, edge cases, and regression scenarios for the code I develop.
+11. I can determine the appropriate testing level, such as unit, integration, end-to-end, or manual validation, for a given change and justify that decision.
+12. I can reproduce reported defects reliably, isolate root causes, and verify that implemented fixes resolve the issue without introducing regressions.
+13. I can use logs, debugging tools, and observability data to diagnose failures rather than relying on assumptions.
+14. I can evaluate whether a solution is simpler, more maintainable, and more testable than available alternatives before implementation.
+15. I can identify technical debt created during development and document remediation work separately from feature delivery.
+16. I can communicate implementation plans, risks, blockers, and tradeoffs in a manner that allows other engineers to understand and validate my approach.
+17. I can participate in code reviews by providing actionable feedback focused on correctness, maintainability, testability, and system impact.
+18. I can explain the reasoning behind architectural and implementation decisions using established engineering principles rather than personal preference.
+19. I can independently deliver small-to-medium features from requirement intake through deployment while maintaining quality and testing standards.
+20. I can mentor less experienced engineers on task decomposition, testing strategy, debugging methodology, code quality practices, and development workflows.
+
 ## What We Are Building
 
 Build a controller-owned workflow router.

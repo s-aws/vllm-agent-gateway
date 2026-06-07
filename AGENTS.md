@@ -17,6 +17,16 @@ Read `docs/ACTIONABLE_WORKFLOW_ROADMAP.md` first. It is the source of truth when
 
 Always work the lowest-numbered incomplete roadmap phase unless the user explicitly changes scope. Scope expansion requires founder approval and a roadmap update before implementation.
 
+## Persistent Project Memory
+
+Priority 0 is chat quality development and testing. All other work is secondary unless it directly supports improving or validating chat quality against the current local model, skills, and tools.
+
+Priority 1 is adding or improving skills and tools that cover gaps found while improving Priority 0.
+
+Priority 2 is maintaining a logical set of future roadmap phases and raising concerns when a phase deviates from the original product goal.
+
+Priority 3 is making the local model consistently demonstrate the engineering tenets listed in the canonical roadmap. Future phases should move one or more tenets toward contextless-agent auditability.
+
 ## Structured Development Rule
 
 For every non-trivial change, follow this cycle and document the result:
