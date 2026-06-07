@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "kind": "bounded_recursive_blind_testing_policy",
+  "policy_id": "bounded-recursive-blind-testing-v1",
+  "version": "0.1.0",
+  "owner": "agentic_agents",
+  "purpose": "Use fresh no-context blind evaluators to find usability, routing, answer-quality, setup, safety, capability, and roadmap-drift issues, then accept or reject each finding with evidence before rerunning live validation.",
+  "context_policy": {
+    "fresh_agent_each_round": true,
+    "fork_context": false,
+    "session_history_allowed": false,
+    "allowed_inputs": [
+      "current repository files",
+      "explicit prompt text",
+      "selected validation artifacts",
+      "selected AnythingLLM chat transcripts",
+      "current roadmap excerpts",
+      "tester-facing docs"
+    ],
+    "forbidden_inputs": [
+      "private session memory not written to repository docs or artifacts",
+      "manual skill injection text unless the test explicitly validates rejection",
+      "unbounded artifact folders without a selected file list"
+    ]
+  },
+  "round_limits": {
+    "max_rounds": 3,
+    "max_findings_per_round": 12,
+    "max_accepted_changes_per_round": 8,
+    "max_repair_cycles_per_issue": 2,
+    "holdout_round_required_when_changes_exceed": 3
+  },
+  "adjudication_policy": {
+    "blind_evaluator_is_pass_fail_authority": false,
+    "blind_evaluator_may_propose_findings": true,
+    "accept_or_reject_requires_deterministic_evidence": true,
+    "deterministic_evidence_sources": [
+      "route-decision artifacts",
+      "chat-visible marker checks",
+      "semantic marker checks",
+      "source artifact refs",
+      "fixture hashes",
+      "git status",
+      "live validation report links",
+      "regression report output",
+      "run-artifact diff output",
+      "failure taxonomy output"
+    ]
+  },
+  "score_rubric": {
+    "total_points": 100,
+    "acceptance_minimum": 85,
+    "stable_acceptance_mean_minimum": 90,
+    "stable_acceptance_case_minimum": 85,
+    "category_floor": 70,
+    "dimensions": [
+      {
+        "id": "route_workflow_skill_tool_correctness",
+        "points": 20
+      },
+      {
+        "id": "evidence_grounding_and_artifact_quality",
+        "points": 20
+      },
+      {
+        "id": "semantic_correctness",
+        "points": 20
+      },
+      {
+        "id": "output_contract_and_chat_visible_markers",
+        "points": 15
+      },
+      {
+        "id": "verification_command_relevance",
+        "points": 10
+      },
+      {
+        "id": "safety_approval_and_mutation_boundary",
+        "points": 10
+      },
+      {
+        "id": "diagnosability",
+        "points": 5
+      }
+    ]
+  },
+  "required_scenarios": [
+    {
+      "id": "roadmap_next_phase_audit",
+      "description": "A no-context evaluator must identify the active phase, acceptance criteria, and stop conditions from docs alone.",
+      "minimum_frequency": "each_release_phase"
+    },
+    {
+      "id": "stable_handoff_usability",
+      "description": "A no-context evaluator must follow tester-facing stable handoff docs and report confusing setup, prompt, feedback, and rollback points.",
+      "minimum_frequency": "stable_or_release_candidate_change"
+    },
+    {
+      "id": "feedback_triage_consistency",
+      "description": "A no-context evaluator must classify feedback artifacts using the governed categories and compare against the maintainer classification.",
+      "minimum_frequency": "feedback_triage_phase"
+    },
+    {
+      "id": "anythingllm_output_review",
+      "description": "A no-context evaluator must review AnythingLLM chat output and judge whether it is immediately useful without opening artifacts.",
+      "minimum_frequency": "chat_contract_change"
+    },
+    {
+      "id": "prompt_gap_discovery",
+      "description": "A no-context evaluator must propose common user prompts and classify them as supported, small extension, new workflow, or defer.",
+      "minimum_frequency": "capability_backlog_phase"
+    }
+  ],
+  "finding_categories": [
+    "routing_miss",
+    "answer_quality_miss",
+    "setup_issue",
+    "unsafe_behavior",
+    "missing_capability",
+    "roadmap_drift",
+    "docs_usability",
+    "output_contract_miss",
+    "prompt_ambiguity",
+    "overfitting_risk",
+    "rejected_non_product_request",
+    "unknown"
+  ],
+  "severity_levels": [
+    "critical",
+    "high",
+    "medium",
+    "low"
+  ],
+  "acceptance_rules": {
+    "accept_finding_requires_evidence": true,
+    "accepted_finding_requires_owner": true,
+    "accepted_finding_requires_action": true,
+    "accepted_finding_requires_validation": true,
+    "rejected_finding_requires_reason": true,
+    "prompt_tweak_requires_live_proof": true,
+    "implementation_change_requires_regression": true,
+    "runtime_change_requires_bash_anythingllm_proof": true,
+    "protected_fixture_change_blocks_pass": true
+  },
+  "convergence_criteria": {
+    "no_unresolved_critical_or_high_findings": true,
+    "no_new_high_findings_for_final_two_rounds": true,
+    "no_manual_skill_injection_dependency": true,
+    "no_wrong_next_phase_interpretation": true,
+    "feedback_categories_consistent": true,
+    "route_selection_stable": true,
+    "accepted_findings_linked_to_action_or_backlog": true,
+    "live_validation_after_accepted_changes": true,
+    "regression_after_code_changes": true,
+    "fixture_state_unchanged": true,
+    "round_exhaustion_is_not_convergence": true
+  },
+  "stop_conditions": [
+    "The same critical or high finding repeats after two accepted fixes.",
+    "A target case improves while a holdout case regresses.",
+    "Evaluator disagreement over semantic score exceeds 10 points.",
+    "A finding requires scope expansion beyond the approved roadmap phase.",
+    "Live localhost or AnythingLLM validation fails after an accepted change.",
+    "A protected frozen fixture changes.",
+    "The evaluator asks for manual skill injection to make the product work.",
+    "The loop reaches max_rounds without convergence."
+  ],
+  "default_output_root": "runtime-state/recursive-blind-testing"
+}

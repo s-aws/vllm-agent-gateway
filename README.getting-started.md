@@ -80,7 +80,7 @@ RELEASE CHANNEL SUMMARY ...
 RELEASE CHANNEL PASS
 ```
 
-Use the `release-candidate` channel for current tester work. The `stable` channel remains blocked until a passed release-candidate V1 acceptance report is supplied to the release-channel validator. See [README.release-channels.md](README.release-channels.md).
+Use the `stable` channel for the current external tester path after the stable smoke passes. Use `release-candidate` when validating new changes before another promotion. See [README.release-channels.md](README.release-channels.md) and [README.stable-handoff.md](README.stable-handoff.md).
 
 Run the security policy gate before sharing tester prompts:
 
@@ -100,6 +100,15 @@ SECURITY POLICY PASS
 See [README.security-policy.md](README.security-policy.md).
 
 After this setup path passes, use [README.external-tester-onboarding.md](README.external-tester-onboarding.md) for the contextless first-test prompt set and feedback capture templates.
+
+Optional stable handoff smoke:
+
+```bash
+python3 scripts/validate_stable_handoff.py \
+  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github
+```
 
 ## 2. Point AnythingLLM At The Workflow Router
 

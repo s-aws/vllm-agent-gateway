@@ -125,8 +125,11 @@ The `Result:` block is the first place a tester should look. It includes:
 The `Skill Selection:` block explains why the router selected the workflow, skills, and tools. It is grounded in `route-decision.json` evidence and registry metadata, not a separate model rewrite. It includes:
 
 - matched route rules
+- selector confidence and confidence reasons
+- governed prompt-skill coverage entry IDs when a route rule maps to `runtime/prompt_skill_coverage.json`
 - selected skill IDs and capability route keys when available
 - selected tool IDs
+- rejected workflow, skill, and tool candidate counts
 - grounding markers such as `route_decision.evidence`
 
 The inline `Answer:` block is rendered from controller artifacts, not from a second model rewrite. Supported artifact summaries include code explanation, behavior-existence checks, callers/usages, configuration lookup, pasted test-failure summary, related-test command discovery, L2 failing-test diagnosis with root-cause hypothesis, L2 multi-file behavior investigation, L2 dependency impact summary, and L2 test selection with smallest/medium/broad command tiers, rationale, covered risks, confidence, gaps, and source-mutation state. Explicit multi-step decomposition prompts return a `Task Decomposition:` section with work packages, dependencies, approval gates, uncertainty, verification strategy, and mutation proof. The full artifact paths remain visible so users can inspect the durable JSON evidence when needed.
@@ -191,7 +194,7 @@ Artifacts are written under `CONTROLLER_OUTPUT_ROOT/workflow-router/<run-id>/`:
 
 The summary includes `route_status`, `selected_workflow`, `next_action`, `target_repo_read`, `model_router_status`, downstream fields when execution delegates, `verification_command_count` when downstream investigation found related test evidence, `approval_state_status`, `approval_type`, and `source_changed` / `disposable_copy_changed` for disposable-copy apply.
 
-`route-decision.json` records skill-selection evidence from the registry. Skill selection is now based on a `capability_contract` shortlist before trigger ordering, and the evidence includes selected skill IDs plus their capability route keys.
+`route-decision.json` records skill-selection evidence from the registry. Skill selection is now based on a `capability_contract` shortlist before trigger ordering, and the evidence includes selected skill IDs plus their capability route keys. The `selection_audit` object is the runtime selector contract: it records the selected workflow, selected skills, selected tools, confidence reasons, route rules, evidence sources, prompt-skill coverage entry IDs, selected/rejected workflow candidates, selected/rejected skill candidates, selected/rejected tool candidates, and the selection policy. The model-router observation is advisory evidence only; deterministic unsupported requests remain unsupported even if the model suggests a workflow.
 
 ## Safety Boundary
 
@@ -256,6 +259,19 @@ L2 product-suite gateway and AnythingLLM validation:
 ```bash
 python scripts/validate_workflow_router_l2_suite.py \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github
+```
+
+Runtime skill-selection hardening validation:
+
+```bash
+python scripts/validate_skill_selection_hardening.py \
+  --live-gateway \
+  --live-anythingllm \
+  --model-base-url http://127.0.0.1:8000/v1 \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github
 ```

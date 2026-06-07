@@ -33,7 +33,8 @@ def test_release_channel_manifest_passes_current_contract(tmp_path: Path) -> Non
     assert Path(report["report_path"]).exists()
     stable = next(item for item in report["checks"] if item["id"] == "stable.readiness")
     assert stable["status"] == "passed"
-    assert stable["details"]["stable_status"] == "blocked"
+    assert stable["details"]["profile"] == "v1.1-release-candidate"
+    assert stable["details"]["proof_source"] == "stable.stable_readiness.activated_from_report"
 
 
 def test_release_channel_validation_rejects_missing_required_doc(tmp_path: Path) -> None:
@@ -66,6 +67,7 @@ def test_stable_channel_cannot_be_active_without_release_candidate_report(tmp_pa
     stable = channels[2]
     assert isinstance(stable, dict)
     stable["status"] = "active"
+    stable.pop("stable_readiness", None)
     manifest_path = write_json(tmp_path / "release_channels.json", manifest)
 
     report = validate_release_channels(

@@ -1531,6 +1531,15 @@ def skill_selection_explanation_for_response(response: dict[str, Any]) -> dict[s
     selected_tools = string_items(route_decision.get("selected_tools"))
     route_rules = route_rules_from_route_decision(route_decision)
     capability_route_keys = capability_route_keys_from_decision(route_decision)
+    selection_audit = route_decision.get("selection_audit") if isinstance(route_decision.get("selection_audit"), dict) else {}
+    selected_audit = selection_audit.get("selected") if isinstance(selection_audit.get("selected"), dict) else {}
+    workflow_candidates = (
+        selection_audit.get("workflow_candidates")
+        if isinstance(selection_audit.get("workflow_candidates"), dict)
+        else {}
+    )
+    skill_candidates = selection_audit.get("skill_candidates") if isinstance(selection_audit.get("skill_candidates"), dict) else {}
+    tool_candidates = selection_audit.get("tool_candidates") if isinstance(selection_audit.get("tool_candidates"), dict) else {}
     skills = registry_items_by_key(registry_snapshot, "skills")
     tools = registry_items_by_key(registry_snapshot, "tools")
     workflow_description = workflow_description_from_decision(route_decision, registry_snapshot, selected_workflow)
@@ -1566,18 +1575,45 @@ def skill_selection_explanation_for_response(response: dict[str, Any]) -> dict[s
         why_parts.append(f"because router rule(s) matched: {limited_join(route_rules, limit=3)}")
     if workflow_description:
         why_parts.append(f"workflow purpose: {inline_text(workflow_description, 180)}")
+    rejected_workflows = [
+        str(item.get("workflow_id"))
+        for item in workflow_candidates.get("rejected", [])[:5]
+        if isinstance(item, dict) and isinstance(item.get("workflow_id"), str)
+    ]
+    rejected_skills = [
+        str(item.get("skill_id"))
+        for item in skill_candidates.get("rejected", [])[:5]
+        if isinstance(item, dict) and isinstance(item.get("skill_id"), str)
+    ]
+    rejected_tools = [
+        str(item.get("tool_id"))
+        for item in tool_candidates.get("rejected", [])[:5]
+        if isinstance(item, dict) and isinstance(item.get("tool_id"), str)
+    ]
     return {
         "selected_workflow": selected_workflow,
+        "confidence": route_decision.get("confidence"),
+        "confidence_reasons": selected_audit.get("confidence_reasons") if isinstance(selected_audit.get("confidence_reasons"), list) else [],
+        "coverage_entry_ids": selected_audit.get("coverage_entry_ids") if isinstance(selected_audit.get("coverage_entry_ids"), list) else [],
         "route_rules": route_rules,
         "workflow_description": workflow_description,
         "selection_basis": selection_basis,
         "why": "; ".join(why_parts) + ".",
         "skills": skill_details,
         "tools": tool_details,
+        "rejected_candidates": {
+            "workflows": rejected_workflows,
+            "skills": rejected_skills,
+            "tools": rejected_tools,
+            "workflow_rejected_count": workflow_candidates.get("rejected_count", 0),
+            "skill_rejected_count": skill_candidates.get("rejected_count", 0),
+            "tool_rejected_count": tool_candidates.get("rejected_count", 0),
+        },
         "grounding": [
             "route_decision.evidence",
             "route_decision.selected_skills",
             "route_decision.selected_tools",
+            "route_decision.selection_audit",
             "registry_snapshot.skills",
             "registry_snapshot.tools",
         ],
@@ -1664,8 +1700,22 @@ def append_skill_selection_summary_lines(lines: list[str], response: dict[str, A
     lines.append("Skill Selection:")
     lines.append(f"- Why: {inline_text(explanation.get('why'), 360)}")
     lines.append(f"- Route rules: {limited_join([str(rule) for rule in explanation.get('route_rules', [])], limit=5) or 'none'}")
+    lines.append(
+        f"- Confidence: {inline_text(explanation.get('confidence'), 40)}"
+        f" ({limited_join([str(item) for item in explanation.get('confidence_reasons', [])], limit=4) or 'no reasons recorded'})"
+    )
+    lines.append(
+        f"- Coverage entries: {limited_join([str(item) for item in explanation.get('coverage_entry_ids', [])], limit=5) or 'none'}"
+    )
     lines.append(f"- Skills: {limited_join(skill_summaries, limit=5) or 'none'}")
     lines.append(f"- Tools: {limited_join(tool_summaries, limit=5) or 'none'}")
+    rejected = explanation.get("rejected_candidates") if isinstance(explanation.get("rejected_candidates"), dict) else {}
+    rejected_parts = []
+    if rejected:
+        rejected_parts.append(f"workflows {rejected.get('workflow_rejected_count', 0)}")
+        rejected_parts.append(f"skills {rejected.get('skill_rejected_count', 0)}")
+        rejected_parts.append(f"tools {rejected.get('tool_rejected_count', 0)}")
+    lines.append(f"- Rejected candidates: {limited_join(rejected_parts, limit=3) or 'none'}")
     lines.append(f"- Grounded in: {limited_join([str(item) for item in explanation.get('grounding', [])], limit=5)}")
 
 
@@ -3700,6 +3750,31 @@ def run_ids_from_text(user_request: str) -> list[str]:
     return run_ids
 
 
+FEEDBACK_LABEL_RE = re.compile(
+    r"\b(useful|wrong|missing|too\s+slow|too_slow|too\s+noisy|too_noisy|confusing|unsafe)\s*:",
+    re.IGNORECASE,
+)
+
+
+def feedback_label_segment(user_request: str, labels: set[str]) -> str | None:
+    matches = list(FEEDBACK_LABEL_RE.finditer(user_request))
+    for index, match in enumerate(matches):
+        label = re.sub(r"\s+", "_", match.group(1).lower())
+        if label not in labels:
+            continue
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(user_request)
+        return user_request[start:end].strip()
+    return None
+
+
+def feedback_segment_is_noop(segment: str) -> bool:
+    value = segment.strip().lower().strip(" \t\r\n.,;:!")
+    if value in {"", "none", "nothing", "n/a", "na", "not applicable", "no issues", "no issue", "no gaps", "no gap"}:
+        return True
+    return bool(re.fullmatch(r"none\s+(for|needed|observed|found|reported)\b.*", value))
+
+
 def natural_feedback_requested(user_request: str) -> bool:
     text = user_request.lower()
     if not run_ids_from_text(user_request):
@@ -3750,7 +3825,11 @@ def natural_feedback_from_text(user_request: str) -> dict[str, Any]:
         feedback["useful"].append(bounded_string(user_request, 1000))
     if any(term in text for term in ("wrong", "failed", "did not work", "didn't work")):
         feedback["wrong"].append(bounded_string(user_request, 1000))
-    if "missing" in text:
+    missing_segment = feedback_label_segment(user_request, {"missing"})
+    if missing_segment is not None:
+        if not feedback_segment_is_noop(missing_segment):
+            feedback["missing"].append(bounded_string(user_request, 1000))
+    elif "missing" in text:
         feedback["missing"].append(bounded_string(user_request, 1000))
     if any(term in text for term in ("too slow", "too_slow")):
         feedback["too_slow"].append(bounded_string(user_request, 1000))
@@ -7066,6 +7145,7 @@ class ControllerRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
+        self.wfile.flush()
 
     def write_chat_completion_stream(self, value: dict[str, Any]) -> None:
         lines: list[bytes] = []

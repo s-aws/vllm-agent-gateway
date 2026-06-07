@@ -1,0 +1,128 @@
+{
+  "config_root": "/mnt/c/agentic_agents",
+  "created_at": "2026-06-06T23:18:31Z",
+  "kind": "skill_mutation_report",
+  "mutations": [
+    {
+      "disposable_root": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/duplicate_route_key/disposable-root",
+      "errors": [
+        "Duplicate skill capability route_key: planning.request_triage"
+      ],
+      "expected_failure_code": "duplicate_route_key",
+      "mutation_id": "duplicate_route_key",
+      "observed_failure_code": "duplicate_route_key",
+      "protected_fixture_mutated": false,
+      "restored_or_deleted": true,
+      "status": "passed"
+    },
+    {
+      "disposable_root": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/missing_skill_body/disposable-root",
+      "errors": [
+        "request-triage.path does not exist: /mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/missing_skill_body/disposable-root/.qwen/skills/request-triage/SKILL.md"
+      ],
+      "expected_failure_code": "missing_skill_body",
+      "mutation_id": "missing_skill_body",
+      "observed_failure_code": "missing_skill_body",
+      "protected_fixture_mutated": false,
+      "restored_or_deleted": true,
+      "status": "passed"
+    },
+    {
+      "disposable_root": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/broken_frontmatter/disposable-root",
+      "errors": [
+        "Skill file is missing Agent Skills frontmatter: /mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/broken_frontmatter/disposable-root/.qwen/skills/request-triage/SKILL.md"
+      ],
+      "expected_failure_code": "broken_frontmatter",
+      "mutation_id": "broken_frontmatter",
+      "observed_failure_code": "broken_frontmatter",
+      "protected_fixture_mutated": false,
+      "restored_or_deleted": true,
+      "status": "passed"
+    },
+    {
+      "disposable_root": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/unknown_workflow/disposable-root",
+      "errors": [
+        "request-triage.workflows contains unknown workflow(s): missing.workflow"
+      ],
+      "expected_failure_code": "unknown_workflow",
+      "mutation_id": "unknown_workflow",
+      "observed_failure_code": "unknown_workflow",
+      "protected_fixture_mutated": false,
+      "restored_or_deleted": true,
+      "status": "passed"
+    },
+    {
+      "disposable_root": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/unknown_tool/disposable-root",
+      "errors": [
+        "request-triage.allowed_tools contains unknown tool(s): missing_tool"
+      ],
+      "expected_failure_code": "unknown_tool",
+      "mutation_id": "unknown_tool",
+      "observed_failure_code": "unknown_tool",
+      "protected_fixture_mutated": false,
+      "restored_or_deleted": true,
+      "status": "passed"
+    },
+    {
+      "disposable_root": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/missing_eval_case/disposable-root",
+      "errors": [
+        "request-triage.capability_contract.eval_case_ids contains unknown case(s): missing_eval_case"
+      ],
+      "expected_failure_code": "missing_eval_case",
+      "mutation_id": "missing_eval_case",
+      "observed_failure_code": "missing_eval_case",
+      "protected_fixture_mutated": false,
+      "restored_or_deleted": true,
+      "status": "passed"
+    },
+    {
+      "disposable_root": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/stale_live_proof/disposable-root",
+      "errors": [
+        "skill eval report case_count does not match current catalog"
+      ],
+      "expected_failure_code": "stale_live_proof",
+      "mutation_id": "stale_live_proof",
+      "observed_failure_code": "stale_live_proof",
+      "protected_fixture_mutated": false,
+      "restored_or_deleted": true,
+      "status": "passed"
+    },
+    {
+      "disposable_root": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/deprecated_replacement_breakage/disposable-root",
+      "errors": [
+        "request-triage.deprecation.replaced_by references unknown skill: missing-replacement-skill"
+      ],
+      "expected_failure_code": "deprecated_replacement_breakage",
+      "mutation_id": "deprecated_replacement_breakage",
+      "observed_failure_code": "deprecated_replacement_breakage",
+      "protected_fixture_mutated": false,
+      "restored_or_deleted": true,
+      "status": "passed"
+    },
+    {
+      "disposable_root": "/mnt/c/agentic_agents/runtime-state/skill-release-gates/skill-release-gate-20260606T231251831336Z/skill-mutations/route_namespace_drift/disposable-root",
+      "errors": [
+        "request-triage.capability_contract.route_key has unsupported namespace: 'unknown'"
+      ],
+      "expected_failure_code": "route_namespace_drift",
+      "mutation_id": "route_namespace_drift",
+      "observed_failure_code": "route_namespace_drift",
+      "protected_fixture_mutated": false,
+      "restored_or_deleted": true,
+      "status": "passed"
+    }
+  ],
+  "protected_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "schema_version": 1,
+  "status": "passed",
+  "summary": {
+    "all_disposable_roots_restored_or_deleted": true,
+    "failed_count": 0,
+    "mutation_count": 9,
+    "passed_count": 9,
+    "protected_fixture_mutated": false
+  }
+}

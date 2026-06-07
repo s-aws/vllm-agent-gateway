@@ -16,6 +16,13 @@
     "- Related tests:",
     "Artifacts:"
   ],
+  "skill_selection_markers": [
+    "Skill Selection:",
+    "- Confidence:",
+    "- Coverage entries:",
+    "- Rejected candidates:",
+    "route_decision.selection_audit"
+  ],
   "skill_lifecycle_markers": [
     "Lifecycle Audit:",
     "- Skills audited:",

@@ -71,6 +71,12 @@ def read_json_object(path: Path) -> dict[str, Any]:
     return value
 
 
+def resolve_optional_path(config_root: Path, path: Path | None) -> Path | None:
+    if path is None:
+        return None
+    return path if path.is_absolute() else config_root / path
+
+
 def check(
     check_id: str,
     status: ReleaseChannelCheckStatus,
@@ -323,9 +329,21 @@ def release_candidate_report_check(path: Path | None) -> tuple[ReleaseChannelChe
     )
 
 
+def stable_activation_report_path(config_root: Path, stable: dict[str, Any]) -> Path | None:
+    readiness = stable.get("stable_readiness")
+    if not isinstance(readiness, dict):
+        return None
+    raw_path = readiness.get("activated_from_report")
+    if not isinstance(raw_path, str) or not raw_path.strip():
+        return None
+    path = Path(raw_path)
+    return path if path.is_absolute() else config_root / path
+
+
 def stable_readiness_checks(
     manifest: dict[str, Any],
     *,
+    config_root: Path,
     release_candidate_report_path: Path | None,
     channel: str | None,
 ) -> list[dict[str, Any]]:
@@ -351,7 +369,16 @@ def stable_readiness_checks(
                 details={"stable_status": stable.get("status")},
             )
         ]
-    status, details, errors = release_candidate_report_check(release_candidate_report_path)
+    explicit_report_path = resolve_optional_path(config_root, release_candidate_report_path)
+    activation_report_path = stable_activation_report_path(config_root, stable)
+    selected_report_path = explicit_report_path or activation_report_path
+    status, details, errors = release_candidate_report_check(selected_report_path)
+    if explicit_report_path is None and activation_report_path is not None:
+        details["proof_source"] = "stable.stable_readiness.activated_from_report"
+    elif explicit_report_path is not None:
+        details["proof_source"] = "cli.release_candidate_report"
+    else:
+        details["proof_source"] = "missing"
     return [
         check(
             "stable.readiness",
@@ -361,7 +388,9 @@ def stable_readiness_checks(
             else "Stable channel cannot be active without passing release-candidate proof.",
             category="stable_readiness",
             details={**details, "errors": errors},
-            next_action="" if status == ReleaseChannelCheckStatus.PASSED else "Run scripts/validate_v1_acceptance.py --profile release-candidate and pass the report path.",
+            next_action=""
+            if status == ReleaseChannelCheckStatus.PASSED
+            else "Run scripts/validate_v1_acceptance.py --profile v1.1-release-candidate and pass the report path.",
         )
     ]
 
@@ -378,7 +407,9 @@ def validate_release_channels(config: ReleaseChannelValidationConfig) -> dict[st
         "config_root": str(config_root),
         "manifest_path": str(manifest_path),
         "selected_channel": config.channel,
-        "release_candidate_report_path": str(config.release_candidate_report_path) if config.release_candidate_report_path else None,
+        "release_candidate_report_path": str(resolve_optional_path(config_root, config.release_candidate_report_path))
+        if config.release_candidate_report_path
+        else None,
         "harness_version": None,
         "channel_ids": [],
         "checks": [],
@@ -393,6 +424,7 @@ def validate_release_channels(config: ReleaseChannelValidationConfig) -> dict[st
             *channel_contract_checks(manifest, config_root=config_root, channel=config.channel),
             *stable_readiness_checks(
                 manifest,
+                config_root=config_root,
                 release_candidate_report_path=config.release_candidate_report_path,
                 channel=config.channel,
             ),

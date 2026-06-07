@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import uuid
@@ -94,6 +95,21 @@ def string_list(value: object) -> list[str]:
     if not isinstance(value, list):
         return []
     return [item for item in value if isinstance(item, str) and item.strip()]
+
+
+def bounded_string(value: str, limit: int = 4000) -> str:
+    return value if len(value) <= limit else value[: limit - 3].rstrip() + "..."
+
+
+def text_evidence(text: str, *, markers: list[str] | None = None, sample_limit: int = 2000) -> dict[str, Any]:
+    missing_markers = sorted({marker for marker in markers or [] if marker not in text})
+    return {
+        "text_sample": bounded_string(text, sample_limit),
+        "text_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "expected_markers": markers or [],
+        "missing_markers": missing_markers,
+        "marker_status": "passed" if not missing_markers else "failed",
+    }
 
 
 def relative_exists(config_root: Path, raw_path: object) -> bool:
@@ -236,12 +252,12 @@ def require_markers(text: str, markers: list[str], *, label: str, case_id: str) 
 
 def feedback_message(pack: dict[str, Any], run_id: str) -> str:
     templates = pack.get("feedback_templates") if isinstance(pack.get("feedback_templates"), dict) else {}
-    answer_quality = templates.get("answer_quality_miss") if isinstance(templates.get("answer_quality_miss"), dict) else {}
-    template = str(answer_quality.get("message_template") or "")
+    validation_success = templates.get("validation_success") if isinstance(templates.get("validation_success"), dict) else {}
+    template = str(validation_success.get("message_template") or "")
     if "{run_id}" not in template:
         return (
             f"Record feedback for run {run_id}: useful: onboarding answer was visible in chat. "
-            "missing: none for Phase 88 onboarding validation."
+            "missing: none for external tester onboarding validation."
         )
     return template.format(run_id=run_id)
 
@@ -303,8 +319,10 @@ def run_anythingllm_case(config: OnboardingValidationConfig, pack: dict[str, Any
         result["errors"].append(f"AnythingLLM returned HTTP {status}: {json.dumps(body, ensure_ascii=True)}")
         return result
     text = text_response(body)
+    markers = response_markers(case)
+    result["visible_response"] = text_evidence(text, markers=markers)
     try:
-        require_markers(text, response_markers(case), label="AnythingLLM", case_id=case_id)
+        require_markers(text, markers, label="AnythingLLM", case_id=case_id)
         result["run_id"] = run_id_from_text(text)
         if result["run_id"] == "unknown":
             raise RuntimeError("response did not expose a workflow-router run_id")
@@ -321,7 +339,12 @@ def run_anythingllm_case(config: OnboardingValidationConfig, pack: dict[str, Any
             )
             if feedback_status != 200:
                 raise RuntimeError(f"AnythingLLM feedback returned HTTP {feedback_status}: {json.dumps(feedback_body, ensure_ascii=True)}")
-            result["feedback_run_id"] = require_feedback_text(text_response(feedback_body), run_id=str(result["run_id"]))
+            feedback_text = text_response(feedback_body)
+            result["feedback_response"] = text_evidence(
+                feedback_text,
+                markers=["workflow_feedback.record", "run_id: workflow-feedback-", "target_run_id", str(result["run_id"]), "feedback_record"],
+            )
+            result["feedback_run_id"] = require_feedback_text(feedback_text, run_id=str(result["run_id"]))
         after_state = fixture_state((target_root,))
         if before_state != after_state:
             raise RuntimeError("onboarding prompt or feedback changed protected fixture state")

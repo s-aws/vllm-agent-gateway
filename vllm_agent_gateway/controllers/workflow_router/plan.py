@@ -65,6 +65,7 @@ from vllm_agent_gateway.controllers.natural_query import (
 )
 from vllm_agent_gateway.skills.registry import (
     SkillRegistryError,
+    explain_skill_selection_for_workflow,
     load_skill_registry as load_canonical_skill_registry,
     selected_skill_capability_route_keys,
     select_skills_for_workflow,
@@ -77,6 +78,7 @@ DEFAULT_OUTPUT_DIR = "workflow-router"
 DEFAULT_ROLE_ID = "dispatcher/default"
 DEFAULT_TIMEOUT_SECONDS = 60
 DEFAULT_MAX_OUTPUT_TOKENS = 800
+PROMPT_SKILL_COVERAGE_PATH = Path("runtime") / "prompt_skill_coverage.json"
 PROPOSAL_CONTEXT_LINES = 18
 PROPOSAL_MAX_WINDOWS_PER_FILE = 3
 PROPOSAL_MAX_SNIPPET_CHARS = 5000
@@ -92,6 +94,9 @@ CORE_INVESTIGATION_SKILLS = (
 ROUTER_RULE_SKILL_OVERRIDES = {
     "l2_test_selection_terms": "test-selection-rationale",
 }
+SELECTION_MIN_CONFIDENCE = "medium"
+CONFIDENCE_RANK = {"low": 0, "medium": 1, "high": 2}
+MAX_REJECTED_CANDIDATES = 12
 ALLOWED_MODES = {"plan_only", "execute_read_only", "implementation_prep", "apply_disposable_copy"}
 ROUTABLE_WORKFLOWS = {
     "code_context.lookup",
@@ -497,9 +502,19 @@ def contains_any(text: str, terms: set[str]) -> list[str]:
 
 def is_ambiguous_request(text: str) -> bool:
     compact = text.strip().lower()
-    if len(compact.split()) <= 3 and compact in {"fix it", "do it", "make it better", "continue", "help"}:
-        return True
-    return bool(re.fullmatch(r"(fix|change|update|refactor|investigate)\s+(it|this|that)", compact))
+    stripped = lower_request(strip_filesystem_paths(text))
+    stripped = re.sub(r"^(in|for)\s*,?\s*", "", stripped).strip(" ,.")
+    stripped = re.sub(
+        r"^(in|for)\s+(this repo|this repository|the repo|the repository)\s*,?\s*",
+        "",
+        stripped,
+    ).strip(" ,.")
+    for candidate in {compact, stripped}:
+        if len(candidate.split()) <= 3 and candidate in {"fix it", "do it", "make it better", "continue", "help"}:
+            return True
+        if re.fullmatch(r"(fix|change|update|refactor|investigate)\s+(it|this|that)", candidate):
+            return True
+    return False
 
 
 def is_skill_batch_proposal_request(text: str) -> bool:
@@ -3877,14 +3892,32 @@ def blocked_decision(
         next_action = "request_approval"
     status = "unsupported" if route_status == "unsupported" else "blocked"
     blockers = [{"reason": status_reason, "message": blocker_message(status_reason)}]
+    selected_workflow = None
+    selected_skills: list[str] = []
+    selected_tools: list[str] = []
+    confidence = "low"
     return {
         "workflow": WORKFLOW_ID,
         "schema_version": SCHEMA_VERSION,
         "status": status,
-        "selected_workflow": None,
-        "confidence": "low",
-        "selected_skills": [],
-        "selected_tools": [],
+        "selected_workflow": selected_workflow,
+        "confidence": confidence,
+        "selected_skills": selected_skills,
+        "selected_tools": selected_tools,
+        "selection_audit": selection_audit(
+            config_root=Path(request.config_root).resolve(),
+            workflow_registry=workflow_registry,
+            skill_registry=skill_registry,
+            tool_registry=tool_registry,
+            selected_workflow=selected_workflow,
+            confidence=confidence,
+            status_reason=status_reason,
+            route_evidence=evidence,
+            selected_skills=selected_skills,
+            selected_tools=selected_tools,
+            query_text=request.user_request,
+            skill_limit=validate_budgets(request.budgets)["max_selected_skills"],
+        ),
         "approval_required_before": [],
         "controller_request_preview": {},
         "evidence": registry_evidence(workflow_registry, skill_registry, tool_registry) + evidence,
@@ -3925,6 +3958,326 @@ def registry_evidence(
     ]
 
 
+def route_rules_from_evidence(evidence: list[dict[str, Any]]) -> list[str]:
+    rules: list[str] = []
+    for item in evidence:
+        if not isinstance(item, dict):
+            continue
+        rule = item.get("rule")
+        if isinstance(rule, str):
+            append_unique(rules, rule)
+    return rules
+
+
+def evidence_sources(evidence: list[dict[str, Any]]) -> list[str]:
+    sources: list[str] = []
+    for item in evidence:
+        if isinstance(item, dict) and isinstance(item.get("source"), str):
+            append_unique(sources, item["source"])
+    return sources
+
+
+def prompt_skill_coverage_matches(
+    config_root: Path,
+    *,
+    route_rules: list[str],
+    selected_workflow: str | None,
+    selected_skills: list[str],
+    selected_tools: list[str],
+) -> list[dict[str, Any]]:
+    if selected_workflow is None or not route_rules:
+        return []
+    coverage_path = config_root / PROMPT_SKILL_COVERAGE_PATH
+    if not coverage_path.exists():
+        return []
+    try:
+        coverage = json.loads(coverage_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    entries = coverage.get("entries") if isinstance(coverage, dict) else None
+    if not isinstance(entries, list):
+        return []
+    route_rule_set = set(route_rules)
+    selected_skill_set = set(selected_skills)
+    selected_tool_set = set(selected_tools)
+    matches: list[dict[str, Any]] = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        route_rule = entry.get("route_rule")
+        if not isinstance(route_rule, str) or route_rule not in route_rule_set:
+            continue
+        if entry.get("selected_workflow") != selected_workflow:
+            continue
+        skill_ids = [item for item in entry.get("skill_ids", []) if isinstance(item, str)]
+        tool_ids = [item for item in entry.get("tool_ids", []) if isinstance(item, str)]
+        matches.append(
+            {
+                "entry_id": entry.get("id"),
+                "prompt_family": entry.get("prompt_family"),
+                "level": entry.get("level"),
+                "status": entry.get("status"),
+                "route_rule": route_rule,
+                "selected_workflow": entry.get("selected_workflow"),
+                "skill_overlap": sorted(selected_skill_set & set(skill_ids)),
+                "tool_overlap": sorted(selected_tool_set & set(tool_ids)),
+            }
+        )
+    return matches
+
+
+def confidence_meets_threshold(confidence: str, minimum: str | None = None) -> bool:
+    if minimum is None:
+        minimum = SELECTION_MIN_CONFIDENCE
+    return CONFIDENCE_RANK.get(confidence, 0) >= CONFIDENCE_RANK.get(minimum, 1)
+
+
+def workflow_candidate_rejection_reason(
+    workflow_id: str,
+    *,
+    selected_workflow: str | None,
+    status_reason: str,
+    route_rules: list[str],
+) -> str:
+    if selected_workflow is None:
+        return f"blocked_{status_reason}"
+    if workflow_id == selected_workflow:
+        return "selected"
+    if route_rules:
+        return "other_workflow_router_rule_matched"
+    return "no_matching_router_rule"
+
+
+def workflow_candidate_audit(
+    workflow_registry: dict[str, dict[str, Any]],
+    *,
+    selected_workflow: str | None,
+    status_reason: str,
+    route_evidence: list[dict[str, Any]],
+) -> dict[str, Any]:
+    route_rules = route_rules_from_evidence(route_evidence)
+    selected: list[dict[str, Any]] = []
+    rejected: list[dict[str, Any]] = []
+    for workflow_id in sorted(workflow_id for workflow_id in workflow_registry if workflow_id in ROUTABLE_WORKFLOWS):
+        workflow = workflow_registry.get(workflow_id, {})
+        item = {
+            "workflow_id": workflow_id,
+            "description": workflow.get("description") if isinstance(workflow, dict) else None,
+            "status": "selected" if workflow_id == selected_workflow else "rejected",
+            "reasons": [],
+        }
+        if workflow_id == selected_workflow:
+            item["reasons"] = [
+                "selected_by_router_rule" if route_rules else "selected_by_supported_workflow",
+                *[f"route_rule:{rule}" for rule in route_rules[:5]],
+            ]
+            selected.append(item)
+        else:
+            item["reasons"] = [
+                workflow_candidate_rejection_reason(
+                    workflow_id,
+                    selected_workflow=selected_workflow,
+                    status_reason=status_reason,
+                    route_rules=route_rules,
+                )
+            ]
+            if len(rejected) < MAX_REJECTED_CANDIDATES:
+                rejected.append(item)
+    return {
+        "selected": selected,
+        "rejected": rejected,
+        "candidate_count": len([workflow_id for workflow_id in workflow_registry if workflow_id in ROUTABLE_WORKFLOWS]),
+        "rejected_count": max(0, len([workflow_id for workflow_id in workflow_registry if workflow_id in ROUTABLE_WORKFLOWS]) - len(selected)),
+    }
+
+
+def skill_candidate_audit(
+    skill_registry: dict[str, dict[str, Any]],
+    *,
+    workflow_id: str | None,
+    query_text: str,
+    selected_skills: list[str],
+    limit: int,
+) -> dict[str, Any]:
+    if workflow_id is None:
+        return {
+            "workflow_id": None,
+            "selected": [],
+            "rejected": [],
+            "candidate_count": 0,
+            "rejected_count": 0,
+            "filtered_count": 0,
+            "body_reads_during_selection": 0,
+            "selection_basis": "not_routed",
+        }
+    explanation = explain_skill_selection_for_workflow(
+        skill_registry,
+        workflow_id,
+        query_text=query_text,
+        limit=limit,
+        max_filtered=MAX_REJECTED_CANDIDATES,
+    )
+    selected_set = set(selected_skills)
+    selected_details: list[dict[str, Any]] = []
+    rejected: list[dict[str, Any]] = []
+    for item in explanation.get("selected", []):
+        if not isinstance(item, dict):
+            continue
+        skill_id = item.get("skill_id")
+        if isinstance(skill_id, str) and skill_id in selected_set:
+            selected_details.append({**item, "status": "selected", "reasons": ["selected_by_capability_contract"]})
+        elif isinstance(skill_id, str) and len(rejected) < MAX_REJECTED_CANDIDATES:
+            rejected.append({**item, "status": "rejected", "reasons": ["not_selected_after_router_rule_override"]})
+    for skill_id in selected_skills:
+        if any(item.get("skill_id") == skill_id for item in selected_details):
+            continue
+        skill = skill_registry.get(skill_id, {})
+        contract = skill.get("capability_contract") if isinstance(skill, dict) else {}
+        selected_details.append(
+            {
+                "skill_id": skill_id,
+                "route_key": contract.get("route_key") if isinstance(contract, dict) else None,
+                "status": "selected",
+                "reasons": ["selected_by_router_rule_override"],
+            }
+        )
+    for item in explanation.get("filtered", []):
+        if isinstance(item, dict) and len(rejected) < MAX_REJECTED_CANDIDATES:
+            rejected.append({**item, "status": "rejected"})
+    return {
+        "workflow_id": workflow_id,
+        "selected": selected_details,
+        "rejected": rejected,
+        "candidate_count": explanation.get("candidate_count", 0),
+        "rejected_count": max(0, int(explanation.get("filtered_count", 0)) + int(explanation.get("candidate_count", 0)) - len(selected_details)),
+        "filtered_count": explanation.get("filtered_count", 0),
+        "deprecated_exclusions": explanation.get("deprecated_exclusions", []),
+        "route_namespace_summary": explanation.get("route_namespace_summary", {}),
+        "body_reads_during_selection": explanation.get("body_reads_during_selection", 0),
+        "selection_basis": "capability_contract_shortlist",
+    }
+
+
+def tool_candidate_audit(
+    tool_registry: dict[str, dict[str, Any]],
+    *,
+    selected_tools: list[str],
+) -> dict[str, Any]:
+    selected_set = set(selected_tools)
+    selected = [{"tool_id": tool_id, "status": "selected", "reasons": ["allowed_by_workflow_tool_policy"]} for tool_id in selected_tools]
+    rejected: list[dict[str, Any]] = []
+    for tool_id in sorted(tool_registry):
+        if tool_id in selected_set:
+            continue
+        if len(rejected) >= MAX_REJECTED_CANDIDATES:
+            break
+        rejected.append({"tool_id": tool_id, "status": "rejected", "reasons": ["not_allowed_by_selected_workflow"]})
+    return {
+        "selected": selected,
+        "rejected": rejected,
+        "candidate_count": len(tool_registry),
+        "rejected_count": max(0, len(tool_registry) - len(selected)),
+    }
+
+
+def confidence_reason_summary(
+    *,
+    selected_workflow: str | None,
+    confidence: str,
+    status_reason: str,
+    route_evidence: list[dict[str, Any]],
+    selected_skills: list[str],
+    selected_tools: list[str],
+) -> list[str]:
+    if selected_workflow is None:
+        return [f"blocked:{status_reason}", "no workflow selected"]
+    reasons = [f"confidence:{confidence}", f"workflow:{selected_workflow}"]
+    route_rules = route_rules_from_evidence(route_evidence)
+    if route_rules:
+        reasons.append("router_rule_match")
+    if selected_skills:
+        reasons.append("skill_registry_match")
+    if selected_tools:
+        reasons.append("workflow_tool_policy_match")
+    if confidence_meets_threshold(confidence):
+        reasons.append(f"meets_minimum_confidence:{SELECTION_MIN_CONFIDENCE}")
+    else:
+        reasons.append(f"below_minimum_confidence:{SELECTION_MIN_CONFIDENCE}")
+    return reasons
+
+
+def selection_audit(
+    *,
+    config_root: Path,
+    workflow_registry: dict[str, dict[str, Any]],
+    skill_registry: dict[str, dict[str, Any]],
+    tool_registry: dict[str, dict[str, Any]],
+    selected_workflow: str | None,
+    confidence: str,
+    status_reason: str,
+    route_evidence: list[dict[str, Any]],
+    selected_skills: list[str],
+    selected_tools: list[str],
+    query_text: str,
+    skill_limit: int,
+) -> dict[str, Any]:
+    route_rules = route_rules_from_evidence(route_evidence)
+    coverage_matches = prompt_skill_coverage_matches(
+        config_root,
+        route_rules=route_rules,
+        selected_workflow=selected_workflow,
+        selected_skills=selected_skills,
+        selected_tools=selected_tools,
+    )
+    confidence_reasons = confidence_reason_summary(
+        selected_workflow=selected_workflow,
+        confidence=confidence,
+        status_reason=status_reason,
+        route_evidence=route_evidence,
+        selected_skills=selected_skills,
+        selected_tools=selected_tools,
+    )
+    if selected_workflow is not None:
+        confidence_reasons.append("prompt_skill_coverage_match" if coverage_matches else "prompt_skill_coverage_missing")
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "selection_policy": {
+            "source": "workflow_router.registry_metadata",
+            "metadata_only": True,
+            "minimum_confidence": SELECTION_MIN_CONFIDENCE,
+            "low_confidence_fails_closed": True,
+            "manual_skill_injection_required": False,
+        },
+        "selected": {
+            "workflow_id": selected_workflow,
+            "confidence": confidence,
+            "confidence_reasons": confidence_reasons,
+            "route_rules": route_rules,
+            "evidence_sources": evidence_sources(route_evidence),
+            "coverage_entry_ids": [
+                str(item["entry_id"])
+                for item in coverage_matches
+                if isinstance(item.get("entry_id"), str)
+            ],
+        },
+        "coverage_matches": coverage_matches,
+        "workflow_candidates": workflow_candidate_audit(
+            workflow_registry,
+            selected_workflow=selected_workflow,
+            status_reason=status_reason,
+            route_evidence=route_evidence,
+        ),
+        "skill_candidates": skill_candidate_audit(
+            skill_registry,
+            workflow_id=selected_workflow,
+            query_text=query_text,
+            selected_skills=selected_skills,
+            limit=skill_limit,
+        ),
+        "tool_candidates": tool_candidate_audit(tool_registry, selected_tools=selected_tools),
+    }
+
+
 def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -> dict[str, Any]:
     config_root = Path(request.config_root).resolve()
     workflow_registry = load_workflow_registry(config_root)
@@ -3940,16 +4293,15 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
             deterministic_status_reason=status_reason,
         )
         route_evidence.append(model_observation)
-        if (
-            workflow_id is None
-            and status_reason == "unsupported"
-            and model_observation.get("status") == "accepted"
-            and model_observation.get("selected_workflow") in ROUTABLE_WORKFLOWS
-            and model_observation.get("confidence") in {"medium", "high"}
-        ):
-            workflow_id = str(model_observation["selected_workflow"])
-            status_reason = "ready"
-            route_evidence.append({"source": "router_rule", "rule": "model_assisted_supported_workflow"})
+        if workflow_id is None and status_reason == "unsupported" and model_observation.get("status") == "accepted":
+            route_evidence.append(
+                {
+                    "source": "model_router",
+                    "decision_authority": "advisory_rejected_by_deterministic_router",
+                    "selected_workflow": model_observation.get("selected_workflow"),
+                    "confidence": model_observation.get("confidence"),
+                }
+            )
     route_evidence = ensure_supplemental_route_evidence(
         user_request=request.user_request,
         workflow_id=workflow_id,
@@ -4009,19 +4361,46 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
                 "capability_route_keys": selected_skill_capability_route_keys(skill_registry, selected_skills),
             }
         )
+    confidence = "high" if workflow_id == "refactor.single_path" else "medium"
+    blockers: list[dict[str, Any]] = []
+    status = "ready"
+    next_action = next_action_for(workflow_id)
+    if not confidence_meets_threshold(confidence):
+        status = "blocked"
+        next_action = "ask_blocking_question"
+        blockers.append(
+            {
+                "reason": "low_selection_confidence",
+                "message": f"Selection confidence {confidence!r} is below the configured threshold {SELECTION_MIN_CONFIDENCE!r}.",
+            }
+        )
     return {
         "workflow": WORKFLOW_ID,
         "schema_version": SCHEMA_VERSION,
-        "status": "ready",
+        "status": status,
         "selected_workflow": workflow_id,
-        "confidence": "high" if workflow_id == "refactor.single_path" else "medium",
+        "confidence": confidence,
         "selected_skills": selected_skills,
         "selected_tools": selected_tools,
+        "selection_audit": selection_audit(
+            config_root=config_root,
+            workflow_registry=workflow_registry,
+            skill_registry=skill_registry,
+            tool_registry=tool_registry,
+            selected_workflow=workflow_id,
+            confidence=confidence,
+            status_reason=status_reason,
+            route_evidence=route_evidence,
+            selected_skills=selected_skills,
+            selected_tools=selected_tools,
+            query_text=request.user_request,
+            skill_limit=budgets["max_selected_skills"],
+        ),
         "approval_required_before": approval_required_before(workflow_id),
-        "controller_request_preview": request_preview(workflow_id, request, selected_tools),
+        "controller_request_preview": request_preview(workflow_id, request, selected_tools) if not blockers else {},
         "evidence": evidence,
-        "blockers": [],
-        "next_action": next_action_for(workflow_id),
+        "blockers": blockers,
+        "next_action": next_action,
     }
 
 

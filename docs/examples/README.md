@@ -6,10 +6,12 @@ Examples are grouped by feature so the root README can stay small.
 - [External Tester Onboarding](external-tester-onboarding.md): release-candidate first-test prompts, live AnythingLLM validation, and linked feedback capture.
 - [First-Time User Doctor](first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM, and fixtures.
 - [Release Channels](release-channels.md): dev, release-candidate, stable readiness, setup doctor, and acceptance gate examples.
+- [Stable Handoff](stable-handoff.md): stable-channel validation, handoff smoke, first tester prompt, feedback, and rollback.
 - [Security Policy](security-policy.md): release-candidate secret, root, fixture, command, and onboarding prompt safety gate examples.
 - [Gateway](gateway.md): startup, shutdown, budget overrides, client URLs, and role ports.
 - [Controller Service](controller-service.md): explicit documenter workflow requests, end-to-end service runner, allowlisted targets, harness adapter, and run lookup.
 - [Workflow Router](workflow-router.md): natural-language route planning, read-only execution, blocked requests, and live validator command.
+- [Runtime Skill Selection Hardening](skill-selection-hardening.md): Phase 94 direct, gateway, local-model, and AnythingLLM validation examples for selector audit proof.
 - [Task Decomposition](task-decomposition.md): direct and AnythingLLM examples for read-only multi-step work packages, dependencies, approval gates, and JSON output.
 - [Controlled Apply](controlled-apply.md): direct dry-run patch preview, protected real-apply refusal, natural disposable-copy apply, rollback proof, and live validator command.
 - [Mutation Sandbox](mutation-sandbox.md): disposable-copy sandbox contract, structured diff proof, rollback proof, invalid-path blockers, and live validator command.
@@ -23,6 +25,7 @@ Examples are grouped by feature so the root README can stay small.
 - [Run Observability](observability.md): recent workflow-run dashboard with route, model, approval, downstream, artifact, failure, mutation, and timing markers.
 - [Run Artifact Diff](run-artifact-diff.md): compare V1, founder-field, and model-portability run reports.
 - [Failure Taxonomy](failure-taxonomy.md): classify existing validation reports into stable failure categories and next actions.
+- [Bounded Recursive Testing](bounded-recursive-testing.md): no-context recursive evaluator policy, report shape, scoring, and Phase 92 usage.
 - [AnythingLLM UI E2E](anythingllm-ui-e2e.md): browser-rendered Desktop UI validation through `/stream-chat`, screenshots, and fixture mutation proof.
 - [Model Portability](model-portability.md): live candidate-model gate and existing acceptance-report classification.
 - [Model Capability Profiles](model-capability-profiles.md): profile generation from portability reports and advisory task-policy review.

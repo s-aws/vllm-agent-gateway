@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "kind": "skill_selection_hardening_cases",
+  "phase": 94,
+  "owner": "agentic_agents",
+  "description": "Representative prompt cases for repeated-run runtime skill selection hardening.",
+  "repeat_count": 3,
+  "cases": [
+    {
+      "case_id": "SEL-001",
+      "source": "existing_support",
+      "prompt_family": "L1-related-tests",
+      "prompt_template": "In {target_root}, find tests related to placed_order_id stealth lookup. Read only. Return test files, matching terms, and recommended test commands.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_route_rules": ["l1_find_related_tests_terms"],
+      "expected_selected_skills": ["related-test-discovery"],
+      "expected_selected_tools": ["git_grep", "read_file"],
+      "required_chat_markers": ["Skill Selection:", "- Rejected candidates:", "route_decision.selection_audit"],
+      "mutation_policy": "read_only"
+    },
+    {
+      "case_id": "SEL-002",
+      "source": "existing_support",
+      "prompt_family": "L1-callers-usages",
+      "prompt_template": "In {target_root}, find callers and usages of find_stealth_order_by_placed_order_id. Read only. Group by file and explain each usage briefly.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_context.lookup",
+      "expected_route_rules": ["l1_callers_usages_terms"],
+      "expected_selected_skills": ["codegraph-context-lookup", "callers-usages-summarizer"],
+      "expected_selected_tools": ["codegraph_context", "git_grep", "read_file"],
+      "required_chat_markers": ["Skill Selection:", "- Rejected candidates:", "route_decision.selection_audit"],
+      "mutation_policy": "read_only"
+    },
+    {
+      "case_id": "SEL-003",
+      "source": "existing_support",
+      "prompt_family": "L2-runtime-error-diagnosis",
+      "prompt_template": "In {target_root}, diagnose this runtime stack trace for request_stealth_orders dashboard behavior. Read only. Return observed error, likely cause, evidence files, next inspection steps, risks, gaps, and verification commands.\n\nTraceback (most recent call last):\n  File \"dashboard_server.py\", line 10, in handle_websocket_message\ncore.exceptions.WebSocketMessageError: Missing 'type' field in message",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_route_rules": ["l2_runtime_error_diagnosis_terms"],
+      "expected_selected_skills": ["runtime-error-diagnoser"],
+      "expected_selected_tools": ["structure_index", "git_grep", "read_file"],
+      "required_chat_markers": ["Skill Selection:", "- Confidence:", "- Rejected candidates:"],
+      "mutation_policy": "read_only"
+    },
+    {
+      "case_id": "SEL-004",
+      "source": "fail_closed",
+      "prompt_family": "ambiguous-request",
+      "prompt_template": "In {target_root}, fix it.",
+      "expected_route_status": "blocked",
+      "expected_selected_workflow": null,
+      "expected_blocker_reasons": ["ambiguous"],
+      "expected_confidence": "low",
+      "required_chat_markers": ["Skill Selection:", "- Confidence:", "- Rejected candidates:"],
+      "mutation_policy": "blocked"
+    },
+    {
+      "case_id": "SEL-005",
+      "source": "fail_closed",
+      "prompt_family": "unsupported-non-dev-request",
+      "prompt_template": "In {target_root}, write a sonnet about build systems.",
+      "expected_route_status": "unsupported",
+      "expected_selected_workflow": null,
+      "expected_blocker_reasons": ["unsupported"],
+      "expected_confidence": "low",
+      "required_chat_markers": ["Skill Selection:", "- Confidence:", "- Rejected candidates:"],
+      "mutation_policy": "blocked"
+    },
+    {
+      "case_id": "SEL-006",
+      "source": "fail_closed",
+      "prompt_family": "conflicting-readonly-mutation-request",
+      "prompt_template": "In {target_root}, read only: find where placed_order_id stealth lookup begins, then apply the fix immediately without approval.",
+      "expected_route_status": "blocked",
+      "expected_selected_workflow": null,
+      "expected_blocker_reasons": ["blocked_approval_bypass"],
+      "expected_confidence": "low",
+      "required_chat_markers": ["Skill Selection:", "- Confidence:", "- Rejected candidates:"],
+      "mutation_policy": "blocked"
+    }
+  ]
+}

@@ -31,10 +31,69 @@ def response_with_code_explanation(tmp_path: Path) -> dict[str, Any]:
         {
             "kind": "workflow_route_decision",
             "schema_version": 1,
+            "confidence": "medium",
             "selected_workflow": "code_investigation.plan",
             "selected_skills": ["code-explanation-summarizer"],
             "selected_tools": ["structure_index", "git_grep", "read_file"],
             "next_action": "none",
+            "selection_audit": {
+                "schema_version": 1,
+                "selection_policy": {
+                    "source": "workflow_router.registry_metadata",
+                    "metadata_only": True,
+                    "minimum_confidence": "medium",
+                    "low_confidence_fails_closed": True,
+                    "manual_skill_injection_required": False,
+                },
+                "selected": {
+                    "workflow_id": "code_investigation.plan",
+                    "confidence": "medium",
+                    "confidence_reasons": [
+                        "confidence:medium",
+                        "workflow:code_investigation.plan",
+                        "router_rule_match",
+                        "skill_registry_match",
+                        "workflow_tool_policy_match",
+                        "meets_minimum_confidence:medium",
+                        "prompt_skill_coverage_match",
+                    ],
+                    "route_rules": ["l1_explain_code_terms"],
+                    "evidence_sources": ["router_rule", "skill_registry", "workflow_registry"],
+                    "coverage_entry_ids": ["L1-002"],
+                },
+                "coverage_matches": [
+                    {
+                        "entry_id": "L1-002",
+                        "prompt_family": "L1-code-explanation",
+                        "route_rule": "l1_explain_code_terms",
+                        "selected_workflow": "code_investigation.plan",
+                        "skill_overlap": ["code-explanation-summarizer"],
+                        "tool_overlap": ["git_grep", "read_file", "structure_index"],
+                    }
+                ],
+                "workflow_candidates": {
+                    "selected": [{"workflow_id": "code_investigation.plan", "status": "selected"}],
+                    "rejected": [{"workflow_id": "code_context.lookup", "status": "rejected"}],
+                    "candidate_count": 2,
+                    "rejected_count": 1,
+                },
+                "skill_candidates": {
+                    "selected": [{"skill_id": "code-explanation-summarizer", "status": "selected"}],
+                    "rejected": [{"skill_id": "related-test-discovery", "status": "rejected"}],
+                    "candidate_count": 2,
+                    "rejected_count": 1,
+                },
+                "tool_candidates": {
+                    "selected": [
+                        {"tool_id": "structure_index", "status": "selected"},
+                        {"tool_id": "git_grep", "status": "selected"},
+                        {"tool_id": "read_file", "status": "selected"},
+                    ],
+                    "rejected": [{"tool_id": "codegraph_context", "status": "rejected"}],
+                    "candidate_count": 4,
+                    "rejected_count": 1,
+                },
+            },
             "evidence": [
                 {"source": "router_rule", "rule": "l1_explain_code_terms"},
                 {
@@ -121,7 +180,11 @@ def test_format_a_contract_renders_result_answer_before_artifacts(tmp_path: Path
         ControllerOutputFormat.FORMAT_A,
     )
 
-    for marker in markers["format_a_contract_markers"] + markers["read_only_answer_markers"]:
+    for marker in (
+        markers["format_a_contract_markers"]
+        + markers["read_only_answer_markers"]
+        + markers["skill_selection_markers"]
+    ):
         assert marker in content
     assert "- Selected workflow: code_investigation.plan" in content
     assert "- Selected skills: code-explanation-summarizer" in content
@@ -130,6 +193,9 @@ def test_format_a_contract_renders_result_answer_before_artifacts(tmp_path: Path
     assert "Skill Selection:" in content
     assert "- Why: Selected code_investigation.plan" in content
     assert "- Route rules: l1_explain_code_terms" in content
+    assert "- Confidence: medium" in content
+    assert "- Coverage entries: L1-002" in content
+    assert "- Rejected candidates: workflows 1; skills 1; tools 1" in content
     assert "- Skills: code-explanation-summarizer (code.explanation_summary)" in content
     assert content.index("Result:") < content.index("Skill Selection:") < content.index("Answer:") < content.index("Artifacts:")
     assert content.strip().splitlines()[0] != "Artifacts:"
@@ -149,6 +215,8 @@ def test_json_output_includes_same_chat_contract(tmp_path: Path) -> None:
     assert parsed["chat_contract"]["selected_tools"] == ["structure_index", "git_grep", "read_file"]
     assert parsed["chat_contract"]["verification_command_count"] == 1
     assert parsed["chat_contract"]["selection_explanation"]["route_rules"] == ["l1_explain_code_terms"]
+    assert parsed["chat_contract"]["selection_explanation"]["confidence"] == "medium"
+    assert parsed["chat_contract"]["selection_explanation"]["coverage_entry_ids"] == ["L1-002"]
     assert parsed["selection_explanation"]["skills"][0]["route_key"] == "code.explanation_summary"
 
 

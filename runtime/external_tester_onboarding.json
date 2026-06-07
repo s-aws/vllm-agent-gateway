@@ -141,6 +141,10 @@
     }
   ],
   "feedback_templates": {
+    "validation_success": {
+      "description": "Used by automated onboarding smoke validation after marker checks pass.",
+      "message_template": "Record feedback for run {run_id}: useful: onboarding response was visible in chat. missing: none for external tester onboarding validation."
+    },
     "confusing": {
       "description": "Use when the tester cannot understand the response or next step.",
       "message_template": "Record feedback for run {run_id}: confusing: the onboarding response was hard to understand. missing: clearer next action for a first-time tester."

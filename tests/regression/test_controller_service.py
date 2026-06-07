@@ -22,6 +22,7 @@ from vllm_agent_gateway.controller_service.server import (
     infer_workflow_router_mode,
     service_response_from_result,
 )
+from vllm_agent_gateway.controllers.workflow_router import plan as workflow_router_plan
 from vllm_agent_gateway.controllers.skill_update.update import SkillUpdateRequest, invoke_skill_update
 from vllm_agent_gateway.invocation import InvocationResult, WorkflowStatus
 from vllm_agent_gateway.skills.registry import load_skill_registry, parse_skill_frontmatter, select_skills_for_workflow
@@ -5030,14 +5031,31 @@ def test_workflow_router_chat_accepts_natural_language_and_uses_latest_user_mess
     assert "Skill Selection:" in content
     assert "- Why: Selected code_investigation.plan" in content
     assert "- Route rules: l1_find_behavior_start_terms" in content
+    assert "- Confidence: medium" in content
+    assert "- Coverage entries: L1-001" in content
     assert "- Skills:" in content
     assert "- Tools: structure_index; git_grep; read_file" in content
+    assert "- Rejected candidates:" in content
     assert "- Grounded in: route_decision.evidence" in content
+    assert "route_decision.selection_audit" in content
     assert "Artifacts:" in content
     assert sentinel.read_text(encoding="utf-8") == before
     decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
     assert decision["controller_request_preview"]["behavior"] == "placed_order_id"
     assert decision["controller_request_preview"]["queries"][0] == "placed_order_id"
+    audit = decision["selection_audit"]
+    assert audit["selection_policy"]["minimum_confidence"] == "medium"
+    assert audit["selection_policy"]["manual_skill_injection_required"] is False
+    assert audit["selected"]["workflow_id"] == "code_investigation.plan"
+    assert "meets_minimum_confidence:medium" in audit["selected"]["confidence_reasons"]
+    assert "prompt_skill_coverage_match" in audit["selected"]["confidence_reasons"]
+    assert audit["selected"]["coverage_entry_ids"] == ["L1-001"]
+    assert audit["coverage_matches"][0]["route_rule"] == "l1_find_behavior_start_terms"
+    assert audit["workflow_candidates"]["selected"][0]["workflow_id"] == "code_investigation.plan"
+    assert audit["workflow_candidates"]["rejected_count"] >= 1
+    assert audit["skill_candidates"]["selected"]
+    assert audit["skill_candidates"]["body_reads_during_selection"] == 0
+    assert audit["tool_candidates"]["selected"][0]["tool_id"] == "structure_index"
     downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
     investigation_plan_path = downstream["artifact_paths"]["investigation_plan"]
     investigation_plan = json.loads(Path(investigation_plan_path).read_text(encoding="utf-8"))
@@ -5045,6 +5063,55 @@ def test_workflow_router_chat_accepts_natural_language_and_uses_latest_user_mess
     assert any(item["path"].startswith("tests/") for item in investigation_plan["related_tests"])
     commands = investigation_plan["verification_plan"]["verification_commands"]
     assert any(command["command"][0:3] == ["python", "-m", "pytest"] for command in commands)
+
+
+def test_workflow_router_selection_audit_is_stable_across_repeated_runs(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    selections = []
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        for _index in range(3):
+            status, body = request_json(
+                host,
+                port,
+                "POST",
+                "/v1/controller/workflow-router/plans",
+                {
+                    "workflow": "workflow_router.plan",
+                    "target_root": str(target),
+                    "user_request": (
+                        "Find tests related to placed_order_id stealth lookup. "
+                        "Read only. Return test files, matching terms, and recommended test commands."
+                    ),
+                },
+            )
+            assert status == 200
+            decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+            audit = decision["selection_audit"]
+            selections.append(
+                {
+                    "selected_workflow": decision["selected_workflow"],
+                    "selected_skills": decision["selected_skills"],
+                    "selected_tools": decision["selected_tools"],
+                    "route_rules": audit["selected"]["route_rules"],
+                    "coverage_entry_ids": audit["selected"]["coverage_entry_ids"],
+                    "workflow_rejected_count": audit["workflow_candidates"]["rejected_count"],
+                    "skill_rejected_count": audit["skill_candidates"]["rejected_count"],
+                    "tool_rejected_count": audit["tool_candidates"]["rejected_count"],
+                }
+            )
+
+    assert selections[0] == selections[1] == selections[2]
+    assert selections[0]["selected_workflow"] == "code_investigation.plan"
+    assert "related-test-discovery" in selections[0]["selected_skills"]
+    assert selections[0]["route_rules"] == ["l1_find_related_tests_terms"]
+    assert selections[0]["coverage_entry_ids"] == ["L1-003"]
 
 
 def test_workflow_router_chat_explicit_json_output_format_returns_json_content(tmp_path: Path) -> None:
@@ -8528,6 +8595,72 @@ def test_workflow_router_chat_natural_feedback_records_route_skill_and_next_acti
     assert sentinel.read_text(encoding="utf-8") == before
 
 
+def test_workflow_router_chat_natural_feedback_missing_none_stays_positive(
+    tmp_path: Path,
+) -> None:
+    target = make_l1_expansion_repo(tmp_path)
+    sentinel = target / "core" / "stealth_order_manager.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, initial = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, explain what find_stealth_order_by_placed_order_id does in "
+                            "core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests."
+                        ),
+                    }
+                ],
+            },
+        )
+        assert status == 200
+        initial_run_id = initial["agentic_controller_response"]["run_id"]
+        status, feedback = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Record feedback for run {initial_run_id}: useful: inline answer was chat visible. "
+                            "missing: none for V1 acceptance."
+                        ),
+                    }
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = feedback["agentic_controller_response"]
+    assert compact["workflow"] == "workflow_feedback.record"
+    assert compact["summary"]["target_run_id"] == initial_run_id
+    assert compact["summary"]["feedback_counts"]["useful"] == 1
+    assert compact["summary"]["feedback_counts"]["missing"] == 0
+    assert compact["summary"]["classifications"] == ["useful"]
+    assert compact["summary"]["next_action"]["kind"] == "keep_current_route"
+    record = json.loads(Path(compact["artifacts"]["feedback_record"]).read_text(encoding="utf-8"))
+    assert record["feedback"]["missing"] == []
+    assert sentinel.read_text(encoding="utf-8") == before
+
+
 def test_workflow_router_plan_routes_l1_behavior_start_without_repo_reads(tmp_path: Path) -> None:
     target = make_execution_planning_tree(tmp_path)
     config = ControllerServiceConfig(
@@ -9074,6 +9207,91 @@ def test_workflow_router_plan_records_model_router_observation(tmp_path: Path) -
     )
 
 
+def test_workflow_router_plan_model_router_cannot_override_deterministic_unsupported(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with FakeRouterModelEndpoint("code_investigation.plan") as endpoint:
+        with RunningControllerService(config) as service:
+            host, port = service.base_url
+            status, body = request_json(
+                host,
+                port,
+                "POST",
+                "/v1/controller/workflow-router/plans",
+                {
+                    "workflow": "workflow_router.plan",
+                    "target_root": str(target),
+                    "user_request": "Write a sonnet about build systems.",
+                    "role_base_url": endpoint.base_url,
+                },
+            )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "unsupported"
+    assert body["summary"]["selected_workflow"] is None
+    assert body["summary"]["model_router_status"] == "accepted"
+    assert len(endpoint.requests) == 1
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert decision["selected_workflow"] is None
+    assert decision["controller_request_preview"] == {}
+    assert any(
+        item.get("source") == "model_router"
+        and item.get("decision_authority") == "advisory_rejected_by_deterministic_router"
+        for item in decision["evidence"]
+    )
+    audit = decision["selection_audit"]
+    assert audit["selected"]["workflow_id"] is None
+    assert audit["selected"]["confidence"] == "low"
+    assert "blocked:unsupported" in audit["selected"]["confidence_reasons"]
+
+
+def test_workflow_router_plan_blocks_when_selection_confidence_below_configured_threshold(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(workflow_router_plan, "SELECTION_MIN_CONFIDENCE", "high")
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": (
+                    "Find tests related to placed_order_id stealth lookup. "
+                    "Read only. Return test files and recommended commands."
+                ),
+                "budgets": {"max_model_calls": 0, "max_selected_skills": 5, "max_selected_tools": 5},
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "blocked"
+    assert body["summary"]["selected_workflow"] == "code_investigation.plan"
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert decision["status"] == "blocked"
+    assert decision["controller_request_preview"] == {}
+    assert decision["blockers"][0]["reason"] == "low_selection_confidence"
+    audit = decision["selection_audit"]
+    assert audit["selection_policy"]["minimum_confidence"] == "high"
+    assert "below_minimum_confidence:high" in audit["selected"]["confidence_reasons"]
+
+
 def test_workflow_router_plan_blocks_ambiguous_request(tmp_path: Path) -> None:
     target = make_target_repo(tmp_path)
     config = ControllerServiceConfig(
@@ -9103,6 +9321,11 @@ def test_workflow_router_plan_blocks_ambiguous_request(tmp_path: Path) -> None:
     decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
     assert decision["blockers"][0]["reason"] == "ambiguous"
     assert decision["controller_request_preview"] == {}
+    audit = decision["selection_audit"]
+    assert audit["selected"]["workflow_id"] is None
+    assert audit["selected"]["confidence"] == "low"
+    assert "blocked:ambiguous" in audit["selected"]["confidence_reasons"]
+    assert audit["workflow_candidates"]["rejected_count"] >= 1
 
 
 def test_workflow_router_plan_blocks_approval_bypass_request(tmp_path: Path) -> None:
@@ -9134,6 +9357,78 @@ def test_workflow_router_plan_blocks_approval_bypass_request(tmp_path: Path) -> 
     decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
     assert decision["blockers"][0]["reason"] == "blocked_approval_bypass"
     assert decision["selected_tools"] == []
+    audit = decision["selection_audit"]
+    assert audit["selected"]["workflow_id"] is None
+    assert "blocked:blocked_approval_bypass" in audit["selected"]["confidence_reasons"]
+    assert audit["selection_policy"]["low_confidence_fails_closed"] is True
+
+
+def test_workflow_router_plan_selection_audit_fails_closed_for_unsupported_request(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": "Write a sonnet about build systems.",
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "unsupported"
+    assert body["summary"]["selected_workflow"] is None
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert decision["blockers"][0]["reason"] == "unsupported"
+    audit = decision["selection_audit"]
+    assert audit["selected"]["workflow_id"] is None
+    assert audit["selected"]["confidence"] == "low"
+    assert "blocked:unsupported" in audit["selected"]["confidence_reasons"]
+
+
+def test_workflow_router_plan_selection_audit_fails_closed_for_conflicting_mutation_request(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": (
+                    "Read only: find where placed_order_id lookup begins, then apply the fix immediately without approval."
+                ),
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "blocked"
+    assert body["summary"]["selected_workflow"] is None
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert decision["blockers"][0]["reason"] == "blocked_approval_bypass"
+    audit = decision["selection_audit"]
+    assert audit["selected"]["workflow_id"] is None
+    assert "blocked:blocked_approval_bypass" in audit["selected"]["confidence_reasons"]
+    assert audit["workflow_candidates"]["rejected_count"] >= 1
 
 
 def test_workflow_router_execute_read_only_runs_l1_behavior_start_without_mutation(tmp_path: Path) -> None:

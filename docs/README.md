@@ -9,10 +9,12 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [External Tester Onboarding README](../README.external-tester-onboarding.md): contextless release-candidate tester path with curated read-only prompts and linked feedback capture.
 - [First-Time User Doctor README](../README.first-time-user-doctor.md): setup preflight for localhost ports, controller roots, AnythingLLM, and frozen fixtures.
 - [Release Channels README](../README.release-channels.md): dev, release-candidate, and stable channel metadata, setup validator, stable readiness, and rollback path.
+- [Stable Handoff README](../README.stable-handoff.md): stable-channel smoke validation, first external tester prompt, feedback capture, and rollback.
 - [Security Policy README](../README.security-policy.md): release-candidate gate for secret exposure, filesystem boundaries, protected fixtures, command fragments, and onboarding prompt safety.
 - [Gateway Feature README](../README.gateway.md): runtime architecture, vLLM gateway behavior, role prompt proxies, ports, and client connection notes.
 - [Controller Service README](../README.controller-service.md): explicit HTTP workflow service, end-to-end documenter service example, allowlisted target roots, and run lookup.
 - [Workflow Router README](../README.workflow-router.md): natural-language workflow routing, natural client adapters, read-only execution, inline L1/L2 chat answers, approved implementation prep, packet-objective and narrowed-edit follow-up, and disposable-copy apply proof through controller-owned registry selection.
+- [Runtime Skill Selection Hardening](PHASE94_RUNTIME_SKILL_SELECTION_HARDENING.md): Phase 94 selector audit contract, governed cases, repeated-run validation, gateway/AnythingLLM proof, and fail-closed rules.
 - [Task Decomposition README](../README.task-decomposition.md): read-only multi-step task decomposition into work packages, dependencies, approval gates, verification strategy, and uncertainty markers.
 - [Controlled Apply README](../README.controlled-apply.md): approval-gated small-change dry-run, real-apply boundary, disposable-copy mutation proof, rollback metadata, and live gateway/AnythingLLM validation.
 - [Mutation Sandbox README](../README.mutation-sandbox.md): disposable-copy sandbox contract, structured diff proof, rollback proof, and fail-closed mutation artifacts.
@@ -26,6 +28,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Run Artifact Diff README](../README.run-artifact-diff.md): read-only comparison for V1 acceptance, founder-field, and model-portability reports.
 - [Failure Taxonomy README](../README.failure-taxonomy.md): read-only failure classification dashboard/report with severity and next-action guidance.
 - [Founder Field Tests README](../README.founder-field-tests.md): natural prompt field-test runner through AnythingLLM with baseline targets, deltas, miss suggestions, and protected fixture checks.
+- [Bounded Recursive Testing README](../README.bounded-recursive-testing.md): no-context recursive evaluation loop with deterministic adjudication, score floors, and bounded repair cycles.
 - [AnythingLLM UI E2E README](../README.anythingllm-ui-e2e.md): browser-rendered Desktop UI validation through real AnythingLLM `/stream-chat`, workflow-router gateway, screenshots, and fixture mutation proof.
 - [Model Portability README](../README.model-portability.md): candidate-model V1 acceptance wrapper with model probe, classified misses, and portability report artifacts.
 - [Model Capability Profiles README](../README.model-capability-profiles.md): advisory model capability profile generation and routing policy from portability evidence.
@@ -44,6 +47,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Documenter README](../README.documenter.md): bounded document review, parallel chunk review, manifests, review plans, follow-ups, agent-executable change plans, drafts, and resumable state.
 - [Streaming README](../README.streaming.md): streaming modes for oversized files and explicit reductions.
 - [Workflow Router README](../README.workflow-router.md): route decisions from natural-language requests plus natural client adapters, read-only execution, inline L1/L2 chat answers, approved implementation prep, packet-objective and narrowed-edit follow-up, and disposable-copy apply proof.
+- [Runtime Skill Selection Hardening](PHASE94_RUNTIME_SKILL_SELECTION_HARDENING.md): selector audit contract and repeated-run proof for selected/rejected workflow, skill, and tool candidates.
 - [Task Decomposition README](../README.task-decomposition.md): deterministic read-only decomposition for larger coding requests before implementation prep.
 - [Controlled Apply README](../README.controlled-apply.md): deterministic small-change packet previews, approval-gated apply, disposable-copy mutation proof, rollback, and protected fixture boundaries.
 - [Mutation Sandbox README](../README.mutation-sandbox.md): disposable-copy apply sandbox contract, structured diff, rollback status, and direct proof artifacts.
@@ -56,6 +60,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Run Artifact Diff README](../README.run-artifact-diff.md): report-to-report comparison for route, suite, semantic, classification, artifact, and fixture-state changes.
 - [Failure Taxonomy README](../README.failure-taxonomy.md): validation artifact failure categories, severity, and recommended next actions.
 - [Founder Field Tests README](../README.founder-field-tests.md): V1 founder field-test prompts through AnythingLLM with reviewable Markdown and JSON reports.
+- [Bounded Recursive Testing README](../README.bounded-recursive-testing.md): fresh no-context evaluator loops for usability, route, answer, setup, safety, and roadmap-drift findings.
 - [AnythingLLM UI E2E README](../README.anythingllm-ui-e2e.md): Desktop UI bundle rendering and chat submission proof through the real AnythingLLM backend.
 - [Model Portability README](../README.model-portability.md): Phase 72 candidate-model gate using the existing V1 acceptance path and failure classification.
 - [Model Capability Profiles README](../README.model-capability-profiles.md): advisory profile generation for route stability, output contract, semantic quality, latency, timeout, and safe apply readiness.
@@ -97,9 +102,11 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [External Tester Onboarding Examples](examples/external-tester-onboarding.md)
 - [First-Time User Doctor Examples](examples/first-time-user-doctor.md)
 - [Release Channel Examples](examples/release-channels.md)
+- [Stable Handoff Examples](examples/stable-handoff.md)
 - [Security Policy Examples](examples/security-policy.md)
 - [Controller Service Examples](examples/controller-service.md)
 - [Workflow Router Examples](examples/workflow-router.md)
+- [Runtime Skill Selection Hardening Examples](examples/skill-selection-hardening.md)
 - [Task Decomposition Examples](examples/task-decomposition.md)
 - [Controlled Apply Examples](examples/controlled-apply.md)
 - [Mutation Sandbox Examples](examples/mutation-sandbox.md)
@@ -113,6 +120,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Run Observability Examples](examples/observability.md)
 - [Run Artifact Diff Examples](examples/run-artifact-diff.md)
 - [Failure Taxonomy Examples](examples/failure-taxonomy.md)
+- [Bounded Recursive Testing Examples](examples/bounded-recursive-testing.md)
 - [AnythingLLM UI E2E Examples](examples/anythingllm-ui-e2e.md)
 - [Model Portability Examples](examples/model-portability.md)
 - [Model Capability Profile Examples](examples/model-capability-profiles.md)
@@ -133,12 +141,17 @@ This index is ordered for contextless entities: people or agents entering the pr
 
 - [V1 Release Candidate Report](V1_RELEASE_CANDIDATE.md): supported V1 prompt families, unsupported boundaries, known limitations, validation evidence, and re-run commands.
 - [Release Channel Examples](examples/release-channels.md): setup channel validation, release-candidate acceptance, and stable readiness examples.
+- [Stable Handoff Examples](examples/stable-handoff.md): stable-channel validation, handoff smoke, first prompt, feedback, and rollback examples.
 - [Security Policy Examples](examples/security-policy.md): release-candidate security policy validation and failure review.
 - [V1 Founder Field Test Results](V1_FOUNDER_FIELD_TEST_RESULTS.md): expanded AnythingLLM field test, contextless baseline, initial differences, fixes, Batch D prompt proof, skill-library release-gate integration, final run IDs, and prompt suggestions.
+- [Phase 92 Feedback Triage](PHASE92_FEEDBACK_TRIAGE.md): grouped stable tester and blind-review findings, current fixes, deferred roadmap items, rejected issues, and closeout proof.
+- [Bounded Recursive Testing README](../README.bounded-recursive-testing.md): Phase 92+ governed loop for blind review, evidence adjudication, bounded repairs, and stop conditions.
 - [Skill Library Scaling Plan](SKILL_LIBRARY_SCALING_PLAN.md): post-V1 scaling phases, admission gates, candidate prompt families, and validation commands.
 - [Skill Library Packaging Strategy](SKILL_LIBRARY_PACKAGING_STRATEGY.md): Phase 77 package policy and scale rules for skill packs.
 - [Model Capability Routing Policy](MODEL_CAPABILITY_ROUTING_POLICY.md): Phase 78 advisory profile and routing-policy state.
 - [Prompt Skill Coverage Map](PROMPT_SKILL_COVERAGE_MAP.md): Phase 79 coverage map and gap backlog state.
+- [Natural-Language Capability Gap Backlog](NATURAL_LANGUAGE_CAPABILITY_GAP_BACKLOG.md): Phase 93 governed prompt-family backlog for existing support, small extensions, new workflows, and deferred requests.
+- [Phase 94 Runtime Skill Selection Hardening](PHASE94_RUNTIME_SKILL_SELECTION_HARDENING.md): selector contract, case catalog, live validation, and closeout proof requirements.
 - [Skill Authoring Factory](SKILL_AUTHORING_FACTORY.md): Phase 80 scaffold factory sidecars and promotion boundary state.
 - [Skill Regression Tiers](SKILL_REGRESSION_TIERS.md): Phase 81 skill validation tier catalog and proof boundary state.
 - [Skill Scaling Batch D Proposal](SKILL_SCALING_BATCH_D_PROPOSAL.md): evidence-backed Batch D candidate skills, registration/promotion proof, and validator command.

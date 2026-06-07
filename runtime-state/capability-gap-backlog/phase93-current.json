@@ -1,0 +1,33 @@
+{
+  "backlog_path": "C:\\agentic_agents\\runtime\\natural_language_capability_gap_backlog.json",
+  "checks": [
+    {
+      "details": {
+        "backlog_path": "C:\\agentic_agents\\runtime\\natural_language_capability_gap_backlog.json",
+        "classification_counts": {
+          "defer": 4,
+          "existing_support": 6,
+          "new_workflow": 6,
+          "small_extension": 14
+        },
+        "entry_count": 30,
+        "errors": []
+      },
+      "id": "backlog.contract",
+      "message": "Capability gap backlog contract is valid.",
+      "next_action": "",
+      "status": "passed"
+    }
+  ],
+  "config_root": "C:\\agentic_agents",
+  "created_at": "20260607T000435107552Z",
+  "kind": "capability_gap_backlog_validation_report",
+  "report_path": "C:\\agentic_agents\\runtime-state\\capability-gap-backlog\\phase93-current.json",
+  "schema_version": 1,
+  "status": "passed",
+  "summary": {
+    "backlog_validated": true,
+    "check_count": 1,
+    "failed_check_ids": []
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "channel_ids": [
+    "dev",
+    "release-candidate",
+    "stable"
+  ],
+  "checks": [
+    {
+      "category": "manifest",
+      "details": {
+        "channel_ids": [
+          "dev",
+          "release-candidate",
+          "stable"
+        ],
+        "config_root": "/mnt/c/agentic_agents",
+        "errors": [],
+        "harness_version": "0.1.0",
+        "manifest_path": "/mnt/c/agentic_agents/runtime/release_channels.json"
+      },
+      "id": "manifest.shape",
+      "message": "Release channel manifest shape is valid.",
+      "next_action": "",
+      "status": "passed"
+    },
+    {
+      "category": "channel_contract",
+      "details": {
+        "channel": "stable",
+        "errors": [],
+        "release_gate_profile": "v1.1-release-candidate",
+        "status": "active"
+      },
+      "id": "channel.stable.contract",
+      "message": "Release channel stable contract is valid.",
+      "next_action": "",
+      "status": "passed"
+    },
+    {
+      "category": "stable_readiness",
+      "details": {
+        "errors": [],
+        "kind": "v1_acceptance_report",
+        "profile": "v1.1-release-candidate",
+        "proof_source": "cli.release_candidate_report",
+        "report_path": "/mnt/c/agentic_agents/runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json",
+        "status": "passed"
+      },
+      "id": "stable.readiness",
+      "message": "Stable channel has passing release-candidate proof.",
+      "next_action": "",
+      "status": "passed"
+    }
+  ],
+  "config_root": "/mnt/c/agentic_agents",
+  "created_at": "20260606T204719300365Z",
+  "harness_version": "0.1.0",
+  "kind": "release_channel_validation_report",
+  "manifest_path": "/mnt/c/agentic_agents/runtime/release_channels.json",
+  "release_candidate_report_path": "/mnt/c/agentic_agents/runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json",
+  "report_path": "/mnt/c/agentic_agents/runtime-state/stable-handoff/phase91-bash-stable-smoke-release-channel.json",
+  "schema_version": 1,
+  "selected_channel": "stable",
+  "status": "passed",
+  "summary": {
+    "check_count": 3,
+    "failed_check_ids": [],
+    "status_counts": {
+      "failed": 0,
+      "passed": 3,
+      "skipped": 0,
+      "warning": 0
+    },
+    "warning_check_ids": []
+  }
+}

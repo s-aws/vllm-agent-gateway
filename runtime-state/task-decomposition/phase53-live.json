@@ -3,37 +3,37 @@
   "checks": {
     "anythingllm": [
       {
-        "format_a_run_id": "workflow-router-20260606T195845075931Z",
-        "json_run_id": "workflow-router-20260606T195846678385Z",
+        "format_a_run_id": "workflow-router-20260606T230540435696Z",
+        "json_run_id": "workflow-router-20260606T230543774293Z",
         "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
       },
       {
-        "format_a_run_id": "workflow-router-20260606T195848494091Z",
-        "json_run_id": "workflow-router-20260606T195850090389Z",
+        "format_a_run_id": "workflow-router-20260606T230544540591Z",
+        "json_run_id": "workflow-router-20260606T230545392732Z",
         "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
       }
     ],
     "direct": [
       {
-        "ambiguous_run_id": "task-decomposition-20260606T195834014009Z",
-        "run_id": "task-decomposition-20260606T195833972083Z",
+        "ambiguous_run_id": "task-decomposition-20260606T230535076889Z",
+        "run_id": "task-decomposition-20260606T230535044630Z",
         "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
       },
       {
-        "ambiguous_run_id": "task-decomposition-20260606T195839688790Z",
-        "run_id": "task-decomposition-20260606T195839660367Z",
+        "ambiguous_run_id": "task-decomposition-20260606T230536705955Z",
+        "run_id": "task-decomposition-20260606T230536676684Z",
         "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
       }
     ],
     "gateway": [
       {
-        "format_a_run_id": "workflow-router-20260606T195834064006Z",
-        "json_run_id": "workflow-router-20260606T195837956974Z",
+        "format_a_run_id": "workflow-router-20260606T230535122426Z",
+        "json_run_id": "workflow-router-20260606T230535927694Z",
         "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
       },
       {
-        "format_a_run_id": "workflow-router-20260606T195840781943Z",
-        "json_run_id": "workflow-router-20260606T195842444321Z",
+        "format_a_run_id": "workflow-router-20260606T230537808824Z",
+        "json_run_id": "workflow-router-20260606T230538605667Z",
         "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
       }
     ],
@@ -97,7 +97,7 @@
   },
   "config_root": "/mnt/c/agentic_agents",
   "controller_base_url": "http://127.0.0.1:8400",
-  "created_at": "2026-06-06T19:58:52Z",
+  "created_at": "2026-06-06T23:05:47Z",
   "kind": "task_decomposition_live_validation",
   "runtime_changed_files": [],
   "schema_version": 1,

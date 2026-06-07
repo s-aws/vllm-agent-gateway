@@ -1,0 +1,50 @@
+{
+  "checks": [
+    {
+      "details": {
+        "errors": [],
+        "kind": "v1_acceptance_report",
+        "profile": "v1.1-release-candidate",
+        "report_path": "C:\\agentic_agents\\runtime-state\\v1-acceptance\\phase90-v1-1-acceptance-final.json",
+        "status": "passed"
+      },
+      "id": "release_candidate_report",
+      "message": "Release-candidate proof is usable for stable handoff.",
+      "next_action": "",
+      "status": "passed"
+    },
+    {
+      "details": {
+        "error": "RuntimeError: /mnt/c/coinbase_testing_repo_frozen_tmp did not contain any watched validation files",
+        "target_roots": [
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ]
+      },
+      "id": "protected_fixture_state.preflight",
+      "message": "Protected fixture state could not be captured before stable handoff smoke.",
+      "next_action": "Run stable handoff from Bash with reachable /mnt/c fixture paths before handing stable to testers.",
+      "status": "failed"
+    }
+  ],
+  "commands": [],
+  "config_root": "C:\\agentic_agents",
+  "created_at": "20260606T204701096884Z",
+  "kind": "stable_handoff_validation_report",
+  "release_candidate_report_path": "C:\\agentic_agents\\runtime-state\\v1-acceptance\\phase90-v1-1-acceptance-final.json",
+  "report_path": "C:\\agentic_agents\\runtime-state\\stable-handoff\\phase91-windows-preflight-expected-fail.json",
+  "schema_version": 1,
+  "status": "failed",
+  "summary": {
+    "check_count": 2,
+    "child_report_paths": [],
+    "command_count": 0,
+    "failed_check_ids": [
+      "protected_fixture_state.preflight"
+    ]
+  },
+  "target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ]
+}

@@ -20,9 +20,9 @@ It is read-only except for writing a report under `runtime-state/release-channel
 
 - `dev`: maintainer channel for fast local iteration and setup readiness.
 - `release-candidate`: tester channel for current V1-style founder testing through the workflow-router gateway, AnythingLLM, and both frozen Coinbase fixtures.
-- `stable`: blocked until a passed `v1_acceptance_report` with profile `release-candidate` is supplied to the release-channel validator.
+- `stable`: active external-tester channel promoted from the passed V1.1 release-candidate report.
 
-Do not point first-time testers at `stable` while it is blocked. Use `release-candidate`.
+Use `stable` for the current documented tester path after the stable handoff smoke passes. Use `release-candidate` when validating new changes before another stable promotion.
 
 ## Validate Channel Metadata
 
@@ -90,21 +90,36 @@ That gate checks secret exposure, filesystem boundaries, protected fixture polic
 
 ## Stable Readiness
 
-Stable may only be marked active after a release-candidate acceptance report passes.
+Stable may only be marked active after a release-candidate acceptance report passes. The current activation proof is:
+
+```text
+runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json
+```
 
 When stable is active, validate it with:
 
 ```bash
 python scripts/validate_release_channels.py \
   --channel stable \
-  --release-candidate-report runtime-state/v1-acceptance/<passed-report>.json
+  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json
 ```
 
 The supplied report must contain:
 
 - `kind=v1_acceptance_report`
 - `status=passed`
-- `profile=release-candidate`
+- `profile=release-candidate` or `profile=v1.1-release-candidate`
+
+Run the full stable handoff smoke before sending testers to the stable channel:
+
+```bash
+python3 scripts/validate_stable_handoff.py \
+  --release-candidate-report runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github
+```
+
+See [README.stable-handoff.md](README.stable-handoff.md).
 
 ## Rollback
 

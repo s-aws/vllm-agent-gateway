@@ -39,6 +39,15 @@ def test_external_tester_onboarding_pack_passes_current_contract(tmp_path: Path)
     assert Path(report["report_path"]).exists()
 
 
+def test_external_tester_onboarding_success_feedback_template_is_not_a_synthetic_miss() -> None:
+    pack = load_current_pack()
+    message = onboarding.feedback_message(pack, "workflow-router-20260606T000000000000Z")
+
+    assert "useful:" in message
+    assert "missing: none for external tester onboarding validation" in message
+    assert "expected one of the documented answer markers" not in message
+
+
 def test_external_tester_onboarding_rejects_deferred_advanced_prompt(tmp_path: Path) -> None:
     pack = load_current_pack()
     cases = pack["cases"]
@@ -135,3 +144,10 @@ def test_external_tester_onboarding_live_mock_records_feedback(tmp_path: Path, m
     live_case = report["live"]["cases"][0]
     assert live_case["run_id"] == "workflow-router-20260606T000000000000Z"
     assert live_case["feedback_run_id"] == "workflow-feedback-20260606T000000000000Z"
+    assert live_case["visible_response"]["marker_status"] == "passed"
+    assert live_case["visible_response"]["missing_markers"] == []
+    assert live_case["visible_response"]["text_sha256"]
+    assert "workflow_router.plan completed" in live_case["visible_response"]["text_sample"]
+    assert live_case["feedback_response"]["marker_status"] == "passed"
+    assert live_case["feedback_response"]["missing_markers"] == []
+    assert live_case["feedback_response"]["text_sha256"]

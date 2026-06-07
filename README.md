@@ -22,6 +22,7 @@ First-time AnythingLLM testers should start here:
 - [README.external-tester-onboarding.md](README.external-tester-onboarding.md): contextless release-candidate tester path with curated read-only prompts and feedback capture.
 - [README.first-time-user-doctor.md](README.first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM config, and frozen fixtures.
 - [README.release-channels.md](README.release-channels.md): dev, release-candidate, and stable channel metadata plus setup validation.
+- [README.stable-handoff.md](README.stable-handoff.md): stable-channel external tester handoff, smoke validation, first prompt, feedback, and rollback.
 - [README.security-policy.md](README.security-policy.md): release-candidate security policy gate for secrets, roots, fixtures, commands, and onboarding prompts.
 
 Tested setup:
@@ -99,6 +100,7 @@ Feature docs:
 - [README.external-tester-onboarding.md](README.external-tester-onboarding.md): contextless external tester prompt pack, live validation, and linked feedback capture
 - [README.first-time-user-doctor.md](README.first-time-user-doctor.md): first-time setup doctor for ports, AnythingLLM, controller roots, and fixtures
 - [README.release-channels.md](README.release-channels.md): release channel manifest, setup validator, stable readiness, and rollback path
+- [README.stable-handoff.md](README.stable-handoff.md): stable-channel smoke validation, first external tester prompt, feedback capture, and rollback
 - [README.security-policy.md](README.security-policy.md): security policy validator for secret exposure, filesystem boundaries, fixture safety, command fragments, and onboarding prompt safety
 - [README.gateway.md](README.gateway.md): gateway, role proxies, ports, setup, and client notes
 - [README.controller-service.md](README.controller-service.md): explicit HTTP controller workflow service and run lookup
@@ -115,6 +117,7 @@ Feature docs:
 - [README.run-artifact-diff.md](README.run-artifact-diff.md): compare acceptance, founder-field, and portability run artifacts
 - [README.failure-taxonomy.md](README.failure-taxonomy.md): classify validation failures into stable categories with recommended next actions
 - [README.founder-field-tests.md](README.founder-field-tests.md): founder-style AnythingLLM prompt field tests with deltas and prompt suggestions
+- [README.bounded-recursive-testing.md](README.bounded-recursive-testing.md): no-context recursive evaluation loop with bounded rounds, deterministic adjudication, scoring, and stop conditions
 - [README.anythingllm-ui-e2e.md](README.anythingllm-ui-e2e.md): browser-rendered AnythingLLM Desktop UI proof through the real backend and workflow-router gateway
 - [README.model-portability.md](README.model-portability.md): candidate-model acceptance gate with classified harness, classifier, prompt, and model-quality misses
 - [README.model-capability-profiles.md](README.model-capability-profiles.md): advisory model capability profiles and routing policy from portability reports

@@ -886,6 +886,7 @@ def require_feedback_record_context(
     context = record.get("feedback_context") if isinstance(record, dict) else None
     next_action = record.get("next_action") if isinstance(record, dict) else None
     classifications = record.get("classifications") if isinstance(record, dict) else None
+    feedback = record.get("feedback") if isinstance(record, dict) else None
     if not isinstance(context, dict) or not isinstance(next_action, dict) or not isinstance(classifications, list):
         raise RuntimeError(f"{label} feedback record missing Phase 67 structured fields for {target_root}")
     if context.get("selected_workflow") != "code_investigation.plan":
@@ -898,8 +899,12 @@ def require_feedback_record_context(
     downstream_keys = context.get("downstream_artifact_keys") if isinstance(context.get("downstream_artifact_keys"), list) else []
     if "code_explanation" not in downstream_keys:
         raise RuntimeError(f"{label} feedback context missing code_explanation artifact for {target_root}")
-    if not {"useful", "missing"}.issubset(set(str(item) for item in classifications)):
-        raise RuntimeError(f"{label} feedback classifications missing useful/missing for {target_root}: {classifications}")
+    if set(str(item) for item in classifications) != {"useful"}:
+        raise RuntimeError(f"{label} feedback classifications should be useful-only for no-gap V1 acceptance feedback: {classifications}")
+    if isinstance(feedback, dict) and feedback.get("missing"):
+        raise RuntimeError(f"{label} feedback recorded a synthetic missing item for no-gap V1 acceptance feedback")
+    if next_action.get("kind") != "keep_current_route":
+        raise RuntimeError(f"{label} feedback next action should keep current route for no-gap V1 acceptance feedback: {next_action}")
     if next_action.get("mutation_policy") != "controller_artifacts_only":
         raise RuntimeError(f"{label} feedback next action has unsafe mutation policy for {target_root}: {next_action}")
     return {

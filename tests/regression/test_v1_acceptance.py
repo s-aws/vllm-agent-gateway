@@ -7,10 +7,12 @@ from vllm_agent_gateway.acceptance.v1 import (
     V1AcceptanceConfig,
     acceptance_failure_guidance,
     founder_field_summary_from_suites,
+    require_feedback_record_context,
     run_id_from_text,
     skill_library_health_from_suites,
     suite_commands,
 )
+import vllm_agent_gateway.acceptance.v1 as v1_acceptance
 from vllm_agent_gateway.acceptance.profiles import ReleaseGateProfile
 
 
@@ -166,3 +168,85 @@ def test_v1_acceptance_summarizes_founder_and_skill_release_reports(tmp_path: Pa
     assert skill_summary["prompt_catalog_summary"]["field_prompt_count"] == 34
     assert skill_summary["batch_d_live_report"] == "batch-d.json"
     assert skill_summary["live_suite_statuses"]["phase63_batch_d_live_guard"] == "passed"
+
+
+def test_v1_acceptance_feedback_context_accepts_no_gap_useful_only(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    target_root = "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    record_path = tmp_path / "feedback-record.json"
+    record_path.write_text(
+        json.dumps(
+            {
+                "classifications": ["useful"],
+                "feedback": {"useful": ["inline answer was chat visible"], "missing": []},
+                "feedback_context": {
+                    "selected_workflow": "code_investigation.plan",
+                    "selected_skills": ["code-explanation-summarizer"],
+                    "target_root": target_root,
+                    "downstream_artifact_keys": ["code_explanation"],
+                    "route_rules": ["l1_explain_code_terms"],
+                    "semantic_status": "ok",
+                },
+                "next_action": {"kind": "keep_current_route", "mutation_policy": "controller_artifacts_only"},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    def fake_json_request(*_args, **_kwargs):
+        return 200, {"artifacts": {"feedback_record": str(record_path)}}
+
+    monkeypatch.setattr(v1_acceptance, "json_request", fake_json_request)
+
+    context = require_feedback_record_context(
+        V1AcceptanceConfig(config_root=REPO_ROOT, timeout_seconds=1),
+        "workflow-feedback-20260606T000000000000Z",
+        "gateway",
+        target_root,
+    )
+
+    assert context["classifications"] == ["useful"]
+    assert context["next_action"]["kind"] == "keep_current_route"
+
+
+def test_v1_acceptance_feedback_context_rejects_synthetic_missing(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    target_root = "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    record_path = tmp_path / "feedback-record.json"
+    record_path.write_text(
+        json.dumps(
+            {
+                "classifications": ["useful", "missing"],
+                "feedback": {"useful": ["inline answer was chat visible"], "missing": ["none for V1 acceptance"]},
+                "feedback_context": {
+                    "selected_workflow": "code_investigation.plan",
+                    "selected_skills": ["code-explanation-summarizer"],
+                    "target_root": target_root,
+                    "downstream_artifact_keys": ["code_explanation"],
+                },
+                "next_action": {"kind": "prompt_or_artifact_gap_review", "mutation_policy": "controller_artifacts_only"},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    def fake_json_request(*_args, **_kwargs):
+        return 200, {"artifacts": {"feedback_record": str(record_path)}}
+
+    monkeypatch.setattr(v1_acceptance, "json_request", fake_json_request)
+
+    try:
+        require_feedback_record_context(
+            V1AcceptanceConfig(config_root=REPO_ROOT, timeout_seconds=1),
+            "workflow-feedback-20260606T000000000000Z",
+            "gateway",
+            target_root,
+        )
+    except RuntimeError as exc:
+        assert "useful-only" in str(exc)
+    else:
+        raise AssertionError("synthetic missing feedback should fail V1 acceptance")
