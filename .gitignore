@@ -11,3 +11,4 @@ llm-gateway*.log
 llm-gateway*.pid
 .agentic_reports/
 .tmp_pytest/
+runtime-state/
