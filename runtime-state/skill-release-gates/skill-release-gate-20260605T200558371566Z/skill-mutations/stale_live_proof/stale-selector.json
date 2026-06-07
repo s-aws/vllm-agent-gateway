@@ -1,9 +1,0 @@
-{
-  "status": "passed",
-  "summary": {
-    "body_reads_during_selection": 0,
-    "largest_skill_count": 10000,
-    "negative_fixture_count": 1,
-    "negative_fixture_rejected_count": 1
-  }
-}
