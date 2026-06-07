@@ -209,13 +209,14 @@ Build order:
 Next roadmap gate:
 
 ```text
-Phases 92 through 105 are complete. No later roadmap phase is currently founder-approved.
+Phases 92 through 105 are complete. Phase 106 Chat Answer Artifact Priority And L1/L2 Regression Repair is founder-approved and active. Phases 107 through 119 are founder-approved and pending completion of the lower-numbered phases.
 ```
 
 Next implementation target:
 
 ```text
-No current approved phase. Do not add new phases or expand scope without founder approval.
+Complete Phase 106 Chat Answer Artifact Priority And L1/L2 Regression Repair.
+Fix the current local-model chat-quality failures before any advanced-refactor work resumes.
 ```
 
 Reason: Phase 57 made the founder field suite part of V1 acceptance, Phase 58 added the prompt matrix, Phase 59 added semantic answer quality gates, Phase 60 added user-facing refined prompts, Phase 61 produced a validated Batch D skill-scaling proposal without registry mutation, Phase 62 registered Batch D as draft skills through the existing lifecycle, Phase 63 proved and promoted Batch D through live gateway and AnythingLLM validation, Phase 64 added Batch D prompts to the founder field suite with live V1 acceptance proof, Phase 65 added skill-library health and Batch D proof to the V1 acceptance path, Phase 66 proved the harness against a non-Coinbase disposable Python service fixture, Phase 67 made AnythingLLM feedback actionable, Phase 68 split release gates into diagnosable profiles, Phase 69 added a latest-run inspector, Phase 70 made prompt catalogs governed fixtures instead of scattered script literals, Phase 71 proved the browser-rendered AnythingLLM Desktop UI path through `/stream-chat` with screenshots and fixture mutation proof, Phase 72 added a model portability gate that wraps the existing V1 acceptance path, probes the candidate `/v1/models` endpoint, and classifies misses as harness, classifier, prompt, model-quality, or unknown issues, Phase 73 added read-only run artifact diffing for V1 acceptance, founder-field, and model-portability reports, Phase 74 added a manifest-driven fixture manager with protected source snapshots, disposable setup, cleanup, and integration into the existing generalization fixture copy helpers, Phase 75 added a read-only failure taxonomy report so failures across release gates can be classified consistently instead of reinterpreted from raw logs, Phase 76 added a first-time user doctor so setup failures can be detected before testers try AnythingLLM prompts, Phase 77 added governed skill-library packaging policy before scaling toward large skill packs, Phase 78 turned portability evidence into advisory model capability profiles and a routing policy without enabling automatic model selection, Phase 79 added a canonical prompt-to-skill coverage map with a validator and gap backlog, Phase 80 extended the existing `skill.scaffold` path into a dry-run authoring factory with coverage, docs, eval, fail-closed test, and live AnythingLLM proof, Phase 81 added an explicit skill regression tier catalog with offline, controller, gateway, AnythingLLM API, UI, fixture-mutation, and release-candidate proof boundaries, Phase 82 expanded live validation to a synthetic Node CLI fixture plus both frozen Coinbase fixtures, Phase 83 added a disposable-copy mutation sandbox contract, structured diff proof, direct mutation proof artifacts, path guardrails, and rollback-failure tests around the single existing implementation workflow, Phase 84 made approval states visible in chat and stateful in controller run records, Phase 85 added a read-only observability report with route, model, skill, tool, approval, downstream, artifact, mutation, timing, and filter proof from recent live runs, Phase 86 made normal workflow-router chat explain selected workflow, skills, tools, route rules, and registry grounding in both FormatA and JSON output, Phase 87 added versioned release-channel metadata plus setup validation, Phase 88 added a contextless external tester onboarding pack with live AnythingLLM feedback proof inside the release-candidate gate, Phase 89 added the release-candidate security policy gate for secret exposure, filesystem boundaries, protected fixture policy, command fragments, and onboarding prompt safety, Phase 90 consolidated those gates into a passed V1.1 release-candidate profile, Phase 91 promoted stable-channel handoff, Phase 92 converted stable tester and blind-review feedback into fixed current-path issues or explicit Phase 93+ backlog work, Phase 93 added a governed 30-prompt natural-language capability gap backlog with validation gates, Phase 94 added a runtime selector audit contract with stable selected/rejected workflow, skill, and tool proof through Bash gateway, localhost model, controller, both frozen fixtures, and AnythingLLM, Phase 95 added route-owned context-source selection with AST/text/config/test/relationship source audits, unsupported-layout blocking, generated non-Coinbase fixture proof, Bash gateway proof, and AnythingLLM proof, Phase 96 expanded draft-only implementation prep for small text edits and approved-investigation packet prep while preserving `implementation.workflow` as the single implementation path, adding enriched direct/gateway/AnythingLLM proof, fixture digests, verification commands, generic packet seeds, bare README support, and function-definition snippet preference, Phase 97 bound natural packet-design approvals to source run identity, rejected duplicate/denied/wrong-run/target-mismatch/source-apply continuations, added deterministic approval-continuation packet prep, converted workflow-router gateway approval failures into chat-visible OpenAI responses, and proved the path through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, and full Bash regression, Phase 98 expanded disposable-copy apply proof for existing-file `append_text`, multi-operation `replace_text` plus `append_text`, source-tree digest guards, chat-visible structured diff summaries, and fail-closed `create_file` refusal through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, docs-index proof, and full Bash regression, Phase 99 added four small deterministic Batch E L2 skills with routing proof, evals, prompt coverage, live gateway and AnythingLLM validation on both frozen fixtures, contextless subagent audit hardening, and full Bash regression, Phase 100 converted model capability profiles into an active fail-closed routing gate with chat-visible route evidence, current localhost model proof, task-class enforcement, live gateway and AnythingLLM validation, contextless subagent audit hardening, and full Bash regression, Phase 101 added a Go HTTP service fixture, expanded multi-repo validation across Coinbase, Python service, Node CLI, and Go HTTP layouts, recorded repo-layout limitations, proved gateway plus AnythingLLM paths, kept Coinbase V1.1 acceptance intact, and passed full Bash regression, Phase 102 added versioned dependency-aware task-decomposition work packages, chat-visible FormatA and JSON contracts, advanced-refactor deferral proof, live gateway plus AnythingLLM validation, and full Bash regression, Phase 103 added a productized install/start/validate/reset/rerun command surface over existing setup scripts and proof gates, Phase 104 added read-only eval-driven repair recommendations with contextless verifier hardening and full Bash regression, and Phase 105 added a fail-closed advanced-refactor readiness gate with prerequisite evidence validation, pilot-scope limits, live gateway plus AnythingLLM proof, contextless verifier hardening, and full Bash regression.
@@ -298,16 +299,29 @@ Approved phase queue:
 62. Phase 104: Eval-Driven Repair Loop - complete
 63. Phase 105: Advanced Refactor Readiness Gate - complete
 
-Proposed current-model release-readiness phases:
+Approved current-model release-readiness phases:
 
-These phases are not approved yet. They were added after the post-Phase-105 readiness review found current local-model product gaps that should be closed before any advanced-refactor work resumes.
+These phases were approved after the post-Phase-105 readiness review found current local-model product gaps that should be closed before any advanced-refactor work resumes.
 
-1. Phase 106: Chat Answer Artifact Priority And L1/L2 Regression Repair - proposed; awaiting founder approval
-2. Phase 107: AnythingLLM UI Semantic E2E Gate - proposed; awaiting founder approval
-3. Phase 108: Runtime-State Repository Hygiene And Proof Retention - proposed; awaiting founder approval
-4. Phase 109: Current Local Model Release-Adherence Gate - proposed; awaiting founder approval
-5. Phase 110: Semi-Well-Defined Prompt Generalization Suite - proposed; awaiting founder approval
-6. Phase 111: Closed-Loop Eval Repair Execution Gate - proposed; awaiting founder approval
+1. Phase 106: Chat Answer Artifact Priority And L1/L2 Regression Repair - approved; active
+2. Phase 107: AnythingLLM UI Semantic E2E Gate - approved; pending Phase 106
+3. Phase 108: Runtime-State Repository Hygiene And Proof Retention - approved; pending Phase 107
+4. Phase 109: Current Local Model Release-Adherence Gate - approved; pending Phase 108
+5. Phase 110: Semi-Well-Defined Prompt Generalization Suite - approved; pending Phase 109
+6. Phase 111: Closed-Loop Eval Repair Execution Gate - approved; pending Phase 110
+
+Approved engineering-tenet audit phases:
+
+These phases directly address the local model engineering tenets and should run only after the current chat-quality foundation phases are stable.
+
+1. Phase 112: Engineering Tenet Coverage Matrix - approved; pending Phase 111
+2. Phase 113: Task Decomposition And Acceptance Criteria Tenets - approved; pending Phase 112
+3. Phase 114: Requirements Translation And Estimation Tenets - approved; pending Phase 113
+4. Phase 115: Incremental Implementation And Version-Control Tenets - approved; pending Phase 114
+5. Phase 116: Code Quality And Self-Review Tenets - approved; pending Phase 115
+6. Phase 117: Testing And Defect Diagnosis Tenets - approved; pending Phase 116
+7. Phase 118: Tradeoff, Technical Debt, And Communication Tenets - approved; pending Phase 117
+8. Phase 119: End-To-End Delivery And Mentorship Tenets - approved; pending Phase 118
 
 Second-step approved phases:
 
@@ -337,7 +351,7 @@ Third-step approved phases:
 11. Phase 88: External Tester Onboarding Pack - complete.
 12. Phase 89: Security And Policy Review Gate - complete.
 13. Phase 90: V1.1 Release Candidate Gate - complete.
-14. Phase 91: Stable Channel Promotion And External Tester Handoff - proposed; awaiting founder approval.
+14. Phase 91: Stable Channel Promotion And External Tester Handoff - complete.
 
 Current L1-001 status:
 
@@ -5032,7 +5046,7 @@ Completion proof:
 - Passed full regression `python -m pytest tests\regression\ -v` with `422 passed, 23 deselected`.
 - Protected `core/stealth_order_manager.py` hash stayed `AA3AABD03B8D88DDFBDF61E0F849165AE4DC4CF05EC1DD8B7A4389B12729057E` in both frozen Coinbase fixtures; Windows git status for `C:\coinbase_testing_repo_frozen_tmp.github` stayed clean; Bash ignore-EOL diff returned `bash_fixture_diff_exit:0`.
 
-### Proposed Phase 91: Stable Channel Promotion And External Tester Handoff
+### Approved Phase 91: Stable Channel Promotion And External Tester Handoff
 
 Status: Complete.
 
@@ -5615,9 +5629,9 @@ Validation proof:
 - Full Bash regression passed after non-agent code changes: `523 passed, 4 skipped, 23 deselected`.
 - Protected git-enabled frozen fixture content diff remained clean after Phase 105 proof.
 
-### Proposed Phase 106: Chat Answer Artifact Priority And L1/L2 Regression Repair
+### Approved Phase 106: Chat Answer Artifact Priority And L1/L2 Regression Repair
 
-Status: Proposed; awaiting founder approval.
+Status: Approved; active.
 
 Goal: make current L1/L2 chat output reliably answer the user's requested task before advanced-refactor work resumes.
 
@@ -5647,9 +5661,9 @@ Acceptance proof:
 - Protected frozen fixture hashes remain unchanged.
 - Full Bash regression passes after non-agent code changes.
 
-### Proposed Phase 107: AnythingLLM UI Semantic E2E Gate
+### Approved Phase 107: AnythingLLM UI Semantic E2E Gate
 
-Status: Proposed; awaiting founder approval.
+Status: Approved; pending Phase 106.
 
 Goal: make the browser-visible AnythingLLM UI validator prove useful answer content, not only transport and marker presence.
 
@@ -5674,9 +5688,9 @@ Acceptance proof:
 - The report records semantic marker hits, rejected wrong-answer markers, screenshots, stream-chat proof, run IDs, and fixture mutation proof.
 - The validator remains Windows/Chrome-specific where appropriate, while runtime stack validation remains Bash-hosted.
 
-### Proposed Phase 108: Runtime-State Repository Hygiene And Proof Retention
+### Approved Phase 108: Runtime-State Repository Hygiene And Proof Retention
 
-Status: Proposed; awaiting founder approval.
+Status: Approved; pending Phase 107.
 
 Goal: stop generated runtime artifacts from being committed while preserving enough canonical proof for contextless agents and testers.
 
@@ -5703,9 +5717,9 @@ Acceptance proof:
 - Docs index passes.
 - No validation capability is lost; validators continue writing local reports under ignored runtime-state or the private controller state root.
 
-### Proposed Phase 109: Current Local Model Release-Adherence Gate
+### Approved Phase 109: Current Local Model Release-Adherence Gate
 
-Status: Proposed; awaiting founder approval.
+Status: Approved; pending Phase 108.
 
 Goal: create one consolidated gate that answers whether the current localhost model and harness are releasable for normal founder/testing use.
 
@@ -5730,9 +5744,9 @@ Acceptance proof:
 - The report includes current model name, port evidence, route/skill/tool proof, answer-quality proof, UI semantic proof, fixture mutation proof, latency summary, and actionable failure classifications.
 - Full Bash regression passes after non-agent code changes.
 
-### Proposed Phase 110: Semi-Well-Defined Prompt Generalization Suite
+### Approved Phase 110: Semi-Well-Defined Prompt Generalization Suite
 
-Status: Proposed; awaiting founder approval.
+Status: Approved; pending Phase 109.
 
 Goal: prove the product works for semi-well-defined natural coding prompts, not only exact governed prompt wording.
 
@@ -5757,9 +5771,9 @@ Acceptance proof:
 - Accepted findings either become current-phase fixes or proposed roadmap work with exact evidence.
 - No prompt requires manual skill injection, controller JSON, or internal workflow names.
 
-### Proposed Phase 111: Closed-Loop Eval Repair Execution Gate
+### Approved Phase 111: Closed-Loop Eval Repair Execution Gate
 
-Status: Proposed; awaiting founder approval.
+Status: Approved; pending Phase 110.
 
 Goal: prove the project can turn a failed local-model/harness eval into an accepted fix and verified holdout pass.
 
@@ -5787,6 +5801,211 @@ Acceptance proof:
 - Full Bash regression passes after non-agent code changes.
 - The final report proves no protected fixture mutation and no route/skill/tool regression.
 
+### Approved Phase 112: Engineering Tenet Coverage Matrix
+
+Status: Approved; pending Phase 111.
+
+Goal: make the local model engineering tenets measurable instead of aspirational.
+
+Implementation tasks:
+
+- Create a governed coverage matrix that maps each local model engineering tenet to current workflows, skills, tools, eval cases, live validators, known gaps, and contextless-agent audit criteria.
+- Classify each tenet as `covered`, `partially_covered`, `not_covered`, or `not_applicable_yet`.
+- Define required chat-visible evidence for each covered or partially covered tenet.
+- Define the minimum live validation tier for each tenet: gateway, AnythingLLM API, UI, fixture mutation, release-adherence, or contextless audit.
+- Add a validator that fails on missing tenet IDs, duplicate mappings, unsupported status values, missing acceptance evidence, or unapproved advanced-refactor dependencies.
+
+Acceptance proof:
+
+- Coverage matrix exists as a governed runtime/config artifact.
+- Every tenet in `Local Model Engineering Tenets` has exactly one matrix entry.
+- Validator passes on the current matrix and fails on a controlled missing-tenet fixture.
+- Roadmap and docs explain which tenets are already measurable and which need later phases.
+- Docs index passes.
+
+### Approved Phase 113: Task Decomposition And Acceptance Criteria Tenets
+
+Status: Approved; pending Phase 112.
+
+Goal: prove the harness can decompose features, bugs, and requirements into bounded work with objective acceptance criteria.
+
+Tenets covered:
+
+- Decompose a feature, bug, or requirement into independently completable tasks.
+- Identify ambiguous, high-risk, or oversized tasks and further decompose them.
+- Define objective acceptance criteria before implementation begins.
+
+Implementation tasks:
+
+- Extend task-decomposition and planning prompts to produce independent work packages, dependencies, acceptance criteria, stop conditions, and review boundaries.
+- Add semi-well-defined feature, bug, and requirement prompts that do not name internal workflows.
+- Add contextless-agent audit packets that judge whether the work packages are independently testable and whether acceptance criteria are objective.
+- Add deterministic validators for missing acceptance criteria, oversized work packages, ambiguous dependencies, and unsupported implementation claims.
+
+Acceptance proof:
+
+- Gateway and AnythingLLM runs pass on both frozen Coinbase fixtures and at least one non-Coinbase fixture where applicable.
+- Contextless-agent audit reports meet the bounded recursive testing score threshold.
+- Failed decomposition cases produce clarification or further-decomposition output instead of implementation plans.
+- No source mutation occurs.
+- Full Bash regression passes after non-agent code changes.
+
+### Approved Phase 114: Requirements Translation And Estimation Tenets
+
+Status: Approved; pending Phase 113.
+
+Goal: prove the harness can translate business requirements into technical requirements and estimates without inventing unnecessary assumptions.
+
+Tenets covered:
+
+- Translate business requirements into technical requirements without unnecessary complexity or assumptions.
+- Estimate development effort using documented assumptions and revise estimates when new information changes scope.
+
+Implementation tasks:
+
+- Add a requirements-translation workflow or extend task decomposition with a requirements mode if that preserves the single code path rule.
+- Require explicit assumptions, rejected assumptions, technical requirements, dependencies, risk notes, and effort estimate bands.
+- Add prompts with changing scope so the harness must revise estimates instead of preserving stale numbers.
+- Add contextless-agent audits for over-assumption, hidden complexity, and estimate traceability.
+
+Acceptance proof:
+
+- Business-to-technical prompt suite passes through gateway and AnythingLLM.
+- Every estimate includes assumptions, confidence, scope drivers, and revision triggers.
+- Contextless audits find no unsupported assumptions above the configured threshold.
+- Full Bash regression passes after non-agent code changes.
+
+### Approved Phase 115: Incremental Implementation And Version-Control Tenets
+
+Status: Approved; pending Phase 114.
+
+Goal: prove the harness can plan incremental implementation and version-control behavior using industry-standard changesets.
+
+Tenets covered:
+
+- Implement changes incrementally with functional and testable outcomes.
+- Use version control according to industry standards, including meaningful commits, isolated changesets, and traceable change history.
+
+Implementation tasks:
+
+- Add chat-visible implementation-plan output that splits work into isolated changesets with test gates.
+- Add version-control guidance for meaningful commit messages, changed-file scope, dependency order, and traceable proof artifacts.
+- Add validators that reject plans mixing unrelated changes, skipping tests, or proposing vague commit messages.
+- Keep source apply blocked unless a later approved phase expands apply behavior; this phase can validate planning and disposable-copy proof only.
+
+Acceptance proof:
+
+- Incremental implementation-plan prompts return ordered changesets with verification commands and commit-message rationale.
+- Contextless agents can audit whether each changeset is isolated and independently reviewable.
+- Disposable-copy mutation proof remains optional and explicitly bounded.
+- Full Bash regression passes after non-agent code changes.
+
+### Approved Phase 116: Code Quality And Self-Review Tenets
+
+Status: Approved; pending Phase 115.
+
+Goal: prove the harness can identify and communicate code quality issues before peer review.
+
+Tenets covered:
+
+- Review own code against established coding standards before requesting peer review.
+- Identify duplication, excessive complexity, poor naming, and tight coupling, and remediate them before deployment.
+
+Implementation tasks:
+
+- Add read-only code-quality and self-review prompt families that inspect bounded files or proposed patches.
+- Use existing structure/text tools where possible; add small deterministic skills only if the current tool/skill set cannot cover the gap.
+- Add output sections for findings, severity, evidence refs, remediation options, and rejected false positives.
+- Add contextless-agent audit for actionable review quality and overbroad refactor drift.
+
+Acceptance proof:
+
+- Code-quality prompts pass on governed fixtures with evidence-backed findings.
+- The harness rejects broad refactor requests outside the approved scope.
+- Findings are actionable, source-referenced, and do not require manual skill injection.
+- Full Bash regression passes after non-agent code changes.
+
+### Approved Phase 117: Testing And Defect Diagnosis Tenets
+
+Status: Approved; pending Phase 116.
+
+Goal: prove the harness can select test levels, reproduce defects, isolate root cause, and use logs/observability instead of assumptions.
+
+Tenets covered:
+
+- Write and maintain automated tests for expected behavior, edge cases, and regressions.
+- Determine the appropriate testing level and justify that decision.
+- Reproduce reported defects, isolate root causes, and verify fixes without regressions.
+- Use logs, debugging tools, and observability data to diagnose failures.
+
+Implementation tasks:
+
+- Extend current L1/L2 test-selection, failure-summary, CI-log, runtime-reproduction, and observability paths into a combined defect-diagnosis gate.
+- Add prompt cases with pasted logs, failing tests, runtime traces, and incomplete bug reports.
+- Require reproduction steps, likely root cause, confidence, smallest useful test, broader regression test, and observability evidence.
+- Add contextless-agent audit for whether conclusions are evidence-backed and whether test levels are justified.
+
+Acceptance proof:
+
+- Defect-diagnosis suite passes through gateway and AnythingLLM on both frozen fixtures.
+- At least one case uses logs/observability artifacts rather than source search alone.
+- Target and holdout cases pass after any repair.
+- Full Bash regression passes after non-agent code changes.
+
+### Approved Phase 118: Tradeoff, Technical Debt, And Communication Tenets
+
+Status: Approved; pending Phase 117.
+
+Goal: prove the harness can explain engineering decisions, tradeoffs, technical debt, risks, blockers, and review feedback.
+
+Tenets covered:
+
+- Evaluate whether a solution is simpler, more maintainable, and more testable than alternatives.
+- Identify technical debt and document remediation separately from feature delivery.
+- Communicate implementation plans, risks, blockers, and tradeoffs clearly.
+- Participate in code reviews with actionable feedback.
+- Explain architectural and implementation decisions using engineering principles.
+
+Implementation tasks:
+
+- Add prompt families for tradeoff comparison, debt logging, implementation risk summaries, code-review feedback, and architecture-decision explanation.
+- Require alternatives considered, rejected reasons, maintainability/testability comparison, risk level, debt items, and next-action boundaries.
+- Add contextless-agent audit rubrics for actionable communication and principled reasoning.
+
+Acceptance proof:
+
+- Tradeoff/debt/review prompt suite passes through gateway and AnythingLLM.
+- Outputs include evidence refs and avoid unsupported preference claims.
+- Technical debt is separated from feature delivery work.
+- Contextless audit scores meet the stable-channel threshold.
+- Full Bash regression passes after non-agent code changes.
+
+### Approved Phase 119: End-To-End Delivery And Mentorship Tenets
+
+Status: Approved; pending Phase 118.
+
+Goal: prove the harness can support small-to-medium feature delivery from intake through deployment-quality validation and can explain the workflow well enough to mentor less experienced engineers.
+
+Tenets covered:
+
+- Independently deliver small-to-medium features from requirement intake through deployment while maintaining quality and testing standards.
+- Mentor less experienced engineers on task decomposition, testing strategy, debugging methodology, code quality practices, and development workflows.
+
+Implementation tasks:
+
+- Create an end-to-end simulated delivery suite that starts with a semi-well-defined requirement and proceeds through decomposition, acceptance criteria, implementation planning, verification strategy, review, and feedback capture.
+- Keep apply behavior within existing approved boundaries: read-only, draft-only, or disposable-copy proof unless a later phase expands source apply.
+- Add mentorship-style outputs that explain why the workflow chose decomposition, tests, debugging steps, quality checks, and review boundaries.
+- Use contextless-agent audit to verify the output is teachable, accurate, and not patronizing or vague.
+
+Acceptance proof:
+
+- End-to-end delivery suite passes through gateway and AnythingLLM on representative fixtures.
+- Outputs are chat-visible, evidence-backed, bounded, and aligned with all previously audited tenets.
+- Contextless audit confirms the workflow can be followed by a less experienced engineer.
+- No protected fixture mutation occurs.
+- Full Bash regression passes after non-agent code changes.
+
 ## Stop Conditions
 
 Stop and fix the current phase if any of these happen:
@@ -5812,4 +6031,4 @@ When a new Codex session starts, do this:
 6. Run regression after non-agent code changes.
 7. Follow the Structured Development Rule in this roadmap for every non-trivial change: define the problem, gather evidence, identify root cause, design the smallest correction, implement, verify, inspect artifacts, and document the result.
 
-Phases 43 through 105 are complete. Phases 106 through 111 are proposed current-model release-readiness work and are not approved yet.
+Phases 43 through 105 are complete. Phase 106 is approved and active. Phases 107 through 119 are approved and pending completion of the lower-numbered phases.
