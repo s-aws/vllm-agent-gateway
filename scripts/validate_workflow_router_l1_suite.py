@@ -647,6 +647,58 @@ def require_text_markers(text: str, markers: tuple[str, ...], *, label: str, tar
         )
 
 
+def read_json_artifact(path_value: Any, *, label: str) -> dict[str, Any]:
+    if not isinstance(path_value, str) or not path_value:
+        raise RuntimeError(f"{label} artifact path was missing")
+    path = Path(path_value)
+    if not path.is_file():
+        raise RuntimeError(f"{label} artifact path does not exist: {path_value}")
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise RuntimeError(f"{label} artifact was not a JSON object: {path_value}")
+    return value
+
+
+def expected_model_capability_task_class(case: L1Case) -> str:
+    if case.selected_workflow == "execution_planning.plan":
+        return "draft_only_l1"
+    return "read_only_l1"
+
+
+def require_model_capability_gateway_artifacts(compact: dict[str, Any], target_root: str, case: L1Case) -> None:
+    artifacts = compact.get("artifacts")
+    if not isinstance(artifacts, dict):
+        raise RuntimeError(f"gateway response did not include artifacts for {case.case_id} on {target_root}")
+    summary = compact.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError(f"gateway response did not include summary for {case.case_id} on {target_root}")
+    decision = read_json_artifact(artifacts.get("route_decision"), label=f"{case.case_id} route_decision")
+    gate = decision.get("model_capability_routing")
+    if not isinstance(gate, dict):
+        raise RuntimeError(f"{case.case_id} route decision did not include model_capability_routing on {target_root}")
+    expected_task_class = expected_model_capability_task_class(case)
+    expected = {
+        "status": "approved",
+        "task_class": expected_task_class,
+        "task_policy_status": "approved",
+    }
+    wrong = {key: {"expected": value, "actual": gate.get(key)} for key, value in expected.items() if gate.get(key) != value}
+    if wrong:
+        raise RuntimeError(
+            f"{case.case_id} model capability gate mismatch on {target_root}: "
+            f"{json.dumps(wrong, sort_keys=True)}"
+        )
+    if not isinstance(gate.get("profile_id"), str) or not gate["profile_id"]:
+        raise RuntimeError(f"{case.case_id} model capability gate did not record profile_id on {target_root}")
+    if summary.get("model_capability_status") != gate.get("status"):
+        raise RuntimeError(f"{case.case_id} summary did not expose model_capability_status on {target_root}")
+    if summary.get("model_capability_task_class") != gate.get("task_class"):
+        raise RuntimeError(f"{case.case_id} summary did not expose model_capability_task_class on {target_root}")
+    evidence = decision.get("evidence") if isinstance(decision.get("evidence"), list) else []
+    if not any(item.get("source") == "model_capability_routing" for item in evidence if isinstance(item, dict)):
+        raise RuntimeError(f"{case.case_id} evidence did not include model_capability_routing on {target_root}")
+
+
 def require_gateway_response(body: dict[str, Any], target_root: str, case: L1Case) -> str:
     compact = body.get("agentic_controller_response")
     if not isinstance(compact, dict):
@@ -685,6 +737,7 @@ def require_gateway_response(body: dict[str, Any], target_root: str, case: L1Cas
         )
     text = text_response(body)
     require_text_markers(text, case.markers, label="gateway", target_root=target_root, case=case)
+    require_model_capability_gateway_artifacts(compact, target_root, case)
     return text
 
 

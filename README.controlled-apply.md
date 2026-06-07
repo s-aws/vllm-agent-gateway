@@ -2,7 +2,7 @@
 
 `implementation.workflow` is the controller-owned edit engine for approved small changes. It can draft patch previews without mutating source files and can apply exact packet operations only after explicit real-apply approval.
 
-The workflow is intentionally narrow. It supports exact `replace_text`, `append_text`, and draft-only `create_file` packet operations through one canonical implementation path. The workflow writes patch previews, before/after hashes, verification results, rollback metadata, and durable reports.
+The workflow is intentionally narrow. It supports exact `replace_text`, `append_text`, and draft-only `create_file` packet operations through one canonical implementation path. Disposable-copy apply currently allows existing-file `replace_text` and `append_text`; `create_file` remains blocked in apply mode until a later explicit unsafe-create policy is approved. The workflow writes patch previews, before/after hashes, verification results, rollback metadata, and durable reports.
 
 ## When To Use It
 
@@ -81,6 +81,14 @@ Natural disposable-copy apply requires all of the following in the user message:
 
 The router copies the target repository, applies the exact operation through `implementation.workflow`, records mutation proof, rolls the copy back, and proves the source repository stayed unchanged.
 
+Phase 98 expands disposable-copy proof to cover:
+
+- existing-file `append_text`
+- multi-operation `replace_text` plus `append_text`
+- full source-tree digest proof, not only packet target hashes
+- chat-visible structured diff summaries
+- fail-closed `create_file` apply refusal
+
 ## Artifacts
 
 Direct implementation artifacts include:
@@ -107,9 +115,15 @@ Key proof fields:
 - `after_sha256`
 - `rollback_operation`
 - `source_changed`
+- `source_tree_changed`
 - `copy_changed`
+- `copy_tree_restored`
 - `sandbox_contract.status`
 - `structured_diff.changed_file_count`
+- `structured_diff.records[].path`
+- `structured_diff.records[].operation_kind`
+- `structured_diff.records[].added_line_count`
+- `structured_diff.records[].removed_line_count`
 - `rollback.status`
 
 ## Validation
@@ -128,6 +142,19 @@ python3 scripts/validate_controlled_small_change_apply_live.py \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
+  --timeout-seconds 900
+```
+
+Phase 98 disposable apply expansion validation:
+
+```bash
+python3 scripts/validate_disposable_apply_expansion.py \
+  --port-health \
+  --live-gateway \
+  --live-anythingllm \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
+  --output-path runtime-state/disposable-apply-expansion/manual-live.json \
   --timeout-seconds 900
 ```
 

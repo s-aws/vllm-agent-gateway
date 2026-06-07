@@ -394,6 +394,80 @@ def _budget_error(
     return {"error": error}
 
 
+def _workflow_router_error_next_action(code: str) -> str:
+    if code == "approval_already_consumed":
+        return "Start a fresh planning run or review the continuation run already linked to this approval."
+    if code == "approval_denied":
+        return "Start a fresh planning run if packet design is still needed."
+    if code == "approval_expired":
+        return "Start a fresh planning run; the previous approval window expired."
+    if code == "approval_not_pending":
+        return "Use a run_id whose approval state is waiting_for_approval and approval type is packet_design."
+    if code == "approval_scope_changed":
+        return "Retry with the same target path and draft packet-design scope, or use a separate approved apply path."
+    return "Review the failure reason and retry with a valid packet-design approval continuation."
+
+
+def _workflow_router_error_chat_body(status: int, body: bytes) -> bytes:
+    try:
+        parsed = json.loads(body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        parsed = {"error": {"code": "controller_error", "message": body.decode("utf-8", errors="replace")}}
+    error = parsed.get("error") if isinstance(parsed, dict) and isinstance(parsed.get("error"), dict) else {}
+    code = error.get("code") if isinstance(error.get("code"), str) else "controller_error"
+    message = error.get("message") if isinstance(error.get("message"), str) else "Controller request failed."
+    next_action = _workflow_router_error_next_action(code)
+    content = "\n".join(
+        [
+            "workflow_router.plan finished with status failed.",
+            "workflow_router.plan failed",
+            "run_id: unknown",
+            "warnings: 0",
+            "failures: 1",
+            "",
+            "Result:",
+            "- route_status: failed",
+            f"- failure_reason: {message}",
+            f"- error_code: {code}",
+            "",
+            "Approval:",
+            "- State: failed",
+            "- Type: packet_design",
+            f"- Next: {next_action}",
+        ]
+    )
+    response = {
+        "id": "chatcmpl-workflow-router-error",
+        "object": "chat.completion",
+        "created": 0,
+        "model": "agentic-workflow-router",
+        "choices": [
+            {
+                "index": 0,
+                "message": {"role": "assistant", "content": content},
+                "finish_reason": "stop",
+            }
+        ],
+        "agentic_controller_response": {
+            "workflow": "workflow_router.plan",
+            "status": "failed",
+            "summary": {
+                "route_status": "failed",
+                "approval_state_status": "failed",
+                "approval_type": "packet_design",
+                "approval_state_next_action": next_action,
+                "failure_reason": message,
+                "error_code": code,
+                "controller_status": status,
+            },
+            "warnings": [],
+            "failures": [{"code": code, "message": message}],
+            "artifacts": {},
+        },
+    }
+    return json.dumps(response, ensure_ascii=True).encode("utf-8")
+
+
 class GatewayHandler(BaseHTTPRequestHandler):
     server_version = "LLMGateway/0.1"
 
@@ -628,6 +702,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
                 "X-LLM-Gateway": "workflow-router-routed",
             },
             extra_response_headers={"X-LLM-Gateway": "workflow-router-routed"},
+            convert_error_to_chat=True,
         )
 
     def _handle_controller_envelope_route(self, raw_body: bytes, body: dict[str, Any]) -> bool:
@@ -715,6 +790,7 @@ class GatewayHandler(BaseHTTPRequestHandler):
         request_path: str,
         extra_request_headers: dict[str, str] | None = None,
         extra_response_headers: dict[str, str] | None = None,
+        convert_error_to_chat: bool = False,
     ) -> None:
         target, connection_cls, port = _target_parts(target_url)
         headers = {
@@ -738,8 +814,16 @@ class GatewayHandler(BaseHTTPRequestHandler):
             )
             response = conn.getresponse()
             response_body = response.read()
-            self.send_response(response.status, response.reason)
-            for key, value in response.getheaders():
+            response_status = response.status
+            response_reason = response.reason
+            response_headers = response.getheaders()
+            if convert_error_to_chat and response_status >= 400:
+                response_body = _workflow_router_error_chat_body(response_status, response_body)
+                response_status = 200
+                response_reason = "OK"
+                response_headers = [("Content-Type", "application/json")]
+            self.send_response(response_status, response_reason)
+            for key, value in response_headers:
                 lowered = key.lower()
                 if lowered in HOP_BY_HOP_HEADERS or lowered == "content-length":
                     continue

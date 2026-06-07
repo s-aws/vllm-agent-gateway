@@ -70,6 +70,10 @@ LIVE_SUITE_CASE_MAP = {
         "l2_request_flow_map": "L2-007",
         "l2_code_path_comparison": "L2-008",
         "l2_change_surface_summary": "L2-009",
+        "l2_ci_log_triage": "L2-010",
+        "l2_table_read_write_lookup": "L2-011",
+        "l2_runtime_reproduction_checklist": "L2-012",
+        "l2_user_facing_message_test_target": "L2-013",
     },
 }
 LIVE_SUITE_SCRIPT_MAP = {

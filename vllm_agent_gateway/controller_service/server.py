@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import threading
@@ -206,6 +207,8 @@ RUN_ID_IN_TEXT_RE = re.compile(r"\b(?P<run_id>[A-Za-z][A-Za-z0-9_.:-]*-\d{8}T\d{
 POSIX_TARGET_RE = re.compile(r"(?P<path>/(?:mnt|home|tmp|var|opt|workspace|repo|repos|[A-Za-z0-9._-]+)(?:/[^\s,;:'\"`<>]+)+)")
 WINDOWS_TARGET_RE = re.compile(r"(?P<path>[A-Za-z]:[\\/][^\s,;:'\"`<>]+(?:[\\/][^\s,;:'\"`<>]+)*)")
 TERMINAL_STATUSES = {"completed", "failed", "canceled"}
+RUN_RECORD_VISIBILITY_RETRIES = 20
+RUN_RECORD_VISIBILITY_SLEEP_SECONDS = 0.01
 NATURAL_IMPLEMENTATION_PREP_EXECUTION_BUDGETS = {
     "max_context_requests": 5,
     "max_files": 10,
@@ -526,6 +529,7 @@ class InlineArtifactKind(str, Enum):
     MESSAGE_SOURCE_LOOKUP = "message_source_lookup"
     MODULE_SUMMARY = "module_summary"
     DATA_MODEL_LOOKUP = "data_model_lookup"
+    TABLE_READ_WRITE_LOOKUP = "table_read_write_lookup"
     COVERAGE_GAP_SUMMARY = "coverage_gap_summary"
     DOCUMENTATION_LOOKUP = "documentation_lookup"
     CLI_ENTRYPOINT_LOOKUP = "cli_entrypoint_lookup"
@@ -534,18 +538,22 @@ class InlineArtifactKind(str, Enum):
     DEPENDENCY_LOOKUP = "dependency_lookup"
     USAGE_SUMMARY = "usage_summary"
     CONFIGURATION_LOOKUP = "configuration_lookup"
+    CI_FAILURE_SUMMARY = "ci_failure_summary"
     TEST_FAILURE_SUMMARY = "test_failure_summary"
     MULTI_FILE_BEHAVIOR_INVESTIGATION = "multi_file_behavior_investigation"
     DEPENDENCY_IMPACT_SUMMARY = "dependency_impact_summary"
     TEST_SELECTION_PLAN = "test_selection_plan"
     RUNTIME_ERROR_DIAGNOSIS = "runtime_error_diagnosis"
+    REPRODUCTION_CHECKLIST = "reproduction_checklist"
     REQUEST_FLOW_MAP = "request_flow_map"
     CODE_PATH_COMPARISON = "code_path_comparison"
     CHANGE_SURFACE_SUMMARY = "change_surface_summary"
     INVESTIGATION_PLAN = "investigation_plan"
+    PACKET_OPERATION_PROPOSAL = "packet_operation_proposal"
     SMALL_TEXT_EDIT_PROPOSAL = "small_text_edit_proposal"
     SMALL_UNIT_TEST_PROPOSAL = "small_unit_test_proposal"
     SIMPLE_TEST_FIX_PROPOSAL = "simple_test_fix_proposal"
+    DISPOSABLE_MUTATION_DIFF = "disposable_mutation_structured_diff"
     SKILL_BATCH_PROPOSAL = "skill_batch_proposal"
     SKILL_BATCH_REGISTRATION = "skill_batch_registration"
     SKILL_EVAL_PROMOTION = "skill_eval_promotion"
@@ -563,6 +571,27 @@ FORMAT_A_SUMMARY_KEY_LIMIT = 24
 FORMAT_A_ARTIFACT_LIMIT = 10
 FORMAT_A_MAX_LINES = 220
 FORMAT_A_MAX_CHARS = 16000
+FORMAT_A_SUMMARY_KEY_PRIORITY = (
+    "route_status",
+    "selected_workflow",
+    "downstream_workflow",
+    "downstream_status",
+    "next_action",
+    "source_changed",
+    "source_tree_changed",
+    "disposable_copy_changed",
+    "mutation_sandbox_status",
+    "mutation_diff_file_count",
+    "mutation_diff_paths",
+    "mutation_rollback_status",
+    "selected_context_sources",
+    "context_layout_status",
+    "context_gap_count",
+    "model_capability_status",
+    "model_capability_task_class",
+    "model_capability_profile_id",
+    "model_capability_policy_status",
+)
 
 
 INLINE_ARTIFACT_KEYS: tuple[tuple[InlineArtifactKind, tuple[str, ...]], ...] = (
@@ -572,6 +601,7 @@ INLINE_ARTIFACT_KEYS: tuple[tuple[InlineArtifactKind, tuple[str, ...]], ...] = (
     (InlineArtifactKind.MESSAGE_SOURCE_LOOKUP, ("downstream_message_source_lookup", "message_source_lookup")),
     (InlineArtifactKind.MODULE_SUMMARY, ("downstream_module_summary", "module_summary")),
     (InlineArtifactKind.DATA_MODEL_LOOKUP, ("downstream_data_model_lookup", "data_model_lookup")),
+    (InlineArtifactKind.TABLE_READ_WRITE_LOOKUP, ("downstream_table_read_write_lookup", "table_read_write_lookup")),
     (InlineArtifactKind.COVERAGE_GAP_SUMMARY, ("downstream_coverage_gap_summary", "coverage_gap_summary")),
     (InlineArtifactKind.DOCUMENTATION_LOOKUP, ("downstream_documentation_lookup", "documentation_lookup")),
     (InlineArtifactKind.CLI_ENTRYPOINT_LOOKUP, ("downstream_cli_entrypoint_lookup", "cli_entrypoint_lookup")),
@@ -583,6 +613,7 @@ INLINE_ARTIFACT_KEYS: tuple[tuple[InlineArtifactKind, tuple[str, ...]], ...] = (
     (InlineArtifactKind.DEPENDENCY_LOOKUP, ("downstream_dependency_lookup", "dependency_lookup")),
     (InlineArtifactKind.USAGE_SUMMARY, ("downstream_usage_summary", "usage_summary")),
     (InlineArtifactKind.CONFIGURATION_LOOKUP, ("downstream_configuration_lookup", "configuration_lookup")),
+    (InlineArtifactKind.CI_FAILURE_SUMMARY, ("downstream_ci_failure_summary", "ci_failure_summary")),
     (InlineArtifactKind.TEST_FAILURE_SUMMARY, ("downstream_test_failure_summary", "test_failure_summary")),
     (
         InlineArtifactKind.MULTI_FILE_BEHAVIOR_INVESTIGATION,
@@ -590,14 +621,17 @@ INLINE_ARTIFACT_KEYS: tuple[tuple[InlineArtifactKind, tuple[str, ...]], ...] = (
     ),
     (InlineArtifactKind.DEPENDENCY_IMPACT_SUMMARY, ("downstream_dependency_impact_summary", "dependency_impact_summary")),
     (InlineArtifactKind.TEST_SELECTION_PLAN, ("downstream_test_selection_plan", "test_selection_plan")),
+    (InlineArtifactKind.REPRODUCTION_CHECKLIST, ("downstream_reproduction_checklist", "reproduction_checklist")),
     (InlineArtifactKind.RUNTIME_ERROR_DIAGNOSIS, ("downstream_runtime_error_diagnosis", "runtime_error_diagnosis")),
     (InlineArtifactKind.REQUEST_FLOW_MAP, ("downstream_request_flow_map", "request_flow_map")),
     (InlineArtifactKind.CODE_PATH_COMPARISON, ("downstream_code_path_comparison", "code_path_comparison")),
     (InlineArtifactKind.CHANGE_SURFACE_SUMMARY, ("downstream_change_surface_summary", "change_surface_summary")),
     (InlineArtifactKind.INVESTIGATION_PLAN, ("downstream_investigation_plan", "investigation_plan")),
+    (InlineArtifactKind.PACKET_OPERATION_PROPOSAL, ("packet_operation_proposal",)),
     (InlineArtifactKind.SMALL_TEXT_EDIT_PROPOSAL, ("small_text_edit_proposal",)),
     (InlineArtifactKind.SMALL_UNIT_TEST_PROPOSAL, ("small_unit_test_proposal",)),
     (InlineArtifactKind.SIMPLE_TEST_FIX_PROPOSAL, ("simple_test_fix_proposal",)),
+    (InlineArtifactKind.DISPOSABLE_MUTATION_DIFF, ("disposable_mutation_diff",)),
     (InlineArtifactKind.SKILL_BATCH_PROPOSAL, ("downstream_skill_batch_proposal", "skill_batch_proposal")),
     (
         InlineArtifactKind.SKILL_BATCH_REGISTRATION,
@@ -1620,6 +1654,67 @@ def skill_selection_explanation_for_response(response: dict[str, Any]) -> dict[s
     }
 
 
+def context_source_explanation_for_response(response: dict[str, Any]) -> dict[str, Any] | None:
+    artifacts = response.get("artifacts") if isinstance(response.get("artifacts"), dict) else {}
+    route_decision = artifact_json_by_key(artifacts, "route_decision") or {}
+    audit = artifact_json_by_key(artifacts, "context_source_audit") or {}
+    if not audit and isinstance(route_decision.get("context_source_audit"), dict):
+        audit = route_decision["context_source_audit"]
+    if not audit:
+        return None
+    selected = audit.get("selected") if isinstance(audit.get("selected"), list) else []
+    rejected = audit.get("rejected") if isinstance(audit.get("rejected"), list) else []
+    layout = audit.get("layout") if isinstance(audit.get("layout"), dict) else {}
+    selected_sources: list[dict[str, Any]] = []
+    for item in selected[:5]:
+        if not isinstance(item, dict):
+            continue
+        source_id = item.get("source_id")
+        if not isinstance(source_id, str):
+            continue
+        selected_sources.append(
+            {
+                "source_id": source_id,
+                "description": inline_text(item.get("description"), 160),
+                "tool_ids": string_items(item.get("tool_ids")),
+                "artifact_keys": string_items(item.get("artifact_keys")),
+                "budget": item.get("budget") if isinstance(item.get("budget"), dict) else {},
+                "reasons": string_items(item.get("reasons")),
+            }
+        )
+    rejected_sources = [
+        {
+            "source_id": str(item.get("source_id")),
+            "reasons": string_items(item.get("reasons")),
+        }
+        for item in rejected[:5]
+        if isinstance(item, dict) and isinstance(item.get("source_id"), str)
+    ]
+    gaps = string_items(audit.get("gaps"))
+    evidence_files = string_items(audit.get("evidence_files"))
+    return {
+        "selected_source_ids": string_items(audit.get("selected_source_ids")),
+        "selected": selected_sources,
+        "rejected": rejected_sources,
+        "layout": {
+            "status": layout.get("status"),
+            "supported_file_count": layout.get("supported_file_count"),
+            "sample_files": string_items(layout.get("sample_files")),
+            "scanned_file_count": layout.get("scanned_file_count"),
+            "scan_limit": layout.get("scan_limit"),
+            "git_present": layout.get("git_present"),
+        },
+        "budget": audit.get("budget") if isinstance(audit.get("budget"), dict) else {},
+        "evidence_files": evidence_files,
+        "gaps": gaps,
+        "grounding": [
+            "route_decision.context_source_audit",
+            "context_source_audit",
+            "route_decision.controller_request_preview.context_sources",
+        ],
+    }
+
+
 def chat_contract_for_response(response: dict[str, Any]) -> dict[str, Any]:
     artifacts = response.get("artifacts") if isinstance(response.get("artifacts"), dict) else {}
     summary = response.get("summary") if isinstance(response.get("summary"), dict) else {}
@@ -1665,6 +1760,7 @@ def chat_contract_for_response(response: dict[str, Any]) -> dict[str, Any]:
         "verification": verification or "none",
         "verification_command_count": verification_count,
         "selection_explanation": skill_selection_explanation_for_response(response),
+        "context_explanation": context_source_explanation_for_response(response),
     }
 
 
@@ -1716,6 +1812,50 @@ def append_skill_selection_summary_lines(lines: list[str], response: dict[str, A
         rejected_parts.append(f"skills {rejected.get('skill_rejected_count', 0)}")
         rejected_parts.append(f"tools {rejected.get('tool_rejected_count', 0)}")
     lines.append(f"- Rejected candidates: {limited_join(rejected_parts, limit=3) or 'none'}")
+    lines.append(f"- Grounded in: {limited_join([str(item) for item in explanation.get('grounding', [])], limit=5)}")
+
+
+def append_context_source_summary_lines(lines: list[str], response: dict[str, Any]) -> None:
+    explanation = context_source_explanation_for_response(response)
+    if not explanation:
+        return
+    selected = explanation.get("selected") if isinstance(explanation.get("selected"), list) else []
+    source_summaries = []
+    for item in selected[:5]:
+        if not isinstance(item, dict):
+            continue
+        source_id = item.get("source_id")
+        tools = item.get("tool_ids") if isinstance(item.get("tool_ids"), list) else []
+        reasons = item.get("reasons") if isinstance(item.get("reasons"), list) else []
+        if isinstance(source_id, str):
+            details = []
+            if tools:
+                details.append(f"tools {limited_join([str(tool) for tool in tools], limit=3)}")
+            if reasons:
+                details.append(f"reason {limited_join([str(reason) for reason in reasons], limit=2)}")
+            source_summaries.append(f"{source_id} ({'; '.join(details)})" if details else source_id)
+    rejected = explanation.get("rejected") if isinstance(explanation.get("rejected"), list) else []
+    rejected_ids = [str(item.get("source_id")) for item in rejected[:5] if isinstance(item, dict) and isinstance(item.get("source_id"), str)]
+    layout = explanation.get("layout") if isinstance(explanation.get("layout"), dict) else {}
+    budget = explanation.get("budget") if isinstance(explanation.get("budget"), dict) else {}
+    lines.append("")
+    lines.append("Context Sources:")
+    lines.append(f"- Selected: {limited_join(source_summaries, limit=5) or 'none'}")
+    lines.append(f"- Rejected: {limited_join(rejected_ids, limit=5) or 'none'}")
+    lines.append(
+        "- Layout: "
+        f"{inline_text(layout.get('status'), 80)}; "
+        f"supported files {layout.get('supported_file_count', 0)}; "
+        f"scanned {layout.get('scanned_file_count', 0)} of {layout.get('scan_limit', 0)}"
+    )
+    lines.append(
+        f"- Budget: sources {budget.get('max_selected_sources', 0)}, "
+        f"scan files {budget.get('layout_scan_file_limit', 0)}"
+    )
+    lines.append(
+        f"- Evidence files: {limited_join([str(item) for item in explanation.get('evidence_files', [])], limit=5) or 'none'}"
+    )
+    lines.append(f"- Gaps: {limited_join([str(item) for item in explanation.get('gaps', [])], limit=5) or 'none'}")
     lines.append(f"- Grounded in: {limited_join([str(item) for item in explanation.get('grounding', [])], limit=5)}")
 
 
@@ -2058,6 +2198,21 @@ def append_message_source_lookup_answer(lines: list[str], artifact: dict[str, An
     joined = limited_join(values)
     if joined:
         lines.append(f"- Sources: {joined}")
+    assessment = artifact.get("user_facing_assessment")
+    if isinstance(assessment, dict):
+        status = assessment.get("status")
+        reason = assessment.get("reason")
+        if isinstance(status, str) and status:
+            suffix = f" - {inline_text(reason, 180)}" if isinstance(reason, str) and reason else ""
+            lines.append(f"- User-facing: {status}{suffix}")
+        targets = related_tests_summary(assessment.get("recommended_test_targets"))
+        if targets:
+            lines.append(f"- Test targets: {targets}")
+        else:
+            lines.append("- Test targets: no bounded related tests found")
+        verification = verification_commands_summary(assessment.get("verification_commands"))
+        if verification:
+            lines.append(f"- Verification: {verification}")
     if isinstance(artifact.get("reason"), str):
         lines.append(f"- Reason: {inline_text(artifact['reason'])}")
     source_refs = source_refs_summary(artifact.get("source_refs"))
@@ -2124,6 +2279,52 @@ def append_data_model_lookup_answer(lines: list[str], artifact: dict[str, Any]) 
             lines.append(f"- Model files: {joined}")
     if isinstance(artifact.get("reason"), str):
         lines.append(f"- Reason: {inline_text(artifact['reason'])}")
+    source_refs = source_refs_summary(artifact.get("source_refs"))
+    if source_refs:
+        lines.append(f"- Source refs: {source_refs}")
+    if artifact.get("mutation_policy") == "read_only_no_source_mutation":
+        lines.append("- Source mutation: false")
+    return bool(lines)
+
+
+def append_table_read_write_lookup_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
+    if artifact.get("status") == "not_requested":
+        return False
+    target = artifact.get("target_table")
+    if isinstance(target, str) and target:
+        lines.append(f"- Target table: {target}")
+    summary = artifact.get("access_summary") if isinstance(artifact.get("access_summary"), dict) else {}
+    lines.append(
+        "- Access counts: "
+        f"definitions={summary.get('definition_count', 0)}, "
+        f"reads={summary.get('read_count', 0)}, "
+        f"writes={summary.get('write_count', 0)}"
+    )
+    for label, key in (
+        ("Definition sites", "definition_sites"),
+        ("Read sites", "read_sites"),
+        ("Write sites", "write_sites"),
+    ):
+        sites = artifact.get(key)
+        if not isinstance(sites, list):
+            continue
+        values = []
+        for site in sites:
+            if not isinstance(site, dict):
+                continue
+            path = path_with_line(site)
+            evidence = site.get("evidence")
+            label_text = path
+            if isinstance(evidence, str) and evidence:
+                label_text = f"{label_text}: {inline_text(evidence, 120)}" if label_text else inline_text(evidence, 120)
+            if label_text:
+                values.append(label_text)
+        joined = limited_join(values)
+        if joined:
+            lines.append(f"- {label}: {joined}")
+    gaps = gaps_summary(artifact.get("gaps"))
+    if gaps:
+        lines.append(f"- Gaps: {gaps}")
     source_refs = source_refs_summary(artifact.get("source_refs"))
     if source_refs:
         lines.append(f"- Source refs: {source_refs}")
@@ -2421,6 +2622,36 @@ def append_configuration_lookup_answer(lines: list[str], artifact: dict[str, Any
     return True
 
 
+def append_ci_failure_summary_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
+    first = artifact.get("first_failing_command") if isinstance(artifact.get("first_failing_command"), dict) else {}
+    command = first.get("command") if isinstance(first.get("command"), str) else None
+    if command:
+        lines.append(f"- First failing command: {inline_text(command, 180)}")
+    error = artifact.get("primary_error") if isinstance(artifact.get("primary_error"), dict) else {}
+    error_type = error.get("type") if isinstance(error.get("type"), str) else None
+    error_message = error.get("message") if isinstance(error.get("message"), str) else None
+    if error_type or error_message:
+        lines.append(f"- Primary error: {inline_text(': '.join(item for item in [error_type, error_message] if item))}")
+    if isinstance(artifact.get("likely_cause"), str):
+        lines.append(f"- Likely cause: {inline_text(artifact['likely_cause'])}")
+    next_command = artifact.get("next_local_command") if isinstance(artifact.get("next_local_command"), dict) else {}
+    rendered = command_text(next_command.get("command")) if next_command else ""
+    if rendered:
+        lines.append(f"- Next local command: {rendered}")
+    failed_tests = related_tests_summary(artifact.get("failed_tests"))
+    if failed_tests:
+        lines.append(f"- Failed tests: {failed_tests}")
+    evidence = participating_files_summary(artifact.get("evidence_files"))
+    if evidence:
+        lines.append(f"- Evidence files: {evidence}")
+    gaps = gaps_summary(artifact.get("gaps"))
+    if gaps:
+        lines.append(f"- Gaps: {gaps}")
+    if artifact.get("mutation_policy") == "read_only_no_source_mutation":
+        lines.append("- Source mutation: false")
+    return bool(lines)
+
+
 def append_test_failure_summary_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
     failed_tests = artifact.get("failed_tests")
     if isinstance(failed_tests, list):
@@ -2669,6 +2900,46 @@ def append_runtime_error_diagnosis_answer(lines: list[str], artifact: dict[str, 
     return added
 
 
+def append_reproduction_checklist_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
+    added = False
+    error = artifact.get("observed_error") if isinstance(artifact.get("observed_error"), dict) else {}
+    error_type = error.get("type") if isinstance(error.get("type"), str) else None
+    error_message = error.get("message") if isinstance(error.get("message"), str) else None
+    if error_type or error_message:
+        lines.append(f"- Observed error: {inline_text(': '.join(item for item in [error_type, error_message] if item))}")
+        added = True
+    checklist = artifact.get("minimal_reproduction_checklist")
+    if isinstance(checklist, list):
+        values: list[str] = []
+        for item in checklist:
+            if not isinstance(item, dict) or not isinstance(item.get("step"), str):
+                continue
+            path = item.get("path")
+            suffix = f" ({path})" if isinstance(path, str) and path else ""
+            values.append(f"{item['step']}{suffix}")
+        joined = limited_join(values, limit=4)
+        if joined:
+            lines.append(f"- Reproduction checklist: {joined}")
+            added = True
+    related_tests = related_tests_summary(artifact.get("related_tests"))
+    if related_tests:
+        lines.append(f"- Related tests: {related_tests}")
+        added = True
+    command = artifact.get("next_local_command") if isinstance(artifact.get("next_local_command"), dict) else {}
+    rendered = command_text(command.get("command")) if command else ""
+    if rendered:
+        lines.append(f"- Next local command: {rendered}")
+        added = True
+    gaps = gaps_summary(artifact.get("gaps"))
+    if gaps:
+        lines.append(f"- Gaps: {gaps}")
+        added = True
+    if artifact.get("mutation_policy") == "read_only_no_source_mutation":
+        lines.append("- Source mutation: false")
+        added = True
+    return added
+
+
 def append_request_flow_map_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
     added = False
     target = artifact.get("target_flow")
@@ -2857,9 +3128,14 @@ def append_draft_proposal_answer(lines: list[str], artifact: dict[str, Any]) -> 
     safety = safety_checks_summary(artifact.get("safety_checks"))
     if safety:
         lines.append(f"- Safety checks: {safety}")
+    source_artifact_key = artifact.get("source_artifact_key")
+    if isinstance(source_artifact_key, str) and source_artifact_key:
+        lines.append(f"- Evidence source: {source_artifact_key}")
     source_mutation = source_mutation_from_safety_checks(artifact.get("safety_checks"))
     if source_mutation is not None:
         lines.append(f"- Source mutation: {source_mutation}")
+    elif artifact.get("kind") == "workflow_router_packet_operation_proposal":
+        lines.append("- Source mutation: false")
     if artifact.get("failed_test"):
         lines.append(f"- Failed test: {inline_text(artifact['failed_test'])}")
     blockers = blockers_summary(artifact.get("blockers"))
@@ -3151,9 +3427,13 @@ def append_task_decomposition_answer(lines: list[str], artifact: dict[str, Any])
     if artifact.get("kind") != "task_decomposition":
         return False
     lines.append("- Decomposition artifact: task_decomposition")
+    lines.append(f"- Work-package schema: {artifact.get('work_package_schema_version')}")
     lines.append(f"- Decomposition status: {artifact.get('status')}")
     lines.append(f"- Prompt family: {artifact.get('prompt_family')}")
     lines.append(f"- Risk level: {artifact.get('risk_level')}")
+    deferred_to_phase = artifact.get("deferred_to_phase")
+    if deferred_to_phase:
+        lines.append(f"- Deferred to phase: {deferred_to_phase}")
     work_packages = artifact.get("work_packages") if isinstance(artifact.get("work_packages"), list) else []
     if work_packages:
         package_lines: list[str] = []
@@ -3162,10 +3442,38 @@ def append_task_decomposition_answer(lines: list[str], artifact: dict[str, Any])
                 continue
             workflow = item.get("workflow_id") if isinstance(item.get("workflow_id"), str) else "approval_gate"
             title = inline_text(item.get("title"), 120)
-            approval = "approval required" if item.get("approval_required") is True else "read-only"
-            package_lines.append(f"{item.get('id')}: {title} ({workflow}, {approval})")
+            stage = inline_text(item.get("stage"), 80)
+            gate = item.get("approval_gate") if isinstance(item.get("approval_gate"), dict) else {}
+            approval_scope = gate.get("scope") if item.get("approval_required") is True else "none"
+            package_lines.append(f"{item.get('id')}: {title} ({stage}, {workflow}, gate={approval_scope})")
         if package_lines:
             lines.append(f"- Work packages: {limited_join(package_lines)}")
+        stop_lines: list[str] = []
+        verification_lines: list[str] = []
+        for item in work_packages[:INLINE_ARTIFACT_ITEM_LIMIT]:
+            if not isinstance(item, dict):
+                continue
+            package_id = item.get("id")
+            stops = item.get("stop_conditions") if isinstance(item.get("stop_conditions"), list) else []
+            stop_codes = [
+                stop.get("code")
+                for stop in stops[:2]
+                if isinstance(stop, dict) and isinstance(stop.get("code"), str)
+            ]
+            if stop_codes:
+                stop_lines.append(f"{package_id}: {limited_join(stop_codes, limit=2)}")
+            verification = item.get("verification") if isinstance(item.get("verification"), dict) else {}
+            status = verification.get("status")
+            proof_gates = string_items(verification.get("proof_gates"))
+            if isinstance(status, str):
+                detail = status
+                if proof_gates:
+                    detail = f"{detail} ({limited_join(proof_gates, limit=2)})"
+                verification_lines.append(f"{package_id}: {inline_text(detail, 180)}")
+        if stop_lines:
+            lines.append(f"- Stop conditions: {limited_join(stop_lines)}")
+        if verification_lines:
+            lines.append(f"- Package verification: {limited_join(verification_lines)}")
     edges = artifact.get("dependency_edges") if isinstance(artifact.get("dependency_edges"), list) else []
     if edges:
         edge_lines = []
@@ -3179,7 +3487,10 @@ def append_task_decomposition_answer(lines: list[str], artifact: dict[str, Any])
         gate_lines = []
         for gate in gates[:INLINE_ARTIFACT_ITEM_LIMIT]:
             if isinstance(gate, dict):
-                gate_lines.append(inline_text(gate.get("id") or gate, 160))
+                gate_id = inline_text(gate.get("id") or gate, 80)
+                package_id = inline_text(gate.get("package_id"), 40)
+                scope = inline_text(gate.get("approval_scope"), 80)
+                gate_lines.append(f"{gate_id} ({package_id}, {scope})")
         if gate_lines:
             lines.append(f"- Approval gates: {limited_join(gate_lines)}")
     workflows = string_items(artifact.get("selected_workflow_ids"))
@@ -3214,6 +3525,38 @@ def append_task_decomposition_answer(lines: list[str], artifact: dict[str, Any])
     return True
 
 
+def append_disposable_mutation_diff_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
+    if artifact.get("kind") != InlineArtifactKind.DISPOSABLE_MUTATION_DIFF.value:
+        return False
+    lines.append("- Diff artifact: disposable_mutation_structured_diff")
+    lines.append(f"- Status: {artifact.get('status')}")
+    lines.append(f"- Changed files: {artifact.get('changed_file_count', 0)}")
+    records = artifact.get("records") if isinstance(artifact.get("records"), list) else []
+    record_lines: list[str] = []
+    for record in records[:INLINE_ARTIFACT_ITEM_LIMIT]:
+        if not isinstance(record, dict):
+            continue
+        path = inline_text(record.get("path"), 160)
+        kind = inline_text(record.get("operation_kind"), 80)
+        status = inline_text(record.get("status"), 80)
+        added = record.get("added_line_count", 0)
+        removed = record.get("removed_line_count", 0)
+        record_lines.append(f"{path} ({kind}, +{added}/-{removed}, {status})")
+    if record_lines:
+        lines.append(f"- Files: {limited_join(record_lines)}")
+    truncated = [
+        str(record.get("path"))
+        for record in records
+        if isinstance(record, dict) and record.get("diff_truncated") is True and isinstance(record.get("path"), str)
+    ]
+    if truncated:
+        lines.append(f"- Truncated diffs: {limited_join(truncated)}")
+    copy_root = artifact.get("disposable_copy_root")
+    if isinstance(copy_root, str) and copy_root:
+        lines.append(f"- Disposable copy: {copy_root}")
+    return True
+
+
 def append_inline_artifact_answer(lines: list[str], artifacts: dict[str, Any]) -> None:
     renderers = {
         InlineArtifactKind.CODE_EXPLANATION: append_code_explanation_answer,
@@ -3222,6 +3565,7 @@ def append_inline_artifact_answer(lines: list[str], artifacts: dict[str, Any]) -
         InlineArtifactKind.MESSAGE_SOURCE_LOOKUP: append_message_source_lookup_answer,
         InlineArtifactKind.MODULE_SUMMARY: append_module_summary_answer,
         InlineArtifactKind.DATA_MODEL_LOOKUP: append_data_model_lookup_answer,
+        InlineArtifactKind.TABLE_READ_WRITE_LOOKUP: append_table_read_write_lookup_answer,
         InlineArtifactKind.COVERAGE_GAP_SUMMARY: append_coverage_gap_summary_answer,
         InlineArtifactKind.DOCUMENTATION_LOOKUP: append_documentation_lookup_answer,
         InlineArtifactKind.CLI_ENTRYPOINT_LOOKUP: append_cli_entrypoint_lookup_answer,
@@ -3230,18 +3574,22 @@ def append_inline_artifact_answer(lines: list[str], artifacts: dict[str, Any]) -
         InlineArtifactKind.DEPENDENCY_LOOKUP: append_dependency_lookup_answer,
         InlineArtifactKind.USAGE_SUMMARY: append_usage_summary_answer,
         InlineArtifactKind.CONFIGURATION_LOOKUP: append_configuration_lookup_answer,
+        InlineArtifactKind.CI_FAILURE_SUMMARY: append_ci_failure_summary_answer,
         InlineArtifactKind.TEST_FAILURE_SUMMARY: append_test_failure_summary_answer,
         InlineArtifactKind.MULTI_FILE_BEHAVIOR_INVESTIGATION: append_multi_file_behavior_investigation_answer,
         InlineArtifactKind.DEPENDENCY_IMPACT_SUMMARY: append_dependency_impact_summary_answer,
         InlineArtifactKind.TEST_SELECTION_PLAN: append_test_selection_plan_answer,
         InlineArtifactKind.RUNTIME_ERROR_DIAGNOSIS: append_runtime_error_diagnosis_answer,
+        InlineArtifactKind.REPRODUCTION_CHECKLIST: append_reproduction_checklist_answer,
         InlineArtifactKind.REQUEST_FLOW_MAP: append_request_flow_map_answer,
         InlineArtifactKind.CODE_PATH_COMPARISON: append_code_path_comparison_answer,
         InlineArtifactKind.CHANGE_SURFACE_SUMMARY: append_change_surface_summary_answer,
         InlineArtifactKind.INVESTIGATION_PLAN: append_investigation_plan_answer,
+        InlineArtifactKind.PACKET_OPERATION_PROPOSAL: append_draft_proposal_answer,
         InlineArtifactKind.SMALL_TEXT_EDIT_PROPOSAL: append_draft_proposal_answer,
         InlineArtifactKind.SMALL_UNIT_TEST_PROPOSAL: append_draft_proposal_answer,
         InlineArtifactKind.SIMPLE_TEST_FIX_PROPOSAL: append_draft_proposal_answer,
+        InlineArtifactKind.DISPOSABLE_MUTATION_DIFF: append_disposable_mutation_diff_answer,
         InlineArtifactKind.SKILL_BATCH_PROPOSAL: append_skill_batch_proposal_answer,
         InlineArtifactKind.SKILL_BATCH_REGISTRATION: append_skill_batch_registration_answer,
         InlineArtifactKind.SKILL_EVAL_PROMOTION: append_skill_eval_promotion_answer,
@@ -3260,6 +3608,7 @@ def append_inline_artifact_answer(lines: list[str], artifacts: dict[str, Any]) -
         if renderers[kind](answer_lines, artifact):
             lines.append("")
             if kind in {
+                InlineArtifactKind.PACKET_OPERATION_PROPOSAL,
                 InlineArtifactKind.SMALL_TEXT_EDIT_PROPOSAL,
                 InlineArtifactKind.SMALL_UNIT_TEST_PROPOSAL,
                 InlineArtifactKind.SIMPLE_TEST_FIX_PROPOSAL,
@@ -3282,6 +3631,8 @@ def append_inline_artifact_answer(lines: list[str], artifacts: dict[str, Any]) -
                 lines.append("Skill Scaffold:")
             elif kind == InlineArtifactKind.TASK_DECOMPOSITION:
                 lines.append("Task Decomposition:")
+            elif kind == InlineArtifactKind.DISPOSABLE_MUTATION_DIFF:
+                lines.append("Disposable Apply:")
             else:
                 lines.append("Answer:")
             lines.extend(answer_lines)
@@ -3294,7 +3645,9 @@ def append_summary_lines(lines: list[str], summary: Any) -> None:
     lines.append("")
     lines.append("Summary:")
     if isinstance(summary, dict):
-        keys = sorted(summary)
+        keys = [key for key in FORMAT_A_SUMMARY_KEY_PRIORITY if key in summary] + [
+            key for key in sorted(summary) if key not in FORMAT_A_SUMMARY_KEY_PRIORITY
+        ]
         for key in keys[:FORMAT_A_SUMMARY_KEY_LIMIT]:
             lines.append(f"- {key}: {format_summary_value(summary[key])}")
         if len(keys) > FORMAT_A_SUMMARY_KEY_LIMIT:
@@ -3368,6 +3721,7 @@ def assistant_content_format_a(response: dict[str, Any]) -> str:
         )
     append_chat_contract_lines(lines, response)
     append_skill_selection_summary_lines(lines, response)
+    append_context_source_summary_lines(lines, response)
     append_summary_lines(lines, response.get("summary"))
     append_approval_state_lines(lines, response.get("summary"))
     append_inline_artifact_answer(lines, artifacts)
@@ -3376,6 +3730,70 @@ def assistant_content_format_a(response: dict[str, Any]) -> str:
         lines.append("")
         lines.append(f"Run record: {response['run_lookup']}")
     return bounded_format_a_text(lines)
+
+
+def task_decomposition_contract_for_response(response: dict[str, Any]) -> dict[str, Any] | None:
+    artifacts = response.get("artifacts") if isinstance(response.get("artifacts"), dict) else {}
+    artifact = inline_artifact_by_kind(artifacts, InlineArtifactKind.TASK_DECOMPOSITION)
+    if artifact is None:
+        return None
+    packages = artifact.get("work_packages") if isinstance(artifact.get("work_packages"), list) else []
+    compact_packages: list[dict[str, Any]] = []
+    for item in packages:
+        if not isinstance(item, dict):
+            continue
+        dependency_contract = item.get("dependency_contract") if isinstance(item.get("dependency_contract"), dict) else {}
+        approval_gate = item.get("approval_gate") if isinstance(item.get("approval_gate"), dict) else {}
+        verification = item.get("verification") if isinstance(item.get("verification"), dict) else {}
+        compact_packages.append(
+            {
+                "id": item.get("id"),
+                "title": item.get("title"),
+                "stage": item.get("stage"),
+                "workflow_id": item.get("workflow_id"),
+                "depends_on": item.get("depends_on") if isinstance(item.get("depends_on"), list) else [],
+                "blocks": dependency_contract.get("blocks") if isinstance(dependency_contract.get("blocks"), list) else [],
+                "approval_gate": {
+                    "required": approval_gate.get("required") is True,
+                    "scope": approval_gate.get("scope"),
+                    "decision_options": approval_gate.get("decision_options")
+                    if isinstance(approval_gate.get("decision_options"), list)
+                    else [],
+                },
+                "mutation_policy": item.get("mutation_policy"),
+                "stop_conditions": item.get("stop_conditions")
+                if isinstance(item.get("stop_conditions"), list)
+                else [],
+                "verification": {
+                    "status": verification.get("status"),
+                    "commands": verification.get("commands") if isinstance(verification.get("commands"), list) else [],
+                    "proof_gates": verification.get("proof_gates")
+                    if isinstance(verification.get("proof_gates"), list)
+                    else [],
+                },
+                "expected_artifacts": item.get("expected_artifacts")
+                if isinstance(item.get("expected_artifacts"), list)
+                else [],
+            }
+        )
+    return {
+        "kind": "task_decomposition_contract",
+        "work_package_schema_version": artifact.get("work_package_schema_version"),
+        "status": artifact.get("status"),
+        "prompt_family": artifact.get("prompt_family"),
+        "risk_level": artifact.get("risk_level"),
+        "deferred_to_phase": artifact.get("deferred_to_phase"),
+        "work_packages": compact_packages,
+        "dependency_edges": artifact.get("dependency_edges") if isinstance(artifact.get("dependency_edges"), list) else [],
+        "approval_gates": artifact.get("approval_gates") if isinstance(artifact.get("approval_gates"), list) else [],
+        "verification_strategy": artifact.get("verification_strategy")
+        if isinstance(artifact.get("verification_strategy"), dict)
+        else {},
+        "blockers": artifact.get("blockers") if isinstance(artifact.get("blockers"), list) else [],
+        "next_action": artifact.get("next_action"),
+        "target_repository_changed": artifact.get("target_repository_changed"),
+        "runtime_registry_changed": artifact.get("runtime_registry_changed"),
+    }
 
 
 def assistant_content_json(response: dict[str, Any]) -> str:
@@ -3394,6 +3812,8 @@ def assistant_content_json(response: dict[str, Any]) -> str:
             "failures": response.get("failures") if isinstance(response.get("failures"), list) else [],
             "chat_contract": chat_contract_for_response(response),
             "selection_explanation": skill_selection_explanation_for_response(response),
+            "context_explanation": context_source_explanation_for_response(response),
+            "task_decomposition_contract": task_decomposition_contract_for_response(response),
             "tool_policy": response.get("tool_policy"),
             "review_summary": response.get("review_summary"),
             "non_mutation": response.get("non_mutation"),
@@ -3491,14 +3911,30 @@ def persist_run_record(config: ControllerServiceConfig, response: dict[str, Any]
     config.run_registry_root.mkdir(parents=True, exist_ok=True)
     path = config.run_registry_root / f"{run_id}.json"
     temp_path = config.run_registry_root / f".{run_id}.{threading.get_ident()}.tmp"
-    temp_path.write_bytes(json_bytes(record))
+    with temp_path.open("wb") as handle:
+        handle.write(json_bytes(record))
+        handle.flush()
+        os.fsync(handle.fileno())
     temp_path.replace(path)
+    for _ in range(RUN_RECORD_VISIBILITY_RETRIES):
+        if path.exists():
+            return
+        time.sleep(RUN_RECORD_VISIBILITY_SLEEP_SECONDS)
+    raise ControllerServiceError(
+        "Run record was not visible after persistence.",
+        status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        code="run_record_persistence_failed",
+    )
 
 
 def load_run_record(config: ControllerServiceConfig, run_id: str) -> dict[str, Any]:
     if not RUN_ID_RE.fullmatch(run_id):
         raise ControllerServiceError("Invalid run_id.", status=HTTPStatus.BAD_REQUEST, code="invalid_run_id")
     path = config.run_registry_root / f"{run_id}.json"
+    for _ in range(RUN_RECORD_VISIBILITY_RETRIES):
+        if path.exists():
+            break
+        time.sleep(RUN_RECORD_VISIBILITY_SLEEP_SECONDS)
     if not path.exists():
         raise ControllerServiceError("Run not found.", status=HTTPStatus.NOT_FOUND, code="run_not_found")
     try:
@@ -3670,15 +4106,35 @@ def strip_path_punctuation(value: str) -> str:
     return value.strip().rstrip(".,;:)]}\"'")
 
 
+def target_paths_from_natural_text(user_request: str) -> list[str]:
+    paths: list[str] = []
+    seen: set[str] = set()
+    for pattern in (WINDOWS_TARGET_RE, POSIX_TARGET_RE):
+        for match in pattern.finditer(user_request):
+            if pattern is POSIX_TARGET_RE:
+                start = match.start("path")
+                if start > 0 and user_request[start - 1] not in " \t\r\n\"'`([":
+                    continue
+            candidate = strip_path_punctuation(match.group("path"))
+            if candidate and candidate not in seen:
+                paths.append(candidate)
+                seen.add(candidate)
+    return paths
+
+
+def natural_text_without_target_paths(user_request: str) -> str:
+    text = user_request
+    for pattern in (WINDOWS_TARGET_RE, POSIX_TARGET_RE):
+        text = pattern.sub(" ", text)
+    return text
+
+
 def target_root_from_natural_request(user_request: str, payload: dict[str, Any]) -> str:
     payload_target = payload.get("target_root")
     if isinstance(payload_target, str) and payload_target.strip():
         return payload_target
-    for pattern in (WINDOWS_TARGET_RE, POSIX_TARGET_RE):
-        for match in pattern.finditer(user_request):
-            candidate = strip_path_punctuation(match.group("path"))
-            if candidate:
-                return candidate
+    for candidate in target_paths_from_natural_text(user_request):
+        return candidate
     raise ControllerServiceError(
         "Workflow-router natural-language requests must name an allowed target_root path.",
         code="missing_target_root",
@@ -3729,7 +4185,7 @@ def approval_continuation_run_id(user_request: str) -> str | None:
 
 
 def approval_denial_run_id(user_request: str) -> str | None:
-    text = user_request.lower()
+    text = natural_text_without_target_paths(user_request).lower()
     denial_terms = ("deny", "denied", "reject", "rejected", "do not approve", "don't approve")
     if not any(term in text for term in denial_terms):
         return None
@@ -3737,6 +4193,45 @@ def approval_denial_run_id(user_request: str) -> str | None:
         return None
     match = RUN_ID_IN_TEXT_RE.search(user_request)
     return match.group("run_id") if match else None
+
+
+def approval_continuation_scope_change_requested(user_request: str) -> bool:
+    text = natural_text_without_target_paths(user_request).lower()
+    if "disposable copy" in text:
+        return False
+    safe_negations = (
+        "do not apply",
+        "do not mutate",
+        "do not edit",
+        "don't apply",
+        "don't mutate",
+        "don't edit",
+        "without applying",
+        "without mutating",
+        "without editing",
+    )
+    normalized = text
+    for phrase in safe_negations:
+        normalized = normalized.replace(phrase, " ")
+    scope_change_terms = (
+        "apply now",
+        "apply the change",
+        "apply changes",
+        "apply this change",
+        "make the change",
+        "make changes",
+        "edit the source",
+        "edit source",
+        "write to source",
+        "write files",
+        "mutate source",
+        "mutate the source",
+        "mutate target",
+        "mutate the target",
+        "real apply",
+        "commit the change",
+    )
+    return any(term in normalized for term in scope_change_terms)
 
 
 def run_ids_from_text(user_request: str) -> list[str]:
@@ -5102,6 +5597,121 @@ def natural_packet_objective_payload(
     return request
 
 
+def approved_investigation_packet_prep_requested(user_request: str) -> bool:
+    text = user_request.lower()
+    if not run_ids_from_text(user_request):
+        return False
+    packet_terms = (
+        "packet operations",
+        "packet_operations",
+        "implementation packet",
+        "implementation prep",
+        "implementation-prep",
+        "dry-run implementation",
+        "dry run implementation",
+    )
+    investigation_terms = (
+        "approved investigation",
+        "approved read-only investigation",
+        "approved read only investigation",
+        "convert this investigation",
+        "convert the investigation",
+        "from this investigation",
+        "from the investigation",
+    )
+    draft_terms = ("draft only", "draft-only", "dry run", "do not mutate", "do not edit", "do not apply")
+    return any(term in text for term in packet_terms) and any(term in text for term in investigation_terms) and any(
+        term in text for term in draft_terms
+    )
+
+
+def run_record_has_packet_seed_artifact(record: dict[str, Any]) -> bool:
+    artifacts = record.get("artifacts") if isinstance(record.get("artifacts"), dict) else {}
+    return any(
+        isinstance(artifacts.get(key), str) and artifacts.get(key)
+        for key in ("downstream_investigation_plan", "downstream_refactor_plan")
+    )
+
+
+def natural_approved_investigation_packet_prep_payload(
+    payload: dict[str, Any],
+    user_request: str,
+    config: ControllerServiceConfig,
+) -> dict[str, Any] | None:
+    if not approved_investigation_packet_prep_requested(user_request):
+        return None
+    source_run_id = run_ids_from_text(user_request)[-1]
+    try:
+        source_record = load_run_record(config, source_run_id)
+    except ControllerServiceError as exc:
+        raise ControllerServiceError(
+            "Approved-investigation packet prep requires a known prior workflow-router run_id.",
+            status=exc.status,
+            code=exc.code,
+        ) from exc
+    if source_record.get("status") != "completed":
+        raise ControllerServiceError(
+            "Approved-investigation packet prep requires a completed prior run.",
+            status=HTTPStatus.CONFLICT,
+            code="source_run_not_completed",
+        )
+    if not run_record_has_packet_seed_artifact(source_record):
+        raise ControllerServiceError(
+            "Approved-investigation packet prep requires a prior run with an implementation packet seed artifact.",
+            status=HTTPStatus.CONFLICT,
+            code="missing_packet_seed_artifact",
+        )
+    target_root = prior_run_target_root(config, source_run_id)
+    if target_root is None:
+        raise ControllerServiceError(
+            "Approved-investigation packet prep could not recover target_root from the prior run.",
+            code="missing_target_root",
+        )
+    objective = packet_objective_from_text(user_request)
+    if not objective:
+        raise ControllerServiceError(
+            "Approved-investigation packet prep requires an implementation objective.",
+            code="missing_packet_objective",
+        )
+    request: dict[str, Any] = {
+        "workflow": WORKFLOW_ROUTER_WORKFLOW_ID,
+        "schema_version": 1,
+        "target_root": target_root,
+        "user_request": (
+            "Prepare implementation packet candidates from an approved read-only investigation. "
+            f"Implementation objective: {objective} "
+            "Use draft mode only, do not mutate the target repository, "
+            "and use the prior investigation artifact as the packet seed."
+        ),
+        "mode": "implementation_prep",
+        "approval": {
+            "status": "approved_for_packet_design",
+            "scope": "packet_design_only",
+            "apply_allowed": False,
+            "approval_refs": [f"natural_approved_investigation:{source_run_id}"],
+        },
+        "packet_operations": packet_operations_from_natural_request(payload, user_request),
+        "context": {
+            "allowed_context_tools": ["structure_index", "git_grep", "read_file", "manual"],
+            "bounded_context": [
+                {
+                    "source": "workflow_router_natural_approved_investigation_packet_prep",
+                    "approved_run_id": source_run_id,
+                    "packet_objective": objective,
+                }
+            ],
+        },
+        "feedback": {
+            "tester_feedback": bounded_string(user_request, 1000),
+        },
+        "execution_budgets": natural_implementation_prep_execution_budgets(payload),
+    }
+    role_base_url = payload.get("role_base_url")
+    if isinstance(role_base_url, str) and role_base_url.strip():
+        request["role_base_url"] = role_base_url
+    return request
+
+
 def natural_narrowed_edit_objective_payload(
     payload: dict[str, Any],
     user_request: str,
@@ -5196,19 +5806,34 @@ def natural_approval_continuation_payload(
     if approved_run_id is None:
         return None
     validate_approval_continuation_source(config, approved_run_id)
-    target_root = None
-    payload_target = payload.get("target_root")
-    if isinstance(payload_target, str) and payload_target.strip():
-        target_root = payload_target
-    if target_root is None:
-        target_root = prior_run_target_root(config, approved_run_id)
-    if target_root is None:
-        target_root = target_root_from_natural_request(user_request, payload)
-    if not target_root:
+    if approval_continuation_scope_change_requested(user_request):
         raise ControllerServiceError(
-            "Approval continuation requires an allowed target path or a known prior workflow-router run_id.",
+            "Approval continuation is scoped to draft packet design only; source apply or mutation requires a separate approval path.",
+            status=HTTPStatus.CONFLICT,
+            code="approval_scope_changed",
+        )
+    target_root = prior_run_target_root(config, approved_run_id)
+    if target_root is None:
+        raise ControllerServiceError(
+            "Approval continuation requires a known prior workflow-router run_id with a recoverable target_root.",
             code="missing_target_root",
         )
+    payload_target = payload.get("target_root")
+    if isinstance(payload_target, str) and payload_target.strip():
+        if Path(payload_target).resolve() != Path(target_root).resolve():
+            raise ControllerServiceError(
+                "Approval continuation target_root must match the referenced run target_root.",
+                status=HTTPStatus.CONFLICT,
+                code="approval_scope_changed",
+            )
+    mentioned_targets = target_paths_from_natural_text(user_request)
+    for mentioned_target in mentioned_targets:
+        if Path(mentioned_target).resolve() != Path(target_root).resolve():
+            raise ControllerServiceError(
+                "Approval continuation target path must match the referenced run target_root.",
+                status=HTTPStatus.CONFLICT,
+                code="approval_scope_changed",
+            )
     request: dict[str, Any] = {
         "workflow": WORKFLOW_ROUTER_WORKFLOW_ID,
         "schema_version": 1,
@@ -5338,6 +5963,13 @@ def natural_workflow_router_payload(payload: dict[str, Any], config: ControllerS
     if skill_batch_registration_payload is not None:
         return skill_batch_registration_payload
     block_denied_natural_approval(user_request, config)
+    approved_investigation_packet_prep_payload = natural_approved_investigation_packet_prep_payload(
+        payload,
+        user_request,
+        config,
+    )
+    if approved_investigation_packet_prep_payload is not None:
+        return approved_investigation_packet_prep_payload
     narrowed_objective_payload = natural_narrowed_edit_objective_payload(payload, user_request, config)
     if narrowed_objective_payload is not None:
         return narrowed_objective_payload

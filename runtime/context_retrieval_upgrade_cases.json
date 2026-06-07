@@ -1,0 +1,86 @@
+{
+  "kind": "context_retrieval_upgrade_cases",
+  "schema_version": 1,
+  "phase": 95,
+  "cases": [
+    {
+      "case_id": "CTX-001",
+      "fixture_profile": "coinbase",
+      "prompt_family": "behavior-start",
+      "prompt_template": "In {target_root}, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, and confidence.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_route_rules": ["l1_find_behavior_start_terms"],
+      "expected_context_sources": ["ast_index", "text_search", "test_lookup"],
+      "expected_layout_status": "supported",
+      "expected_downstream_artifacts": ["downstream_investigation_plan", "downstream_investigation_evidence"],
+      "required_chat_markers": ["Context Sources:", "ast_index", "text_search", "test_lookup", "route_decision.context_source_audit"]
+    },
+    {
+      "case_id": "CTX-002",
+      "fixture_profile": "coinbase",
+      "prompt_family": "configuration-lookup",
+      "prompt_template": "In {target_root}, find where COINBASE_API_KEY environment variable is defined or used. Read only. Return files, references, and likely runtime effect.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_route_rules": ["l1_configuration_lookup_terms"],
+      "expected_context_sources": ["ast_index", "text_search", "config_lookup"],
+      "expected_layout_status": "supported",
+      "expected_downstream_artifacts": ["downstream_configuration_lookup", "downstream_investigation_evidence"],
+      "required_chat_markers": ["Context Sources:", "config_lookup", "route_decision.context_source_audit"]
+    },
+    {
+      "case_id": "CTX-003",
+      "fixture_profile": "coinbase",
+      "prompt_family": "related-tests",
+      "prompt_template": "In {target_root}, find tests related to placed_order_id stealth lookup. Read only. Return test files, matching terms, and recommended test commands.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_route_rules": ["l1_find_related_tests_terms"],
+      "expected_context_sources": ["ast_index", "text_search", "test_lookup"],
+      "expected_layout_status": "supported",
+      "expected_downstream_artifacts": ["downstream_investigation_plan", "downstream_investigation_evidence"],
+      "required_chat_markers": ["Context Sources:", "test_lookup", "route_decision.context_source_audit"]
+    },
+    {
+      "case_id": "CTX-004",
+      "fixture_profile": "non_coinbase",
+      "prompt_family": "relationship-lookup",
+      "prompt_template": "In {target_root}, find callers/usages of handle_signup. Read only. Group by file and explain each usage briefly.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_context.lookup",
+      "expected_route_rules": ["l1_callers_usages_terms"],
+      "expected_context_sources": ["ast_index", "text_search", "curated_relationship_lookup"],
+      "expected_layout_status": "supported",
+      "expected_downstream_artifacts": ["downstream_usage_summary", "downstream_lookup_results"],
+      "required_chat_markers": ["Context Sources:", "curated_relationship_lookup", "codegraph_context", "route_decision.context_source_audit"]
+    },
+    {
+      "case_id": "CTX-005",
+      "fixture_profile": "non_coinbase",
+      "prompt_family": "non-coinbase-config",
+      "prompt_template": "In {target_root}, find where FEATURE_FLAG_ENABLED environment variable is defined or used. Read only. Return files, references, and likely runtime effect.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_route_rules": ["l1_configuration_lookup_terms"],
+      "expected_context_sources": ["ast_index", "text_search", "config_lookup"],
+      "expected_layout_status": "supported",
+      "expected_downstream_artifacts": ["downstream_configuration_lookup", "downstream_investigation_evidence"],
+      "required_chat_markers": ["Context Sources:", "config_lookup", "route_decision.context_source_audit"]
+    },
+    {
+      "case_id": "CTX-006",
+      "fixture_profile": "unsupported_empty",
+      "prompt_family": "unsupported-layout",
+      "prompt_template": "In {target_root}, explain what place_order does. Read only.",
+      "expected_route_status": "blocked",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_route_rules": ["l1_explain_code_terms"],
+      "expected_context_sources": ["ast_index", "text_search"],
+      "expected_layout_status": "unsupported_no_supported_files",
+      "expected_blocker_reasons": ["unsupported_repository_layout"],
+      "expected_downstream_artifacts": [],
+      "required_chat_markers": ["Context Sources:", "unsupported_repository_layout", "route_decision.context_source_audit"]
+    }
+  ]
+}

@@ -560,6 +560,52 @@
       "mutation_policy": "no_repository_mutation",
       "natural_prompt": "In <repo>, identify files to touch and files not to touch for a minimal safe behavior change. Read only and stop before implementation. Return risks, gaps, and verification commands.",
       "prompt_family": "BatchD-change-boundary-summary"
+    },
+    {
+      "expected_artifacts": [
+        "ci_failure_summary"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "id": "l2_ci_log_triage",
+      "live_suite": "workflow_router_l2_suite",
+      "mutation_policy": "no_repository_mutation",
+      "natural_prompt": "In <repo>, summarize this failing CI log and identify the first failing command, likely cause, and next local command. Read only.",
+      "prompt_family": "L2-ci-log-triage"
+    },
+    {
+      "expected_artifacts": [
+        "table_read_write_lookup"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "id": "l2_table_read_write_lookup",
+      "live_suite": "workflow_router_l2_suite",
+      "mutation_policy": "no_repository_mutation",
+      "natural_prompt": "In <repo>, find where a database table is defined, read, and written. Read only.",
+      "prompt_family": "L2-table-read-write-lookup"
+    },
+    {
+      "expected_artifacts": [
+        "runtime_error_diagnosis",
+        "reproduction_checklist"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "id": "l2_runtime_reproduction_checklist",
+      "live_suite": "workflow_router_l2_suite",
+      "mutation_policy": "no_repository_mutation",
+      "natural_prompt": "In <repo>, turn this runtime stack trace into a minimal reproduction checklist. Read only.",
+      "prompt_family": "L2-runtime-reproduction-checklist"
+    },
+    {
+      "expected_artifacts": [
+        "message_source_lookup",
+        "investigation_plan"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "id": "l2_user_facing_message_test_target",
+      "live_suite": "workflow_router_l2_suite",
+      "mutation_policy": "no_repository_mutation",
+      "natural_prompt": "In <repo>, check if this error message is user-facing and where it should be tested. Read only.",
+      "prompt_family": "L2-user-facing-message-test-target"
     }
   ]
 }

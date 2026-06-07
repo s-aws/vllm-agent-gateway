@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "kind": "model_capability_routing_policy",
+  "enforcement_mode": "fail_closed",
+  "default_profile_id": "localhost-8000-phase100-current",
+  "profiles": [
+    {
+      "profile_id": "localhost-8000-phase100-current",
+      "status": "active",
+      "candidate_model_base_url": "http://127.0.0.1:8000/v1",
+      "profile_path": "runtime-state/model-capability-profiles/phase100-current-profile.json",
+      "source": "phase100_current_profile"
+    }
+  ],
+  "task_class_rules": {
+    "read_only_l1": {
+      "task_policy_key": "read_only_l1",
+      "allowed_task_policy_statuses": [
+        "approved"
+      ]
+    },
+    "draft_only_l1": {
+      "task_policy_key": "draft_only_l1",
+      "allowed_task_policy_statuses": [
+        "approved"
+      ]
+    },
+    "approval_gated_l1": {
+      "task_policy_key": "approval_gated_l1",
+      "allowed_task_policy_statuses": [
+        "conditional"
+      ],
+      "conditions": [
+        "explicit_controller_approval_required",
+        "approval_state_artifact_required"
+      ]
+    },
+    "l2_read_only": {
+      "task_policy_key": "l2_read_only",
+      "allowed_task_policy_statuses": [
+        "approved"
+      ]
+    },
+    "apply_prep": {
+      "task_policy_key": "apply_prep",
+      "allowed_task_policy_statuses": [
+        "conditional"
+      ],
+      "conditions": [
+        "explicit_controller_approval_required",
+        "disposable_or_draft_boundary_required"
+      ]
+    },
+    "real_apply": {
+      "task_policy_key": "real_apply",
+      "allowed_task_policy_statuses": []
+    }
+  }
+}

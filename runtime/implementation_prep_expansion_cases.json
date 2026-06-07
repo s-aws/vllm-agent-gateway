@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "implementation_prep_expansion_cases",
+  "phase": 96,
+  "description": "Phase 96 draft-only implementation-prep prompt families.",
+  "cases": [
+    {
+      "case_id": "IPREP-001",
+      "kind": "small_text_append",
+      "prompt_template": "In {target_root}, draft a small documentation edit to README.md that adds a note saying phase 96 implementation prep uses draft packet proposals. Draft only; do not mutate files. Show the exact proposed change, safety checks, and verification command.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "execution_planning.plan",
+      "expected_proposal_artifact": "small_text_edit_proposal",
+      "expected_operation_kinds": ["append_text"],
+      "required_chat_markers": ["Draft proposal:", "README.md", "append_text", "Source mutation: false"],
+      "mutation_policy": "draft_only_no_source_mutation"
+    },
+    {
+      "case_id": "IPREP-002",
+      "kind": "approved_investigation_packet_prep",
+      "initial_prompt_template": "In {target_root}, identify the minimal safe change surface for find_stealth_order_by_placed_order_id in core/stealth_order_manager.py. Read only. Return files that would need review, related tests, risks, and verification commands. Stop before implementation.",
+      "followup_prompt_template": "For run {run_id}, approved investigation. Implementation objective: add a draft-only marker beside find_stealth_order_by_placed_order_id in core/stealth_order_manager.py. Prepare exact packet operations for implementation prep. Draft only; do not mutate files.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "execution_planning.plan",
+      "expected_proposal_artifact": "packet_operation_proposal",
+      "expected_operation_kinds": ["replace_text"],
+      "expected_source_artifact_key": "downstream_investigation_plan",
+      "required_chat_markers": ["Draft proposal:", "packet_operation_proposal", "core/stealth_order_manager.py", "Source mutation: false"],
+      "mutation_policy": "draft_only_no_source_mutation"
+    }
+  ]
+}

@@ -192,6 +192,25 @@ def test_first_time_user_doctor_fails_when_controller_allowed_roots_are_missing(
     assert "controller.allowed_roots" in report["summary"]["failed_check_ids"]
 
 
+def test_first_time_user_doctor_accepts_parent_allowed_root_for_fixture_children(tmp_path: Path, monkeypatch) -> None:
+    config, roots = doctor_config(tmp_path)
+    monkeypatch.setenv("ANYTHINGLLM_API_KEY", "test-key")
+    monkeypatch.setattr(
+        doctor,
+        "json_request",
+        fake_json_request_factory(
+            config_root=config.config_root,
+            target_roots=roots,
+            allowed_roots=[str(tmp_path)],
+        ),
+    )
+
+    report = run_first_time_user_doctor(config)
+
+    assert report["status"] == "passed"
+    assert "controller.allowed_roots" not in report["summary"]["failed_check_ids"]
+
+
 def test_first_time_user_doctor_fails_and_skips_anythingllm_details_without_api_key(tmp_path: Path, monkeypatch) -> None:
     config, roots = doctor_config(tmp_path)
     monkeypatch.delenv("ANYTHINGLLM_API_KEY", raising=False)

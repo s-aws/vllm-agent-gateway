@@ -52,6 +52,24 @@ fixtures[0].category=synthetic-node-cli
 snapshots[0].watched_hashes={...}
 ```
 
+## Snapshot The Go HTTP Fixture
+
+```bash
+python3 scripts/manage_fixtures.py snapshot \
+  --fixture-id go-http-generalization \
+  --report-path runtime-state/fixture-manager/go-http-snapshot.json
+```
+
+Expected report fields:
+
+```text
+kind=fixture_manager_report
+command=snapshot
+fixtures[0].fixture_id=go-http-generalization
+fixtures[0].category=synthetic-go-http-service
+snapshots[0].watched_hashes={...}
+```
+
 ## Setup And Cleanup A Disposable Copy
 
 ```bash
@@ -99,4 +117,25 @@ The validator runs natural workflow-router prompts against:
 
 - `coinbase-frozen`
 - `coinbase-frozen-git`
+- `python-service-generalization`
 - `node-cli-generalization`
+- `go-http-generalization`
+
+## Multi-Repo Gateway Plus AnythingLLM Validation
+
+```bash
+cd /mnt/c/agentic_agents
+python3 scripts/validate_multi_repo_fixtures_live.py \
+  --port-health \
+  --live-anythingllm \
+  --timeout-seconds 900 \
+  --output-path runtime-state/multi-repo-fixtures/phase101-live.json
+```
+
+Expected summary fields:
+
+```text
+status=passed
+summary.categories includes synthetic-go-http-service
+summary.clients includes gateway and anythingllm
+```

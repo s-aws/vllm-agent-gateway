@@ -16,9 +16,11 @@ from typing import Any, Callable
 
 import pytest
 
+from vllm_agent_gateway import model_capability_routing
 from vllm_agent_gateway.controller_service.server import (
     ControllerServiceConfig,
     create_server,
+    handle_workflow_router_chat_completion,
     infer_workflow_router_mode,
     service_response_from_result,
 )
@@ -30,6 +32,78 @@ from vllm_agent_gateway.skills.registry import load_skill_registry, parse_skill_
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 advanced_workflow = pytest.mark.advanced_workflow
+
+
+def write_json(path: Path, value: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+
+
+def write_model_capability_policy(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    task_policy: dict[str, str],
+    profile_status: str = "warning",
+) -> Path:
+    profile_path = tmp_path / "model-profile.json"
+    profile = {
+        "schema_version": 1,
+        "kind": "model_capability_profile",
+        "status": profile_status,
+        "candidate": {"candidate_id": "test-profile", "candidate_model_base_url": "http://127.0.0.1:8000/v1"},
+        "task_policy": {
+            key: {"status": status, "required_evidence": [key]}
+            for key, status in task_policy.items()
+        },
+    }
+    write_json(profile_path, profile)
+    policy_path = tmp_path / "model-capability-routing.json"
+    write_json(
+        policy_path,
+        {
+            "schema_version": 1,
+            "kind": "model_capability_routing_policy",
+            "enforcement_mode": "fail_closed",
+            "default_profile_id": "test-profile",
+            "profiles": [
+                {
+                    "profile_id": "test-profile",
+                    "status": "active",
+                    "profile_path": str(profile_path),
+                    "candidate_model_base_url": "http://127.0.0.1:8000/v1",
+                }
+            ],
+            "task_class_rules": {
+                "read_only_l1": {
+                    "task_policy_key": "read_only_l1",
+                    "allowed_task_policy_statuses": ["approved"],
+                },
+                "draft_only_l1": {
+                    "task_policy_key": "draft_only_l1",
+                    "allowed_task_policy_statuses": ["approved"],
+                },
+                "approval_gated_l1": {
+                    "task_policy_key": "approval_gated_l1",
+                    "allowed_task_policy_statuses": ["conditional"],
+                },
+                "l2_read_only": {
+                    "task_policy_key": "l2_read_only",
+                    "allowed_task_policy_statuses": ["approved"],
+                },
+                "apply_prep": {
+                    "task_policy_key": "apply_prep",
+                    "allowed_task_policy_statuses": ["conditional"],
+                },
+                "real_apply": {
+                    "task_policy_key": "real_apply",
+                    "allowed_task_policy_statuses": [],
+                },
+            },
+        },
+    )
+    monkeypatch.setattr(model_capability_routing, "MODEL_CAPABILITY_ROUTING_POLICY_PATH", policy_path)
+    return policy_path
 
 
 def run_command(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -56,6 +130,10 @@ def sha256_file(path: Path) -> str:
 def make_skill_registration_root(tmp_path: Path) -> Path:
     root = tmp_path / "skill-registration-root"
     shutil.copytree(REPO_ROOT / "runtime", root / "runtime")
+    profile_source = REPO_ROOT / "runtime-state" / "model-capability-profiles" / "phase100-current-profile.json"
+    profile_target = root / "runtime-state" / "model-capability-profiles" / "phase100-current-profile.json"
+    profile_target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(profile_source, profile_target)
     shutil.copytree(REPO_ROOT / ".qwen" / "skills", root / ".qwen" / "skills")
     shutil.copy2(REPO_ROOT / "README.skill-registry.md", root / "README.skill-registry.md")
     (root / "docs").mkdir(parents=True, exist_ok=True)
@@ -1913,7 +1991,19 @@ def make_l1_expansion_repo(tmp_path: Path, *, initialize_git: bool = True) -> Pa
         "        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n"
         "    );\n"
         "    \"\"\"\n"
-        "    return sql\n",
+        "    return sql\n"
+        "\n"
+        "def read_stealth_orders(conn):\n"
+        "    return conn.execute(\n"
+        "        \"SELECT stealth_order_id, client_order_id FROM stealth_orders WHERE status = ?\",\n"
+        "        (\"HIDDEN\",),\n"
+        "    ).fetchall()\n"
+        "\n"
+        "def write_stealth_order(conn, stealth_order_id, client_order_id):\n"
+        "    return conn.execute(\n"
+        "        \"INSERT INTO stealth_orders (stealth_order_id, client_order_id) VALUES (?, ?)\",\n"
+        "        (stealth_order_id, client_order_id),\n"
+        "    )\n",
     )
     write_text(
         target / "core" / "stealth_order_manager.py",
@@ -1934,7 +2024,10 @@ def make_l1_expansion_repo(tmp_path: Path, *, initialize_git: bool = True) -> Pa
     write_text(
         target / "tests" / "test_dashboard_handler.py",
         "def test_request_stealth_orders_handler_exists():\n"
-        "    assert 'request_stealth_orders'\n",
+        "    assert 'request_stealth_orders'\n"
+        "\n"
+        "def test_missing_type_field_message_is_stable():\n"
+        "    assert \"Missing 'type' field in message\"\n",
     )
     write_text(
         target / "tests" / "unit" / "test_order_id_and_followup_rules.py",
@@ -6535,6 +6628,267 @@ def test_workflow_router_chat_l2_change_surface_summary_returns_artifact(tmp_pat
     assert surface["mutation_policy"] == "read_only_no_source_mutation"
 
 
+def test_workflow_router_chat_l2_ci_log_triage_returns_artifact(tmp_path: Path) -> None:
+    target = make_l1_expansion_repo(tmp_path)
+    sentinel = target / "tests" / "unit" / "test_order_id_and_followup_rules.py"
+    before = sentinel.read_text(encoding="utf-8")
+    ci_log = (
+        "Run python -m pytest tests/unit/test_order_id_and_followup_rules.py\n"
+        "FAILED tests/unit/test_order_id_and_followup_rules.py::"
+        "test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - "
+        "AssertionError: expected client_order_id index\n"
+        "E   AssertionError: expected client_order_id index\n"
+        "Error: Process completed with exit code 1.\n"
+    )
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, summarize this failing CI log and identify the first failing command, "
+                            "likely cause, and next local command. Read only.\n"
+                            f"{ci_log}"
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_ci_failure_summary" in compact["artifacts"]
+    assert "- First failing command:" in content
+    assert "python -m pytest tests/unit/test_order_id_and_followup_rules.py" in content
+    assert "- Likely cause:" in content
+    assert "- Next local command:" in content
+    assert "Source mutation: false" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert any(item.get("rule") == "l2_ci_log_triage_terms" for item in decision["evidence"])
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    summary = json.loads(Path(downstream["artifact_paths"]["ci_failure_summary"]).read_text(encoding="utf-8"))
+    assert summary["status"] == "ready"
+    assert summary["first_failing_command"]["command"] == "python -m pytest tests/unit/test_order_id_and_followup_rules.py"
+    assert summary["next_local_command"]["command"][:3] == ["python", "-m", "pytest"]
+    assert summary["mutation_policy"] == "read_only_no_source_mutation"
+
+
+def test_workflow_router_chat_l2_table_read_write_lookup_returns_artifact(tmp_path: Path) -> None:
+    target = make_l1_expansion_repo(tmp_path)
+    sentinel = target / "database" / "order.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, find where database table stealth_orders is defined, read, and written. "
+                            "Read only. Return definition sites, read sites, write sites, gaps, and source refs."
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_table_read_write_lookup" in compact["artifacts"]
+    assert "- Target table: stealth_orders" in content
+    assert "- Access counts:" in content
+    assert "- Definition sites:" in content
+    assert "- Read sites:" in content
+    assert "- Write sites:" in content
+    assert "Source mutation: false" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert any(item.get("rule") == "l2_table_read_write_lookup_terms" for item in decision["evidence"])
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    lookup = json.loads(Path(downstream["artifact_paths"]["table_read_write_lookup"]).read_text(encoding="utf-8"))
+    assert lookup["status"] == "ready"
+    assert lookup["target_table"] == "stealth_orders"
+    assert lookup["access_summary"]["definition_count"] >= 1
+    assert lookup["access_summary"]["read_count"] >= 1
+    assert lookup["access_summary"]["write_count"] >= 1
+    assert lookup["mutation_policy"] == "read_only_no_source_mutation"
+
+
+def test_workflow_router_chat_l2_runtime_reproduction_checklist_returns_artifact(tmp_path: Path) -> None:
+    target = make_l1_expansion_repo(tmp_path)
+    sentinel = target / "dashboard_server.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, turn this runtime stack trace into a minimal reproduction checklist. "
+                            "Read only. Return observed error, reproduction steps, related tests, gaps, and next local command.\n"
+                            "Traceback (most recent call last):\n"
+                            "  File \"dashboard_server.py\", line 10, in handle_websocket_message\n"
+                            "core.exceptions.WebSocketMessageError: Missing 'type' field in message"
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_reproduction_checklist" in compact["artifacts"]
+    assert "- Observed error:" in content
+    assert "WebSocketMessageError" in content
+    assert "- Reproduction checklist:" in content
+    assert "Source mutation: false" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert any(item.get("rule") == "l2_runtime_reproduction_checklist_terms" for item in decision["evidence"])
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    checklist = json.loads(Path(downstream["artifact_paths"]["reproduction_checklist"]).read_text(encoding="utf-8"))
+    assert checklist["status"] == "ready"
+    assert checklist["observed_error"]["type"] == "WebSocketMessageError"
+    assert checklist["traceback_frame"]["path"] == "dashboard_server.py"
+    assert len(checklist["minimal_reproduction_checklist"]) == 4
+    assert checklist["mutation_policy"] == "read_only_no_source_mutation"
+
+
+def test_workflow_router_chat_l2_user_facing_message_test_target_returns_artifact(tmp_path: Path) -> None:
+    target = make_l1_expansion_repo(tmp_path)
+    sentinel = target / "dashboard_server.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, check if error message \"Missing 'type' field in message\" is user-facing "
+                            "and where it should be tested. Read only. Return source, user-facing status, test targets, "
+                            "and verification command."
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_message_source_lookup" in compact["artifacts"]
+    assert "- Target message: Missing 'type' field in message" in content
+    assert "- Sources:" in content
+    assert "- User-facing:" in content
+    assert "- Test targets:" in content
+    assert "Source mutation: false" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert any(item.get("rule") == "l2_user_facing_message_test_target_terms" for item in decision["evidence"])
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    lookup = json.loads(Path(downstream["artifact_paths"]["message_source_lookup"]).read_text(encoding="utf-8"))
+    assert lookup["status"] == "ready"
+    assert lookup["source_count"] >= 1
+    assert lookup["user_facing_assessment"]["status"] in {"unknown", "not_proven_user_facing"}
+    assert lookup["user_facing_assessment"]["recommended_test_targets"]
+    assert lookup["mutation_policy"] == "read_only_no_source_mutation"
+
+
+def test_phase99_batch_e_mutation_prompts_do_not_match_read_only_routes() -> None:
+    cases = [
+        (
+            "fix this failing ci log by editing the code and applying the smallest patch",
+            workflow_router_plan.is_l2_ci_log_triage_request,
+            "l2_ci_log_triage_terms",
+        ),
+        (
+            "add a write path for database table stealth_orders and implement the mutation",
+            workflow_router_plan.is_l2_table_read_write_lookup_request,
+            "l2_table_read_write_lookup_terms",
+        ),
+        (
+            "turn this stack trace into a fix and apply the runtime error patch",
+            workflow_router_plan.is_l2_runtime_reproduction_checklist_request,
+            "l2_runtime_reproduction_checklist_terms",
+        ),
+        (
+            "update test for this user-facing error message and apply the assertion change",
+            workflow_router_plan.is_l2_user_facing_message_test_target_request,
+            "l2_user_facing_message_test_target_terms",
+        ),
+    ]
+
+    for prompt, predicate, forbidden_rule in cases:
+        lowered = prompt.lower()
+        assert predicate(lowered) is False
+        _workflow, _reason, evidence = workflow_router_plan.workflow_kind_for_request(prompt)
+        route_rules = {item.get("rule") for item in evidence if isinstance(item, dict)}
+        assert forbidden_rule not in route_rules
+
+
 def test_workflow_router_chat_l1_small_text_edit_drafts_packet_without_mutation(tmp_path: Path) -> None:
     target = make_execution_planning_tree(tmp_path)
     sentinel = target / "docs" / "agents" / "INVARIANTS.md"
@@ -6717,6 +7071,221 @@ def test_workflow_router_chat_l1_small_text_edit_without_draft_requests_approval
     assert approval_state["approval_type"] == "packet_design"
     assert approval_state["expected_approval"]["status"] == "approved_for_packet_design"
     assert approval_state["next_action"] == "request_approval"
+    assert sentinel.read_text(encoding="utf-8") == before
+
+
+def test_workflow_router_chat_approval_continuation_current_l1_flow_consumes_source_run(
+    tmp_path: Path,
+) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    sentinel = target / "docs" / "agents" / "INVARIANTS.md"
+    before = sentinel.read_text(encoding="utf-8")
+    anchor = "- Use `client_order_id` for internal tracking, parent/child linkage, orderbook"
+    note = "- Phase 97 approval continuation proof: source run identity controls packet prep."
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    packet_operations = [
+        {
+            "kind": "replace_text",
+            "path": "docs/agents/INVARIANTS.md",
+            "old": FROZEN_INVARIANT_OLD,
+            "new": FROZEN_INVARIANT_NEW,
+        }
+    ]
+    initial = handle_workflow_router_chat_completion(
+        {
+            "model": "agentic-workflow-router",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": (
+                        f"In {target}, make a small documentation edit to docs/agents/INVARIANTS.md. "
+                        f"After \"{anchor}\" add \"{note}\"."
+                    ),
+                },
+            ],
+        },
+        config,
+    )
+    source_run_id = initial["agentic_controller_response"]["run_id"]
+    continuation = handle_workflow_router_chat_completion(
+        {
+            "model": "agentic-workflow-router",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": (
+                        f"Approve packet design for run {source_run_id}. "
+                        f"Use packet operations: {json.dumps(packet_operations, ensure_ascii=True)}"
+                    ),
+                }
+            ],
+        },
+        config,
+    )
+
+    compact = continuation["agentic_controller_response"]
+    content = continuation["choices"][0]["message"]["content"]
+    assert compact["summary"]["route_status"] == "ready"
+    assert compact["summary"]["selected_workflow"] == "execution_planning.plan"
+    assert compact["summary"]["approval_state_status"] == "finished"
+    assert compact["summary"]["approval_type"] == "packet_design"
+    assert compact["summary"]["source_changed"] is False
+    assert "Approval:" in content
+    assert "- State: finished" in content
+    assert "- Type: packet_design" in content
+    assert "downstream_implementation_workflow_report" in compact["artifacts"]
+    downstream_state = json.loads(Path(compact["artifacts"]["downstream_run_state"]).read_text(encoding="utf-8"))
+    assert downstream_state["summary"]["deterministic_path"] == "approval_continuation_packet_prep"
+    source_record = json.loads((config.run_registry_root / f"{source_run_id}.json").read_text(encoding="utf-8"))
+    assert source_record["approval_continuation"]["status"] == "consumed"
+    assert source_record["approval_continuation"]["continuation_run_id"] == compact["run_id"]
+    assert sentinel.read_text(encoding="utf-8") == before
+
+
+def test_workflow_router_chat_approval_continuation_rejects_target_mismatch_current_l1_flow(
+    tmp_path: Path,
+) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    other_target = tmp_path / "allowed" / "other-target"
+    other_target.mkdir(parents=True)
+    sentinel = target / "docs" / "agents" / "INVARIANTS.md"
+    before = sentinel.read_text(encoding="utf-8")
+    anchor = "- Use `client_order_id` for internal tracking, parent/child linkage, orderbook"
+    note = "- Phase 97 approval continuation proof: reject mismatched target roots."
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    packet_operations = [
+        {
+            "kind": "replace_text",
+            "path": "docs/agents/INVARIANTS.md",
+            "old": FROZEN_INVARIANT_OLD,
+            "new": FROZEN_INVARIANT_NEW,
+        }
+    ]
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, initial = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, make a small documentation edit to docs/agents/INVARIANTS.md. "
+                            f"After \"{anchor}\" add \"{note}\"."
+                        ),
+                    },
+                ],
+            },
+        )
+        assert status == 200
+        source_run_id = initial["agentic_controller_response"]["run_id"]
+        status, mismatch = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {other_target}, approve packet design for run {source_run_id}. "
+                            f"Use packet operations: {json.dumps(packet_operations, ensure_ascii=True)}"
+                        ),
+                    }
+                ],
+            },
+        )
+
+    assert status == 409
+    assert mismatch["error"]["code"] == "approval_scope_changed"
+    source_record = json.loads((config.run_registry_root / f"{source_run_id}.json").read_text(encoding="utf-8"))
+    assert "approval_continuation" not in source_record
+    assert sentinel.read_text(encoding="utf-8") == before
+
+
+def test_workflow_router_chat_approval_continuation_rejects_source_apply_scope_change(
+    tmp_path: Path,
+) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    sentinel = target / "docs" / "agents" / "INVARIANTS.md"
+    before = sentinel.read_text(encoding="utf-8")
+    anchor = "- Use `client_order_id` for internal tracking, parent/child linkage, orderbook"
+    note = "- Phase 97 approval continuation proof: reject source apply scope changes."
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    packet_operations = [
+        {
+            "kind": "replace_text",
+            "path": "docs/agents/INVARIANTS.md",
+            "old": FROZEN_INVARIANT_OLD,
+            "new": FROZEN_INVARIANT_NEW,
+        }
+    ]
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, initial = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, make a small documentation edit to docs/agents/INVARIANTS.md. "
+                            f"After \"{anchor}\" add \"{note}\"."
+                        ),
+                    },
+                ],
+            },
+        )
+        assert status == 200
+        source_run_id = initial["agentic_controller_response"]["run_id"]
+        status, changed_scope = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Approve packet design for run {source_run_id} and apply the change to source now. "
+                            f"Use packet operations: {json.dumps(packet_operations, ensure_ascii=True)}"
+                        ),
+                    }
+                ],
+            },
+        )
+
+    assert status == 409
+    assert changed_scope["error"]["code"] == "approval_scope_changed"
+    source_record = json.loads((config.run_registry_root / f"{source_run_id}.json").read_text(encoding="utf-8"))
+    assert "approval_continuation" not in source_record
     assert sentinel.read_text(encoding="utf-8") == before
 
 
@@ -7170,6 +7739,110 @@ def test_workflow_router_chat_l1_simple_failing_test_fix_without_draft_requests_
     assert compact["summary"]["target_repo_read"] is False
     assert "downstream_result" not in compact["artifacts"]
     assert sentinel.read_text(encoding="utf-8") == before
+
+
+def test_workflow_router_chat_approved_investigation_packet_prep_uses_generic_seed(
+    tmp_path: Path,
+) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    source = target / "core" / "stealth_order_manager.py"
+    write_text(
+        source,
+        "class StealthOrderManager:\n"
+        "    placed_order_id_lookup = 'client_order_id index'\n",
+    )
+    before = source.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, initial = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, identify the minimal safe change surface for "
+                            "placed_order_id_lookup. Read only. Return files that would need review, "
+                            "related tests, risks, and verification commands. Stop before implementation."
+                        ),
+                    }
+                ],
+            },
+        )
+        assert status == 200
+        initial_compact = initial["agentic_controller_response"]
+        assert initial_compact["summary"]["selected_workflow"] == "code_investigation.plan"
+        assert initial_compact["summary"]["downstream_status"] == "completed"
+        assert "downstream_investigation_plan" in initial_compact["artifacts"]
+        initial_run_id = initial_compact["run_id"]
+
+        with FakeExecutionPlanningEndpoint() as endpoint:
+            status, followup = request_json(
+                host,
+                port,
+                "POST",
+                "/v1/controller/workflow-router/chat/completions",
+                {
+                    "model": "agentic-workflow-router",
+                    "role_base_url": endpoint.base_url,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": (
+                                f"For run {initial_run_id}, approved investigation. Implementation objective: "
+                                "add a placed_order_lookup_path marker beside placed_order_id_lookup in "
+                                "core/stealth_order_manager.py. Prepare exact packet operations for "
+                                "implementation prep. Draft only; do not mutate files."
+                            ),
+                        }
+                    ],
+                },
+            )
+
+    assert status == 200
+    compact = followup["agentic_controller_response"]
+    content = followup["choices"][0]["message"]["content"]
+    assert compact["summary"]["route_status"] == "ready"
+    assert compact["summary"]["selected_workflow"] == "execution_planning.plan"
+    assert compact["summary"]["downstream_workflow"] == "execution_planning.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "packet_operation_proposal" in compact["artifacts"]
+    assert "downstream_implementation_workflow_report" in compact["artifacts"]
+    assert "Draft proposal:" in content
+    assert "Source mutation: false" in content
+    assert source.read_text(encoding="utf-8") == before
+
+    decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert decision["packet_objective"]["status"] == "accepted"
+    assert decision["packet_operation_proposal"]["source_artifact_key"] == "downstream_investigation_plan"
+    proposal = json.loads(Path(compact["artifacts"]["packet_operation_proposal"]).read_text(encoding="utf-8"))
+    assert proposal["status"] == "ready"
+    assert proposal["source_artifact_key"] == "downstream_investigation_plan"
+    assert proposal["packet_operations"] == [
+        {
+            "kind": "replace_text",
+            "path": "core/stealth_order_manager.py",
+            "old": "    placed_order_id_lookup = 'client_order_id index'",
+            "new": (
+                "    placed_order_id_lookup = 'client_order_id index'\n"
+                "    placed_order_lookup_path = 'single manager index'"
+            ),
+        }
+    ]
+    proposal_request = json.loads(
+        Path(compact["artifacts"]["packet_operation_proposal_request"]).read_text(encoding="utf-8")
+    )
+    assert proposal_request["source_artifact_key"] == "downstream_investigation_plan"
 
 
 def test_workflow_router_chat_l1_related_tests_returns_test_commands(tmp_path: Path) -> None:
@@ -9169,6 +9842,206 @@ def test_workflow_router_plan_routes_l1_safe_test_command_without_repo_reads(tmp
     assert decision["controller_request_preview"]["queries"][0] == "placed_order_id"
 
 
+def context_source_ids(decision: dict[str, Any]) -> list[str]:
+    audit = decision.get("context_source_audit")
+    assert isinstance(audit, dict)
+    selected = audit.get("selected_source_ids")
+    assert isinstance(selected, list)
+    return [item for item in selected if isinstance(item, str)]
+
+
+def assert_context_sources(decision: dict[str, Any], expected: set[str]) -> None:
+    selected = set(context_source_ids(decision))
+    assert expected <= selected
+    audit = decision["context_source_audit"]
+    assert audit["selection_policy"]["manual_tool_request_required"] is False
+    assert audit["selection_policy"]["unsupported_layout_fails_closed"] is True
+    assert audit["layout"]["status"] == "supported"
+    assert audit["layout"]["supported_file_count"] > 0
+    assert audit["budget"]["max_selected_sources"] == 5
+    assert audit["evidence_files"]
+    preview = decision.get("controller_request_preview")
+    if isinstance(preview, dict) and preview:
+        assert set(preview["context_sources"]) == selected
+
+
+def test_workflow_router_context_source_audit_selects_behavior_context_sources(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": (
+                    "In this repo, find where the placed_order_id stealth lookup begins. "
+                    "Read only. Return the entrypoint, evidence files, related tests, and confidence."
+                ),
+                "mode": "plan_only",
+            },
+        )
+
+    assert status == 200
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert_context_sources(decision, {"ast_index", "text_search", "test_lookup"})
+    assert body["summary"]["selected_context_sources"] == context_source_ids(decision)
+    assert body["summary"]["context_layout_status"] == "supported"
+    assert "context_source_audit" in body["artifacts"]
+
+
+def test_workflow_router_context_source_audit_selects_config_lookup(tmp_path: Path) -> None:
+    target = make_config_lookup_repo(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": (
+                    "In this repo, find where COINBASE_API_KEY environment variable is defined or used. "
+                    "Read only. Return files, references, and likely runtime effect."
+                ),
+                "mode": "plan_only",
+            },
+        )
+
+    assert status == 200
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert_context_sources(decision, {"ast_index", "text_search", "config_lookup"})
+    selected_config = [
+        item
+        for item in decision["context_source_audit"]["selected"]
+        if item.get("source_id") == "config_lookup"
+    ][0]
+    assert "configuration_or_environment_request" in selected_config["reasons"]
+
+
+def test_workflow_router_context_source_audit_selects_curated_relationship_lookup(tmp_path: Path) -> None:
+    target = make_relationship_lookup_repo(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": (
+                    "In this repo, find callers/usages of place_order. "
+                    "Read only. Group by file and explain each usage briefly."
+                ),
+                "mode": "plan_only",
+            },
+        )
+
+    assert status == 200
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert_context_sources(decision, {"ast_index", "text_search", "curated_relationship_lookup"})
+    assert "codegraph_context" in decision["context_source_audit"]["selected"][-1]["tool_ids"]
+
+
+def test_workflow_router_context_source_audit_blocks_unsupported_layout(tmp_path: Path) -> None:
+    target = tmp_path / "allowed" / "empty-layout"
+    target.mkdir(parents=True)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": "In this repo, explain what place_order does. Read only.",
+                "mode": "plan_only",
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "blocked"
+    assert body["summary"]["context_layout_status"] == "unsupported_no_supported_files"
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert decision["controller_request_preview"] == {}
+    assert decision["blockers"][0]["reason"] == "unsupported_repository_layout"
+    assert decision["context_source_audit"]["layout"]["status"] == "unsupported_no_supported_files"
+    assert any("unsupported_repository_layout" in gap for gap in decision["context_source_audit"]["gaps"])
+
+
+def test_workflow_router_chat_response_includes_context_source_summary(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, explain what find_stealth_order_by_placed_order_id does in "
+                            "core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests."
+                        ),
+                    }
+                ],
+            },
+        )
+
+    assert status == 200
+    content = body["choices"][0]["message"]["content"]
+    assert "Context Sources:" in content
+    assert "ast_index" in content
+    assert "text_search" in content
+    assert "route_decision.context_source_audit" in content
+    compact = body["agentic_controller_response"]
+    decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert decision["context_source_audit"]["selected_source_ids"]
+
+
 def test_workflow_router_plan_records_model_router_observation(tmp_path: Path) -> None:
     target = make_execution_planning_tree(tmp_path)
     config = ControllerServiceConfig(
@@ -9205,6 +10078,129 @@ def test_workflow_router_plan_records_model_router_observation(tmp_path: Path) -
         item.get("source") == "model_router" and item.get("status") == "accepted"
         for item in decision["evidence"]
     )
+    assert decision["model_capability_routing"]["status"] in {"approved", "conditional"}
+    assert decision["model_capability_routing"]["task_class"] == "read_only_l1"
+    assert any(item.get("source") == "model_capability_routing" for item in decision["evidence"])
+
+
+def test_workflow_router_plan_blocks_read_only_l1_when_model_profile_not_approved(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    write_model_capability_policy(
+        tmp_path,
+        monkeypatch,
+        task_policy={
+            "read_only_l1": "not_approved",
+            "draft_only_l1": "approved",
+            "approval_gated_l1": "conditional",
+            "l2_read_only": "approved",
+            "apply_prep": "conditional",
+            "real_apply": "not_approved",
+        },
+    )
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": "In this repo, find where the placed_order_id stealth lookup begins.",
+                "budgets": {"max_model_calls": 3, "max_selected_skills": 5, "max_selected_tools": 5},
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "blocked"
+    assert body["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert body["summary"]["model_router_status"] == "not_requested"
+    assert body["summary"]["model_capability_status"] == "blocked"
+    assert body["summary"]["model_capability_task_class"] == "read_only_l1"
+    assert body["summary"]["downstream_workflow"] is None
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert decision["controller_request_preview"] == {}
+    assert decision["selected_skills"] == []
+    assert decision["selected_tools"] == []
+    assert decision["model_capability_routing"]["task_policy_status"] == "not_approved"
+    assert decision["blockers"][0]["reason"] == "model_capability_task_not_approved"
+
+
+def test_workflow_router_plan_blocks_apply_prep_when_model_profile_not_approved(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    sentinel = target / "docs" / "agents" / "INVARIANTS.md"
+    before = sentinel.read_text(encoding="utf-8")
+    write_model_capability_policy(
+        tmp_path,
+        monkeypatch,
+        task_policy={
+            "read_only_l1": "approved",
+            "draft_only_l1": "approved",
+            "approval_gated_l1": "conditional",
+            "l2_read_only": "approved",
+            "apply_prep": "not_approved",
+            "real_apply": "not_approved",
+        },
+    )
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": "Use the approved implementation packet to apply to a disposable copy only.",
+                "mode": "apply_disposable_copy",
+                "approval": {
+                    "status": "approved_for_disposable_apply",
+                    "scope": "workflow_router_disposable_copy",
+                    "apply_allowed": True,
+                    "approval_refs": ["test:disposable only"],
+                },
+                "packet_operations": [
+                    {
+                        "kind": "replace_text",
+                        "path": "docs/agents/INVARIANTS.md",
+                        "old": FROZEN_INVARIANT_OLD,
+                        "new": FROZEN_INVARIANT_NEW,
+                    }
+                ],
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "blocked"
+    assert body["summary"]["model_capability_status"] == "blocked"
+    assert body["summary"]["model_capability_task_class"] == "apply_prep"
+    assert body["summary"]["downstream_workflow"] is None
+    assert "disposable_mutation_proof" not in body["artifacts"]
+    assert sentinel.read_text(encoding="utf-8") == before
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert decision["controller_request_preview"] == {}
+    assert decision["model_capability_routing"]["task_policy_status"] == "not_approved"
+    assert decision["blockers"][0]["reason"] == "model_capability_task_not_approved"
 
 
 def test_workflow_router_plan_model_router_cannot_override_deterministic_unsupported(tmp_path: Path) -> None:

@@ -139,7 +139,16 @@ def path_identities(raw: object) -> set[str]:
 
 def contains_path(roots: list[str], expected: str) -> bool:
     expected_ids = path_identities(expected)
-    return any(path_identities(root) & expected_ids for root in roots)
+    for root in roots:
+        for root_id in path_identities(root):
+            normalized_root = root_id.rstrip("/")
+            if not normalized_root:
+                continue
+            for expected_id in expected_ids:
+                normalized_expected = expected_id.rstrip("/")
+                if normalized_expected == normalized_root or normalized_expected.startswith(normalized_root + "/"):
+                    return True
+    return False
 
 
 def find_key(value: Any, key: str) -> Any:

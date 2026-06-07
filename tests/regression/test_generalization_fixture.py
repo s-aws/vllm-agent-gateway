@@ -8,6 +8,7 @@ from vllm_agent_gateway.controllers.code_investigation.plan import (
     CodeInvestigationRequest,
     data_model_target_from_request,
     is_endpoint_route_lookup_request,
+    is_table_read_write_lookup_request,
     query_candidates,
     table_schema_fields,
 )
@@ -16,6 +17,7 @@ from vllm_agent_gateway.controllers.workflow_router.plan import (
     apply_router_rule_skill_overrides,
     extract_queries,
     is_l1_endpoint_route_lookup_request,
+    is_l2_table_read_write_lookup_request,
     workflow_kind_for_request,
 )
 from vllm_agent_gateway.skills.registry import load_skill_registry
@@ -142,6 +144,21 @@ def test_l2_test_selection_rule_promotes_specific_skill_within_budget() -> None:
         "context-plan-builder",
         "test-selection-rationale",
     ]
+
+
+def test_table_read_write_natural_definition_reads_writes_phrase_routes() -> None:
+    prompt = (
+        "In C:/tmp/go_http_fixture, locate the orders table definition, reads, and writes. "
+        "Read only. Return definition sites, read sites, write sites, source refs, gaps, and mutation policy."
+    )
+
+    workflow_id, status, evidence = workflow_kind_for_request(prompt)
+
+    assert is_l2_table_read_write_lookup_request(prompt)
+    assert is_table_read_write_lookup_request(prompt)
+    assert workflow_id == "code_investigation.plan"
+    assert status == "ready"
+    assert any(item.get("rule") == "l2_table_read_write_lookup_terms" for item in evidence)
 
 
 def test_feedback_term_inside_target_path_does_not_trigger_feedback_route() -> None:

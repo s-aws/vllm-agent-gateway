@@ -237,7 +237,10 @@
           "scope": "target_root",
           "result_artifacts": [
             "investigation_evidence",
-            "investigation_plan"
+            "investigation_plan",
+            "ci_failure_summary",
+            "table_read_write_lookup",
+            "reproduction_checklist"
           ]
         },
         {
@@ -246,7 +249,10 @@
           "scope": "target_root",
           "result_artifacts": [
             "investigation_evidence",
-            "investigation_plan"
+            "investigation_plan",
+            "ci_failure_summary",
+            "table_read_write_lookup",
+            "reproduction_checklist"
           ]
         },
         {
@@ -255,7 +261,10 @@
           "scope": "target_root",
           "result_artifacts": [
             "investigation_evidence",
-            "investigation_plan"
+            "investigation_plan",
+            "ci_failure_summary",
+            "table_read_write_lookup",
+            "reproduction_checklist"
           ]
         }
       ],

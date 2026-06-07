@@ -126,6 +126,10 @@ def test_skill_eval_runner_maps_l1_and_l2_cases_to_live_suite_commands(tmp_path:
             "l2_request_flow_map",
             "l2_code_path_comparison",
             "l2_change_surface_summary",
+            "l2_ci_log_triage",
+            "l2_table_read_write_lookup",
+            "l2_runtime_reproduction_checklist",
+            "l2_user_facing_message_test_target",
             "d1_config_default_test",
             "d1_message_assertion_test",
             "d1_test_assertion_update",
@@ -146,6 +150,10 @@ def test_skill_eval_runner_maps_l1_and_l2_cases_to_live_suite_commands(tmp_path:
     assert mappings["l2_request_flow_map"]["case_id"] == "L2-007"
     assert mappings["l2_code_path_comparison"]["case_id"] == "L2-008"
     assert mappings["l2_change_surface_summary"]["case_id"] == "L2-009"
+    assert mappings["l2_ci_log_triage"]["case_id"] == "L2-010"
+    assert mappings["l2_table_read_write_lookup"]["case_id"] == "L2-011"
+    assert mappings["l2_runtime_reproduction_checklist"]["case_id"] == "L2-012"
+    assert mappings["l2_user_facing_message_test_target"]["case_id"] == "L2-013"
     assert mappings["d1_config_default_test"]["case_id"] == "D1-004"
     assert mappings["d1_message_assertion_test"]["case_id"] == "D1-005"
     assert mappings["d1_test_assertion_update"]["case_id"] == "D1-006"

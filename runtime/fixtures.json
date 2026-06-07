@@ -61,6 +61,26 @@
         "src/index.js",
         "tests/config.test.js"
       ]
+    },
+    {
+      "id": "go-http-generalization",
+      "source_path": "tests/fixtures/generalization/go_http_fixture",
+      "category": "synthetic-go-http-service",
+      "description": "Small Go HTTP service fixture used for non-Python and non-Node generalization checks.",
+      "protected": true,
+      "disposable_only": true,
+      "watched_paths": [
+        "README.md",
+        "go.mod",
+        "cmd/server/main.go",
+        "docs/agents/INVARIANTS.md",
+        "internal/config/config.go",
+        "internal/orders/handler.go",
+        "internal/orders/sql_repository.go",
+        "internal/orders/repository.go",
+        "internal/orders/handler_test.go",
+        "migrations/001_create_orders.sql"
+      ]
     }
   ]
 }

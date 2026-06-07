@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Phase 53 task decomposition against the live local stack."""
+"""Validate task decomposition against the live local stack."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL = "http://127.0.0.1:8500/v1"
 DEFAULT_ANYTHINGLLM_API_BASE_URL = "http://127.0.0.1:3001"
 DEFAULT_WORKSPACE = "my-workspace"
 DEFAULT_CONFIG_ROOT = "/mnt/c/agentic_agents"
-DEFAULT_REPORT_PATH = "runtime-state/task-decomposition/phase53-live.json"
+DEFAULT_REPORT_PATH = "runtime-state/task-decomposition/phase102-live.json"
 DEFAULT_TARGET_ROOTS = [
     "/mnt/c/coinbase_testing_repo_frozen_tmp",
     "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
@@ -58,9 +58,12 @@ FORMAT_A_MARKERS = [
     "- Selected workflow: task.decompose",
     "- Next action: none",
     "Task Decomposition:",
+    "- Work-package schema: 2",
     "- Work packages:",
     "- Dependencies:",
     "- Approval gates:",
+    "- Stop conditions:",
+    "- Package verification:",
     "- Uncertainty:",
     "- Verification:",
     "- Source mutation: False",
@@ -103,8 +106,8 @@ def task_prompt(target_root: str, *, json_output: bool = False) -> str:
     suffix = " Return JSON." if json_output else " Return the answer in the default format."
     return (
         f"In {target_root}, decompose this multi-step task into work packages with dependencies, "
-        "approval gates, and verification strategy: refactor the placed_order_id stealth lookup so "
-        f"there is one code path.{suffix}"
+        "approval gates, and verification strategy: add a focused unit test for placed_order_id "
+        f"stealth lookup after investigating related tests.{suffix}"
     )
 
 
@@ -116,7 +119,8 @@ def direct_payload(target_root: str, user_request: str | None = None) -> dict[st
         "user_request": user_request
         or (
             "Decompose this multi-step task into work packages with dependencies, approval gates, "
-            "and verification strategy: refactor the placed_order_id stealth lookup so there is one code path."
+            "and verification strategy: add a focused unit test for placed_order_id stealth lookup "
+            "after investigating related tests."
         ),
     }
 
@@ -165,6 +169,74 @@ def json_content(body: dict[str, Any]) -> dict[str, Any]:
     return parsed
 
 
+def read_json_artifact(path_value: Any) -> dict[str, Any]:
+    if not isinstance(path_value, str):
+        raise RuntimeError(f"artifact path was not a string: {path_value!r}")
+    path = Path(path_value)
+    try:
+        parsed = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"could not read JSON artifact {path}: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise RuntimeError(f"artifact {path} did not contain a JSON object")
+    return parsed
+
+
+def require_phase102_contract(plan: dict[str, Any], target_root: str, label: str) -> None:
+    if plan.get("work_package_schema_version") != 2:
+        raise RuntimeError(f"{label} work package schema mismatch for {target_root}: {plan.get('work_package_schema_version')!r}")
+    packages = plan.get("work_packages")
+    if not isinstance(packages, list):
+        raise RuntimeError(f"{label} missing work_packages for {target_root}")
+    package_ids = [item.get("id") for item in packages if isinstance(item, dict)]
+    expected_ids = ["WP1", "GATE2", "WP3", "WP4", "STOP5"]
+    if package_ids != expected_ids:
+        raise RuntimeError(f"{label} package order mismatch for {target_root}: {package_ids!r}")
+    expected_edges = [
+        {"from": "WP1", "to": "GATE2"},
+        {"from": "GATE2", "to": "WP3"},
+        {"from": "WP3", "to": "WP4"},
+        {"from": "WP4", "to": "STOP5"},
+    ]
+    if plan.get("dependency_edges") != expected_edges:
+        raise RuntimeError(f"{label} dependency edge mismatch for {target_root}: {json.dumps(plan.get('dependency_edges'), ensure_ascii=True)}")
+    by_id = {item.get("id"): item for item in packages if isinstance(item, dict)}
+    stage_expectations = {
+        "WP1": "investigation",
+        "GATE2": "prep_approval_gate",
+        "WP3": "implementation_prep",
+        "WP4": "verification",
+        "STOP5": "terminal_stop",
+    }
+    for package_id, expected_stage in stage_expectations.items():
+        item = by_id.get(package_id)
+        if not isinstance(item, dict) or item.get("stage") != expected_stage:
+            raise RuntimeError(f"{label} stage mismatch for {target_root} package={package_id}: {item}")
+        if not isinstance(item.get("stop_conditions"), list) or not item["stop_conditions"]:
+            raise RuntimeError(f"{label} missing stop conditions for {target_root} package={package_id}")
+        verification = item.get("verification")
+        if not isinstance(verification, dict) or not verification.get("status"):
+            raise RuntimeError(f"{label} missing verification status for {target_root} package={package_id}")
+    gates = plan.get("approval_gates")
+    gate_packages = [item.get("package_id") for item in gates if isinstance(item, dict)] if isinstance(gates, list) else []
+    if gate_packages != ["GATE2", "STOP5"]:
+        raise RuntimeError(f"{label} approval gate package mismatch for {target_root}: {gate_packages!r}")
+
+
+def require_advanced_refactor_deferred(plan: dict[str, Any], target_root: str, label: str) -> None:
+    if plan.get("status") != "blocked" or plan.get("prompt_family") != "advanced_refactor_deferred":
+        raise RuntimeError(f"{label} did not defer advanced refactor for {target_root}: {json.dumps(plan, ensure_ascii=True)[:1000]}")
+    if plan.get("deferred_to_phase") != 105:
+        raise RuntimeError(f"{label} deferred phase mismatch for {target_root}: {plan.get('deferred_to_phase')!r}")
+    package_ids = [
+        item.get("id")
+        for item in plan.get("work_packages", [])
+        if isinstance(item, dict)
+    ]
+    if package_ids != ["DEFER1"] or plan.get("selected_workflow_ids") != []:
+        raise RuntimeError(f"{label} advanced refactor created executable packages for {target_root}: {package_ids!r}")
+
+
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -211,7 +283,7 @@ def validate_port_health(timeout_seconds: int) -> list[dict[str, Any]]:
         if status != 200:
             raise RuntimeError(f"{label} health probe returned HTTP {status}: {json.dumps(body, ensure_ascii=True)}")
         checks.append({"label": label, "url": url, "status": "passed"})
-        print(f"PHASE53 PORT PASS label={label} url={url}")
+        print(f"PHASE102 PORT PASS label={label} url={url}")
     return checks
 
 
@@ -221,7 +293,7 @@ def require_direct_response(body: dict[str, Any], target_root: str) -> None:
         raise RuntimeError("direct response did not include summary")
     expected = {
         "decomposition_status": "ready",
-        "prompt_family": "multi_step_refactor",
+        "prompt_family": "feature_or_small_change",
         "target_repository_changed": False,
         "runtime_registry_changed": False,
     }
@@ -237,6 +309,7 @@ def require_direct_response(body: dict[str, Any], target_root: str) -> None:
         raise RuntimeError(f"direct response missing task_decomposition artifact for {target_root}")
     if any("packet" in key for key in artifacts):
         raise RuntimeError(f"direct response created packet artifact for {target_root}: {sorted(artifacts)}")
+    require_phase102_contract(read_json_artifact(artifacts["task_decomposition"]), target_root, "direct")
 
 
 def require_ambiguous_response(body: dict[str, Any], target_root: str) -> None:
@@ -292,6 +365,10 @@ def require_json_contract(parsed: dict[str, Any], target_root: str, label: str) 
         raise RuntimeError(f"{label} JSON missing downstream_task_decomposition for {target_root}")
     if any("packet" in key for key in artifacts):
         raise RuntimeError(f"{label} JSON created packet artifact for {target_root}: {sorted(artifacts)}")
+    contract = parsed.get("task_decomposition_contract")
+    if not isinstance(contract, dict):
+        raise RuntimeError(f"{label} JSON did not include task_decomposition_contract for {target_root}")
+    require_phase102_contract(contract, target_root, f"{label} JSON contract")
 
 
 def validate_direct(args: argparse.Namespace, target_root: str) -> dict[str, Any]:
@@ -314,8 +391,35 @@ def validate_direct(args: argparse.Namespace, target_root: str) -> dict[str, Any
             f"{json.dumps(ambiguous_body, ensure_ascii=True)}"
         )
     require_ambiguous_response(ambiguous_body, target_root)
-    print(f"PHASE53 DIRECT PASS target={target_root} run_id={body.get('run_id')}")
-    return {"target_root": target_root, "run_id": body.get("run_id"), "ambiguous_run_id": ambiguous_body.get("run_id")}
+    deferred_status, deferred_body = json_request(
+        f"{args.controller_base_url.rstrip('/')}/v1/controller/task-decompositions",
+        payload=direct_payload(
+            target_root,
+            "Decompose this multi-step task into work packages with dependencies, approval gates, "
+            "and verification strategy: refactor the placed_order_id stealth lookup so there is one code path.",
+        ),
+        timeout_seconds=args.timeout_seconds,
+    )
+    if deferred_status != 200:
+        raise RuntimeError(
+            f"advanced refactor direct controller returned HTTP {deferred_status} for {target_root}: "
+            f"{json.dumps(deferred_body, ensure_ascii=True)}"
+        )
+    artifacts = deferred_body.get("artifacts")
+    if not isinstance(artifacts, dict) or "task_decomposition" not in artifacts:
+        raise RuntimeError(f"advanced refactor response missing task_decomposition artifact for {target_root}")
+    require_advanced_refactor_deferred(
+        read_json_artifact(artifacts["task_decomposition"]),
+        target_root,
+        "direct advanced refactor",
+    )
+    print(f"PHASE102 DIRECT PASS target={target_root} run_id={body.get('run_id')}")
+    return {
+        "target_root": target_root,
+        "run_id": body.get("run_id"),
+        "ambiguous_run_id": ambiguous_body.get("run_id"),
+        "deferred_run_id": deferred_body.get("run_id"),
+    }
 
 
 def validate_gateway(args: argparse.Namespace, target_root: str) -> dict[str, Any]:
@@ -338,7 +442,7 @@ def validate_gateway(args: argparse.Namespace, target_root: str) -> dict[str, An
     parsed = json_content(json_body)
     require_json_contract(parsed, target_root, "gateway")
     run_id = parsed.get("run_id")
-    print(f"PHASE53 GATEWAY PASS target={target_root} run_id={run_id}")
+    print(f"PHASE102 GATEWAY PASS target={target_root} run_id={run_id}")
     return {"target_root": target_root, "format_a_run_id": run_id_from_text(text), "json_run_id": run_id}
 
 
@@ -372,7 +476,7 @@ def validate_anythingllm(args: argparse.Namespace, target_root: str, api_key: st
     parsed = json_content(json_body)
     require_json_contract(parsed, target_root, "AnythingLLM")
     run_id = parsed.get("run_id")
-    print(f"PHASE53 ANYTHINGLLM PASS target={target_root} run_id={run_id}")
+    print(f"PHASE102 ANYTHINGLLM PASS target={target_root} run_id={run_id}")
     return {"target_root": target_root, "format_a_run_id": run_id_from_text(text), "json_run_id": run_id}
 
 
@@ -448,7 +552,7 @@ def main() -> int:
         "target_changed_files": {},
     }
     write_json(output_path, report)
-    print(f"PHASE53 TASK DECOMPOSITION LIVE PASS report={output_path}")
+    print(f"PHASE102 TASK DECOMPOSITION LIVE PASS report={output_path}")
     return 0
 
 

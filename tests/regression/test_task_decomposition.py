@@ -84,7 +84,8 @@ def decompose_payload(target_root: Path, user_request: str | None = None) -> dic
         "user_request": user_request
         or (
             "Decompose this multi-step task into work packages with dependencies, approval gates, "
-            "and verification strategy: refactor the placed_order_id stealth lookup so there is one code path."
+            "and verification strategy: add a focused unit test for "
+            "find_stealth_order_by_placed_order_id after investigating related tests."
         ),
     }
 
@@ -120,6 +121,7 @@ def non_null_workflow_ids(plan: dict[str, Any]) -> set[str]:
 def normalized_plan(plan: dict[str, Any]) -> dict[str, Any]:
     return {
         "status": plan["status"],
+        "work_package_schema_version": plan["work_package_schema_version"],
         "prompt_family": plan["prompt_family"],
         "risk_level": plan["risk_level"],
         "work_packages": plan["work_packages"],
@@ -134,6 +136,14 @@ def normalized_plan(plan: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def package_by_id(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {
+        item["id"]: item
+        for item in plan.get("work_packages", [])
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+
+
 def assert_registered_references(plan: dict[str, Any]) -> None:
     workflow_ids = registered_ids("workflows.json", "workflows")
     skill_ids = registered_ids("skills.json", "skills")
@@ -142,6 +152,35 @@ def assert_registered_references(plan: dict[str, Any]) -> None:
     for item in plan["work_packages"]:
         assert set(item.get("selected_skills", [])) <= skill_ids
         assert set(item.get("selected_tools", [])) <= tool_ids
+
+
+def assert_phase102_work_package_contract(plan: dict[str, Any]) -> None:
+    assert plan["work_package_schema_version"] == 2
+    assert [item["id"] for item in plan["work_packages"]] == ["WP1", "GATE2", "WP3", "WP4", "STOP5"]
+    assert plan["dependency_edges"] == [
+        {"from": "WP1", "to": "GATE2"},
+        {"from": "GATE2", "to": "WP3"},
+        {"from": "WP3", "to": "WP4"},
+        {"from": "WP4", "to": "STOP5"},
+    ]
+    packages = package_by_id(plan)
+    assert packages["WP1"]["stage"] == "investigation"
+    assert packages["GATE2"]["stage"] == "prep_approval_gate"
+    assert packages["GATE2"]["approval_gate"]["scope"] == "packet_design_only"
+    assert packages["WP3"]["stage"] == "implementation_prep"
+    assert packages["WP3"]["workflow_id"] == "execution_planning.plan"
+    assert packages["WP4"]["stage"] == "verification"
+    assert packages["STOP5"]["stage"] == "terminal_stop"
+    assert packages["STOP5"]["approval_gate"]["scope"] == "repository_mutation"
+    for item in plan["work_packages"]:
+        assert isinstance(item["dependency_contract"], dict)
+        assert isinstance(item["entry_conditions"], list) and item["entry_conditions"]
+        assert isinstance(item["exit_criteria"], list) and item["exit_criteria"]
+        assert isinstance(item["stop_conditions"], list) and item["stop_conditions"]
+        assert isinstance(item["verification"], dict)
+        assert item["verification"]["status"]
+    assert [gate["package_id"] for gate in plan["approval_gates"]] == ["GATE2", "STOP5"]
+    assert {gate["approval_scope"] for gate in plan["approval_gates"]} == {"packet_design_only", "repository_mutation"}
 
 
 def test_task_decomposition_endpoint_returns_registered_read_only_plan(tmp_path: Path) -> None:
@@ -159,15 +198,18 @@ def test_task_decomposition_endpoint_returns_registered_read_only_plan(tmp_path:
     assert body["workflow"] == "task.decompose"
     assert body["status"] == "completed"
     assert body["summary"]["decomposition_status"] == "ready"
-    assert body["summary"]["prompt_family"] == "multi_step_refactor"
+    assert body["summary"]["prompt_family"] == "feature_or_small_change"
     assert body["summary"]["target_repository_changed"] is False
     assert body["summary"]["runtime_registry_changed"] is False
     assert set(body["artifacts"]) == {"request", "task_decomposition", "run_state"}
     plan = load_artifact(body, "task_decomposition")
     assert plan["status"] == "ready"
-    assert "refactor.single_path" in plan["selected_workflow_ids"]
+    assert "code_investigation.plan" in plan["selected_workflow_ids"]
     assert "execution_planning.plan" in plan["selected_workflow_ids"]
-    assert any(item["id"] == "GATE3" and item["workflow_id"] is None for item in plan["work_packages"])
+    assert "refactor.single_path" not in plan["selected_workflow_ids"]
+    assert any(item["id"] == "GATE2" and item["workflow_id"] is None for item in plan["work_packages"])
+    assert any(item["id"] == "STOP5" and item["workflow_id"] is None for item in plan["work_packages"])
+    assert_phase102_work_package_contract(plan)
     assert plan["target_repository_changed"] is False
     assert plan["runtime_registry_changed"] is False
     assert_registered_references(plan)
@@ -220,13 +262,42 @@ def test_task_decomposition_ambiguous_task_returns_clarification_without_packets
     assert plan["runtime_registry_changed"] is False
 
 
+def test_task_decomposition_defers_advanced_single_path_refactor(tmp_path: Path) -> None:
+    target_root = make_target_repo(tmp_path)
+    config = controller_config(tmp_path, target_root)
+    request = (
+        "Decompose this multi-step task into work packages with dependencies, approval gates, "
+        "and verification strategy: refactor the placed_order_id stealth lookup so there is one code path."
+    )
+    with RunningControllerService(config) as service:
+        status, body = request_json(
+            *service.base_url,
+            "POST",
+            "/v1/controller/task-decompositions",
+            decompose_payload(target_root, request),
+        )
+
+    assert status == 200
+    assert body["summary"]["decomposition_status"] == "blocked"
+    assert body["summary"]["prompt_family"] == "advanced_refactor_deferred"
+    assert body["summary"]["next_action"] == "none"
+    plan = load_artifact(body, "task_decomposition")
+    assert plan["status"] == "blocked"
+    assert plan["deferred_to_phase"] == 105
+    assert plan["selected_workflow_ids"] == []
+    assert [item["id"] for item in plan["work_packages"]] == ["DEFER1"]
+    assert plan["work_packages"][0]["mutation_policy"] == "unsupported_deferred_until_phase_105"
+    assert plan["work_packages"][0]["stop_conditions"][0]["code"] == "phase_105_not_ready"
+    assert not any("packet" in key for key in body["artifacts"])
+
+
 def test_workflow_router_chat_task_decomposition_returns_inline_format_a(tmp_path: Path) -> None:
     target_root = make_target_repo(tmp_path)
     config = controller_config(tmp_path, target_root)
     prompt = (
         f"In {target_root}, decompose this multi-step task into work packages with dependencies, "
-        "approval gates, and verification strategy: refactor the placed_order_id stealth lookup so "
-        "there is one code path. Read only."
+        "approval gates, and verification strategy: add a focused unit test for "
+        "find_stealth_order_by_placed_order_id after investigating related tests. Read only."
     )
     with RunningControllerService(config) as service:
         status, body = request_json(
@@ -241,9 +312,12 @@ def test_workflow_router_chat_task_decomposition_returns_inline_format_a(tmp_pat
     assert "Result:" in content
     assert "- Selected workflow: task.decompose" in content
     assert "Task Decomposition:" in content
+    assert "- Work-package schema: 2" in content
     assert "- Work packages:" in content
     assert "- Dependencies:" in content
     assert "- Approval gates:" in content
+    assert "- Stop conditions:" in content
+    assert "- Package verification:" in content
     assert "- Uncertainty:" in content
     assert "- Verification:" in content
     assert "- Source mutation: False" in content
@@ -260,8 +334,8 @@ def test_workflow_router_chat_task_decomposition_json_contract(tmp_path: Path) -
     config = controller_config(tmp_path, target_root)
     prompt = (
         f"In {target_root}, decompose this multi-step task into work packages with dependencies, "
-        "approval gates, and verification strategy: refactor the placed_order_id stealth lookup so "
-        "there is one code path. Return JSON."
+        "approval gates, and verification strategy: add a focused unit test for "
+        "find_stealth_order_by_placed_order_id after investigating related tests. Return JSON."
     )
     with RunningControllerService(config) as service:
         status, body = request_json(
@@ -279,3 +353,34 @@ def test_workflow_router_chat_task_decomposition_json_contract(tmp_path: Path) -
     assert parsed["summary"]["selected_workflow"] == "task.decompose"
     assert parsed["summary"]["downstream_workflow"] == "task.decompose"
     assert "downstream_task_decomposition" in parsed["artifacts"]
+    contract = parsed["task_decomposition_contract"]
+    assert contract["work_package_schema_version"] == 2
+    assert [item["id"] for item in contract["work_packages"]] == ["WP1", "GATE2", "WP3", "WP4", "STOP5"]
+    assert contract["approval_gates"][0]["package_id"] == "GATE2"
+
+
+def test_workflow_router_chat_task_decomposition_defers_advanced_refactor_json(tmp_path: Path) -> None:
+    target_root = make_target_repo(tmp_path)
+    config = controller_config(tmp_path, target_root)
+    prompt = (
+        f"In {target_root}, decompose this multi-step task into work packages with dependencies, "
+        "approval gates, and verification strategy: refactor the placed_order_id stealth lookup so "
+        "there is one code path. Return JSON."
+    )
+    with RunningControllerService(config) as service:
+        status, body = request_json(
+            *service.base_url,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            chat_payload(target_root, prompt, json_output=True),
+        )
+
+    assert status == 200
+    parsed = json.loads(body["choices"][0]["message"]["content"])
+    assert parsed["chat_contract"]["selected_workflow"] == "task.decompose"
+    contract = parsed["task_decomposition_contract"]
+    assert contract["status"] == "blocked"
+    assert contract["prompt_family"] == "advanced_refactor_deferred"
+    assert contract["deferred_to_phase"] == 105
+    assert [item["id"] for item in contract["work_packages"]] == ["DEFER1"]
+    assert contract["target_repository_changed"] is False

@@ -1,6 +1,6 @@
 # Model Capability Profile Examples
 
-Generate profiles from existing model-portability reports.
+Generate profiles from existing model-portability reports and review the runtime fail-closed routing policy.
 
 ## Live Current Candidate
 
@@ -53,6 +53,32 @@ Open:
 runtime-state/model-capability-profiles/phase78-live-current-profile.md
 ```
 
+## Review Runtime Enforcement
+
+Open the active routing policy:
+
+```text
+runtime/model_capability_routing.json
+```
+
+The workflow router writes the applied gate to each route decision:
+
+```text
+model_capability_routing.status
+model_capability_routing.task_class
+model_capability_routing.task_policy_status
+model_capability_routing.profile_id
+```
+
+For chat responses, the same decision is summarized as:
+
+```text
+model_capability_status
+model_capability_task_class
+model_capability_profile_id
+model_capability_policy_status
+```
+
 The table should show:
 
 - `route_stability=proven`
@@ -66,6 +92,6 @@ The table should show:
 
 ## Interpret Warnings
 
-`warning` is expected for Phase 78 profiles when the source model passes functional acceptance but does not include timing metrics.
+`warning` is expected when the source model passes functional acceptance but does not include timing metrics.
 
-Do not treat a warning profile as approval for automatic model routing. Phase 78 is advisory only.
+Do not treat a warning profile as approval for automatic model selection. Phase 100 enforces only the configured active profile and still blocks real source apply.

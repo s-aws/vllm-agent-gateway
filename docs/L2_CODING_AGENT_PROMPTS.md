@@ -271,6 +271,119 @@ Latest Phase 32 proof from June 5, 2026:
 - Bash workflow-router gateway passed `L2-006` through `L2-009` on both frozen fixtures
 - AnythingLLM passed `L2-006` through `L2-009` on both frozen fixtures
 
+## L2-010: Summarize Failing CI Log
+
+Prompt:
+
+```text
+In <repo>, summarize this failing CI log and identify the first failing command,
+likely cause, and next local command. Read only.
+
+Run python -m pytest tests/unit/test_order_id_and_followup_rules.py
+FAILED tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - AssertionError: expected client_order_id index
+E   AssertionError: expected client_order_id index
+Error: Process completed with exit code 1.
+```
+
+Required behavior:
+
+- route to `code_investigation.plan`
+- select `ci-log-failure-summarizer`
+- execute read-only investigation
+- return `downstream_ci_failure_summary`
+- include `First failing command:` in chat
+- include `Likely cause:` in chat
+- include `Next local command:` in chat
+- include `Source mutation: false`
+- leave watched source/test/docs files unchanged
+
+Status: implemented and live validated.
+
+## L2-011: Locate Table Definition, Reads, And Writes
+
+Prompt:
+
+```text
+In <repo>, find where database table stealth_orders is defined, read, and written.
+Read only. Return definition sites, read sites, write sites, gaps, and source refs.
+```
+
+Required behavior:
+
+- route to `code_investigation.plan`
+- select `table-read-write-locator`
+- execute read-only investigation
+- return `downstream_table_read_write_lookup`
+- include `Target table:` in chat
+- include `Access counts:` in chat
+- include `Definition sites:` in chat
+- include `Read sites:` in chat
+- include `Write sites:` in chat
+- include `Source mutation: false`
+- leave watched source/test/docs files unchanged
+
+Status: implemented and live validated.
+
+## L2-012: Write Runtime Reproduction Checklist
+
+Prompt:
+
+```text
+In <repo>, turn this runtime stack trace into a minimal reproduction checklist.
+Read only. Return observed error, reproduction steps, related tests, gaps, and next local command.
+
+Traceback (most recent call last):
+  File "dashboard_server.py", line 10, in handle_websocket_message
+core.exceptions.WebSocketMessageError: Missing 'type' field in message
+```
+
+Required behavior:
+
+- route to `code_investigation.plan`
+- select `runtime-reproduction-checklist-writer`
+- execute read-only investigation
+- return `downstream_runtime_error_diagnosis`
+- return `downstream_reproduction_checklist`
+- include `Observed error:` in chat
+- include `Reproduction checklist:` in chat
+- include `Source mutation: false`
+- leave watched source/test/docs files unchanged
+
+Status: implemented and live validated.
+
+## L2-013: Locate User-Facing Message Test Target
+
+Prompt:
+
+```text
+In <repo>, check if error message "Missing 'type' field in message" is user-facing
+and where it should be tested. Read only. Return source, user-facing status,
+test targets, and verification command.
+```
+
+Required behavior:
+
+- route to `code_investigation.plan`
+- select `user-facing-message-test-target-locator`
+- execute read-only investigation
+- return `downstream_message_source_lookup`
+- include `Target message:` in chat
+- include `Sources:` in chat
+- include `User-facing:` in chat
+- include `Test targets:` in chat
+- include `Source mutation: false`
+- leave watched source/test/docs files unchanged
+
+Status: implemented and live validated.
+
+Latest Phase 99 proof from June 7, 2026:
+
+- focused Phase 99 regression returned `49 passed`
+- skill eval catalog returned `case_count=53`, `failed_count=0`
+- hardened live skill eval returned `case_count=4`, `failed_count=0`, and live suite status `passed`
+- Bash workflow-router gateway passed `L2-010` through `L2-013` on both frozen fixtures
+- AnythingLLM passed `L2-010` through `L2-013` on both frozen fixtures
+
 ## Planned L2 Candidates
 
 These are not approved for implementation until the previous L2 has passing regression and live validation.

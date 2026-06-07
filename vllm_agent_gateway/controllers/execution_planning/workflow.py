@@ -603,6 +603,27 @@ def verification_command_lists(value: dict[str, Any]) -> list[list[str]]:
     return commands
 
 
+def packet_operation_verification_commands(packet_operations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    commands: list[dict[str, Any]] = []
+    seen_paths: set[str] = set()
+    for operation in packet_operations:
+        path = operation.get("path")
+        if not isinstance(path, str) or not path or path in seen_paths:
+            continue
+        seen_paths.add(path)
+        commands.append(
+            {
+                "id": f"packet-diff-{len(commands) + 1:04d}",
+                "command": ["git", "diff", "--", path],
+                "reason": "Review the exact draft packet delta for the target file.",
+                "associated_files": [path],
+                "timeout_seconds": 120,
+                "source_refs": [path],
+            }
+        )
+    return commands
+
+
 def collect_selected_files(
     target_root: Path,
     impact: dict[str, Any],
@@ -979,6 +1000,51 @@ L1_DRAFT_PACKET_PROFILES: dict[str, dict[str, Any]] = {
         "summary_text": f"{WORKFLOW_ID} deterministic L1 simple failing-test fix draft completed.",
         "notes": ["Deterministic L1 simple failing-test fix path used exact controller-generated packet operations."],
     },
+    "workflow_router_natural_packet_objective": {
+        "scope": "packet_design_only",
+        "id_prefix": "GENERIC-PACKET-OBJECTIVE",
+        "context_plan_id": "GENERIC-PACKET-OBJECTIVE-CONTEXT",
+        "packet_set_id": "GENERIC-PACKET-OBJECTIVE-PACKETS",
+        "source_plan_id": "GENERIC-PACKET-OBJECTIVE-PLAN",
+        "step_id": "GENERIC-PACKET-OBJECTIVE-STEP-0001",
+        "verification_plan_id": "GENERIC-PACKET-OBJECTIVE-VERIFY",
+        "task": "Draft exact implementation packet from narrowed packet objective.",
+        "request_type": "implementation_prep",
+        "deterministic_path": "generic_packet_objective",
+        "useful_observation": "Deterministic generic packet-objective draft completed.",
+        "summary_text": f"{WORKFLOW_ID} deterministic generic packet-objective draft completed.",
+        "notes": ["Deterministic generic packet-objective path used exact controller-generated packet operations."],
+    },
+    "workflow_router_natural_approved_investigation_packet_prep": {
+        "scope": "packet_design_only",
+        "id_prefix": "APPROVED-INVESTIGATION-PACKET",
+        "context_plan_id": "APPROVED-INVESTIGATION-PACKET-CONTEXT",
+        "packet_set_id": "APPROVED-INVESTIGATION-PACKET-PACKETS",
+        "source_plan_id": "APPROVED-INVESTIGATION-PACKET-PLAN",
+        "step_id": "APPROVED-INVESTIGATION-PACKET-STEP-0001",
+        "verification_plan_id": "APPROVED-INVESTIGATION-PACKET-VERIFY",
+        "task": "Draft exact implementation packet from approved investigation.",
+        "request_type": "implementation_prep",
+        "deterministic_path": "approved_investigation_packet_prep",
+        "useful_observation": "Deterministic approved-investigation packet prep completed.",
+        "summary_text": f"{WORKFLOW_ID} deterministic approved-investigation packet prep completed.",
+        "notes": ["Deterministic approved-investigation packet-prep path used exact controller-generated packet operations."],
+    },
+    "workflow_router_natural_approval": {
+        "scope": "packet_design_only",
+        "id_prefix": "APPROVAL-CONTINUATION-PACKET",
+        "context_plan_id": "APPROVAL-CONTINUATION-PACKET-CONTEXT",
+        "packet_set_id": "APPROVAL-CONTINUATION-PACKET-PACKETS",
+        "source_plan_id": "APPROVAL-CONTINUATION-PACKET-PLAN",
+        "step_id": "APPROVAL-CONTINUATION-PACKET-STEP-0001",
+        "verification_plan_id": "APPROVAL-CONTINUATION-PACKET-VERIFY",
+        "task": "Draft exact implementation packet from approved continuation.",
+        "request_type": "implementation_prep",
+        "deterministic_path": "approval_continuation_packet_prep",
+        "useful_observation": "Deterministic approval-continuation packet prep completed.",
+        "summary_text": f"{WORKFLOW_ID} deterministic approval-continuation packet prep completed.",
+        "notes": ["Deterministic approval-continuation path used exact controller-supplied packet operations."],
+    },
 }
 
 
@@ -1131,7 +1197,8 @@ def deterministic_l1_packet_draft_plan(
     }
     merge_controller_verification_commands(
         verification_plan,
-        controller_verification_commands(context_results),
+        packet_operation_verification_commands(request.packet_operations)
+        + controller_verification_commands(context_results),
     )
     write_json(run_dir / ARTIFACT_NAMES["verification_plan"], verification_plan)
     artifacts["verification_plan"] = str(run_dir / ARTIFACT_NAMES["verification_plan"])

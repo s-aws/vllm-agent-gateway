@@ -1,8 +1,8 @@
-"""Plan-only natural-language workflow routing.
+"""Natural-language workflow routing.
 
-The router is the product-facing decision layer. Phase 1 intentionally uses
-registry metadata and deterministic validation only; it does not read the
-target repository or execute downstream workflows.
+The router is the product-facing decision layer. It selects workflows from
+registry metadata, then records bounded context-source intent before delegated
+workflows perform any file-content reads.
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from vllm_agent_gateway.controller_service.tool_policy import ControllerToolPolicyError, resolve_controller_tool_policy
+from vllm_agent_gateway.acceptance.advanced_refactor_readiness import advanced_refactor_gate_decision
 from vllm_agent_gateway.controllers.code_context.lookup import (
     CodeContextLookupError,
     CodeContextLookupRequest,
@@ -59,6 +60,10 @@ from vllm_agent_gateway.implementation.workflow import (
     invoke_implementation_workflow,
 )
 from vllm_agent_gateway.invocation import InvocationResult, WorkflowStatus
+from vllm_agent_gateway.model_capability_routing import (
+    evaluate_model_capability_routing,
+    model_capability_blockers,
+)
 from vllm_agent_gateway.controllers.natural_query import (
     change_subject_queries_from_request,
     strip_filesystem_paths,
@@ -85,6 +90,8 @@ PROPOSAL_MAX_SNIPPET_CHARS = 5000
 SMALL_TEXT_EDIT_MAX_FILE_BYTES = 64 * 1024
 SMALL_UNIT_TEST_MAX_FILE_BYTES = 128 * 1024
 SIMPLE_TEST_FIX_MAX_FILE_BYTES = 512 * 1024
+DISPOSABLE_TREE_DIGEST_EXCLUDED_DIRS = {".git", "__pycache__", ".pytest_cache"}
+DISPOSABLE_APPLY_OPERATION_KINDS = {"append_text", "replace_text"}
 CORE_INVESTIGATION_SKILLS = (
     "request-triage",
     "scope-and-assumptions",
@@ -92,12 +99,19 @@ CORE_INVESTIGATION_SKILLS = (
     "context-plan-builder",
 )
 ROUTER_RULE_SKILL_OVERRIDES = {
+    "l2_ci_log_triage_terms": "ci-log-failure-summarizer",
+    "l2_table_read_write_lookup_terms": "table-read-write-locator",
+    "l2_runtime_reproduction_checklist_terms": "runtime-reproduction-checklist-writer",
+    "l2_user_facing_message_test_target_terms": "user-facing-message-test-target-locator",
     "l2_test_selection_terms": "test-selection-rationale",
 }
 SELECTION_MIN_CONFIDENCE = "medium"
 CONFIDENCE_RANK = {"low": 0, "medium": 1, "high": 2}
 MAX_REJECTED_CANDIDATES = 12
 ALLOWED_MODES = {"plan_only", "execute_read_only", "implementation_prep", "apply_disposable_copy"}
+CONTEXT_SOURCE_MAX_SELECTED = 5
+CONTEXT_LAYOUT_MAX_SCANNED_FILES = 500
+CONTEXT_LAYOUT_MAX_SAMPLE_FILES = 20
 ROUTABLE_WORKFLOWS = {
     "code_context.lookup",
     "code_investigation.plan",
@@ -146,6 +160,81 @@ UNSUPPORTED_NON_DEV_TERMS = {
     "stock price",
 }
 TEXT_EDIT_FILE_EXTENSIONS = {".md", ".rst", ".txt"}
+CONTEXT_LAYOUT_SUPPORTED_EXTENSIONS = {
+    ".c",
+    ".cfg",
+    ".cpp",
+    ".cs",
+    ".go",
+    ".h",
+    ".hpp",
+    ".ini",
+    ".java",
+    ".js",
+    ".json",
+    ".jsx",
+    ".md",
+    ".php",
+    ".py",
+    ".pyi",
+    ".rb",
+    ".rs",
+    ".rst",
+    ".toml",
+    ".ts",
+    ".tsx",
+    ".txt",
+    ".yaml",
+    ".yml",
+}
+CONTEXT_LAYOUT_IGNORED_DIRS = {
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "node_modules",
+    "runtime-state",
+    "vendor",
+}
+CONTEXT_SOURCE_CATALOG: dict[str, dict[str, Any]] = {
+    "ast_index": {
+        "description": "Bounded structure and symbol discovery for code files.",
+        "tool_ids": ["structure_index"],
+        "artifact_keys": ["investigation_evidence", "lookup_results", "context_results", "impact_map"],
+        "budget": {"max_records": 50, "max_files": 10},
+    },
+    "text_search": {
+        "description": "Bounded exact-string search before selected file reads.",
+        "tool_ids": ["git_grep", "read_file"],
+        "artifact_keys": ["investigation_evidence", "lookup_results", "context_results"],
+        "budget": {"max_matches": 50, "max_files": 10},
+    },
+    "config_lookup": {
+        "description": "Configuration and environment-variable lookup.",
+        "tool_ids": ["git_grep", "read_file"],
+        "artifact_keys": ["configuration_lookup", "configuration_effect_summary", "investigation_evidence"],
+        "budget": {"max_matches": 50, "max_files": 10},
+    },
+    "test_lookup": {
+        "description": "Related test and verification-command discovery.",
+        "tool_ids": ["git_grep", "read_file"],
+        "artifact_keys": ["related_tests", "verification_plan", "test_selection_plan", "investigation_evidence"],
+        "budget": {"max_tests": 25, "max_files": 10},
+    },
+    "curated_relationship_lookup": {
+        "description": "Curated caller, callee, import, and dependency relationship lookup.",
+        "tool_ids": ["codegraph_context", "structure_index", "git_grep", "read_file"],
+        "artifact_keys": ["relationship_results", "usage_summary", "dependency_lookup", "lookup_results"],
+        "budget": {"max_relationship_results": 25, "max_queries": 3},
+    },
+}
 
 
 class WorkflowRouterError(RuntimeError):
@@ -960,6 +1049,76 @@ def is_l2_failing_test_investigation_request(text: str) -> bool:
     )
 
 
+def is_l2_ci_log_triage_request(text: str) -> bool:
+    if any(term in text for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate")):
+        return False
+    ci_terms = (
+        "ci log",
+        "failing ci",
+        "github actions",
+        "workflow run",
+        "ci failure",
+        "pipeline failure",
+        "build log",
+    )
+    outcome_terms = (
+        "first failing command",
+        "likely cause",
+        "next local command",
+        "summarize",
+        "summary",
+    )
+    return any(term in text for term in ci_terms) and any(term in text for term in outcome_terms)
+
+
+def is_l2_table_read_write_lookup_request(text: str) -> bool:
+    if any(term in text for term in ("add", "create", "implement", "fix failing", "fix test", "refactor", "apply", "mutate")):
+        return False
+    table_terms = ("database table", "table", "db table")
+    access_terms = (
+        "read and written",
+        "reads and writes",
+        "definition, reads, and writes",
+        "definition reads and writes",
+        "definition sites, read sites, write sites",
+        "definition sites read sites write sites",
+        "read/write",
+        "read write",
+        "defined, read, and written",
+        "defined read and written",
+    )
+    return any(term in text for term in table_terms) and any(term in text for term in access_terms)
+
+
+def is_l2_runtime_reproduction_checklist_request(text: str) -> bool:
+    if any(term in text for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate", "refactor")):
+        return False
+    runtime_terms = ("runtime error", "stack trace", "traceback", "exception")
+    repro_terms = (
+        "minimal reproduction checklist",
+        "reproduction checklist",
+        "repro checklist",
+        "minimal repro",
+        "turn this stack trace",
+        "reproduce",
+    )
+    read_only_terms = ("read only", "read-only", "do not edit", "do not mutate", "no source changes")
+    return any(term in text for term in runtime_terms) and any(term in text for term in repro_terms) and any(
+        term in text for term in read_only_terms
+    )
+
+
+def is_l2_user_facing_message_test_target_request(text: str) -> bool:
+    if any(term in text for term in ("add", "create", "implement", "fix failing", "fix test", "update test", "apply", "mutate")):
+        return False
+    message_terms = ("error message", "log message", "exception message")
+    user_terms = ("user-facing", "user facing", "shown to user", "visible to user")
+    test_terms = ("where it should be tested", "where should it be tested", "tested", "test target", "related tests")
+    return any(term in text for term in message_terms) and any(term in text for term in user_terms) and any(
+        term in text for term in test_terms
+    )
+
+
 def is_l2_multi_file_behavior_investigation_request(text: str) -> bool:
     if any(term in text for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate")):
         return False
@@ -1054,6 +1213,8 @@ def is_l2_test_selection_request(text: str) -> bool:
 def is_l2_runtime_error_diagnosis_request(text: str) -> bool:
     if any(term in text for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate", "refactor")):
         return False
+    if is_l2_runtime_reproduction_checklist_request(text):
+        return True
     runtime_terms = ("runtime error", "stack trace", "traceback", "exception")
     diagnosis_terms = ("diagnose", "likely cause", "observed error", "next inspection", "why")
     read_only_terms = ("read only", "read-only", "do not edit", "do not mutate", "no source changes")
@@ -1217,6 +1378,14 @@ def first_text_edit_path(user_request: str) -> str | None:
     for path in extract_request_paths(user_request, limit=8):
         if Path(path).suffix.lower() in TEXT_EDIT_FILE_EXTENSIONS:
             return path
+    bare_file_pattern = re.compile(
+        r"(?<![\w./\\-])([A-Za-z0-9_.-]+\.(?:md|rst|txt|json|yaml|yml|toml|ini))\b",
+        re.IGNORECASE,
+    )
+    for match in bare_file_pattern.finditer(user_request):
+        candidate = match.group(1)
+        if Path(candidate).suffix.lower() in TEXT_EDIT_FILE_EXTENSIONS:
+            return candidate
     return None
 
 
@@ -1510,11 +1679,23 @@ def workflow_kind_for_request(user_request: str) -> tuple[str | None, str, list[
     if is_l1_small_unit_test_request(text):
         evidence.append({"source": "router_rule", "rule": "l1_small_unit_test_terms"})
         return "execution_planning.plan", "ready", evidence
+    if is_l2_ci_log_triage_request(text):
+        evidence.append({"source": "router_rule", "rule": "l2_ci_log_triage_terms"})
+        return "code_investigation.plan", "ready", evidence
     if is_l2_failing_test_investigation_request(text):
         evidence.append({"source": "router_rule", "rule": "l2_failing_test_investigation_terms"})
         return "code_investigation.plan", "ready", evidence
+    if is_l2_runtime_reproduction_checklist_request(text):
+        evidence.append({"source": "router_rule", "rule": "l2_runtime_reproduction_checklist_terms"})
+        return "code_investigation.plan", "ready", evidence
     if is_l2_runtime_error_diagnosis_request(text):
         evidence.append({"source": "router_rule", "rule": "l2_runtime_error_diagnosis_terms"})
+        return "code_investigation.plan", "ready", evidence
+    if is_l2_table_read_write_lookup_request(text):
+        evidence.append({"source": "router_rule", "rule": "l2_table_read_write_lookup_terms"})
+        return "code_investigation.plan", "ready", evidence
+    if is_l2_user_facing_message_test_target_request(text):
+        evidence.append({"source": "router_rule", "rule": "l2_user_facing_message_test_target_terms"})
         return "code_investigation.plan", "ready", evidence
     if is_l2_dependency_impact_summary_request(text):
         evidence.append({"source": "router_rule", "rule": "l2_dependency_impact_summary_terms"})
@@ -1723,15 +1904,22 @@ def tools_for_workflow(workflow_id: str, workflow_registry: dict[str, dict[str, 
     return [tool_id for tool_id in tool_ids if isinstance(tool_id, str)][:limit]
 
 
-def request_preview(workflow_id: str, request: WorkflowRouterPlanRequest, selected_tools: list[str]) -> dict[str, Any]:
+def request_preview(
+    workflow_id: str,
+    request: WorkflowRouterPlanRequest,
+    selected_tools: list[str],
+    selected_context_sources: list[str] | None = None,
+) -> dict[str, Any]:
     target_root = str(Path(request.target_root).resolve())
     queries = extract_queries(request.user_request)
     paths = extract_request_paths(request.user_request)
     behavior = behavior_from_request(request.user_request)
+    context_sources = selected_context_sources or []
     base: dict[str, Any] = {
         "workflow": workflow_id,
         "schema_version": SCHEMA_VERSION,
         "target_root": target_root,
+        "context_sources": context_sources,
     }
     if workflow_id == "code_context.lookup":
         return {
@@ -1769,7 +1957,7 @@ def request_preview(workflow_id: str, request: WorkflowRouterPlanRequest, select
             "user_request": request.user_request.strip(),
             "mode": "dry_run" if request.mode == "implementation_prep" else "investigation_only",
             "approval": {"status": "not_requested", "apply_allowed": False},
-            "context": {"allowed_context_tools": selected_tools},
+            "context": {"allowed_context_tools": selected_tools, "context_sources": context_sources},
         }
         if request.mode == "implementation_prep":
             preview["approval"] = request.approval
@@ -1821,6 +2009,85 @@ def next_action_for(workflow_id: str) -> str:
     if workflow_id == "workflow_feedback.record":
         return "ask_blocking_question"
     return "none"
+
+
+def route_has_rule(route_evidence: list[dict[str, Any]], rule: str) -> bool:
+    return any(item.get("rule") == rule for item in route_evidence if isinstance(item, dict))
+
+
+def request_matches_advanced_refactor_pilot_scope(user_request: str) -> tuple[bool, str]:
+    text = lower_request(user_request)
+    broad_terms = (
+        "whole subsystem",
+        "entire subsystem",
+        "entire codebase",
+        "whole codebase",
+        "repo-wide",
+        "repository-wide",
+        "all functions",
+        "all code paths",
+        "all code",
+        "everything",
+    )
+    if any(term in text for term in broad_terms):
+        return False, "advanced_refactor_pilot_scope_too_broad"
+    investigation_first = any(
+        term in text
+        for term in (
+            "start from the logic beginning point",
+            "logic beginning point",
+            "investigate first",
+            "read only",
+            "investigation first",
+        )
+    )
+    approval_gated = "approval" in text or "wait for approval" in text
+    single_behavior = bool(re.search(r"\b[a-z0-9_]*_[a-z0-9_]+[a-z0-9_]*\b", text)) or any(
+        term in text for term in ("named function", "named behavior", "one named", "single named")
+    )
+    if not investigation_first:
+        return False, "advanced_refactor_pilot_requires_investigation_first"
+    if not approval_gated:
+        return False, "advanced_refactor_pilot_requires_approval_gate"
+    if not single_behavior:
+        return False, "advanced_refactor_pilot_requires_single_named_behavior"
+    return True, "advanced_refactor_pilot_scope_admitted"
+
+
+def advanced_refactor_readiness_blocker(
+    *,
+    config_root: Path,
+    workflow_id: str,
+    route_evidence: list[dict[str, Any]],
+    user_request: str,
+) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
+    if workflow_id != "refactor.single_path" or not route_has_rule(route_evidence, "single_path_refactor_terms"):
+        return None, None
+    gate_decision = advanced_refactor_gate_decision(config_root)
+    if gate_decision.get("status") == "ready":
+        pilot_admitted, pilot_reason = request_matches_advanced_refactor_pilot_scope(user_request)
+        gate_decision["pilot_scope_reason"] = pilot_reason
+        if not pilot_admitted:
+            return {
+                "reason": "advanced_refactor_pilot_scope_not_admitted",
+                "message": (
+                    "Phase 105 only admits narrow investigation-first advanced-refactor pilots with explicit "
+                    "approval gating and a single named behavior or function."
+                ),
+                "readiness_report_path": gate_decision.get("report_path"),
+                "readiness_status": gate_decision.get("readiness_status"),
+                "pilot_scope_reason": pilot_reason,
+            }, gate_decision
+        return None, gate_decision
+    return {
+        "reason": "advanced_refactor_readiness_not_met",
+        "message": gate_decision.get(
+            "message",
+            "Advanced refactor remains blocked until the Phase 105 readiness gate passes.",
+        ),
+        "readiness_report_path": gate_decision.get("report_path"),
+        "readiness_status": gate_decision.get("readiness_status"),
+    }, gate_decision
 
 
 def downstream_role_id_for(workflow_id: str) -> str:
@@ -2795,6 +3062,16 @@ def objective_line_numbers_for_file(target_root: Path, rel_path: str, objective:
     selected: list[int] = []
     for term in terms:
         term_lower = term.lower()
+        if "_" in term:
+            found_definition = False
+            definition_pattern = re.compile(rf"^\s*def\s+{re.escape(term)}\b", re.IGNORECASE)
+            for index, line in enumerate(lines, 1):
+                if definition_pattern.search(line) and index not in selected:
+                    selected.append(index)
+                    found_definition = True
+                    break
+            if found_definition:
+                continue
         for index, line in enumerate(lines, 1):
             if term_lower in line.lower() and index not in selected:
                 selected.append(index)
@@ -2802,26 +3079,91 @@ def objective_line_numbers_for_file(target_root: Path, rel_path: str, objective:
     return selected
 
 
+def packet_seed_plan_from_artifact(artifact: dict[str, Any]) -> dict[str, Any] | None:
+    if isinstance(artifact.get("implementation_packet_seed"), dict):
+        return artifact
+    investigation = artifact.get("investigation") if isinstance(artifact.get("investigation"), dict) else {}
+    plan = investigation.get("plan") if isinstance(investigation.get("plan"), dict) else {}
+    if isinstance(plan.get("implementation_packet_seed"), dict):
+        return plan
+    return None
+
+
+def candidate_target_files_from_packet_seed_plan(plan: dict[str, Any]) -> list[str]:
+    seed = plan.get("implementation_packet_seed") if isinstance(plan.get("implementation_packet_seed"), dict) else {}
+    files = seed.get("candidate_target_files")
+    if not isinstance(files, list):
+        return []
+    selected: list[str] = []
+    for item in files:
+        if isinstance(item, str) and item and item not in selected:
+            selected.append(item)
+    return selected
+
+
+def verification_commands_from_packet_seed_plan(plan: dict[str, Any], limit: int = 5) -> list[dict[str, Any]]:
+    verification_plan = plan.get("verification_plan") if isinstance(plan.get("verification_plan"), dict) else {}
+    commands = verification_plan.get("verification_commands")
+    if not isinstance(commands, list):
+        return []
+    selected: list[dict[str, Any]] = []
+    for command in commands[:limit]:
+        if isinstance(command, dict):
+            selected.append(command)
+    return selected
+
+
+def line_numbers_for_packet_seed_file(plan: dict[str, Any], rel_path: str) -> list[int]:
+    records = plan.get("participating_files")
+    if not isinstance(records, list):
+        return []
+    lines: list[int] = []
+    for record in records:
+        if not isinstance(record, dict) or record.get("path") != rel_path:
+            continue
+        refs = record.get("line_refs")
+        if not isinstance(refs, list):
+            continue
+        for ref in refs:
+            line = ref.get("line") if isinstance(ref, dict) else None
+            if isinstance(line, int) and line > 0 and line not in lines:
+                lines.append(line)
+    return lines
+
+
+def packet_seed_artifact_from_prior_record(record: dict[str, Any]) -> tuple[str | None, dict[str, Any] | None, dict[str, Any] | None]:
+    artifacts = record.get("artifacts") if isinstance(record.get("artifacts"), dict) else {}
+    for artifact_key in ("downstream_investigation_plan", "downstream_refactor_plan"):
+        artifact = load_optional_json(artifacts.get(artifact_key))
+        if artifact is None:
+            continue
+        plan = packet_seed_plan_from_artifact(artifact)
+        if plan is not None:
+            return artifact_key, artifact, plan
+    return None, None, None
+
+
 def proposal_prompt(
     *,
     request: WorkflowRouterPlanRequest,
     approved_run_id: str,
-    refactor_plan: dict[str, Any],
+    source_artifact_key: str,
+    packet_seed_plan: dict[str, Any],
     snippets: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    investigation = refactor_plan.get("investigation") if isinstance(refactor_plan.get("investigation"), dict) else {}
-    plan = investigation.get("plan") if isinstance(investigation.get("plan"), dict) else {}
     return {
         "task": "Propose exact draft-only implementation packet operations from an approved investigation.",
         "approved_run_id": approved_run_id,
+        "source_artifact_key": source_artifact_key,
         "user_request": request.user_request,
         "packet_objective": packet_objective_from_context(request.context),
         "narrowed_edit_objective": narrowed_edit_objective_from_context(request.context),
         "approval": request.approval,
         "investigation_summary": {
-            "likely_beginning_point": plan.get("likely_beginning_point"),
-            "multiple_path_assessment": plan.get("multiple_path_assessment"),
-            "implementation_packet_seed": plan.get("implementation_packet_seed"),
+            "likely_beginning_point": packet_seed_plan.get("likely_beginning_point"),
+            "multiple_path_assessment": packet_seed_plan.get("multiple_path_assessment"),
+            "implementation_packet_seed": packet_seed_plan.get("implementation_packet_seed"),
+            "verification_plan": packet_seed_plan.get("verification_plan"),
         },
         "source_snippets": snippets,
         "rules": [
@@ -3130,15 +3472,15 @@ def propose_packet_operations_from_prior_run(
     if prior_record is None:
         proposal_artifact["blockers"].append({"reason": "approved_run_record_not_found"})
         return [], proposal_artifact
-    artifacts = prior_record.get("artifacts") if isinstance(prior_record.get("artifacts"), dict) else {}
-    refactor_plan = load_optional_json(artifacts.get("downstream_refactor_plan"))
-    if refactor_plan is None:
-        proposal_artifact["blockers"].append({"reason": "approved_run_missing_refactor_plan"})
+    source_artifact_key, _source_artifact, packet_seed_plan = packet_seed_artifact_from_prior_record(prior_record)
+    if packet_seed_plan is None or source_artifact_key is None:
+        proposal_artifact["blockers"].append({"reason": "approved_run_missing_packet_seed_artifact"})
         return [], proposal_artifact
-    candidate_files = candidate_target_files_from_refactor_plan(refactor_plan)
+    candidate_files = candidate_target_files_from_packet_seed_plan(packet_seed_plan)
     packet_objective = packet_objective_from_context(request.context)
     narrowed_objective = narrowed_edit_objective_from_context(request.context)
-    proposal_artifact["verification_commands"] = verification_commands_from_refactor_plan(refactor_plan)
+    proposal_artifact["source_artifact_key"] = source_artifact_key
+    proposal_artifact["verification_commands"] = verification_commands_from_packet_seed_plan(packet_seed_plan)
     snippets = [
         snippet
         for rel_path in candidate_files[:6]
@@ -3150,7 +3492,7 @@ def propose_packet_operations_from_prior_run(
                 + (
                     objective_line_numbers_for_file(target_root, rel_path, packet_objective)
                 )
-                + line_numbers_for_file(refactor_plan, rel_path),
+                + line_numbers_for_packet_seed_file(packet_seed_plan, rel_path),
             )
         )
         is not None
@@ -3163,7 +3505,8 @@ def propose_packet_operations_from_prior_run(
     prompt = proposal_prompt(
         request=request,
         approved_run_id=approved_run_id,
-        refactor_plan=refactor_plan,
+        source_artifact_key=source_artifact_key,
+        packet_seed_plan=packet_seed_plan,
         snippets=snippets,
     )
     write_json(run_dir / "packet-operation-proposal-request.json", prompt)
@@ -3278,6 +3621,17 @@ def disposable_apply_blockers(request: WorkflowRouterPlanRequest) -> list[dict[s
     else:
         source_root = Path(request.target_root).resolve()
         for index, operation in enumerate(request.packet_operations, 1):
+            kind = operation.get("kind")
+            if kind not in DISPOSABLE_APPLY_OPERATION_KINDS:
+                blockers.append(
+                    {
+                        "reason": "unsupported_disposable_operation_kind",
+                        "message": (
+                            f"packet_operations[{index}].kind must be one of "
+                            f"{', '.join(sorted(DISPOSABLE_APPLY_OPERATION_KINDS))}."
+                        ),
+                    }
+                )
             try:
                 normalize_disposable_operation_path(source_root, operation.get("path"))
             except ValueError as exc:
@@ -3398,6 +3752,30 @@ def file_sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def tree_digest(root: Path) -> dict[str, Any]:
+    digest = hashlib.sha256()
+    file_count = 0
+    total_bytes = 0
+    root_resolved = root.resolve()
+    for path in sorted(item for item in root_resolved.rglob("*") if item.is_file()):
+        relative_path = path.relative_to(root_resolved)
+        if any(part in DISPOSABLE_TREE_DIGEST_EXCLUDED_DIRS for part in relative_path.parts):
+            continue
+        file_digest = file_sha256(path)
+        relative_text = relative_path.as_posix()
+        digest.update(relative_text.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(file_digest.encode("ascii"))
+        digest.update(b"\0")
+        file_count += 1
+        total_bytes += path.stat().st_size
+    return {
+        "file_count": file_count,
+        "total_bytes": total_bytes,
+        "sha256": digest.hexdigest(),
+    }
 
 
 def rollback_disposable_copy(
@@ -3619,6 +3997,8 @@ def invoke_disposable_copy_apply(
         run_dir=run_dir,
     )
     initialize_disposable_git_repo(copy_root, request.packet_operations)
+    source_tree_before = tree_digest(source_root)
+    copy_tree_before = tree_digest(copy_root)
     source_before = hash_operation_targets(source_root, request.packet_operations)
     copy_before = hash_operation_targets(copy_root, request.packet_operations)
     rollback_backups = backup_operation_targets(copy_root, request.packet_operations, run_dir / "rollback-backups")
@@ -3632,6 +4012,8 @@ def invoke_disposable_copy_apply(
             no_structure_index=True,
         )
     )
+    source_tree_after_apply = tree_digest(source_root)
+    copy_tree_after_apply = tree_digest(copy_root)
     source_after = hash_operation_targets(source_root, request.packet_operations)
     copy_after = hash_operation_targets(copy_root, request.packet_operations)
     source_changed = {
@@ -3653,6 +4035,10 @@ def invoke_disposable_copy_apply(
         run_dir=run_dir,
     )
     rollback = rollback_disposable_copy(copy_root, request.packet_operations, copy_before, run_dir, rollback_backups)
+    copy_tree_after_rollback = tree_digest(copy_root)
+    source_tree_after_rollback = tree_digest(source_root)
+    source_tree_changed = source_tree_before != source_tree_after_apply or source_tree_before != source_tree_after_rollback
+    copy_tree_restored = copy_tree_before == copy_tree_after_rollback
     proof = {
         "schema_version": SCHEMA_VERSION,
         "kind": "disposable_mutation_proof",
@@ -3662,6 +4048,14 @@ def invoke_disposable_copy_apply(
         "disposable_copy_root": str(copy_root),
         "packet_file": str(packet_file),
         "sandbox_contract": sandbox_contract,
+        "source_tree_before": source_tree_before,
+        "source_tree_after_apply": source_tree_after_apply,
+        "source_tree_after_rollback": source_tree_after_rollback,
+        "source_tree_changed": source_tree_changed,
+        "copy_tree_before": copy_tree_before,
+        "copy_tree_after_apply": copy_tree_after_apply,
+        "copy_tree_after_rollback": copy_tree_after_rollback,
+        "copy_tree_restored": copy_tree_restored,
         "source_hashes_before": source_before,
         "source_hashes_after": source_after,
         "copy_hashes_before": copy_before,
@@ -3674,7 +4068,7 @@ def invoke_disposable_copy_apply(
     proof_path = run_dir / "disposable-mutation-proof.json"
     write_json(proof_path, proof)
     proof["artifact"] = str(proof_path)
-    if source_changed:
+    if source_changed or source_tree_changed:
         raise WorkflowRouterError(
             "Source target changed during disposable-copy apply.",
             code="source_mutation_detected",
@@ -3689,6 +4083,12 @@ def invoke_disposable_copy_apply(
     if rollback.get("status") != "restored":
         raise WorkflowRouterError(
             "Disposable copy rollback did not restore original hashes.",
+            code="disposable_copy_rollback_failed",
+            status=HTTPStatus.UNPROCESSABLE_ENTITY,
+        )
+    if not copy_tree_restored:
+        raise WorkflowRouterError(
+            "Disposable copy rollback did not restore original tree digest.",
             code="disposable_copy_rollback_failed",
             status=HTTPStatus.UNPROCESSABLE_ENTITY,
         )
@@ -3877,6 +4277,17 @@ def build_workflow_router_approval_state(
     return state
 
 
+def is_advanced_refactor_readiness_blocked(decision: dict[str, Any]) -> bool:
+    blockers = decision.get("blockers")
+    if not isinstance(blockers, list):
+        return False
+    return any(
+        isinstance(item, dict)
+        and item.get("reason") in {"advanced_refactor_readiness_not_met", "advanced_refactor_pilot_scope_not_admitted"}
+        for item in blockers
+    )
+
+
 def blocked_decision(
     request: WorkflowRouterPlanRequest,
     *,
@@ -3896,6 +4307,13 @@ def blocked_decision(
     selected_skills: list[str] = []
     selected_tools: list[str] = []
     confidence = "low"
+    context_audit = context_source_audit(
+        target_root=Path(request.target_root).resolve(),
+        selected_workflow=selected_workflow,
+        route_evidence=evidence,
+        selected_tools=selected_tools,
+        query_text=request.user_request,
+    )
     return {
         "workflow": WORKFLOW_ID,
         "schema_version": SCHEMA_VERSION,
@@ -3918,6 +4336,8 @@ def blocked_decision(
             query_text=request.user_request,
             skill_limit=validate_budgets(request.budgets)["max_selected_skills"],
         ),
+        "context_source_audit": context_audit,
+        "selected_context_sources": context_audit["selected_source_ids"],
         "approval_required_before": [],
         "controller_request_preview": {},
         "evidence": registry_evidence(workflow_registry, skill_registry, tool_registry) + evidence,
@@ -4180,6 +4600,230 @@ def tool_candidate_audit(
     }
 
 
+def context_layout_summary(target_root: Path) -> dict[str, Any]:
+    root = target_root.resolve()
+    if not root.exists() or not root.is_dir():
+        return {
+            "status": "missing",
+            "target_root": str(root),
+            "supported_file_count": 0,
+            "sample_files": [],
+            "scanned_file_count": 0,
+            "scan_limit": CONTEXT_LAYOUT_MAX_SCANNED_FILES,
+            "sample_limit": CONTEXT_LAYOUT_MAX_SAMPLE_FILES,
+            "supported_extensions": sorted(CONTEXT_LAYOUT_SUPPORTED_EXTENSIONS),
+            "ignored_dirs": sorted(CONTEXT_LAYOUT_IGNORED_DIRS),
+            "git_present": False,
+        }
+
+    supported_file_count = 0
+    scanned_file_count = 0
+    sample_files: list[str] = []
+    stopped_at_limit = False
+    for current_root, dirs, files in os.walk(root):
+        dirs[:] = [
+            dirname
+            for dirname in dirs
+            if dirname not in CONTEXT_LAYOUT_IGNORED_DIRS and not dirname.startswith(".agentic")
+        ]
+        for filename in files:
+            scanned_file_count += 1
+            if scanned_file_count > CONTEXT_LAYOUT_MAX_SCANNED_FILES:
+                stopped_at_limit = True
+                break
+            relative_path = str((Path(current_root) / filename).relative_to(root)).replace("\\", "/")
+            suffix = Path(filename).suffix.lower()
+            if suffix in CONTEXT_LAYOUT_SUPPORTED_EXTENSIONS:
+                supported_file_count += 1
+                if len(sample_files) < CONTEXT_LAYOUT_MAX_SAMPLE_FILES:
+                    sample_files.append(relative_path)
+        if stopped_at_limit:
+            break
+
+    status = "supported" if supported_file_count > 0 else "unsupported_no_supported_files"
+    return {
+        "status": status,
+        "target_root": str(root),
+        "supported_file_count": supported_file_count,
+        "sample_files": sample_files,
+        "scanned_file_count": min(scanned_file_count, CONTEXT_LAYOUT_MAX_SCANNED_FILES),
+        "scan_limit": CONTEXT_LAYOUT_MAX_SCANNED_FILES,
+        "sample_limit": CONTEXT_LAYOUT_MAX_SAMPLE_FILES,
+        "supported_extensions": sorted(CONTEXT_LAYOUT_SUPPORTED_EXTENSIONS),
+        "ignored_dirs": sorted(CONTEXT_LAYOUT_IGNORED_DIRS),
+        "git_present": (root / ".git").exists(),
+        "stopped_at_limit": stopped_at_limit,
+    }
+
+
+def source_catalog_item(source_id: str) -> dict[str, Any]:
+    item = CONTEXT_SOURCE_CATALOG.get(source_id, {})
+    return {
+        "source_id": source_id,
+        "description": item.get("description"),
+        "tool_ids": list(item.get("tool_ids", [])) if isinstance(item.get("tool_ids"), list) else [],
+        "artifact_keys": list(item.get("artifact_keys", [])) if isinstance(item.get("artifact_keys"), list) else [],
+        "budget": dict(item.get("budget", {})) if isinstance(item.get("budget"), dict) else {},
+    }
+
+
+def context_source_reason_map(
+    *,
+    workflow_id: str | None,
+    route_rules: list[str],
+    selected_tools: list[str],
+    query_text: str,
+) -> dict[str, list[str]]:
+    if workflow_id is None:
+        return {}
+    text = lower_request(query_text)
+    route_rule_set = set(route_rules)
+    selected_tool_set = set(selected_tools)
+    reasons: dict[str, list[str]] = {source_id: [] for source_id in CONTEXT_SOURCE_CATALOG}
+
+    if "structure_index" in selected_tool_set and workflow_id in {
+        "code_context.lookup",
+        "code_investigation.plan",
+        "execution_planning.plan",
+        "refactor.single_path",
+    }:
+        reasons["ast_index"].append("selected_workflow_uses_structure_index")
+    if {"git_grep", "read_file"} & selected_tool_set and workflow_id in {
+        "code_context.lookup",
+        "code_investigation.plan",
+        "execution_planning.plan",
+        "refactor.single_path",
+    }:
+        reasons["text_search"].append("selected_workflow_uses_bounded_text_lookup")
+    config_rules = {
+        "l1_configuration_lookup_terms",
+        "l1_configuration_effect_summary_terms",
+        "d1_config_default_test_terms",
+    }
+    if route_rule_set & config_rules or contains_any(text, ("config", "configuration", "environment variable", "env var", ".env")):
+        reasons["config_lookup"].append("configuration_or_environment_request")
+    test_rules = {
+        "l1_find_related_tests_terms",
+        "l1_safe_test_command_terms",
+        "l1_test_failure_summary_terms",
+        "l1_coverage_gap_summary_terms",
+        "l1_small_unit_test_terms",
+        "l1_simple_failing_test_fix_terms",
+        "l2_failing_test_investigation_terms",
+        "l2_test_selection_terms",
+        "l2_ci_log_triage_terms",
+        "l2_runtime_reproduction_checklist_terms",
+        "l2_user_facing_message_test_target_terms",
+        "d1_config_default_test_terms",
+        "d1_message_assertion_test_terms",
+        "d1_test_assertion_update_terms",
+    }
+    if route_rule_set & test_rules or contains_any(text, ("test", "pytest", "coverage", "verification command", "failing test")):
+        reasons["test_lookup"].append("test_or_verification_request")
+    relationship_rules = {
+        "l1_callers_usages_terms",
+        "l1_dependency_import_lookup_terms",
+        "l2_dependency_impact_summary_terms",
+        "code_context_terms",
+    }
+    if workflow_id == "code_context.lookup" or route_rule_set & relationship_rules:
+        reasons["curated_relationship_lookup"].append("relationship_lookup_request")
+
+    return {source_id: item_reasons for source_id, item_reasons in reasons.items() if item_reasons}
+
+
+def context_source_selected_tools(source_id: str, selected_tools: list[str]) -> list[str]:
+    catalog_tools = source_catalog_item(source_id)["tool_ids"]
+    return [tool_id for tool_id in catalog_tools if tool_id in selected_tools]
+
+
+def context_source_audit(
+    *,
+    target_root: Path,
+    selected_workflow: str | None,
+    route_evidence: list[dict[str, Any]],
+    selected_tools: list[str],
+    query_text: str,
+) -> dict[str, Any]:
+    route_rules = route_rules_from_evidence(route_evidence)
+    reason_map = context_source_reason_map(
+        workflow_id=selected_workflow,
+        route_rules=route_rules,
+        selected_tools=selected_tools,
+        query_text=query_text,
+    )
+    layout = context_layout_summary(target_root)
+    selected: list[dict[str, Any]] = []
+    rejected: list[dict[str, Any]] = []
+    gaps: list[str] = []
+    for source_id in CONTEXT_SOURCE_CATALOG:
+        item = source_catalog_item(source_id)
+        selected_tool_ids = context_source_selected_tools(source_id, selected_tools)
+        reasons = reason_map.get(source_id, [])
+        if reasons and len(selected) < CONTEXT_SOURCE_MAX_SELECTED:
+            selected.append(
+                {
+                    **item,
+                    "tool_ids": selected_tool_ids,
+                    "status": "selected",
+                    "reasons": reasons,
+                    "route_rules": route_rules,
+                }
+            )
+            if not selected_tool_ids:
+                gaps.append(f"{source_id}: selected by intent but no matching tool is allowed by the selected workflow")
+        else:
+            reject_reasons = ["no_router_rule_or_workflow_need"]
+            if reasons:
+                reject_reasons = ["context_source_budget_exhausted"]
+            rejected.append({**item, "tool_ids": selected_tool_ids, "status": "rejected", "reasons": reject_reasons})
+
+    if selected_workflow is not None and layout["status"] != "supported":
+        gaps.append(f"unsupported_repository_layout:{layout['status']}")
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "selection_policy": {
+            "source": "workflow_router.context_source_rules",
+            "metadata_only": True,
+            "manual_tool_request_required": False,
+            "max_selected_sources": CONTEXT_SOURCE_MAX_SELECTED,
+            "unsupported_layout_fails_closed": True,
+        },
+        "selected_source_ids": [item["source_id"] for item in selected],
+        "selected": selected,
+        "rejected": rejected,
+        "layout": layout,
+        "budget": {
+            "max_selected_sources": CONTEXT_SOURCE_MAX_SELECTED,
+            "layout_scan_file_limit": CONTEXT_LAYOUT_MAX_SCANNED_FILES,
+            "layout_sample_file_limit": CONTEXT_LAYOUT_MAX_SAMPLE_FILES,
+        },
+        "evidence_files": layout.get("sample_files", []),
+        "gaps": gaps,
+    }
+
+
+def unsupported_context_layout_blockers(audit: dict[str, Any], selected_workflow: str | None) -> list[dict[str, str]]:
+    if selected_workflow is None:
+        return []
+    layout = audit.get("layout") if isinstance(audit.get("layout"), dict) else {}
+    if layout.get("status") == "supported":
+        return []
+    return [
+        {
+            "reason": "unsupported_repository_layout",
+            "message": (
+                "The target root does not contain supported source, test, config, or documentation files "
+                "within the bounded context layout scan."
+            ),
+            "next_action": (
+                "Point the request at the repository root, add supported source/test/config files, "
+                "or provide an explicit supported file path."
+            ),
+        }
+    ]
+
+
 def confidence_reason_summary(
     *,
     selected_workflow: str | None,
@@ -4285,7 +4929,12 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
     skill_registry = load_skill_registry(config_root)
 
     workflow_id, status_reason, route_evidence = workflow_kind_for_request(request.user_request)
-    if budgets["max_model_calls"] > 0:
+    route_evidence = ensure_supplemental_route_evidence(
+        user_request=request.user_request,
+        workflow_id=workflow_id,
+        evidence=route_evidence,
+    )
+    if workflow_id is None and budgets["max_model_calls"] > 0:
         model_observation = model_route_observation(
             request,
             workflow_registry,
@@ -4293,7 +4942,7 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
             deterministic_status_reason=status_reason,
         )
         route_evidence.append(model_observation)
-        if workflow_id is None and status_reason == "unsupported" and model_observation.get("status") == "accepted":
+        if status_reason == "unsupported" and model_observation.get("status") == "accepted":
             route_evidence.append(
                 {
                     "source": "model_router",
@@ -4302,11 +4951,6 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
                     "confidence": model_observation.get("confidence"),
                 }
             )
-    route_evidence = ensure_supplemental_route_evidence(
-        user_request=request.user_request,
-        workflow_id=workflow_id,
-        evidence=route_evidence,
-    )
     if workflow_id is None:
         return blocked_decision(
             request,
@@ -4327,6 +4971,99 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
             skill_registry=skill_registry,
             tool_registry=tool_registry,
         )
+
+    capability_decision = evaluate_model_capability_routing(
+        config_root=config_root,
+        selected_workflow=workflow_id,
+        route_rules=route_rules_from_evidence(route_evidence),
+        mode=request.mode,
+        approval=request.approval,
+        packet_operations=request.packet_operations,
+        role_base_url=request.role_base_url,
+        model=request.model,
+    )
+    capability_evidence = {
+        "source": "model_capability_routing",
+        "status": capability_decision.get("status"),
+        "task_class": capability_decision.get("task_class"),
+        "task_policy_key": capability_decision.get("task_policy_key"),
+        "task_policy_status": capability_decision.get("task_policy_status"),
+        "profile_id": capability_decision.get("profile_id"),
+        "profile_status": capability_decision.get("profile_status"),
+        "enforcement_mode": capability_decision.get("enforcement_mode"),
+    }
+    capability_blockers = model_capability_blockers(capability_decision)
+    if capability_blockers:
+        selected_tools: list[str] = []
+        selected_skills: list[str] = []
+        confidence = "high" if workflow_id == "refactor.single_path" else "medium"
+        context_audit = context_source_audit(
+            target_root=Path(request.target_root).resolve(),
+            selected_workflow=workflow_id,
+            route_evidence=route_evidence,
+            selected_tools=selected_tools,
+            query_text=request.user_request,
+        )
+        evidence = registry_evidence(workflow_registry, skill_registry, tool_registry) + route_evidence
+        evidence.extend(
+            [
+                {
+                    "source": "workflow_registry",
+                    "selected_workflow": workflow_id,
+                    "description": workflow_registry[workflow_id].get("description"),
+                },
+                capability_evidence,
+            ]
+        )
+        return {
+            "workflow": WORKFLOW_ID,
+            "schema_version": SCHEMA_VERSION,
+            "status": "blocked",
+            "selected_workflow": workflow_id,
+            "confidence": confidence,
+            "selected_skills": selected_skills,
+            "selected_tools": selected_tools,
+            "model_capability_routing": capability_decision,
+            "selection_audit": selection_audit(
+                config_root=config_root,
+                workflow_registry=workflow_registry,
+                skill_registry=skill_registry,
+                tool_registry=tool_registry,
+                selected_workflow=workflow_id,
+                confidence=confidence,
+                status_reason=status_reason,
+                route_evidence=route_evidence,
+                selected_skills=selected_skills,
+                selected_tools=selected_tools,
+                query_text=request.user_request,
+                skill_limit=budgets["max_selected_skills"],
+            ),
+            "context_source_audit": context_audit,
+            "selected_context_sources": context_audit["selected_source_ids"],
+            "approval_required_before": approval_required_before(workflow_id),
+            "controller_request_preview": {},
+            "evidence": evidence,
+            "blockers": capability_blockers,
+            "next_action": "run_model_portability_gate",
+        }
+
+    if budgets["max_model_calls"] > 0:
+        model_observation = model_route_observation(
+            request,
+            workflow_registry,
+            deterministic_workflow_id=workflow_id,
+            deterministic_status_reason=status_reason,
+        )
+        route_evidence.append(model_observation)
+        if workflow_id is None and status_reason == "unsupported" and model_observation.get("status") == "accepted":
+            route_evidence.append(
+                {
+                    "source": "model_router",
+                    "decision_authority": "advisory_rejected_by_deterministic_router",
+                    "selected_workflow": model_observation.get("selected_workflow"),
+                    "confidence": model_observation.get("confidence"),
+                }
+            )
 
     selected_tools = tools_for_workflow(workflow_id, workflow_registry, budgets["max_selected_tools"])
     selected_skills = skills_for_workflow(
@@ -4361,10 +5098,40 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
                 "capability_route_keys": selected_skill_capability_route_keys(skill_registry, selected_skills),
             }
         )
+    evidence.append(capability_evidence)
     confidence = "high" if workflow_id == "refactor.single_path" else "medium"
     blockers: list[dict[str, Any]] = []
     status = "ready"
     next_action = next_action_for(workflow_id)
+    readiness_blocker, readiness_decision = advanced_refactor_readiness_blocker(
+        config_root=config_root,
+        workflow_id=workflow_id,
+        route_evidence=route_evidence,
+        user_request=request.user_request,
+    )
+    if readiness_decision is not None:
+        evidence.append(
+            {
+                "source": "advanced_refactor_readiness_gate",
+                "status": readiness_decision.get("status"),
+                "readiness_status": readiness_decision.get("readiness_status"),
+                "report_path": readiness_decision.get("report_path"),
+                "reason": readiness_decision.get("reason"),
+            }
+        )
+    if readiness_blocker is not None:
+        blockers.append(readiness_blocker)
+    context_audit = context_source_audit(
+        target_root=Path(request.target_root).resolve(),
+        selected_workflow=workflow_id,
+        route_evidence=route_evidence,
+        selected_tools=selected_tools,
+        query_text=request.user_request,
+    )
+    blockers.extend(unsupported_context_layout_blockers(context_audit, workflow_id))
+    if blockers:
+        status = "blocked"
+        next_action = "none" if readiness_blocker is not None else "ask_blocking_question"
     if not confidence_meets_threshold(confidence):
         status = "blocked"
         next_action = "ask_blocking_question"
@@ -4374,6 +5141,7 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
                 "message": f"Selection confidence {confidence!r} is below the configured threshold {SELECTION_MIN_CONFIDENCE!r}.",
             }
         )
+    approval_requirements = [] if readiness_blocker is not None else approval_required_before(workflow_id)
     return {
         "workflow": WORKFLOW_ID,
         "schema_version": SCHEMA_VERSION,
@@ -4382,6 +5150,7 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
         "confidence": confidence,
         "selected_skills": selected_skills,
         "selected_tools": selected_tools,
+        "model_capability_routing": capability_decision,
         "selection_audit": selection_audit(
             config_root=config_root,
             workflow_registry=workflow_registry,
@@ -4396,8 +5165,14 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
             query_text=request.user_request,
             skill_limit=budgets["max_selected_skills"],
         ),
-        "approval_required_before": approval_required_before(workflow_id),
-        "controller_request_preview": request_preview(workflow_id, request, selected_tools) if not blockers else {},
+        "context_source_audit": context_audit,
+        "selected_context_sources": context_audit["selected_source_ids"],
+        "approval_required_before": approval_requirements,
+        "controller_request_preview": (
+            request_preview(workflow_id, request, selected_tools, context_audit["selected_source_ids"])
+            if not blockers
+            else {}
+        ),
         "evidence": evidence,
         "blockers": blockers,
         "next_action": next_action,
@@ -4606,6 +5381,7 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
             decision["packet_operation_proposal"] = {
                 "status": proposal.get("status"),
                 "approved_run_id": proposal.get("approved_run_id"),
+                "source_artifact_key": proposal.get("source_artifact_key"),
                 "packet_operation_count": len(proposed_operations),
                 "rejected_operation_count": len(proposal.get("rejected_operations") or []),
                 "blockers": proposal.get("blockers", []),
@@ -4736,14 +5512,43 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
             decision["downstream"] = decision["disposable_apply"]
             downstream_failures = downstream_result.failures
 
-    approval_state = build_workflow_router_approval_state(
-        request=request,
-        decision=decision,
-        run_id=run_id,
-        target_root=target_root,
-        run_dir=run_dir,
-    )
+    if is_advanced_refactor_readiness_blocked(decision):
+        approval_state = {
+            "kind": "workflow_router_approval_state",
+            "schema_version": SCHEMA_VERSION,
+            "run_id": run_id,
+            "target_root": str(target_root),
+            "mode": request.mode,
+            "selected_workflow": decision.get("selected_workflow"),
+            "route_status": decision.get("status"),
+            "status": "not_created",
+            "approval_type": "none",
+            "approval_status": "not_required",
+            "expected_approval": None,
+            "received_approval": None,
+            "source_run_id": None,
+            "next_action": decision.get("next_action"),
+            "next_action_text": "Advanced refactor approval is blocked until the Phase 105 readiness gate admits this pilot.",
+            "blockers": decision.get("blockers") if isinstance(decision.get("blockers"), list) else [],
+            "created_at": utc_now(),
+            "artifact": None,
+        }
+    else:
+        approval_state = build_workflow_router_approval_state(
+            request=request,
+            decision=decision,
+            run_id=run_id,
+            target_root=target_root,
+            run_dir=run_dir,
+        )
     decision["approval_state"] = approval_state
+    context_source_audit_record = (
+        decision.get("context_source_audit") if isinstance(decision.get("context_source_audit"), dict) else None
+    )
+    if context_source_audit_record is not None:
+        context_source_audit_path = run_dir / "context-source-audit.json"
+        write_json(context_source_audit_path, context_source_audit_record)
+        context_source_audit_record["artifact"] = str(context_source_audit_path)
     write_json(run_dir / "route-decision.json", decision)
     model_evidence = [
         item
@@ -4763,6 +5568,35 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         if isinstance(decision.get("disposable_apply"), dict)
         else {}
     )
+    mutation_structured_diff = (
+        mutation_proof.get("structured_diff") if isinstance(mutation_proof.get("structured_diff"), dict) else {}
+    )
+    mutation_diff_records = (
+        mutation_structured_diff.get("records") if isinstance(mutation_structured_diff.get("records"), list) else []
+    )
+    mutation_diff_paths = [
+        record.get("path")
+        for record in mutation_diff_records
+        if isinstance(record, dict) and isinstance(record.get("path"), str) and record.get("status") == "changed"
+    ]
+    mutation_operation_kinds = [
+        record.get("operation_kind")
+        for record in mutation_diff_records
+        if isinstance(record, dict) and isinstance(record.get("operation_kind"), str)
+    ]
+    capability_routing_summary = (
+        decision.get("model_capability_routing")
+        if isinstance(decision.get("model_capability_routing"), dict)
+        else {}
+    )
+    context_source_audit_summary = (
+        decision.get("context_source_audit") if isinstance(decision.get("context_source_audit"), dict) else {}
+    )
+    context_layout_summary_record = (
+        context_source_audit_summary.get("layout")
+        if isinstance(context_source_audit_summary.get("layout"), dict)
+        else {}
+    )
     summary = {
         "target_root": str(target_root),
         "route_status": decision["status"],
@@ -4770,11 +5604,20 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         "confidence": decision["confidence"],
         "selected_skill_count": len(decision["selected_skills"]),
         "selected_tool_count": len(decision["selected_tools"]),
+        "selected_context_sources": decision.get("selected_context_sources", []),
+        "context_layout_status": context_layout_summary_record.get("status"),
+        "context_gap_count": len(context_source_audit_summary.get("gaps", []))
+        if isinstance(context_source_audit_summary.get("gaps"), list)
+        else 0,
         "next_action": decision["next_action"],
         "blocker_count": len(decision["blockers"]),
         "plan_only": request.mode == "plan_only",
         "target_repo_read": downstream_result is not None or bool(decision_downstream),
         "model_router_status": model_evidence[-1].get("status") if model_evidence else "not_requested",
+        "model_capability_status": capability_routing_summary.get("status"),
+        "model_capability_task_class": capability_routing_summary.get("task_class"),
+        "model_capability_profile_id": capability_routing_summary.get("profile_id"),
+        "model_capability_policy_status": capability_routing_summary.get("task_policy_status"),
         "downstream_workflow": (
             downstream_result.workflow if downstream_result is not None else decision_downstream.get("workflow")
         ),
@@ -4796,17 +5639,17 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         ),
         "verification_command_count": downstream_report_summary.get("verification_command_count", 0),
         "source_changed": bool(mutation_proof.get("source_changed", {})),
+        "source_tree_changed": mutation_proof.get("source_tree_changed"),
         "disposable_copy_changed": bool(mutation_proof.get("copy_changed", {})),
+        "copy_tree_restored": mutation_proof.get("copy_tree_restored"),
         "mutation_sandbox_status": (
             mutation_proof.get("sandbox_contract", {}).get("status")
             if isinstance(mutation_proof.get("sandbox_contract"), dict)
             else None
         ),
-        "mutation_diff_file_count": (
-            mutation_proof.get("structured_diff", {}).get("changed_file_count", 0)
-            if isinstance(mutation_proof.get("structured_diff"), dict)
-            else 0
-        ),
+        "mutation_diff_file_count": mutation_structured_diff.get("changed_file_count", 0),
+        "mutation_diff_paths": mutation_diff_paths[:5],
+        "mutation_operation_kinds": mutation_operation_kinds[:5],
         "mutation_rollback_status": (
             mutation_proof.get("rollback", {}).get("status")
             if isinstance(mutation_proof.get("rollback"), dict)
@@ -4820,8 +5663,11 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         "request": str(run_dir / "request.json"),
         "registry_snapshot": str(run_dir / "registry-snapshot.json"),
         "route_decision": str(run_dir / "route-decision.json"),
-        "approval_state": str(run_dir / "approval-state.json"),
     }
+    if approval_state.get("artifact"):
+        artifacts["approval_state"] = str(approval_state["artifact"])
+    if (run_dir / "context-source-audit.json").exists():
+        artifacts["context_source_audit"] = str(run_dir / "context-source-audit.json")
     proposal_artifact_path = run_dir / "packet-operation-proposal.json"
     if proposal_artifact_path.exists():
         artifacts["packet_operation_proposal"] = str(proposal_artifact_path)

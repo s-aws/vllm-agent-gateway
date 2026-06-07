@@ -11,7 +11,7 @@ Use this workflow when a request is larger than a single L1/L2 lookup and the te
 Example:
 
 ```text
-In /mnt/c/coinbase_testing_repo_frozen_tmp.github, decompose this multi-step task into work packages with dependencies, approval gates, and verification strategy: refactor the placed_order_id stealth lookup so there is one code path.
+In /mnt/c/coinbase_testing_repo_frozen_tmp.github, decompose this multi-step task into work packages with dependencies, approval gates, and verification strategy: add a focused unit test for placed_order_id stealth lookup after investigating related tests.
 ```
 
 Expected route through natural chat:
@@ -34,7 +34,7 @@ Direct controller payload:
   "workflow": "task.decompose",
   "schema_version": 1,
   "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
-  "user_request": "Decompose this multi-step task into work packages with dependencies, approval gates, and verification strategy: refactor the placed_order_id stealth lookup so there is one code path."
+  "user_request": "Decompose this multi-step task into work packages with dependencies, approval gates, and verification strategy: add a focused unit test for placed_order_id stealth lookup after investigating related tests."
 }
 ```
 
@@ -45,16 +45,17 @@ The main artifact is `task-decomposition.json`.
 It includes:
 
 - prompt family and risk level
-- ordered work packages
+- `work_package_schema_version: 2`
+- ordered work packages with stage, dependency contract, entry conditions, exit criteria, stop conditions, and per-package verification status
 - dependency edges
 - selected registered workflows
 - selected registered skills and tools
-- approval gates
+- approval gates derived from the package contract
 - verification strategy
 - uncertainty markers
 - mutation proof fields
 
-The default AnythingLLM/chat output uses `format_a` and includes a chat-visible `Task Decomposition:` section. JSON output includes the normal `chat_contract` and artifact paths.
+The default AnythingLLM/chat output uses `format_a` and includes a chat-visible `Task Decomposition:` section with package stages, stop conditions, package verification, approval gates, and mutation proof. JSON output includes the normal `chat_contract`, artifact paths, and an inline `task_decomposition_contract` so users can review the plan without opening artifact files.
 
 ## Safety Boundary
 
@@ -64,6 +65,7 @@ The default AnythingLLM/chat output uses `format_a` and includes a chat-visible 
 - Non-null workflow references must exist in `runtime/workflows.json`.
 - Missing apply capability is represented as an approval gate, not as an invented workflow.
 - Ambiguous requests return `needs_clarification` and `next_action=ask_blocking_question`.
+- Broad single-path or one-code-path refactor orchestration is blocked as `advanced_refactor_deferred` until Phase 105 readiness.
 
 ## Validation
 

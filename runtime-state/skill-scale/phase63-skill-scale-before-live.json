@@ -4,11 +4,12 @@
     "by_mutation_policy": {
       "controller_artifacts_only": 1,
       "draft_artifacts_only": 4,
-      "no_repository_mutation": 45
+      "no_repository_mutation": 49
     },
     "by_output_artifact": {
       "behavior_existence": 1,
       "change_surface_summary": 2,
+      "ci_failure_summary": 1,
       "cli_entrypoint_lookup": 2,
       "code_explanation": 1,
       "code_path_comparison": 1,
@@ -30,16 +31,18 @@
       "implementation_workflow_report": 4,
       "investigation_plan": 6,
       "local_change_summary": 1,
-      "message_source_lookup": 1,
+      "message_source_lookup": 2,
       "module_summary": 1,
       "multi_file_behavior_investigation": 1,
       "related_tests": 1,
+      "reproduction_checklist": 1,
       "request_flow_map": 2,
       "runtime_error_diagnosis": 1,
       "safe_fix_plan": 1,
       "scope_and_assumptions": 1,
       "selected_entrypoint": 1,
       "small_unit_test_proposal": 3,
+      "table_read_write_lookup": 1,
       "test_failure_summary": 2,
       "test_selection_plan": 3,
       "triage_result": 1,
@@ -75,6 +78,7 @@
       "L1-safe-test-command": 1,
       "L1-test-failure-summary": 1,
       "L2-change-surface-summary": 1,
+      "L2-ci-log-triage": 1,
       "L2-code-path-comparison": 1,
       "L2-dependency-impact": 1,
       "L2-dependency-impact-summary": 1,
@@ -82,8 +86,11 @@
       "L2-multi-file-behavior": 1,
       "L2-request-flow-map": 1,
       "L2-runtime-error-diagnosis": 1,
+      "L2-runtime-reproduction-checklist": 1,
+      "L2-table-read-write-lookup": 1,
       "L2-test-selection": 1,
       "L2-test-selection-rationale": 1,
+      "L2-user-facing-message-test-target": 1,
       "Phase40-agent-invariant-lookup": 1,
       "Phase40-api-reference-lookup": 1,
       "Phase40-background-job-lookup": 1,
@@ -99,8 +106,8 @@
       "code": 18,
       "config": 2,
       "context": 3,
-      "data": 1,
-      "diagnostics": 2,
+      "data": 2,
+      "diagnostics": 5,
       "docs": 3,
       "draft": 3,
       "feedback": 1,
@@ -114,11 +121,11 @@
       "approval_gated_packet_design": 4,
       "feedback_only": 1,
       "read_only_context_request": 4,
-      "read_only_planning": 41
+      "read_only_planning": 45
     },
     "by_workflow": {
       "code_context.lookup": 6,
-      "code_investigation.plan": 39,
+      "code_investigation.plan": 43,
       "execution_planning.plan": 11,
       "refactor.single_path": 6,
       "workflow_feedback.record": 2
@@ -466,11 +473,39 @@
       "mutation_policy": "no_repository_mutation",
       "namespace": "data",
       "output_artifacts": [
+        "table_read_write_lookup"
+      ],
+      "owner": "agentic_agents",
+      "route_key": "data.table_read_write_lookup",
+      "skill_id": "table-read-write-locator",
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "approval_boundary": "none",
+      "mutation_policy": "no_repository_mutation",
+      "namespace": "data",
+      "output_artifacts": [
         "data_model_lookup"
       ],
       "owner": "agentic_agents",
       "route_key": "data.table_schema_only_lookup",
       "skill_id": "table-schema-isolator",
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "approval_boundary": "none",
+      "mutation_policy": "no_repository_mutation",
+      "namespace": "diagnostics",
+      "output_artifacts": [
+        "ci_failure_summary"
+      ],
+      "owner": "agentic_agents",
+      "route_key": "diagnostics.ci_log_failure_summary",
+      "skill_id": "ci-log-failure-summarizer",
       "workflows": [
         "code_investigation.plan"
       ]
@@ -499,6 +534,34 @@
       "owner": "agentic_agents",
       "route_key": "diagnostics.runtime_error_diagnosis",
       "skill_id": "runtime-error-diagnoser",
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "approval_boundary": "none",
+      "mutation_policy": "no_repository_mutation",
+      "namespace": "diagnostics",
+      "output_artifacts": [
+        "reproduction_checklist"
+      ],
+      "owner": "agentic_agents",
+      "route_key": "diagnostics.runtime_reproduction_checklist",
+      "skill_id": "runtime-reproduction-checklist-writer",
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "approval_boundary": "none",
+      "mutation_policy": "no_repository_mutation",
+      "namespace": "diagnostics",
+      "output_artifacts": [
+        "message_source_lookup"
+      ],
+      "owner": "agentic_agents",
+      "route_key": "diagnostics.user_facing_message_test_target",
+      "skill_id": "user-facing-message-test-target-locator",
       "workflows": [
         "code_investigation.plan"
       ]
@@ -863,8 +926,8 @@
   "summary": {
     "deprecated_skill_count": 0,
     "do_not_admit_count": 0,
-    "eval_case_count": 49,
-    "route_key_count": 50,
-    "skill_count": 50
+    "eval_case_count": 53,
+    "route_key_count": 54,
+    "skill_count": 54
   }
 }

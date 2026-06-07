@@ -14,7 +14,7 @@ from vllm_agent_gateway.gateway.server import (
 
 
 class RecordingEndpoint:
-    def __init__(self, response_for_request: Callable[[str, dict[str, Any]], dict[str, Any]]):
+    def __init__(self, response_for_request: Callable[[str, dict[str, Any]], dict[str, Any] | tuple[int, dict[str, Any]]]):
         self.response_for_request = response_for_request
         self.requests: list[dict[str, Any]] = []
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), self._handler_class())
@@ -44,8 +44,11 @@ class RecordingEndpoint:
                 owner = self.server.owner  # type: ignore[attr-defined]
                 owner.requests.append({"method": "POST", "path": self.path, "body": payload})
                 response = owner.response_for_request(self.path, payload)
+                status = 200
+                if isinstance(response, tuple):
+                    status, response = response
                 data = json.dumps(response).encode("utf-8")
-                self.send_response(200)
+                self.send_response(status)
                 self.send_header("Content-Type", "application/json")
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
@@ -349,6 +352,54 @@ def test_gateway_workflow_router_mode_routes_natural_chat_without_model_fallback
     assert model.requests == []
     assert [request["path"] for request in controller.requests] == ["/v1/controller/workflow-router/chat/completions"]
     assert controller.requests[0]["body"]["messages"][0]["content"].startswith("In /mnt/c/")
+
+
+def test_gateway_workflow_router_mode_converts_controller_approval_error_to_chat() -> None:
+    def approval_error(path: str, payload: dict[str, Any]) -> tuple[int, dict[str, Any]]:
+        return (
+            409,
+            {
+                "error": {
+                    "code": "approval_scope_changed",
+                    "message": "Approval continuation target path must match the referenced run target_root.",
+                }
+            },
+        )
+
+    with RecordingEndpoint(model_response) as model, RecordingEndpoint(approval_error) as controller:
+        router_url = controller.base_url + "/v1/controller/workflow-router/chat/completions"
+        with RunningGateway(
+            gateway_config(
+                model.base_url,
+                controller_routing=GatewayControllerRouting.WORKFLOW_ROUTER,
+                controller_harness_url=router_url,
+            )
+        ) as gateway:
+            host, port = gateway.base_url
+            status, body, headers = request_json(
+                host,
+                port,
+                "/v1/chat/completions",
+                {
+                    "model": "agentic-workflow-router",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Approve packet design for run workflow-router-20260607T000000000000Z.",
+                        }
+                    ],
+                },
+            )
+
+    assert status == 200
+    assert headers["X-LLM-Gateway"] == "workflow-router-routed"
+    assert model.requests == []
+    content = body["choices"][0]["message"]["content"]
+    assert "workflow_router.plan failed" in content
+    assert "approval_scope_changed" in content
+    assert "Approval:" in content
+    assert "- State: failed" in content
+    assert body["agentic_controller_response"]["summary"]["error_code"] == "approval_scope_changed"
 
 
 def test_gateway_workflow_router_mode_rejects_missing_controller_route_without_model_fallback() -> None:

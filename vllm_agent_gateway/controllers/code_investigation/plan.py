@@ -36,8 +36,25 @@ SCHEMA_VERSION = 1
 DEFAULT_OUTPUT_DIR = "code-investigation"
 DEFAULT_MAX_RESULTS = 50
 DEFAULT_MAX_FILES = 10
+TABLE_ACCESS_SCAN_FILE_LIMIT = 500
 MAX_QUERY_COUNT = 8
 ALLOWED_CONTEXT_TOOLS = CODE_CONTEXT_ALLOWED_CONTEXT_TOOLS - {"codegraph_context"}
+IGNORED_SCAN_DIRS = {
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "node_modules",
+    "runtime-state",
+    "vendor",
+}
 
 
 class CodeInvestigationError(RuntimeError):
@@ -519,6 +536,8 @@ def is_runtime_error_diagnosis_request(text: str) -> bool:
     lowered = text.lower()
     if any(term in lowered for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate", "refactor")):
         return False
+    if is_reproduction_checklist_request(text):
+        return True
     runtime_terms = ("runtime error", "stack trace", "traceback", "exception")
     diagnosis_terms = ("diagnose", "observed error", "likely cause", "next inspection", "why")
     read_only_terms = ("read only", "read-only", "do not edit", "do not mutate", "no source changes")
@@ -526,6 +545,25 @@ def is_runtime_error_diagnosis_request(text: str) -> bool:
         any(term in lowered for term in runtime_terms)
         and any(term in lowered for term in diagnosis_terms)
         and any(term in lowered for term in read_only_terms)
+    )
+
+
+def is_reproduction_checklist_request(text: str) -> bool:
+    lowered = text.lower()
+    if any(term in lowered for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate", "refactor")):
+        return False
+    runtime_terms = ("runtime error", "stack trace", "traceback", "exception")
+    repro_terms = (
+        "minimal reproduction checklist",
+        "reproduction checklist",
+        "repro checklist",
+        "minimal repro",
+        "turn this stack trace",
+        "reproduce",
+    )
+    read_only_terms = ("read only", "read-only", "do not edit", "do not mutate", "no source changes")
+    return any(term in lowered for term in runtime_terms) and any(term in lowered for term in repro_terms) and any(
+        term in lowered for term in read_only_terms
     )
 
 
@@ -982,6 +1020,66 @@ def build_runtime_error_diagnosis(
         "mutation_policy": "read_only_no_source_mutation",
         "source_refs": source_refs_from_records(evidence_records[: request.max_files]),
         "gaps": diagnosis_gaps,
+    }
+
+
+def build_reproduction_checklist(
+    request: CodeInvestigationRequest,
+    *,
+    runtime_error_diagnosis: dict[str, Any],
+    related_tests: list[dict[str, Any]],
+    verification_commands: list[dict[str, Any]],
+    gaps: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not is_reproduction_checklist_request(request.user_request):
+        return {"kind": "reproduction_checklist", "schema_version": SCHEMA_VERSION, "status": "not_requested"}
+    error = (
+        runtime_error_diagnosis.get("observed_error")
+        if isinstance(runtime_error_diagnosis.get("observed_error"), dict)
+        else extract_failure_error(request.user_request)
+    )
+    frame = (
+        runtime_error_diagnosis.get("traceback_frame")
+        if isinstance(runtime_error_diagnosis.get("traceback_frame"), dict)
+        else project_traceback_frame(request.user_request)
+    )
+    frame_path = frame.get("path") if isinstance(frame, dict) and isinstance(frame.get("path"), str) else None
+    command = verification_commands[0] if verification_commands else None
+    checklist = [
+        {
+            "step": "Capture the exact runtime input or message that produced the observed exception.",
+            "evidence": error.get("raw") if isinstance(error, dict) else None,
+        },
+        {
+            "step": "Inspect the nearest project-code traceback frame before choosing a code change.",
+            "path": frame_path,
+            "line": frame.get("line") if isinstance(frame, dict) else None,
+        },
+        {
+            "step": "Reproduce with the smallest related test or local command found by bounded evidence.",
+            "command": command.get("command") if isinstance(command, dict) else None,
+        },
+        {
+            "step": "Confirm whether the reproduced error matches the pasted stack trace before broadening tests.",
+            "expected_error": error.get("type") if isinstance(error, dict) else None,
+        },
+    ]
+    checklist_gaps = list(gaps)
+    if not frame_path:
+        checklist_gaps.append({"gap": "project_traceback_frame_not_found"})
+    if command is None:
+        checklist_gaps.append({"gap": "reproduction_command_not_found"})
+    return {
+        "kind": "reproduction_checklist",
+        "schema_version": SCHEMA_VERSION,
+        "status": "ready" if error.get("type") or frame_path else "unknown",
+        "observed_error": error,
+        "traceback_frame": frame,
+        "minimal_reproduction_checklist": checklist,
+        "related_tests": compact_related_tests(related_tests),
+        "next_local_command": command,
+        "mutation_policy": "read_only_no_source_mutation",
+        "gaps": checklist_gaps,
     }
 
 
@@ -1912,9 +2010,23 @@ def build_endpoint_route_lookup(
 
 def is_message_source_lookup_request(text: str) -> bool:
     lowered = text.lower()
+    if is_user_facing_message_test_target_request(text):
+        return True
     message_terms = ("error message", "log message", "logged", "logger", "exception message", "comes from", "source of")
     lookup_terms = ("find", "locate", "where", "which", "source", "comes from")
     return any(term in lowered for term in message_terms) and any(term in lowered for term in lookup_terms)
+
+
+def is_user_facing_message_test_target_request(text: str) -> bool:
+    lowered = text.lower()
+    if any(term in lowered for term in ("add", "create", "implement", "fix failing", "fix test", "update test", "apply", "mutate")):
+        return False
+    message_terms = ("error message", "log message", "exception message")
+    user_terms = ("user-facing", "user facing", "shown to user", "visible to user")
+    test_terms = ("where it should be tested", "where should it be tested", "tested", "test target", "related tests")
+    return any(term in lowered for term in message_terms) and any(term in lowered for term in user_terms) and any(
+        term in lowered for term in test_terms
+    )
 
 
 def message_reference_role(text: str) -> str:
@@ -1934,6 +2046,8 @@ def build_message_source_lookup(
     queries: list[str],
     matches: list[dict[str, Any]],
     warnings: list[dict[str, Any]],
+    related_tests: list[dict[str, Any]] | None = None,
+    verification_commands: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not is_message_source_lookup_request(request.user_request):
         return {"kind": "message_source_lookup", "schema_version": SCHEMA_VERSION, "status": "not_requested"}
@@ -1963,6 +2077,41 @@ def build_message_source_lookup(
     gaps = [] if sources else [{"gap": "message_source_not_found", "reason": reason}]
     if warnings:
         gaps.append({"gap": "fallback_or_warning_present", "warning_count": len(warnings)})
+    user_facing_assessment: dict[str, Any] | None = None
+    if is_user_facing_message_test_target_request(request.user_request):
+        roles = {str(item.get("role")) for item in sources if isinstance(item.get("role"), str)}
+        recommended_test_targets = compact_related_tests(related_tests or [])
+        for source in sources:
+            path = source.get("path")
+            if not isinstance(path, str) or category_for_path(path) != "test":
+                continue
+            if any(item.get("path") == path for item in recommended_test_targets):
+                continue
+            recommended_test_targets.append(
+                {
+                    "path": path,
+                    "matched_terms": [target],
+                    "source": "message_source_lookup",
+                }
+            )
+        if "raised_exception" in roles:
+            assessment_status = "unknown"
+            assessment_reason = (
+                "The message is raised from project code; bounded evidence does not prove whether the exception is rendered to an end user."
+            )
+        elif "print_output" in roles or "log_call" in roles:
+            assessment_status = "not_proven_user_facing"
+            assessment_reason = "Bounded evidence found logging/output source, not user-interface rendering."
+        else:
+            assessment_status = "unknown"
+            assessment_reason = "No bounded message source proved user-facing behavior."
+        user_facing_assessment = {
+            "status": assessment_status,
+            "reason": assessment_reason,
+            "message_roles": sorted(roles),
+            "recommended_test_targets": recommended_test_targets[:20],
+            "verification_commands": (verification_commands or [])[:5],
+        }
     return {
         "kind": "message_source_lookup",
         "schema_version": SCHEMA_VERSION,
@@ -1975,6 +2124,7 @@ def build_message_source_lookup(
             for item in sources[:10]
         ],
         "mutation_policy": "read_only_no_source_mutation",
+        "user_facing_assessment": user_facing_assessment,
         "gaps": gaps,
         "reason": reason,
     }
@@ -1982,7 +2132,7 @@ def build_message_source_lookup(
 
 def is_module_summary_request(text: str) -> bool:
     lowered = text.lower()
-    if is_test_failure_summary_request(text):
+    if is_test_failure_summary_request(text) or is_ci_failure_summary_request(text):
         return False
     summary_terms = ("summarize module", "summarize this module", "summarize file", "module summary", "file summary")
     return any(term in lowered for term in summary_terms) or (
@@ -2251,6 +2401,173 @@ def build_data_model_lookup(
         "mutation_policy": "read_only_no_source_mutation",
         "gaps": gaps,
         "reason": reason,
+    }
+
+
+def is_table_read_write_lookup_request(text: str) -> bool:
+    lowered = text.lower()
+    if any(term in lowered for term in ("add", "create", "implement", "fix failing", "fix test", "refactor", "apply", "mutate")):
+        return False
+    table_terms = ("database table", "table", "db table")
+    access_terms = (
+        "read and written",
+        "reads and writes",
+        "definition, reads, and writes",
+        "definition reads and writes",
+        "definition sites, read sites, write sites",
+        "definition sites read sites write sites",
+        "read/write",
+        "read write",
+        "defined, read, and written",
+        "defined read and written",
+    )
+    return any(term in lowered for term in table_terms) and any(term in lowered for term in access_terms)
+
+
+def table_access_role(text: str, table_name: str) -> str | None:
+    lowered = text.lower()
+    table = table_name.lower()
+    if "create table" in lowered and table in lowered:
+        return "definition"
+    if re.search(rf"\b(?:insert\s+into|update|delete\s+from)\s+{re.escape(table)}\b", lowered):
+        return "write"
+    if re.search(rf"\b(?:from|join)\s+{re.escape(table)}\b", lowered) and "select" in lowered:
+        return "read"
+    if re.search(rf"\b{re.escape(table)}\b", lowered) and any(term in lowered for term in ("select", "fetch", "load", "query")):
+        return "read"
+    if re.search(rf"\b{re.escape(table)}\b", lowered) and any(term in lowered for term in ("insert", "update", "delete", "save")):
+        return "write"
+    return None
+
+
+def table_access_sites(matches: list[dict[str, Any]], table_name: str) -> dict[str, list[dict[str, Any]]]:
+    sites: dict[str, list[dict[str, Any]]] = {"definition": [], "read": [], "write": []}
+    seen: set[tuple[str, int | None, str]] = set()
+    for match in matches:
+        path = match.get("path")
+        text = match.get("text")
+        if not isinstance(path, str) or not isinstance(text, str):
+            continue
+        if category_for_path(path) != "source":
+            continue
+        role = table_access_role(text, table_name)
+        if role is None:
+            continue
+        line = match.get("line") if isinstance(match.get("line"), int) else None
+        key = (path, line, role)
+        if key in seen:
+            continue
+        seen.add(key)
+        sites[role].append(
+            {
+                "path": path,
+                "line": line,
+                "role": role,
+                "evidence": bounded_text(text, 320),
+                "source": match.get("source") or "bounded_investigation",
+            }
+        )
+    return {key: value[:20] for key, value in sites.items()}
+
+
+def table_access_sites_from_files(
+    target_root: Path,
+    table_name: str,
+    existing_sites: dict[str, list[dict[str, Any]]],
+    *,
+    max_files: int = TABLE_ACCESS_SCAN_FILE_LIMIT,
+) -> dict[str, list[dict[str, Any]]]:
+    sites = {role: list(existing_sites.get(role, [])) for role in ("definition", "read", "write")}
+    seen: set[tuple[str, int | None, str]] = set()
+    for role, role_sites in sites.items():
+        for site in role_sites:
+            path = site.get("path")
+            line = site.get("line") if isinstance(site.get("line"), int) else None
+            if isinstance(path, str):
+                seen.add((path, line, role))
+    scanned = 0
+    for path in sorted(target_root.rglob("*.py")):
+        if scanned >= max_files:
+            break
+        try:
+            rel_path = path.relative_to(target_root).as_posix()
+        except ValueError:
+            continue
+        if any(part in IGNORED_SCAN_DIRS for part in path.parts):
+            continue
+        if category_for_path(rel_path) != "source":
+            continue
+        scanned += 1
+        try:
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        for line_no, line in enumerate(lines, 1):
+            role = table_access_role(line, table_name)
+            if role is None:
+                continue
+            key = (rel_path, line_no, role)
+            if key in seen:
+                continue
+            seen.add(key)
+            sites[role].append(
+                {
+                    "path": rel_path,
+                    "line": line_no,
+                    "role": role,
+                    "evidence": bounded_text(line.strip(), 320),
+                    "source": "table_access_file_scan",
+                }
+            )
+            if all(sites[item] for item in ("definition", "read", "write")):
+                return {role_key: role_sites[:20] for role_key, role_sites in sites.items()}
+    return {role_key: role_sites[:20] for role_key, role_sites in sites.items()}
+
+
+def build_table_read_write_lookup(
+    request: CodeInvestigationRequest,
+    *,
+    target_root: Path,
+    queries: list[str],
+    matches: list[dict[str, Any]],
+    warnings: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not is_table_read_write_lookup_request(request.user_request):
+        return {"kind": "table_read_write_lookup", "schema_version": SCHEMA_VERSION, "status": "not_requested"}
+    table_name = data_model_target_from_request(request.user_request, queries, request.behavior)
+    sites = table_access_sites(matches, table_name)
+    if not all(sites[role] for role in ("definition", "read", "write")):
+        sites = table_access_sites_from_files(target_root, table_name, sites)
+    gaps: list[dict[str, Any]] = []
+    if not sites["definition"]:
+        gaps.append({"gap": "table_definition_not_found"})
+    if not sites["read"]:
+        gaps.append({"gap": "table_read_site_not_found"})
+    if not sites["write"]:
+        gaps.append({"gap": "table_write_site_not_found"})
+    if warnings:
+        gaps.append({"gap": "fallback_or_warning_present", "warning_count": len(warnings)})
+    all_sites = [site for role_sites in sites.values() for site in role_sites]
+    status = "ready" if all_sites else "unknown"
+    return {
+        "kind": "table_read_write_lookup",
+        "schema_version": SCHEMA_VERSION,
+        "status": status,
+        "target_table": table_name,
+        "definition_sites": sites["definition"],
+        "read_sites": sites["read"],
+        "write_sites": sites["write"],
+        "access_summary": {
+            "definition_count": len(sites["definition"]),
+            "read_count": len(sites["read"]),
+            "write_count": len(sites["write"]),
+        },
+        "mutation_policy": "read_only_no_source_mutation",
+        "source_refs": [
+            {key: value for key, value in {"path": site.get("path"), "line": site.get("line"), "source": site.get("source")}.items() if value is not None}
+            for site in all_sites[:20]
+        ],
+        "gaps": gaps,
     }
 
 
@@ -2786,6 +3103,8 @@ def is_test_failure_summary_request(text: str) -> bool:
     lowered = text.lower()
     if any(term in lowered for term in ("fix failing", "fix this test", "fix test", "update test")):
         return False
+    if is_ci_failure_summary_request(text):
+        return False
     if is_runtime_error_diagnosis_request(text) and not any(
         term in lowered
         for term in (
@@ -2986,6 +3305,147 @@ def smallest_safe_fix_plan(
     ]
 
 
+def is_ci_failure_summary_request(text: str) -> bool:
+    lowered = text.lower()
+    if any(term in lowered for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate")):
+        return False
+    ci_terms = (
+        "ci log",
+        "failing ci",
+        "github actions",
+        "workflow run",
+        "ci failure",
+        "pipeline failure",
+        "build log",
+    )
+    output_terms = (
+        "first failing command",
+        "likely cause",
+        "next local command",
+        "summarize",
+        "summary",
+    )
+    return any(term in lowered for term in ci_terms) and any(term in lowered for term in output_terms)
+
+
+def extract_ci_commands(text: str) -> list[dict[str, Any]]:
+    commands: list[dict[str, Any]] = []
+    command_patterns = (
+        r"\bpython\s+-m\s+pytest\b.*",
+        r"\bpytest\b.*",
+        r"\bnpm\s+(?:run\s+)?(?:test|build)\b.*",
+        r"\bpnpm\s+(?:test|build)\b.*",
+        r"\byarn\s+(?:test|build)\b.*",
+        r"\b(?:ruff|mypy|tsc|vite)\b.*",
+    )
+    for index, line in enumerate(text.splitlines(), 1):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        raw_command = None
+        if stripped.lower().startswith("run "):
+            raw_command = stripped[4:].strip()
+        elif stripped.startswith(("$", ">")):
+            raw_command = stripped[1:].strip()
+        else:
+            for pattern in command_patterns:
+                match = re.search(pattern, stripped)
+                if match:
+                    raw_command = match.group(0).strip()
+                    break
+        if not raw_command:
+            continue
+        if raw_command.lower().startswith("failed "):
+            continue
+        commands.append(
+            {
+                "command": raw_command,
+                "line": index,
+                "source": "ci_log",
+            }
+        )
+    return commands[:10]
+
+
+def ci_primary_error(text: str) -> dict[str, Any]:
+    error = extract_failure_error(text)
+    if error.get("type"):
+        return error
+    for line in text.splitlines():
+        stripped = line.strip()
+        lowered = stripped.lower()
+        if not stripped:
+            continue
+        if "exit code" in lowered or lowered.startswith(("error:", "error ", "failed ")):
+            return {"type": "ci_failure_line", "message": bounded_text(stripped, 500), "raw": bounded_text(stripped, 500)}
+    return {"type": None, "message": None, "raw": None}
+
+
+def ci_next_local_command(
+    commands: list[dict[str, Any]],
+    failed_tests: list[dict[str, Any]],
+    verification_commands: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    if failed_tests:
+        generated = failed_test_verification_commands(failed_tests, verification_commands)
+        if generated:
+            return generated[0]
+    if commands:
+        return {
+            "command": str(commands[0]["command"]).split(),
+            "reason": "Re-run the first failing CI command locally before broadening validation.",
+            "associated_files": [],
+            "timeout_seconds": 300,
+        }
+    for command in verification_commands:
+        if isinstance(command, dict) and isinstance(command.get("command"), list):
+            return command
+    return None
+
+
+def build_ci_failure_summary(
+    request: CodeInvestigationRequest,
+    *,
+    records: list[dict[str, Any]],
+    verification_commands: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not is_ci_failure_summary_request(request.user_request):
+        return {"kind": "ci_failure_summary", "schema_version": SCHEMA_VERSION, "status": "not_requested"}
+    commands = extract_ci_commands(request.user_request)
+    failed_tests = extract_failed_tests(request.user_request)
+    error = ci_primary_error(request.user_request)
+    next_command = ci_next_local_command(commands, failed_tests, verification_commands)
+    evidence_records = [
+        record
+        for record in records
+        if int(record.get("match_count") or 0) > 0
+        or any(record.get("path") == failed.get("path") for failed in failed_tests)
+    ]
+    gaps: list[dict[str, Any]] = []
+    if not commands:
+        gaps.append({"gap": "first_failing_command_not_found"})
+    if not next_command:
+        gaps.append({"gap": "next_local_command_not_found"})
+    if not error.get("type"):
+        gaps.append({"gap": "primary_ci_error_not_found"})
+    status = "ready" if commands or failed_tests or error.get("type") else "unknown"
+    return {
+        "kind": "ci_failure_summary",
+        "schema_version": SCHEMA_VERSION,
+        "status": status,
+        "first_failing_command": commands[0] if commands else None,
+        "observed_commands": commands,
+        "failed_tests": failed_tests,
+        "primary_error": error,
+        "likely_cause": likely_failure_cause(error),
+        "next_local_command": next_command,
+        "evidence_files": compact_evidence_records(evidence_records[: request.max_files]),
+        "mutation_policy": "read_only_no_source_mutation",
+        "source_refs": source_refs_from_records(evidence_records[: request.max_files]),
+        "gaps": gaps,
+    }
+
+
 def build_test_failure_summary(
     request: CodeInvestigationRequest,
     *,
@@ -3184,6 +3644,8 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         queries=queries,
         matches=matches,
         warnings=warnings,
+        related_tests=related_tests,
+        verification_commands=verification_commands,
     )
     if message_source_lookup.get("status") != "not_requested":
         write_json(run_dir / "message-source-lookup.json", message_source_lookup)
@@ -3208,6 +3670,16 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
     if data_model_lookup.get("status") != "not_requested":
         write_json(run_dir / "data-model-lookup.json", data_model_lookup)
         artifacts["data_model_lookup"] = str(run_dir / "data-model-lookup.json")
+    table_read_write_lookup = build_table_read_write_lookup(
+        request,
+        target_root=target_root,
+        queries=queries,
+        matches=matches,
+        warnings=warnings,
+    )
+    if table_read_write_lookup.get("status") != "not_requested":
+        write_json(run_dir / "table-read-write-lookup.json", table_read_write_lookup)
+        artifacts["table_read_write_lookup"] = str(run_dir / "table-read-write-lookup.json")
     coverage_gap_summary = build_coverage_gap_summary(
         request,
         queries=queries,
@@ -3258,6 +3730,14 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
     if local_change_summary.get("status") != "not_requested":
         write_json(run_dir / "local-change-summary.json", local_change_summary)
         artifacts["local_change_summary"] = str(run_dir / "local-change-summary.json")
+    ci_failure_summary = build_ci_failure_summary(
+        request,
+        records=records,
+        verification_commands=verification_commands,
+    )
+    if ci_failure_summary.get("status") != "not_requested":
+        write_json(run_dir / "ci-failure-summary.json", ci_failure_summary)
+        artifacts["ci_failure_summary"] = str(run_dir / "ci-failure-summary.json")
     test_failure_summary = build_test_failure_summary(
         request,
         records=records,
@@ -3312,6 +3792,16 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
     if runtime_error_diagnosis.get("status") != "not_requested":
         write_json(run_dir / "runtime-error-diagnosis.json", runtime_error_diagnosis)
         artifacts["runtime_error_diagnosis"] = str(run_dir / "runtime-error-diagnosis.json")
+    reproduction_checklist = build_reproduction_checklist(
+        request,
+        runtime_error_diagnosis=runtime_error_diagnosis,
+        related_tests=related_tests,
+        verification_commands=verification_commands,
+        gaps=gaps,
+    )
+    if reproduction_checklist.get("status") != "not_requested":
+        write_json(run_dir / "reproduction-checklist.json", reproduction_checklist)
+        artifacts["reproduction_checklist"] = str(run_dir / "reproduction-checklist.json")
     request_flow_map = build_request_flow_map(
         request,
         beginning=beginning,
@@ -3383,16 +3873,19 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         "message_source_lookup": message_source_lookup,
         "module_summary": module_summary,
         "data_model_lookup": data_model_lookup,
+        "table_read_write_lookup": table_read_write_lookup,
         "coverage_gap_summary": coverage_gap_summary,
         "documentation_lookup": documentation_lookup,
         "cli_entrypoint_lookup": cli_entrypoint_lookup,
         "configuration_effect_summary": configuration_effect_summary,
         "local_change_summary": local_change_summary,
+        "ci_failure_summary": ci_failure_summary,
         "test_failure_summary": test_failure_summary,
         "multi_file_behavior_investigation": multi_file_behavior_investigation,
         "dependency_impact_summary": dependency_impact_summary,
         "test_selection_plan": test_selection_plan,
         "runtime_error_diagnosis": runtime_error_diagnosis,
+        "reproduction_checklist": reproduction_checklist,
         "request_flow_map": request_flow_map,
         "code_path_comparison": code_path_comparison,
         "change_surface_summary": change_surface_summary,
@@ -3442,16 +3935,19 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         "message_source_lookup_status": message_source_lookup.get("status"),
         "module_summary_status": module_summary.get("status"),
         "data_model_lookup_status": data_model_lookup.get("status"),
+        "table_read_write_lookup_status": table_read_write_lookup.get("status"),
         "coverage_gap_summary_status": coverage_gap_summary.get("status"),
         "documentation_lookup_status": documentation_lookup.get("status"),
         "cli_entrypoint_lookup_status": cli_entrypoint_lookup.get("status"),
         "configuration_effect_summary_status": configuration_effect_summary.get("status"),
         "local_change_summary_status": local_change_summary.get("status"),
+        "ci_failure_summary_status": ci_failure_summary.get("status"),
         "test_failure_summary_status": test_failure_summary.get("status"),
         "multi_file_behavior_investigation_status": multi_file_behavior_investigation.get("status"),
         "dependency_impact_summary_status": dependency_impact_summary.get("status"),
         "test_selection_plan_status": test_selection_plan.get("status"),
         "runtime_error_diagnosis_status": runtime_error_diagnosis.get("status"),
+        "reproduction_checklist_status": reproduction_checklist.get("status"),
         "request_flow_map_status": request_flow_map.get("status"),
         "code_path_comparison_status": code_path_comparison.get("status"),
         "change_surface_summary_status": change_surface_summary.get("status"),

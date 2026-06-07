@@ -19,6 +19,7 @@ The project is intentionally conservative. It does not silently summarize, trim,
 First-time AnythingLLM testers should start here:
 
 - [README.getting-started.md](README.getting-started.md): minimal setup and validation path for natural workflow testing through AnythingLLM.
+- [README.productized-setup.md](README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
 - [README.external-tester-onboarding.md](README.external-tester-onboarding.md): contextless release-candidate tester path with curated read-only prompts and feedback capture.
 - [README.first-time-user-doctor.md](README.first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM config, and frozen fixtures.
 - [README.release-channels.md](README.release-channels.md): dev, release-candidate, and stable channel metadata plus setup validation.
@@ -97,6 +98,7 @@ Start with the ordered index: [docs/README.md](docs/README.md).
 Feature docs:
 
 - [README.getting-started.md](README.getting-started.md): first-time AnythingLLM setup and validation path
+- [README.productized-setup.md](README.productized-setup.md): productized local harness setup and recovery commands
 - [README.external-tester-onboarding.md](README.external-tester-onboarding.md): contextless external tester prompt pack, live validation, and linked feedback capture
 - [README.first-time-user-doctor.md](README.first-time-user-doctor.md): first-time setup doctor for ports, AnythingLLM, controller roots, and fixtures
 - [README.release-channels.md](README.release-channels.md): release channel manifest, setup validator, stable readiness, and rollback path
@@ -105,7 +107,11 @@ Feature docs:
 - [README.gateway.md](README.gateway.md): gateway, role proxies, ports, setup, and client notes
 - [README.controller-service.md](README.controller-service.md): explicit HTTP controller workflow service and run lookup
 - [README.workflow-router.md](README.workflow-router.md): natural-language workflow routing, natural client adapters, read-only execution, implementation prep, and disposable-copy proof
-- [README.controlled-apply.md](README.controlled-apply.md): approval-gated small-change dry-run, protected real-apply boundary, disposable-copy mutation proof, and rollback
+- [README.context-retrieval-upgrade.md](README.context-retrieval-upgrade.md): route-owned context-source selection and validation
+- [README.implementation-prep-expansion.md](README.implementation-prep-expansion.md): draft-only packet proposal expansion for small text edits and approved-investigation follow-ups
+- [README.approval-continuation-robustness.md](README.approval-continuation-robustness.md): approval continuation run binding, duplicate/denied/scope-change rejection, and chat-visible failure reasons
+- [README.advanced-refactor-readiness.md](README.advanced-refactor-readiness.md): Phase 105 fail-closed gate for advanced refactor pilot readiness and stable-promotion blocking
+- [README.controlled-apply.md](README.controlled-apply.md): approval-gated small-change dry-run, protected real-apply boundary, disposable-copy mutation proof, rollback, and Phase 98 append/multi-operation proof
 - [README.mutation-sandbox.md](README.mutation-sandbox.md): sandbox contract, structured diff, rollback proof, and fail-closed disposable mutation artifacts
 - [README.execution-planning.md](README.execution-planning.md): explicit execution-planning workflow, packet candidates, draft proof, and non-mutation checks
 - [README.code-context.md](README.code-context.md): read-only controller-owned code context and curated relationship lookup
@@ -116,6 +122,7 @@ Feature docs:
 - [README.observability.md](README.observability.md): recent-run dashboard for workflow selection, model route status, approval state, downstream status, artifacts, failures, mutation proof, and timing
 - [README.run-artifact-diff.md](README.run-artifact-diff.md): compare acceptance, founder-field, and portability run artifacts
 - [README.failure-taxonomy.md](README.failure-taxonomy.md): classify validation failures into stable categories with recommended next actions
+- [README.eval-repair-loop.md](README.eval-repair-loop.md): convert failed eval artifacts into evidence-backed repair recommendations with holdout gates
 - [README.founder-field-tests.md](README.founder-field-tests.md): founder-style AnythingLLM prompt field tests with deltas and prompt suggestions
 - [README.bounded-recursive-testing.md](README.bounded-recursive-testing.md): no-context recursive evaluation loop with bounded rounds, deterministic adjudication, scoring, and stop conditions
 - [README.anythingllm-ui-e2e.md](README.anythingllm-ui-e2e.md): browser-rendered AnythingLLM Desktop UI proof through the real backend and workflow-router gateway

@@ -1,0 +1,5 @@
+CREATE TABLE orders (
+    order_id TEXT PRIMARY KEY,
+    status TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

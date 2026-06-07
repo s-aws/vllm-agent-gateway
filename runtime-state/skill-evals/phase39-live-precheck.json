@@ -869,6 +869,80 @@
       "mutation_policy": "no_repository_mutation",
       "prompt_family": "BatchD-change-boundary-summary",
       "status": "passed"
+    },
+    {
+      "case_id": "l2_ci_log_triage",
+      "errors": [],
+      "expected_artifacts": [
+        "ci_failure_summary"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "live_mapping": {
+        "case_id": "L2-010",
+        "live_suite": "workflow_router_l2_suite",
+        "script": "scripts/validate_workflow_router_l2_suite.py",
+        "status": "mapped"
+      },
+      "live_suite": "workflow_router_l2_suite",
+      "mutation_policy": "no_repository_mutation",
+      "prompt_family": "L2-ci-log-triage",
+      "status": "passed"
+    },
+    {
+      "case_id": "l2_table_read_write_lookup",
+      "errors": [],
+      "expected_artifacts": [
+        "table_read_write_lookup"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "live_mapping": {
+        "case_id": "L2-011",
+        "live_suite": "workflow_router_l2_suite",
+        "script": "scripts/validate_workflow_router_l2_suite.py",
+        "status": "mapped"
+      },
+      "live_suite": "workflow_router_l2_suite",
+      "mutation_policy": "no_repository_mutation",
+      "prompt_family": "L2-table-read-write-lookup",
+      "status": "passed"
+    },
+    {
+      "case_id": "l2_runtime_reproduction_checklist",
+      "errors": [],
+      "expected_artifacts": [
+        "runtime_error_diagnosis",
+        "reproduction_checklist"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "live_mapping": {
+        "case_id": "L2-012",
+        "live_suite": "workflow_router_l2_suite",
+        "script": "scripts/validate_workflow_router_l2_suite.py",
+        "status": "mapped"
+      },
+      "live_suite": "workflow_router_l2_suite",
+      "mutation_policy": "no_repository_mutation",
+      "prompt_family": "L2-runtime-reproduction-checklist",
+      "status": "passed"
+    },
+    {
+      "case_id": "l2_user_facing_message_test_target",
+      "errors": [],
+      "expected_artifacts": [
+        "message_source_lookup",
+        "investigation_plan"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "live_mapping": {
+        "case_id": "L2-013",
+        "live_suite": "workflow_router_l2_suite",
+        "script": "scripts/validate_workflow_router_l2_suite.py",
+        "status": "mapped"
+      },
+      "live_suite": "workflow_router_l2_suite",
+      "mutation_policy": "no_repository_mutation",
+      "prompt_family": "L2-user-facing-message-test-target",
+      "status": "passed"
     }
   ],
   "config_root": "/mnt/c/agentic_agents",
@@ -879,16 +953,16 @@
   "schema_version": 1,
   "status": "passed",
   "summary": {
-    "case_count": 49,
+    "case_count": 53,
     "failed_count": 0,
     "fixture_count": 3,
     "live_suite_counts": {
       "skill_registry_contract": 15,
       "workflow_router_l1_suite": 23,
-      "workflow_router_l2_suite": 10,
+      "workflow_router_l2_suite": 14,
       "workflow_router_natural_clients": 1
     },
-    "passed_count": 49,
+    "passed_count": 53,
     "requested_case_ids": []
   }
 }

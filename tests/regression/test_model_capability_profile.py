@@ -10,6 +10,10 @@ from vllm_agent_gateway.acceptance.model_capability_profile import (
     TaskPolicyStatus,
     run_model_capability_profile,
 )
+from vllm_agent_gateway.model_capability_routing import ModelCapabilityTaskClass, route_task_class
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -130,3 +134,60 @@ def test_model_capability_profile_marks_failed_model_evidence_not_proven(tmp_pat
     assert profile["capabilities"]["timeout_behavior"]["status"] == CapabilityStatus.NOT_PROVEN.value
     assert profile["task_policy"]["read_only_l1"]["status"] == TaskPolicyStatus.NOT_APPROVED.value
     assert profile["task_policy"]["apply_prep"]["status"] == TaskPolicyStatus.NOT_APPROVED.value
+
+
+def test_prompt_skill_coverage_entries_map_to_model_capability_task_classes() -> None:
+    coverage = json.loads((REPO_ROOT / "runtime" / "prompt_skill_coverage.json").read_text(encoding="utf-8"))
+    entries = coverage["entries"]
+    assert isinstance(entries, list)
+    expected_by_prefix = {
+        "l1_": {ModelCapabilityTaskClass.READ_ONLY_L1, ModelCapabilityTaskClass.DRAFT_ONLY_L1},
+        "d1_": {ModelCapabilityTaskClass.DRAFT_ONLY_L1},
+        "l2_": {ModelCapabilityTaskClass.L2_READ_ONLY},
+    }
+    checked = 0
+    for entry in entries:
+        route_rule = entry.get("route_rule")
+        selected_workflow = entry.get("selected_workflow")
+        if not isinstance(route_rule, str) or not isinstance(selected_workflow, str):
+            continue
+        if route_rule == "disposable_apply_terms":
+            task_class = route_task_class(
+                selected_workflow=selected_workflow,
+                route_rules=[route_rule],
+                mode="apply_disposable_copy",
+                approval={"status": "approved_for_disposable_apply", "apply_allowed": True},
+                packet_operations=[{"kind": "replace_text", "path": "README.md", "old": "a", "new": "b"}],
+            )
+            assert task_class == ModelCapabilityTaskClass.APPLY_PREP
+            checked += 1
+            continue
+        for prefix, allowed in expected_by_prefix.items():
+            if route_rule.startswith(prefix):
+                task_class = route_task_class(
+                    selected_workflow=selected_workflow,
+                    route_rules=[route_rule],
+                    mode="plan_only",
+                    approval={},
+                    packet_operations=[],
+                )
+                assert task_class in allowed, (entry.get("id"), route_rule, task_class)
+                checked += 1
+                break
+    assert checked >= 30
+
+
+def test_draft_only_l1_packet_design_approval_stays_draft_task_class() -> None:
+    task_class = route_task_class(
+        selected_workflow="execution_planning.plan",
+        route_rules=["l1_small_text_edit_terms"],
+        mode="implementation_prep",
+        approval={
+            "status": "approved_for_packet_design",
+            "scope": "draft_text_edit_packet_design_only",
+            "apply_allowed": False,
+        },
+        packet_operations=[],
+    )
+
+    assert task_class == ModelCapabilityTaskClass.DRAFT_ONLY_L1

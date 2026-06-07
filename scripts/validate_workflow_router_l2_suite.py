@@ -237,7 +237,117 @@ L2_CASES: tuple[L2Case, ...] = (
             "Stop before implementation."
         ),
     ),
+    L2Case(
+        case_id="L2-010",
+        name="Summarize Failing CI Log",
+        selected_workflow="code_investigation.plan",
+        downstream_workflow="code_investigation.plan",
+        artifact_keys=("downstream_ci_failure_summary",),
+        markers=(
+            "Answer:",
+            "First failing command:",
+            "python -m pytest tests/unit/test_order_id_and_followup_rules.py",
+            "Likely cause:",
+            "Next local command:",
+            "Source mutation: false",
+        ),
+        prompt_template=(
+            "In {target_root}, summarize this failing CI log and identify the first failing command, "
+            "likely cause, and next local command. Read only.\n"
+            "Run python -m pytest tests/unit/test_order_id_and_followup_rules.py\n"
+            "FAILED tests/unit/test_order_id_and_followup_rules.py::"
+            "test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - "
+            "AssertionError: expected client_order_id index\n"
+            "E   AssertionError: expected client_order_id index\n"
+            "Error: Process completed with exit code 1."
+        ),
+    ),
+    L2Case(
+        case_id="L2-011",
+        name="Locate Table Definition Reads And Writes",
+        selected_workflow="code_investigation.plan",
+        downstream_workflow="code_investigation.plan",
+        artifact_keys=("downstream_table_read_write_lookup",),
+        markers=(
+            "Answer:",
+            "Target table: stealth_orders",
+            "Access counts:",
+            "Definition sites:",
+            "Read sites:",
+            "Write sites:",
+            "Source mutation: false",
+        ),
+        prompt_template=(
+            "In {target_root}, find where database table stealth_orders is defined, read, and written. "
+            "Read only. Return definition sites, read sites, write sites, gaps, and source refs."
+        ),
+    ),
+    L2Case(
+        case_id="L2-012",
+        name="Write Runtime Reproduction Checklist",
+        selected_workflow="code_investigation.plan",
+        downstream_workflow="code_investigation.plan",
+        artifact_keys=("downstream_runtime_error_diagnosis", "downstream_reproduction_checklist"),
+        markers=(
+            "Answer:",
+            "Observed error:",
+            "WebSocketMessageError",
+            "Reproduction checklist:",
+            "Source mutation: false",
+        ),
+        prompt_template=(
+            "In {target_root}, turn this runtime stack trace into a minimal reproduction checklist. "
+            "Read only. Return observed error, reproduction steps, related tests, gaps, and next local command.\n"
+            "Traceback (most recent call last):\n"
+            "  File \"dashboard_server.py\", line 10, in handle_websocket_message\n"
+            "core.exceptions.WebSocketMessageError: Missing 'type' field in message"
+        ),
+    ),
+    L2Case(
+        case_id="L2-013",
+        name="Locate User-Facing Message Test Target",
+        selected_workflow="code_investigation.plan",
+        downstream_workflow="code_investigation.plan",
+        artifact_keys=("downstream_message_source_lookup",),
+        markers=(
+            "Answer:",
+            "Target message: Missing 'type' field in message",
+            "Sources:",
+            "User-facing:",
+            "Test targets:",
+            "Source mutation: false",
+        ),
+        prompt_template=(
+            "In {target_root}, check if error message \"Missing 'type' field in message\" is user-facing "
+            "and where it should be tested. Read only. Return source, user-facing status, test targets, "
+            "and verification command."
+        ),
+    ),
 )
+
+
+BATCH_E_REQUIREMENTS: dict[str, dict[str, str]] = {
+    "L2-010": {
+        "skill_id": "ci-log-failure-summarizer",
+        "route_rule": "l2_ci_log_triage_terms",
+        "artifact_key": "downstream_ci_failure_summary",
+    },
+    "L2-011": {
+        "skill_id": "table-read-write-locator",
+        "route_rule": "l2_table_read_write_lookup_terms",
+        "artifact_key": "downstream_table_read_write_lookup",
+    },
+    "L2-012": {
+        "skill_id": "runtime-reproduction-checklist-writer",
+        "route_rule": "l2_runtime_reproduction_checklist_terms",
+        "artifact_key": "downstream_reproduction_checklist",
+    },
+    "L2-013": {
+        "skill_id": "user-facing-message-test-target-locator",
+        "route_rule": "l2_user_facing_message_test_target_terms",
+        "artifact_key": "downstream_message_source_lookup",
+    },
+}
 
 
 def selected_cases(case_ids: list[str] | None) -> tuple[L2Case, ...]:
@@ -347,12 +457,129 @@ def require_text_markers(text: str, markers: tuple[str, ...], *, label: str, tar
         f"selected_workflow: {case.selected_workflow}",
         "Artifacts:",
     )
-    missing = [marker for marker in (*common_markers, *markers) if marker not in text]
+    batch_e = BATCH_E_REQUIREMENTS.get(case.case_id)
+    batch_e_markers: tuple[str, ...] = ()
+    if batch_e:
+        batch_e_markers = (
+            str(batch_e["skill_id"]),
+            str(batch_e["route_rule"]),
+        )
+    missing = [marker for marker in (*common_markers, *markers, *batch_e_markers) if marker not in text]
     if missing:
         raise RuntimeError(
             f"{label} missing markers for {case.case_id} on {target_root}: "
             f"{json.dumps(missing, ensure_ascii=True)}"
         )
+
+
+def read_json_artifact(path_value: Any, *, label: str) -> dict[str, Any]:
+    if not isinstance(path_value, str) or not path_value:
+        raise RuntimeError(f"{label} artifact path was missing")
+    path = Path(path_value)
+    if not path.is_file():
+        raise RuntimeError(f"{label} artifact path does not exist: {path_value}")
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise RuntimeError(f"{label} artifact was not a JSON object: {path_value}")
+    return value
+
+
+def require_batch_e_gateway_artifacts(compact: dict[str, Any], target_root: str, case: L2Case) -> None:
+    requirement = BATCH_E_REQUIREMENTS.get(case.case_id)
+    if not requirement:
+        return
+    artifacts = compact.get("artifacts")
+    if not isinstance(artifacts, dict):
+        raise RuntimeError(f"gateway response did not include artifacts for {case.case_id} on {target_root}")
+    decision = read_json_artifact(artifacts.get("route_decision"), label=f"{case.case_id} route_decision")
+    selected_skills = decision.get("selected_skills") if isinstance(decision.get("selected_skills"), list) else []
+    if requirement["skill_id"] not in selected_skills:
+        raise RuntimeError(
+            f"gateway route decision did not select {requirement['skill_id']} for {case.case_id} on {target_root}: "
+            f"{json.dumps(selected_skills, ensure_ascii=True)}"
+        )
+    route_rules = [
+        item.get("rule")
+        for item in decision.get("evidence", [])
+        if isinstance(item, dict) and isinstance(item.get("rule"), str)
+    ]
+    if requirement["route_rule"] not in route_rules:
+        raise RuntimeError(
+            f"gateway route decision did not include {requirement['route_rule']} for {case.case_id} on {target_root}: "
+            f"{json.dumps(route_rules, ensure_ascii=True)}"
+        )
+    artifact = read_json_artifact(artifacts.get(requirement["artifact_key"]), label=f"{case.case_id} output")
+    if artifact.get("status") != "ready":
+        raise RuntimeError(f"{case.case_id} artifact status was not ready on {target_root}: {artifact.get('status')!r}")
+    if artifact.get("mutation_policy") != "read_only_no_source_mutation":
+        raise RuntimeError(f"{case.case_id} artifact did not preserve read-only mutation policy on {target_root}")
+    if case.case_id == "L2-010":
+        command = artifact.get("first_failing_command") if isinstance(artifact.get("first_failing_command"), dict) else {}
+        next_command = artifact.get("next_local_command") if isinstance(artifact.get("next_local_command"), dict) else {}
+        if "python -m pytest tests/unit/test_order_id_and_followup_rules.py" not in str(command.get("command")):
+            raise RuntimeError(f"{case.case_id} did not capture first failing CI command on {target_root}")
+        if not isinstance(next_command.get("command"), list) or next_command["command"][:3] != ["python", "-m", "pytest"]:
+            raise RuntimeError(f"{case.case_id} did not produce a pytest next local command on {target_root}")
+    elif case.case_id == "L2-011":
+        summary = artifact.get("access_summary") if isinstance(artifact.get("access_summary"), dict) else {}
+        missing = [
+            key
+            for key in ("definition_count", "read_count", "write_count")
+            if int(summary.get(key) or 0) < 1
+        ]
+        if missing:
+            raise RuntimeError(
+                f"{case.case_id} table lookup missed required access buckets on {target_root}: "
+                f"{json.dumps(summary, ensure_ascii=True)}"
+            )
+    elif case.case_id == "L2-012":
+        observed = artifact.get("observed_error") if isinstance(artifact.get("observed_error"), dict) else {}
+        checklist = artifact.get("minimal_reproduction_checklist")
+        if observed.get("type") != "WebSocketMessageError":
+            raise RuntimeError(f"{case.case_id} did not preserve WebSocketMessageError on {target_root}")
+        if not isinstance(checklist, list) or len(checklist) < 3:
+            raise RuntimeError(f"{case.case_id} did not produce a minimal reproduction checklist on {target_root}")
+        if "downstream_runtime_error_diagnosis" not in artifacts:
+            raise RuntimeError(f"{case.case_id} did not include downstream_runtime_error_diagnosis on {target_root}")
+    elif case.case_id == "L2-013":
+        if int(artifact.get("source_count") or 0) < 1:
+            raise RuntimeError(f"{case.case_id} did not find a message source on {target_root}")
+        assessment = artifact.get("user_facing_assessment")
+        if not isinstance(assessment, dict) or not isinstance(assessment.get("status"), str):
+            raise RuntimeError(f"{case.case_id} did not include user-facing assessment on {target_root}")
+
+
+def require_model_capability_gateway_artifacts(compact: dict[str, Any], target_root: str, case: L2Case) -> None:
+    artifacts = compact.get("artifacts")
+    if not isinstance(artifacts, dict):
+        raise RuntimeError(f"gateway response did not include artifacts for {case.case_id} on {target_root}")
+    summary = compact.get("summary")
+    if not isinstance(summary, dict):
+        raise RuntimeError(f"gateway response did not include summary for {case.case_id} on {target_root}")
+    decision = read_json_artifact(artifacts.get("route_decision"), label=f"{case.case_id} route_decision")
+    gate = decision.get("model_capability_routing")
+    if not isinstance(gate, dict):
+        raise RuntimeError(f"{case.case_id} route decision did not include model_capability_routing on {target_root}")
+    expected = {
+        "status": "approved",
+        "task_class": "l2_read_only",
+        "task_policy_status": "approved",
+    }
+    wrong = {key: {"expected": value, "actual": gate.get(key)} for key, value in expected.items() if gate.get(key) != value}
+    if wrong:
+        raise RuntimeError(
+            f"{case.case_id} model capability gate mismatch on {target_root}: "
+            f"{json.dumps(wrong, sort_keys=True)}"
+        )
+    if not isinstance(gate.get("profile_id"), str) or not gate["profile_id"]:
+        raise RuntimeError(f"{case.case_id} model capability gate did not record profile_id on {target_root}")
+    if summary.get("model_capability_status") != gate.get("status"):
+        raise RuntimeError(f"{case.case_id} summary did not expose model_capability_status on {target_root}")
+    if summary.get("model_capability_task_class") != gate.get("task_class"):
+        raise RuntimeError(f"{case.case_id} summary did not expose model_capability_task_class on {target_root}")
+    evidence = decision.get("evidence") if isinstance(decision.get("evidence"), list) else []
+    if not any(item.get("source") == "model_capability_routing" for item in evidence if isinstance(item, dict)):
+        raise RuntimeError(f"{case.case_id} evidence did not include model_capability_routing on {target_root}")
 
 
 def require_gateway_response(body: dict[str, Any], target_root: str, case: L2Case) -> str:
@@ -393,6 +620,8 @@ def require_gateway_response(body: dict[str, Any], target_root: str, case: L2Cas
         )
     text = text_response(body)
     require_text_markers(text, case.markers, label="gateway", target_root=target_root, case=case)
+    require_model_capability_gateway_artifacts(compact, target_root, case)
+    require_batch_e_gateway_artifacts(compact, target_root, case)
     return text
 
 

@@ -256,6 +256,20 @@ def test_skill_registry_validates_all_project_skill_metadata() -> None:
     assert registry["runtime-entrypoint-disambiguator"]["eval_status"] == "validated"
     assert registry["change-boundary-summarizer"]["capability_contract"]["route_key"] == "planning.change_boundary_summary"
     assert registry["change-boundary-summarizer"]["eval_status"] == "validated"
+    assert registry["ci-log-failure-summarizer"]["capability_contract"]["route_key"] == "diagnostics.ci_log_failure_summary"
+    assert registry["ci-log-failure-summarizer"]["eval_status"] == "validated"
+    assert registry["table-read-write-locator"]["capability_contract"]["route_key"] == "data.table_read_write_lookup"
+    assert registry["table-read-write-locator"]["eval_status"] == "validated"
+    assert (
+        registry["runtime-reproduction-checklist-writer"]["capability_contract"]["route_key"]
+        == "diagnostics.runtime_reproduction_checklist"
+    )
+    assert registry["runtime-reproduction-checklist-writer"]["eval_status"] == "validated"
+    assert (
+        registry["user-facing-message-test-target-locator"]["capability_contract"]["route_key"]
+        == "diagnostics.user_facing_message_test_target"
+    )
+    assert registry["user-facing-message-test-target-locator"]["eval_status"] == "validated"
     assert all(Path(skill["path"]).exists() for skill in registry.values())
 
 
@@ -701,6 +715,44 @@ def test_phase32_l2_skill_selection_uses_matching_triggered_skill() -> None:
         (
             "Identify the minimal safe change surface and files that would need review before implementation.",
             "change-surface-summarizer",
+        ),
+    ]
+
+    for query_text, expected_skill in cases:
+        selected = select_skills_for_workflow(
+            registry,
+            "code_investigation.plan",
+            query_text=query_text,
+            limit=5,
+        )
+
+        assert selected == [
+            "request-triage",
+            "scope-and-assumptions",
+            "entrypoint-finder",
+            "context-plan-builder",
+            expected_skill,
+        ]
+
+
+def test_phase99_batch_e_skill_selection_uses_matching_triggered_skill() -> None:
+    registry = load_skill_registry(REPO_ROOT)
+    cases = [
+        (
+            "Summarize this failing CI log and return the first failing command and next local command.",
+            "ci-log-failure-summarizer",
+        ),
+        (
+            "Find where database table stealth_orders is defined, read, and written.",
+            "table-read-write-locator",
+        ),
+        (
+            "Turn this runtime stack trace into a minimal reproduction checklist.",
+            "runtime-reproduction-checklist-writer",
+        ),
+        (
+            "Check if this user-facing error message has a test target and where it should be tested.",
+            "user-facing-message-test-target-locator",
         ),
     ]
 

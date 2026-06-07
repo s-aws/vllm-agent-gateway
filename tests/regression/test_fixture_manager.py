@@ -58,17 +58,36 @@ def test_fixture_manager_project_manifest_is_valid() -> None:
         "coinbase-frozen-git",
         "python-service-generalization",
         "node-cli-generalization",
+        "go-http-generalization",
     }
     by_id = {item["id"]: item for item in manifest["fixtures"]}
     assert by_id["node-cli-generalization"]["category"] == "synthetic-node-cli"
+    assert by_id["go-http-generalization"]["category"] == "synthetic-go-http-service"
+    assert "internal/orders/handler.go" in by_id["go-http-generalization"]["watched_paths"]
+    assert "migrations/001_create_orders.sql" in by_id["go-http-generalization"]["watched_paths"]
 
 
-def test_multi_repo_live_case_catalog_covers_coinbase_and_node_fixture() -> None:
-    by_fixture = {case.fixture_id: case for case in LIVE_CASES}
+def test_multi_repo_live_case_catalog_covers_coinbase_node_and_go_fixtures() -> None:
+    by_fixture = {case.fixture_id: [] for case in LIVE_CASES}
+    for case in LIVE_CASES:
+        by_fixture[case.fixture_id].append(case)
 
-    assert {"coinbase-frozen", "coinbase-frozen-git", "node-cli-generalization"} <= set(by_fixture)
-    assert by_fixture["node-cli-generalization"].expected_artifact == "downstream_configuration_lookup"
-    assert "hardcoded" not in by_fixture["node-cli-generalization"].prompt_template.lower()
+    assert {
+        "coinbase-frozen",
+        "coinbase-frozen-git",
+        "node-cli-generalization",
+        "go-http-generalization",
+    } <= set(by_fixture)
+    assert by_fixture["node-cli-generalization"][0].expected_artifact == "downstream_configuration_lookup"
+    go_cases = {case.case_id: case for case in by_fixture["go-http-generalization"]}
+    assert go_cases["go-http-configuration-lookup"].expected_task_class == "read_only_l1"
+    assert go_cases["go-http-table-read-write"].expected_task_class == "l2_read_only"
+    assert go_cases["go-http-table-read-write"].expected_artifact == "downstream_table_read_write_lookup"
+    assert {case.case_id for case in by_fixture["python-service-generalization"]} == {
+        "python-service-code-explanation",
+        "python-service-request-flow",
+    }
+    assert "hardcoded" not in by_fixture["node-cli-generalization"][0].prompt_template.lower()
 
 
 def test_fixture_manager_setup_copies_and_cleanup_removes_without_source_mutation(tmp_path: Path) -> None:

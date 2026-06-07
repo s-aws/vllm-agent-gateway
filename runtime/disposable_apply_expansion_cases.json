@@ -1,0 +1,48 @@
+{
+  "cases": [
+    {
+      "case_id": "DAE-001",
+      "description": "Apply an approved append_text packet to an existing tracked file on a disposable copy.",
+      "expected_changed_file_count": 1,
+      "expected_operation_kinds": [
+        "append_text"
+      ],
+      "expected_paths": [
+        "README.md"
+      ],
+      "expected_status": "applied",
+      "live": true,
+      "mutation_policy": "disposable_copy_only_source_unchanged",
+      "operation_set": "append_readme"
+    },
+    {
+      "case_id": "DAE-002",
+      "description": "Apply approved replace_text and append_text packets across two existing files on a disposable copy.",
+      "expected_changed_file_count": 2,
+      "expected_operation_kinds": [
+        "replace_text",
+        "append_text"
+      ],
+      "expected_paths": [
+        "docs/agents/INVARIANTS.md",
+        "README.md"
+      ],
+      "expected_status": "applied",
+      "live": true,
+      "mutation_policy": "disposable_copy_only_source_unchanged",
+      "operation_set": "multi_replace_invariant_append_readme"
+    },
+    {
+      "case_id": "DAE-003",
+      "description": "Prove create_file remains blocked in apply mode until a later explicit unsafe-create policy exists.",
+      "expected_error_code": "unsupported_disposable_operation_kind",
+      "expected_status": "blocked",
+      "live": false,
+      "mutation_policy": "source_unchanged_create_file_apply_blocked",
+      "operation_set": "create_file_refusal"
+    }
+  ],
+  "kind": "disposable_apply_expansion_cases",
+  "phase": 98,
+  "schema_version": 1
+}

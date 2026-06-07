@@ -1,8 +1,8 @@
 # Model Capability Profiles
 
-Model capability profiles turn model-portability reports into advisory routing evidence.
+Model capability profiles turn model-portability reports into routing evidence. Phase 100 uses the active profile through `runtime/model_capability_routing.json` as a fail-closed workflow-router gate.
 
-They do not change controller routing, prompts, skills, tool policy, or model selection. Phase 78 profiles answer one narrower question: what has the current candidate model actually proven through the existing V1 acceptance path?
+They still do not enable automatic model selection or real repository apply. They answer one narrower question: what has the current candidate model actually proven through the existing acceptance path, and which task classes may the router send to it?
 
 ## When To Use It
 
@@ -15,6 +15,7 @@ Use this after a model-portability run when you need a durable profile for:
 - timeout behavior
 - safe apply readiness
 - task-level routing policy
+- runtime fail-closed routing enforcement
 
 Use `README.model-portability.md` first when the model has not been tested yet.
 
@@ -60,15 +61,28 @@ Capability statuses:
 
 Task policy statuses:
 
-- `approved`: advisory profile supports the task type for the tested scope.
+- `approved`: profile supports the task type for the tested scope.
 - `conditional`: task type is only acceptable with explicit controller approval boundaries.
 - `not_approved`: do not route this task type based on this profile.
 
-## Current Phase 78 Boundary
+## Runtime Enforcement
 
-Profiles are advisory only.
+The workflow router reads:
 
-Automatic model selection is not enabled. Real repository apply is not approved by any Phase 78 profile. Latency remains `unknown` unless the source acceptance report records duration metrics.
+```text
+runtime/model_capability_routing.json
+```
+
+For each selected route it records `model_capability_routing` in `route-decision.json` and summary fields in chat:
+
+- `model_capability_status`
+- `model_capability_task_class`
+- `model_capability_profile_id`
+- `model_capability_policy_status`
+
+If the active profile is missing, failed, malformed, or does not approve the selected task class, the route blocks before downstream execution.
+
+Automatic model selection is still not enabled. Real repository apply is not approved by any current profile. Latency remains `unknown` unless source acceptance reports include timing metrics.
 
 ## Routing Policy
 

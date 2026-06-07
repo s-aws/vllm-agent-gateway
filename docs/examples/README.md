@@ -3,6 +3,7 @@
 Examples are grouped by feature so the root README can stay small.
 
 - [Getting Started With AnythingLLM](../../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
+- [Productized Setup](productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
 - [External Tester Onboarding](external-tester-onboarding.md): release-candidate first-test prompts, live AnythingLLM validation, and linked feedback capture.
 - [First-Time User Doctor](first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM, and fixtures.
 - [Release Channels](release-channels.md): dev, release-candidate, stable readiness, setup doctor, and acceptance gate examples.
@@ -12,8 +13,11 @@ Examples are grouped by feature so the root README can stay small.
 - [Controller Service](controller-service.md): explicit documenter workflow requests, end-to-end service runner, allowlisted targets, harness adapter, and run lookup.
 - [Workflow Router](workflow-router.md): natural-language route planning, read-only execution, blocked requests, and live validator command.
 - [Runtime Skill Selection Hardening](skill-selection-hardening.md): Phase 94 direct, gateway, local-model, and AnythingLLM validation examples for selector audit proof.
+- [Context Retrieval Upgrade](context-retrieval-upgrade.md): Phase 95 source-family audit validation through direct routing, gateway, AnythingLLM, and generated non-Coinbase fixtures.
+- [Implementation-Prep Expansion](implementation-prep-expansion.md): Phase 96 draft-only packet proposal validation through direct routing, gateway, AnythingLLM, and frozen fixture mutation proof.
+- [Approval Continuation Robustness](approval-continuation-robustness.md): Phase 97 approval continuation success, duplicate/denied/scope-change rejection, and live validator commands.
 - [Task Decomposition](task-decomposition.md): direct and AnythingLLM examples for read-only multi-step work packages, dependencies, approval gates, and JSON output.
-- [Controlled Apply](controlled-apply.md): direct dry-run patch preview, protected real-apply refusal, natural disposable-copy apply, rollback proof, and live validator command.
+- [Controlled Apply](controlled-apply.md): direct dry-run patch preview, protected real-apply refusal, natural disposable-copy apply, structured diff output, rollback proof, and live validator commands.
 - [Mutation Sandbox](mutation-sandbox.md): disposable-copy sandbox contract, structured diff proof, rollback proof, invalid-path blockers, and live validator command.
 - [Execution Planning Harness](execution-planning-harness.md): `execution_planning.plan` envelopes, AnythingLLM pasteable request, expected artifacts, and rejection cases.
 - [AnythingLLM Founder Testing](anythingllm-founder-testing.md): API and UI recipes for skill smoke, workflow envelopes, feedback capture, and frozen-repo checks.
@@ -25,10 +29,12 @@ Examples are grouped by feature so the root README can stay small.
 - [Run Observability](observability.md): recent workflow-run dashboard with route, model, approval, downstream, artifact, failure, mutation, and timing markers.
 - [Run Artifact Diff](run-artifact-diff.md): compare V1, founder-field, and model-portability run reports.
 - [Failure Taxonomy](failure-taxonomy.md): classify existing validation reports into stable failure categories and next actions.
+- [Eval Repair Loop](eval-repair-loop.md): convert taxonomy and recursive blind-testing findings into repair recommendations and holdout checks.
+- [Advanced Refactor Readiness](advanced-refactor-readiness.md): generate and inspect the Phase 105 readiness gate for approval-gated disposable-copy pilots.
 - [Bounded Recursive Testing](bounded-recursive-testing.md): no-context recursive evaluator policy, report shape, scoring, and Phase 92 usage.
 - [AnythingLLM UI E2E](anythingllm-ui-e2e.md): browser-rendered Desktop UI validation through `/stream-chat`, screenshots, and fixture mutation proof.
 - [Model Portability](model-portability.md): live candidate-model gate and existing acceptance-report classification.
-- [Model Capability Profiles](model-capability-profiles.md): profile generation from portability reports and advisory task-policy review.
+- [Model Capability Profiles](model-capability-profiles.md): profile generation from portability reports and runtime task-policy review.
 - [Prompt Catalogs](prompt-catalogs.md): founder field catalog validation, prompt matrix validation, and case-change workflow.
 - [Prompt Skill Coverage](prompt-skill-coverage.md): coverage registry validation and gap backlog review.
 - [Fixture Manager](fixture-manager.md): manifest validation, protected snapshots, disposable setup, and cleanup.

@@ -94,13 +94,54 @@ Expected chat markers:
 - `workflow_router.plan completed`
 - `downstream_workflow: implementation.workflow`
 - `source_changed: False`
+- `source_tree_changed: False`
 - `disposable_copy_changed: True`
+- `mutation_diff_file_count: 1`
+- `Disposable Apply:`
+- `Changed files: 1`
 
 Expected artifact proof in `route-decision.json`:
 
 - `disposable_apply.mutation_proof.source_changed` is `{}`
+- `disposable_apply.mutation_proof.source_tree_changed` is `false`
 - `disposable_apply.mutation_proof.copy_changed` contains `docs/agents/INVARIANTS.md`
+- `disposable_apply.mutation_proof.copy_tree_restored` is `true`
 - `disposable_apply.mutation_proof.rollback.status` is `restored`
+
+## Multi-Operation Disposable-Copy Apply
+
+Phase 98 allows approved exact packet operations for existing files when every operation stays inside the disposable-copy boundary.
+
+```json
+{
+  "model": "agentic-workflow-router",
+  "messages": [
+    {
+      "role": "user",
+      "content": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, approved disposable copy apply only. Apply these exact packet_operations to a disposable copy and do not mutate the source repo: {\"packet_operations\":[{\"kind\":\"replace_text\",\"path\":\"docs/agents/INVARIANTS.md\",\"old\":\"- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\\n  maps, dashboard references, follow-up claims, fill ledger ownership, and DB\\n  local rows.\",\"new\":\"- Use `client_order_id` for internal tracking, parent/child linkage, orderbook\\n  maps, dashboard references, follow-up claims, fill ledger ownership, DB\\n  local rows, and stealth manager placed-order index keys.\"},{\"kind\":\"append_text\",\"path\":\"README.md\",\"content\":\"\\n<!-- disposable copy proof marker -->\\n\"}]}"
+    }
+  ]
+}
+```
+
+Expected:
+
+- `mutation_diff_file_count: 2`
+- `mutation_diff_paths` contains `README.md` and `docs/agents/INVARIANTS.md`
+- `Disposable Apply:` lists both changed files with operation kinds
+- source tree digest remains unchanged
+- disposable copy tree digest is restored after rollback
+
+## Create-File Apply Refusal
+
+`create_file` is still draft-only. An approved disposable-copy apply request that includes `create_file` is blocked before downstream apply setup.
+
+Expected:
+
+- `route_status` is `blocked`
+- a `route-decision.json` blocker has `reason=unsupported_disposable_operation_kind`
+- no `disposable-mutation-proof.json` is written
+- source files remain unchanged
 
 ## AnythingLLM Test
 
@@ -128,5 +169,19 @@ python3 scripts/validate_controlled_small_change_apply_live.py \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
+  --timeout-seconds 900
+```
+
+Phase 98 expansion validator:
+
+```bash
+cd /mnt/c/agentic_agents
+python3 scripts/validate_disposable_apply_expansion.py \
+  --port-health \
+  --live-gateway \
+  --live-anythingllm \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
+  --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
+  --output-path runtime-state/disposable-apply-expansion/manual-live.json \
   --timeout-seconds 900
 ```

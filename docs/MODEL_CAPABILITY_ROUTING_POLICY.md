@@ -1,6 +1,6 @@
 # Model Capability Routing Policy
 
-Phase 78 defines advisory model capability profiles. It does not enable automatic model selection.
+Phase 78 defined advisory model capability profiles. Phase 100 makes the active profile a fail-closed workflow-router gate. It still does not enable automatic model selection.
 
 ## Policy Source
 
@@ -20,6 +20,12 @@ Each profile records:
 - `safe_apply_readiness`
 - `task_policy`
 
+Runtime enforcement is configured in:
+
+```text
+runtime/model_capability_routing.json
+```
+
 ## Capability Rules
 
 | Capability | Proven When | Blocking Evidence |
@@ -33,19 +39,19 @@ Each profile records:
 
 ## Task Policy
 
-| Task Type | Advisory Status Rule | Current Phase 78 Boundary |
+| Task Type | Runtime Status Rule | Current Boundary |
 | --- | --- | --- |
-| `read_only_l1` | approved when route stability, output contract, semantic quality, and representative L1 are proven | tested scope only |
-| `draft_only_l1` | approved when representative L1 and approval boundary evidence are present | draft packet design only |
-| `approval_gated_l1` | conditional when representative L1 and controlled apply proof are present | explicit controller approval remains required |
-| `l2_read_only` | approved when representative L2, route stability, and semantic quality are proven | read-only only |
-| `apply_prep` | conditional when controlled apply and representative L1 proof are present | disposable-copy or draft packet boundary only |
-| `real_apply` | not approved | later approved phase must define this separately |
-| `automatic_model_selection` | not approved | no runtime behavior change in Phase 78 |
+| `read_only_l1` | route may proceed only when profile `task_policy.read_only_l1.status=approved` | tested scope only |
+| `draft_only_l1` | route may proceed only when profile `task_policy.draft_only_l1.status=approved` and the request remains draft-only | draft packet design only |
+| `approval_gated_l1` | route may proceed only when profile `task_policy.approval_gated_l1.status=conditional` and explicit controller approval is present | explicit controller approval remains required |
+| `l2_read_only` | route may proceed only when profile `task_policy.l2_read_only.status=approved` | read-only only |
+| `apply_prep` | route may proceed only when profile `task_policy.apply_prep.status=conditional` and explicit packet/disposable approval is present | disposable-copy or draft packet boundary only |
+| `real_apply` | always blocked by current policy | later approved phase must define this separately |
+| `automatic_model_selection` | not approved | still disabled; Phase 100 enforces only the active configured profile |
 
 ## Routing Use
 
-Profiles may be used to decide whether a model candidate is ready for manual testing or future routing-policy implementation.
+Profiles are used by `workflow_router.plan` to decide whether the selected deterministic route may proceed to model-involved downstream work.
 
 Profiles must not:
 
@@ -56,11 +62,13 @@ Profiles must not:
 - enable real repository mutation
 - promote a model to production automatically
 
+The gate records `model_capability_routing` in `route-decision.json`. Blocked routes return no downstream execution and an empty `controller_request_preview`.
+
 ## Current Known Limitation
 
 Existing V1 acceptance reports do not record suite timing. Phase 78 therefore sets `latency=unknown` even when all functional suites pass. A later phase should add timing capture before latency can influence routing.
 
-## Phase 78 Proof Artifacts
+## Proof Artifacts
 
 The initial Phase 78 profiles are:
 
@@ -69,4 +77,11 @@ runtime-state/model-capability-profiles/phase78-live-current-profile.json
 runtime-state/model-capability-profiles/phase78-offline-baseline-profile.json
 ```
 
-Both are expected to be advisory `warning` profiles because latency is unknown and real apply is not approved.
+Both are expected to be `warning` profiles because latency is unknown and real apply is not approved.
+
+Phase 100 enforcement proof is recorded in the roadmap and includes:
+
+- blocked-profile regression for read-only L1
+- blocked-profile regression for apply prep
+- positive route proof for approved L1/L2 current profile
+- live Bash gateway and AnythingLLM validation on both frozen fixtures

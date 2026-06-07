@@ -164,6 +164,30 @@ def readme_replace_operation() -> dict[str, Any]:
     }
 
 
+def readme_append_operation(marker: str = "Phase 98 README append") -> dict[str, Any]:
+    return {
+        "kind": "append_text",
+        "path": "README.md",
+        "content": f"\n<!-- {marker} -->\n",
+    }
+
+
+def guide_append_operation(marker: str = "Phase 98 guide append") -> dict[str, Any]:
+    return {
+        "kind": "append_text",
+        "path": "docs/guide.md",
+        "content": f"\n<!-- {marker} -->\n",
+    }
+
+
+def create_file_operation() -> dict[str, Any]:
+    return {
+        "kind": "create_file",
+        "path": "docs/new-phase98-file.md",
+        "content": "# New file\n",
+    }
+
+
 def pytest_verification() -> list[dict[str, Any]]:
     return [
         {
@@ -382,6 +406,122 @@ def test_workflow_router_disposable_apply_rolls_back_copy_after_mutation_proof(t
     assert (copy_root / "README.md").read_text(encoding="utf-8") == source_before
 
 
+def test_workflow_router_disposable_apply_supports_append_text_with_tree_proof(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    source_before = (target / "README.md").read_text(encoding="utf-8")
+    with RunningControllerService(controller_config(tmp_path, target)) as service:
+        status, body = request_json(
+            service.host,
+            service.port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "schema_version": 1,
+                "target_root": str(target),
+                "user_request": "Apply this approved append only to a disposable copy.",
+                "mode": "apply_disposable_copy",
+                "approval": disposable_apply_approval(),
+                "packet_operations": [readme_append_operation()],
+                "budgets": {"max_model_calls": 0},
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["source_changed"] is False
+    assert body["summary"]["source_tree_changed"] is False
+    assert body["summary"]["disposable_copy_changed"] is True
+    assert body["summary"]["copy_tree_restored"] is True
+    assert body["summary"]["mutation_diff_file_count"] == 1
+    assert body["summary"]["mutation_diff_paths"] == ["README.md"]
+    assert body["summary"]["mutation_operation_kinds"] == ["append_text"]
+    assert body["summary"]["mutation_rollback_status"] == "restored"
+    assert (target / "README.md").read_text(encoding="utf-8") == source_before
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    proof = decision["disposable_apply"]["mutation_proof"]
+    assert proof["source_tree_changed"] is False
+    assert proof["copy_tree_restored"] is True
+    assert proof["structured_diff"]["records"][0]["operation_kind"] == "append_text"
+    assert proof["structured_diff"]["records"][0]["added_line_count"] >= 1
+    copy_root = Path(proof["disposable_copy_root"])
+    assert (copy_root / "README.md").read_text(encoding="utf-8") == source_before
+
+
+def test_workflow_router_disposable_apply_supports_multi_operation_rollback(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    readme_before = (target / "README.md").read_text(encoding="utf-8")
+    guide_before = (target / "docs" / "guide.md").read_text(encoding="utf-8")
+    operations = [readme_replace_operation(), guide_append_operation()]
+
+    with RunningControllerService(controller_config(tmp_path, target)) as service:
+        status, body = request_json(
+            service.host,
+            service.port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "schema_version": 1,
+                "target_root": str(target),
+                "user_request": "Apply these approved packet operations only to a disposable copy.",
+                "mode": "apply_disposable_copy",
+                "approval": disposable_apply_approval(),
+                "packet_operations": operations,
+                "budgets": {"max_model_calls": 0},
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["source_changed"] is False
+    assert body["summary"]["source_tree_changed"] is False
+    assert body["summary"]["disposable_copy_changed"] is True
+    assert body["summary"]["copy_tree_restored"] is True
+    assert body["summary"]["mutation_diff_file_count"] == 2
+    assert sorted(body["summary"]["mutation_diff_paths"]) == ["README.md", "docs/guide.md"]
+    assert body["summary"]["mutation_operation_kinds"] == ["replace_text", "append_text"]
+    assert (target / "README.md").read_text(encoding="utf-8") == readme_before
+    assert (target / "docs" / "guide.md").read_text(encoding="utf-8") == guide_before
+    proof = json.loads(Path(body["artifacts"]["disposable_mutation_proof"]).read_text(encoding="utf-8"))
+    structured = proof["structured_diff"]
+    assert structured["changed_file_count"] == 2
+    records = {record["path"]: record for record in structured["records"]}
+    assert records["README.md"]["operation_kind"] == "replace_text"
+    assert records["docs/guide.md"]["operation_kind"] == "append_text"
+    assert set(proof["rollback"]["backup_artifacts"]) == {"README.md", "docs/guide.md"}
+    copy_root = Path(proof["disposable_copy_root"])
+    assert (copy_root / "README.md").read_text(encoding="utf-8") == readme_before
+    assert (copy_root / "docs" / "guide.md").read_text(encoding="utf-8") == guide_before
+
+
+def test_workflow_router_disposable_apply_refuses_create_file_apply(tmp_path: Path) -> None:
+    target = make_target_repo(tmp_path)
+    with RunningControllerService(controller_config(tmp_path, target)) as service:
+        status, body = request_json(
+            service.host,
+            service.port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "schema_version": 1,
+                "target_root": str(target),
+                "user_request": "Apply this approved create_file operation only to a disposable copy.",
+                "mode": "apply_disposable_copy",
+                "approval": disposable_apply_approval(),
+                "packet_operations": [create_file_operation()],
+                "budgets": {"max_model_calls": 0},
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "blocked"
+    assert body["summary"]["disposable_copy_changed"] is False
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert any(blocker["reason"] == "unsupported_disposable_operation_kind" for blocker in decision["blockers"])
+    assert "disposable_mutation_proof" not in body["artifacts"]
+    assert not (target / "docs" / "new-phase98-file.md").exists()
+
+
 def test_workflow_router_disposable_apply_blocks_out_of_bounds_packet_path(tmp_path: Path) -> None:
     target = make_target_repo(tmp_path)
     source_before = (target / "README.md").read_text(encoding="utf-8")
@@ -500,6 +640,11 @@ def test_natural_workflow_router_disposable_apply_requires_exact_packet_json_and
     content = body["choices"][0]["message"]["content"]
     assert "workflow_router.plan completed" in content
     assert "- source_changed: False" in content
+    assert "- source_tree_changed: False" in content
+    assert "- mutation_diff_file_count: 1" in content
+    assert "Disposable Apply:" in content
+    assert "- Changed files: 1" in content
+    assert "README.md (replace_text" in content
     decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
     proof = decision["disposable_apply"]["mutation_proof"]
     assert proof["rollback"]["status"] == "restored"
@@ -536,4 +681,6 @@ def test_natural_workflow_router_disposable_apply_accepts_copy_only_exact_packet
     content = body["choices"][0]["message"]["content"]
     assert "workflow_router.plan completed" in content
     assert "- source_changed: False" in content
+    assert "- source_tree_changed: False" in content
     assert "- disposable_copy_changed: True" in content
+    assert "Disposable Apply:" in content

@@ -569,7 +569,7 @@ python3 scripts/validate_workflow_router_l2_suite.py \
   --timeout-seconds 900
 ```
 
-The current L2 validator covers `L2-001: Diagnose Failing Test And Recommend Safe Fix Plan`, `L2-002: Investigate Multi-File Behavior`, and `L2-003: Dependency Impact Summary`. It verifies root-cause, beginning-point, or impact output, participating or impacted files, exact pytest verification, risks when applicable, `Source mutation: false`, watched file hashes, and git fixture cleanliness through both the gateway and AnythingLLM.
+The current L2 validator covers `L2-001`, `L2-002`, `L2-003`, `L2-005`, and `L2-006` through `L2-013`. It verifies the selected workflow, selected Batch E skill IDs, route rules, required downstream artifacts, chat-visible markers, artifact JSON content for Batch E, `Source mutation: false`, watched file hashes, and protected fixture cleanliness through both the gateway and AnythingLLM.
 
 ## Advanced Natural Client Validator
 

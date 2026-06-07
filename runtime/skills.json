@@ -3148,6 +3148,260 @@
       "workflows": [
         "code_investigation.plan"
       ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "l2_ci_log_triage"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "pasted_ci_log"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "ci_failure_summary"
+        ],
+        "route_key": "diagnostics.ci_log_failure_summary",
+        "task_types": [
+          "ci_log_triage"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Summarize a pasted CI, GitHub Actions, pipeline, or build log into first failing command, likely cause, next local command, and read-only evidence.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/ACTIONABLE_WORKFLOW_ROADMAP.md#approved-phase-99-skill-library-scaling-batch-e"
+      ],
+      "id": "ci-log-failure-summarizer",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/ci-log-failure-summarizer/SKILL.md",
+      "problem_solving_steps": [
+        4,
+        5,
+        7
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "ci log",
+        "failing ci",
+        "github actions",
+        "first failing command",
+        "next local command"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "l2_table_read_write_lookup"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "investigation_evidence"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "table_read_write_lookup"
+        ],
+        "route_key": "data.table_read_write_lookup",
+        "task_types": [
+          "table_read_write_lookup"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Locate where a database table is defined, read, and written from bounded source evidence without mutating repository files.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/ACTIONABLE_WORKFLOW_ROADMAP.md#approved-phase-99-skill-library-scaling-batch-e"
+      ],
+      "id": "table-read-write-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/table-read-write-locator/SKILL.md",
+      "problem_solving_steps": [
+        4
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "database table",
+        "defined read and written",
+        "read/write",
+        "reads and writes",
+        "table access"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "l2_runtime_reproduction_checklist"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "runtime_error_diagnosis"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "reproduction_checklist"
+        ],
+        "route_key": "diagnostics.runtime_reproduction_checklist",
+        "task_types": [
+          "runtime_reproduction_checklist"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Convert a pasted runtime stack trace into a minimal reproduction checklist using bounded source, traceback, and verification evidence.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/ACTIONABLE_WORKFLOW_ROADMAP.md#approved-phase-99-skill-library-scaling-batch-e"
+      ],
+      "id": "runtime-reproduction-checklist-writer",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/runtime-reproduction-checklist-writer/SKILL.md",
+      "problem_solving_steps": [
+        4,
+        5,
+        7
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "reproduction checklist",
+        "minimal repro",
+        "repro checklist",
+        "turn this stack trace",
+        "runtime stack trace"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
+    },
+    {
+      "allowed_tools": [],
+      "capability_contract": {
+        "approval_boundary": "none",
+        "eval_case_ids": [
+          "l2_user_facing_message_test_target"
+        ],
+        "input_artifacts": [
+          "natural_user_request",
+          "message_source_lookup",
+          "related_tests"
+        ],
+        "mutation_policy": "no_repository_mutation",
+        "output_artifacts": [
+          "message_source_lookup"
+        ],
+        "route_key": "diagnostics.user_facing_message_test_target",
+        "task_types": [
+          "user_facing_message_test_target"
+        ]
+      },
+      "compatibility": [
+        "agent-skills-frontmatter",
+        "openai-compatible-chat",
+        "qwen-local"
+      ],
+      "description": "Check whether an error or log message appears user-facing and identify bounded related tests and verification commands without editing files.",
+      "eval_status": "validated",
+      "evals": {
+        "anythingllm": "passed",
+        "fixtures": [
+          "clear_request",
+          "ambiguous_request",
+          "unsafe_approval_bypass"
+        ],
+        "gateway_8300": "passed",
+        "localhost_8000": "passed"
+      },
+      "failure_record_refs": [
+        "docs/ACTIONABLE_WORKFLOW_ROADMAP.md#approved-phase-99-skill-library-scaling-batch-e"
+      ],
+      "id": "user-facing-message-test-target-locator",
+      "owner": "agentic_agents",
+      "path": ".qwen/skills/user-facing-message-test-target-locator/SKILL.md",
+      "problem_solving_steps": [
+        4,
+        7
+      ],
+      "safety_level": "read_only_planning",
+      "triggers": [
+        "user-facing error message",
+        "user facing error message",
+        "where it should be tested",
+        "test target",
+        "message test target"
+      ],
+      "version": "0.1.0",
+      "workflow_priorities": {
+        "code_investigation.plan": 1000
+      },
+      "workflows": [
+        "code_investigation.plan"
+      ]
     }
   ]
 }

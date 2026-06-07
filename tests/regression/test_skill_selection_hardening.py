@@ -56,6 +56,7 @@ def test_skill_selection_hardening_catalog_rejects_ready_case_without_route_rule
 def test_skill_selection_hardening_direct_repeated_cases_pass(tmp_path: Path) -> None:
     target = tmp_path / "target-repo"
     target.mkdir()
+    (target / "README.md").write_text("# Selector fixture\n", encoding="utf-8")
     report_path = tmp_path / "phase94-selection-report.json"
 
     report = validate_skill_selection_hardening(

@@ -18,6 +18,7 @@ It currently includes:
 - `coinbase-frozen-git`
 - `python-service-generalization`
 - `node-cli-generalization`
+- `go-http-generalization`
 
 Each fixture entry declares:
 
@@ -65,6 +66,16 @@ cd /mnt/c/agentic_agents
 python3 scripts/validate_multi_repo_fixtures_live.py --timeout-seconds 900
 ```
 
+Run the Phase 101 live proof with port health and AnythingLLM:
+
+```bash
+cd /mnt/c/agentic_agents
+python3 scripts/validate_multi_repo_fixtures_live.py \
+  --port-health \
+  --live-anythingllm \
+  --timeout-seconds 900
+```
+
 Reports are written under:
 
 ```text
@@ -83,4 +94,4 @@ runtime-state/fixture-manager/
 
 The generalization fixture validator delegates copy, cleanup, and hash-tree behavior to this manager while preserving its existing command interface.
 
-Phase 82 adds `node-cli-generalization` and `scripts/validate_multi_repo_fixtures_live.py` so live workflow-router proof covers both frozen Coinbase fixtures and a non-Coinbase JavaScript/Node CLI repository shape.
+Phase 82 added `node-cli-generalization` and `scripts/validate_multi_repo_fixtures_live.py` so live workflow-router proof covers both frozen Coinbase fixtures and a non-Coinbase JavaScript/Node CLI repository shape. Phase 101 adds `go-http-generalization` and extends that validator to prove gateway plus AnythingLLM routing across Coinbase, Python service, Node CLI, and Go HTTP fixture categories.

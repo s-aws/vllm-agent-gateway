@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "approval_continuation_robustness_cases",
+  "phase": 97,
+  "cases": [
+    {
+      "case_id": "APR-001",
+      "description": "A pending L1 documentation edit approval can be continued exactly once with explicit packet operations.",
+      "expected_success_status": "completed",
+      "expected_duplicate_error": "approval_already_consumed",
+      "expected_approval_state": "finished"
+    },
+    {
+      "case_id": "APR-002",
+      "description": "A denied packet-design approval cannot be continued.",
+      "expected_denial_error": "approval_denied",
+      "expected_retry_error": "approval_denied"
+    },
+    {
+      "case_id": "APR-003",
+      "description": "A packet-design approval continuation cannot change target path or source-apply scope.",
+      "expected_target_mismatch_error": "approval_scope_changed",
+      "expected_scope_change_error": "approval_scope_changed"
+    },
+    {
+      "case_id": "APR-004",
+      "description": "A read-only run cannot be used as a packet-design approval source.",
+      "expected_wrong_run_error": "approval_not_pending"
+    }
+  ]
+}

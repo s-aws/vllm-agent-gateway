@@ -174,17 +174,16 @@ Build order:
 Next roadmap gate:
 
 ```text
-Phases 92 through 94 are complete. Phase 95 Context Retrieval Upgrade is founder-approved and active. Phases 96 through 105 are founder-approved and pending completion of the lower-numbered phases.
+Phases 92 through 105 are complete. No later roadmap phase is currently founder-approved.
 ```
 
 Next implementation target:
 
 ```text
-Complete Phase 95 context retrieval upgrade from the Phase 93 prompt-family backlog.
-Add route-owned bounded context-source selection among AST index, text search, config lookup, test lookup, and curated relationship lookup, with selected/rejected source reasons and live fixture proof.
+No current approved phase. Do not add new phases or expand scope without founder approval.
 ```
 
-Reason: Phase 57 made the founder field suite part of V1 acceptance, Phase 58 added the prompt matrix, Phase 59 added semantic answer quality gates, Phase 60 added user-facing refined prompts, Phase 61 produced a validated Batch D skill-scaling proposal without registry mutation, Phase 62 registered Batch D as draft skills through the existing lifecycle, Phase 63 proved and promoted Batch D through live gateway and AnythingLLM validation, Phase 64 added Batch D prompts to the founder field suite with live V1 acceptance proof, Phase 65 added skill-library health and Batch D proof to the V1 acceptance path, Phase 66 proved the harness against a non-Coinbase disposable Python service fixture, Phase 67 made AnythingLLM feedback actionable, Phase 68 split release gates into diagnosable profiles, Phase 69 added a latest-run inspector, Phase 70 made prompt catalogs governed fixtures instead of scattered script literals, Phase 71 proved the browser-rendered AnythingLLM Desktop UI path through `/stream-chat` with screenshots and fixture mutation proof, Phase 72 added a model portability gate that wraps the existing V1 acceptance path, probes the candidate `/v1/models` endpoint, and classifies misses as harness, classifier, prompt, model-quality, or unknown issues, Phase 73 added read-only run artifact diffing for V1 acceptance, founder-field, and model-portability reports, Phase 74 added a manifest-driven fixture manager with protected source snapshots, disposable setup, cleanup, and integration into the existing generalization fixture copy helpers, Phase 75 added a read-only failure taxonomy report so failures across release gates can be classified consistently instead of reinterpreted from raw logs, Phase 76 added a first-time user doctor so setup failures can be detected before testers try AnythingLLM prompts, Phase 77 added governed skill-library packaging policy before scaling toward large skill packs, Phase 78 turned portability evidence into advisory model capability profiles and a routing policy without enabling automatic model selection, Phase 79 added a canonical prompt-to-skill coverage map with a validator and gap backlog, Phase 80 extended the existing `skill.scaffold` path into a dry-run authoring factory with coverage, docs, eval, fail-closed test, and live AnythingLLM proof, Phase 81 added an explicit skill regression tier catalog with offline, controller, gateway, AnythingLLM API, UI, fixture-mutation, and release-candidate proof boundaries, Phase 82 expanded live validation to a synthetic Node CLI fixture plus both frozen Coinbase fixtures, Phase 83 added a disposable-copy mutation sandbox contract, structured diff proof, direct mutation proof artifacts, path guardrails, and rollback-failure tests around the single existing implementation workflow, Phase 84 made approval states visible in chat and stateful in controller run records, Phase 85 added a read-only observability report with route, model, skill, tool, approval, downstream, artifact, mutation, timing, and filter proof from recent live runs, Phase 86 made normal workflow-router chat explain selected workflow, skills, tools, route rules, and registry grounding in both FormatA and JSON output, Phase 87 added versioned release-channel metadata plus setup validation, Phase 88 added a contextless external tester onboarding pack with live AnythingLLM feedback proof inside the release-candidate gate, Phase 89 added the release-candidate security policy gate for secret exposure, filesystem boundaries, protected fixture policy, command fragments, and onboarding prompt safety, Phase 90 consolidated those gates into a passed V1.1 release-candidate profile, Phase 91 promoted stable-channel handoff, Phase 92 converted stable tester and blind-review feedback into fixed current-path issues or explicit Phase 93+ backlog work, Phase 93 added a governed 30-prompt natural-language capability gap backlog with validation gates, and Phase 94 added a runtime selector audit contract with stable selected/rejected workflow, skill, and tool proof through Bash gateway, localhost model, controller, both frozen fixtures, and AnythingLLM.
+Reason: Phase 57 made the founder field suite part of V1 acceptance, Phase 58 added the prompt matrix, Phase 59 added semantic answer quality gates, Phase 60 added user-facing refined prompts, Phase 61 produced a validated Batch D skill-scaling proposal without registry mutation, Phase 62 registered Batch D as draft skills through the existing lifecycle, Phase 63 proved and promoted Batch D through live gateway and AnythingLLM validation, Phase 64 added Batch D prompts to the founder field suite with live V1 acceptance proof, Phase 65 added skill-library health and Batch D proof to the V1 acceptance path, Phase 66 proved the harness against a non-Coinbase disposable Python service fixture, Phase 67 made AnythingLLM feedback actionable, Phase 68 split release gates into diagnosable profiles, Phase 69 added a latest-run inspector, Phase 70 made prompt catalogs governed fixtures instead of scattered script literals, Phase 71 proved the browser-rendered AnythingLLM Desktop UI path through `/stream-chat` with screenshots and fixture mutation proof, Phase 72 added a model portability gate that wraps the existing V1 acceptance path, probes the candidate `/v1/models` endpoint, and classifies misses as harness, classifier, prompt, model-quality, or unknown issues, Phase 73 added read-only run artifact diffing for V1 acceptance, founder-field, and model-portability reports, Phase 74 added a manifest-driven fixture manager with protected source snapshots, disposable setup, cleanup, and integration into the existing generalization fixture copy helpers, Phase 75 added a read-only failure taxonomy report so failures across release gates can be classified consistently instead of reinterpreted from raw logs, Phase 76 added a first-time user doctor so setup failures can be detected before testers try AnythingLLM prompts, Phase 77 added governed skill-library packaging policy before scaling toward large skill packs, Phase 78 turned portability evidence into advisory model capability profiles and a routing policy without enabling automatic model selection, Phase 79 added a canonical prompt-to-skill coverage map with a validator and gap backlog, Phase 80 extended the existing `skill.scaffold` path into a dry-run authoring factory with coverage, docs, eval, fail-closed test, and live AnythingLLM proof, Phase 81 added an explicit skill regression tier catalog with offline, controller, gateway, AnythingLLM API, UI, fixture-mutation, and release-candidate proof boundaries, Phase 82 expanded live validation to a synthetic Node CLI fixture plus both frozen Coinbase fixtures, Phase 83 added a disposable-copy mutation sandbox contract, structured diff proof, direct mutation proof artifacts, path guardrails, and rollback-failure tests around the single existing implementation workflow, Phase 84 made approval states visible in chat and stateful in controller run records, Phase 85 added a read-only observability report with route, model, skill, tool, approval, downstream, artifact, mutation, timing, and filter proof from recent live runs, Phase 86 made normal workflow-router chat explain selected workflow, skills, tools, route rules, and registry grounding in both FormatA and JSON output, Phase 87 added versioned release-channel metadata plus setup validation, Phase 88 added a contextless external tester onboarding pack with live AnythingLLM feedback proof inside the release-candidate gate, Phase 89 added the release-candidate security policy gate for secret exposure, filesystem boundaries, protected fixture policy, command fragments, and onboarding prompt safety, Phase 90 consolidated those gates into a passed V1.1 release-candidate profile, Phase 91 promoted stable-channel handoff, Phase 92 converted stable tester and blind-review feedback into fixed current-path issues or explicit Phase 93+ backlog work, Phase 93 added a governed 30-prompt natural-language capability gap backlog with validation gates, Phase 94 added a runtime selector audit contract with stable selected/rejected workflow, skill, and tool proof through Bash gateway, localhost model, controller, both frozen fixtures, and AnythingLLM, Phase 95 added route-owned context-source selection with AST/text/config/test/relationship source audits, unsupported-layout blocking, generated non-Coinbase fixture proof, Bash gateway proof, and AnythingLLM proof, Phase 96 expanded draft-only implementation prep for small text edits and approved-investigation packet prep while preserving `implementation.workflow` as the single implementation path, adding enriched direct/gateway/AnythingLLM proof, fixture digests, verification commands, generic packet seeds, bare README support, and function-definition snippet preference, Phase 97 bound natural packet-design approvals to source run identity, rejected duplicate/denied/wrong-run/target-mismatch/source-apply continuations, added deterministic approval-continuation packet prep, converted workflow-router gateway approval failures into chat-visible OpenAI responses, and proved the path through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, and full Bash regression, Phase 98 expanded disposable-copy apply proof for existing-file `append_text`, multi-operation `replace_text` plus `append_text`, source-tree digest guards, chat-visible structured diff summaries, and fail-closed `create_file` refusal through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, docs-index proof, and full Bash regression, Phase 99 added four small deterministic Batch E L2 skills with routing proof, evals, prompt coverage, live gateway and AnythingLLM validation on both frozen fixtures, contextless subagent audit hardening, and full Bash regression, Phase 100 converted model capability profiles into an active fail-closed routing gate with chat-visible route evidence, current localhost model proof, task-class enforcement, live gateway and AnythingLLM validation, contextless subagent audit hardening, and full Bash regression, Phase 101 added a Go HTTP service fixture, expanded multi-repo validation across Coinbase, Python service, Node CLI, and Go HTTP layouts, recorded repo-layout limitations, proved gateway plus AnythingLLM paths, kept Coinbase V1.1 acceptance intact, and passed full Bash regression, Phase 102 added versioned dependency-aware task-decomposition work packages, chat-visible FormatA and JSON contracts, advanced-refactor deferral proof, live gateway plus AnythingLLM validation, and full Bash regression, Phase 103 added a productized install/start/validate/reset/rerun command surface over existing setup scripts and proof gates, Phase 104 added read-only eval-driven repair recommendations with contextless verifier hardening and full Bash regression, and Phase 105 added a fail-closed advanced-refactor readiness gate with prerequisite evidence validation, pilot-scope limits, live gateway plus AnythingLLM proof, contextless verifier hardening, and full Bash regression.
 
 ## Foreseeable Approval Queue
 
@@ -252,17 +251,28 @@ Approved phase queue:
 50. Phase 92: Founder And External Tester Feedback Triage - complete
 51. Phase 93: Natural-Language Capability Gap Backlog - complete
 52. Phase 94: Runtime Skill Selection Hardening - complete
-53. Phase 95: Context Retrieval Upgrade - approved; active
-54. Phase 96: Implementation-Prep Workflow Expansion - approved; pending Phase 95
-55. Phase 97: Approval UX And Continuation Robustness - approved; pending Phase 96
-56. Phase 98: Disposable Apply Expansion - approved; pending Phase 97
-57. Phase 99: Skill Library Scaling Batch E - approved; pending Phase 98
-58. Phase 100: Model Capability Routing Enforcement - approved; pending Phase 99
-59. Phase 101: Multi-Repository Generalization - approved; pending Phase 100
-60. Phase 102: Multi-Step Execution Planning - approved; pending Phase 101
-61. Phase 103: Productized Installer And Reset Path - approved; pending Phase 102
-62. Phase 104: Eval-Driven Repair Loop - approved; pending Phase 103
-63. Phase 105: Advanced Refactor Readiness Gate - approved; pending Phase 104
+53. Phase 95: Context Retrieval Upgrade - complete
+54. Phase 96: Implementation-Prep Workflow Expansion - complete
+55. Phase 97: Approval UX And Continuation Robustness - complete
+56. Phase 98: Disposable Apply Expansion - complete
+57. Phase 99: Skill Library Scaling Batch E - complete
+58. Phase 100: Model Capability Routing Enforcement - complete
+59. Phase 101: Multi-Repository Generalization - complete
+60. Phase 102: Multi-Step Execution Planning - complete
+61. Phase 103: Productized Installer And Reset Path - complete
+62. Phase 104: Eval-Driven Repair Loop - complete
+63. Phase 105: Advanced Refactor Readiness Gate - complete
+
+Proposed current-model release-readiness phases:
+
+These phases are not approved yet. They were added after the post-Phase-105 readiness review found current local-model product gaps that should be closed before any advanced-refactor work resumes.
+
+1. Phase 106: Chat Answer Artifact Priority And L1/L2 Regression Repair - proposed; awaiting founder approval
+2. Phase 107: AnythingLLM UI Semantic E2E Gate - proposed; awaiting founder approval
+3. Phase 108: Runtime-State Repository Hygiene And Proof Retention - proposed; awaiting founder approval
+4. Phase 109: Current Local Model Release-Adherence Gate - proposed; awaiting founder approval
+5. Phase 110: Semi-Well-Defined Prompt Generalization Suite - proposed; awaiting founder approval
+6. Phase 111: Closed-Loop Eval Repair Execution Gate - proposed; awaiting founder approval
 
 Second-step approved phases:
 
@@ -5142,9 +5152,9 @@ Acceptance proof:
 - First-time user doctor passed for all featured runtime ports and AnythingLLM target URL `http://127.0.0.1:8500/v1`: `runtime-state/first-time-user-doctor/phase94-skill-selection-doctor.json`.
 - Bash full regression passed: `452 passed, 4 skipped, 23 deselected`.
 
-### Approved Phase 95: Context Retrieval Upgrade
+### Completed Phase 95: Context Retrieval Upgrade
 
-Status: Approved; active.
+Status: Complete.
 
 Goal: improve bounded context gathering before planning without asking the user to name tools.
 
@@ -5162,9 +5172,24 @@ Acceptance proof:
 - Both frozen Coinbase fixtures and non-Coinbase fixtures pass read-only validation.
 - No protected fixture source changes.
 
+Completed implementation:
+
+- Added deterministic route-owned source-family selection for `ast_index`, `text_search`, `config_lookup`, `test_lookup`, and `curated_relationship_lookup`.
+- Added `route_decision.context_source_audit`, a standalone `context_source_audit` artifact, `selected_context_sources`, `context_layout_status`, and `context_gap_count`.
+- Added chat-visible `Context Sources:` output and JSON `context_explanation`.
+- Added unsupported-layout blocking through `unsupported_repository_layout`.
+- Added `runtime/context_retrieval_upgrade_cases.json`, `scripts/validate_context_retrieval_upgrade.py`, `README.context-retrieval-upgrade.md`, `docs/examples/context-retrieval-upgrade.md`, and `docs/PHASE95_CONTEXT_RETRIEVAL_UPGRADE.md`.
+
+Acceptance proof completed:
+
+- Focused regression passed for Phase 95 direct validator and workflow-router context-source tests: `8 passed, 190 deselected`.
+- Live Bash validator passed direct routing, workflow-router gateway, all featured localhost ports, both frozen Coinbase fixtures, and a generated non-Coinbase fixture: `runtime-state/context-retrieval-upgrade/phase95-context-retrieval-gateway.json`.
+- Live AnythingLLM validator passed both frozen Coinbase fixtures and a generated non-Coinbase fixture: `runtime-state/context-retrieval-upgrade/phase95-context-retrieval-anythingllm.json`.
+- Bash full regression passed: `460 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 96: Implementation-Prep Workflow Expansion
 
-Status: Approved; pending Phase 95.
+Status: Complete.
 
 Goal: support more draft-only implementation plans without applying changes.
 
@@ -5182,9 +5207,32 @@ Acceptance proof:
 - Live AnythingLLM responses expose useful plan summaries in chat.
 - Full regression and fixture hash checks pass.
 
+Completed implementation:
+
+- Added governed Phase 96 prompt cases in `runtime/implementation_prep_expansion_cases.json` for small text/documentation append drafts and approved investigation follow-up packet prep.
+- Added `vllm_agent_gateway.acceptance.implementation_prep_expansion`, `scripts/validate_implementation_prep_expansion.py`, `tests/regression/test_implementation_prep_expansion.py`, `README.implementation-prep-expansion.md`, `docs/examples/implementation-prep-expansion.md`, and `docs/PHASE96_IMPLEMENTATION_PREP_EXPANSION.md`.
+- Added natural approved-investigation packet-prep routing from chat run IDs with explicit approval scope, no mutation, and prior-run seed artifact recovery.
+- Added generic packet-seed support for `downstream_investigation_plan` and `downstream_refactor_plan`.
+- Added deterministic downstream execution-planning profiles for generic packet-objective and approved-investigation packet prep once exact operations are available.
+- Added packet-operation verification commands to deterministic draft planning.
+- Added `packet_operation_proposal` inline chat output with target file, operation, verification, evidence source, approval state, and `Source mutation: false`.
+- Improved exact packet snippets so Python function objectives prefer the function definition before broader references.
+- Added bare root text-file handling so small text edits like `README.md` do not require a directory separator.
+- Added full-tree fixture digests, watched-file hashes, git status, runtime port checks, operation targets, verification commands, and chat excerpts to Phase 96 validation reports.
+
+Acceptance proof completed:
+
+- Direct Phase 96 validator passed: `runtime-state/implementation-prep-expansion/phase96-implementation-prep-direct.json`.
+- Live Bash gateway validator passed on both frozen Coinbase fixtures with localhost model `8000`, workflow-router gateway `8500`, controller `8400`, protected fixture hashes/tree digests/git status, `source_changed=false`, downstream `repo_mutated=false`, and downstream verification commands: `runtime-state/implementation-prep-expansion/phase96-implementation-prep-gateway.json`.
+- Live AnythingLLM validator passed on both frozen Coinbase fixtures with workspace API proof, protected fixture hashes/tree digests/git status, chat-visible summaries, `source_changed=false`, downstream `repo_mutated=false`, and downstream verification commands: `runtime-state/implementation-prep-expansion/phase96-implementation-prep-anythingllm.json`.
+- Focused regression passed for Phase 96 direct validator and approved-investigation continuation coverage: `4 passed`.
+- Focused regression passed for small text edit continuation coverage: `2 passed`.
+- Docs index check passed with no orphan docs: `expected_count=110`, `orphaned_docs=[]`.
+- Full Bash regression passed: `464 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 97: Approval UX And Continuation Robustness
 
-Status: Approved; pending Phase 96.
+Status: Complete.
 
 Goal: make natural "approve this plan" hard to misuse.
 
@@ -5202,9 +5250,28 @@ Acceptance proof:
 - Regression covers approval success and failure cases.
 - Live Bash/AnythingLLM validation proves chat-visible approval state.
 
+Completed implementation:
+
+- Bound packet-design approval continuations to the referenced source run target.
+- Rejected natural-language target mismatches and payload target mismatches in approval continuations.
+- Rejected approval messages that try to convert draft packet design into source apply.
+- Added deterministic `approval_continuation_packet_prep` execution-planning path for exact packet-operation continuations.
+- Kept direct controller approval errors fail-closed with explicit error codes.
+- Converted workflow-router gateway approval errors into OpenAI-style chat responses so AnythingLLM displays failure reason, approval state, approval type, and next action.
+- Added `runtime/approval_continuation_robustness_cases.json`, `vllm_agent_gateway.acceptance.approval_continuation_robustness`, `scripts/validate_approval_continuation_robustness.py`, `tests/regression/test_approval_continuation_robustness.py`, `README.approval-continuation-robustness.md`, `docs/examples/approval-continuation-robustness.md`, and `docs/PHASE97_APPROVAL_CONTINUATION_ROBUSTNESS.md`.
+
+Acceptance proof completed:
+
+- Direct Phase 97 validator passed: `runtime-state/approval-continuation-robustness/phase97-approval-direct.json`.
+- Live Bash gateway validator passed on both frozen Coinbase fixtures with all featured port-health checks: `runtime-state/approval-continuation-robustness/phase97-approval-gateway.json`.
+- Live AnythingLLM validator passed on both frozen Coinbase fixtures with all featured port-health checks: `runtime-state/approval-continuation-robustness/phase97-approval-anythingllm.json`.
+- Focused regression passed for Phase 97 validator, controller guards, deterministic continuation, and gateway error chat conversion: `7 passed`.
+- Docs index check passed with no orphan docs: `expected_count=113`, `orphaned_docs=[]`.
+- Full Bash regression passed: `471 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 98: Disposable Apply Expansion
 
-Status: Approved; pending Phase 97.
+Status: Complete.
 
 Goal: safely test more implementation paths on disposable copies.
 
@@ -5222,9 +5289,23 @@ Acceptance proof:
 - Protected source hashes and git status remain unchanged.
 - Diff summaries are visible in chat and artifacts.
 
+Completion proof:
+
+- Implemented source-tree digest guards and copy-tree rollback proof in the existing `workflow_router.plan` disposable-copy path.
+- Implemented chat-visible `Disposable Apply:` structured diff summaries from `disposable-mutation-diff.json`.
+- Added `runtime/disposable_apply_expansion_cases.json`, `vllm_agent_gateway/acceptance/disposable_apply_expansion.py`, `scripts/validate_disposable_apply_expansion.py`, and `tests/regression/test_disposable_apply_expansion.py`.
+- Focused Phase 98 regression passed: `8 passed`.
+- Direct validator passed: `runtime-state/disposable-apply-expansion/phase98-direct.json`, `check_count=4`, `failed_check_ids=[]`.
+- Live Bash gateway validator passed: `runtime-state/disposable-apply-expansion/phase98-gateway.json`, `check_count=18`, `failed_check_ids=[]`, both frozen fixtures, all featured ports.
+- Live AnythingLLM validator passed: `runtime-state/disposable-apply-expansion/phase98-anythingllm.json`, `check_count=19`, `failed_check_ids=[]`, both frozen fixtures, all featured ports.
+- Docs index passed with `expected_count=114`, `orphaned_docs=[]`.
+- `git diff --check` passed.
+- Full Bash regression passed with `477 passed, 4 skipped, 23 deselected`.
+- Boundary preserved: real source apply remains blocked for protected fixtures and `create_file` apply remains blocked with `unsupported_disposable_operation_kind`.
+
 ### Approved Phase 99: Skill Library Scaling Batch E
 
-Status: Approved; pending Phase 98.
+Status: Complete.
 
 Goal: add small deterministic skills only where field data shows gaps.
 
@@ -5242,9 +5323,25 @@ Acceptance proof:
 - Skill package policy passes.
 - No skill claims product support without an end-to-end route.
 
+Completion proof:
+
+- Added four validated Batch E L2 skills: `ci-log-failure-summarizer`, `table-read-write-locator`, `runtime-reproduction-checklist-writer`, and `user-facing-message-test-target-locator`.
+- Added matching route predicates, route-skill overrides, workflow artifact contracts, prompt coverage entries `L2-010` through `L2-013`, and skill eval mappings.
+- Added deterministic code-investigation artifacts for CI log triage, table read/write lookup, runtime reproduction checklists, and user-facing message test-target lookup.
+- Hardened inline FormatA rendering so requested Batch E artifacts are chat-visible and non-requested empty artifacts do not preempt the answer.
+- Used a contextless subagent audit for bounded recursive verification; accepted findings strengthened live artifact checks, exact skill/route assertions, negative mutation routing checks, and L2-012 eval coverage.
+- Added bounded table-access fallback scanning so the real frozen Coinbase fixture can surface definition/read/write evidence instead of passing only synthetic test repos.
+- Added focused regression for Batch E routing, artifacts, metadata, selection, eval mapping, and mutation-seeking negative prompts; focused regression passed with `49 passed`.
+- Metadata and governance proof passed: `validate_skill_evals.py` recorded `case_count=53`, `failed_count=0`; prompt coverage passed with `entry_count=40`, `implemented_count=38`, `gap_count=2`; skill-scale passed with `skill_count=54`, `eval_case_count=53`, `route_key_count=54`; docs index passed with `expected_count=114`, `orphaned_docs=[]`.
+- Bash stack health passed on featured ports: localhost `8000`, gateway `8300`, controller `8400`, and workflow router `8500`.
+- Live Bash gateway validation passed for `L2-010` through `L2-013` on `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Live AnythingLLM validation passed for `L2-010` through `L2-013` on both frozen fixtures, with proof captured in `runtime-state/skill-evals/phase99-batch-e-live.json`.
+- Full Bash regression passed after the non-agent code changes: `483 passed, 4 skipped, 23 deselected`.
+- Tightening included an async controller run-record persistence hardening after full regression exposed a transient `404` polling race; the focused async regression and full Bash regression both passed after the fix.
+
 ### Approved Phase 100: Model Capability Routing Enforcement
 
-Status: Approved; pending Phase 99.
+Status: Complete.
 
 Goal: enforce routing constraints from model capability profiles.
 
@@ -5262,9 +5359,30 @@ Acceptance proof:
 - Model portability gate proves the current localhost model profile.
 - Regression covers proven, partial, blocked, and unknown profiles.
 
+Completion proof:
+
+- Added `runtime/model_capability_routing.json` as the active fail-closed routing policy for model capability task classes.
+- Added `vllm_agent_gateway/model_capability_routing.py` with enum-backed task class routing for `read_only_l1`, `draft_only_l1`, `approval_gated_l1`, `l2_read_only`, `apply_prep`, `real_apply`, and `unknown`.
+- Inserted the capability gate into the existing workflow-router route path after deterministic workflow selection and workflow-registry validation, before downstream skill/tool selection, request preview creation, or apply-capable routing.
+- Preserved the existing unsupported-route behavior: deterministic unsupported requests can still record advisory model-router evidence, but model-router output cannot override unsupported decisions.
+- Added route-decision, evidence, summary, and chat-visible fields for `model_capability_status`, `model_capability_task_class`, `model_capability_profile_id`, and `model_capability_policy_status`.
+- Generated current localhost model proof artifacts: `runtime-state/model-portability/phase100-current-skip-live.json`, `runtime-state/model-capability-profiles/phase100-current-profile.json`, and `runtime-state/model-capability-profiles/phase100-current-profile.md`.
+- Current profile proof identified `Qwen3-Coder-30B-A3B-Instruct`; profile status is `warning` because live latency is not proven in the skip-live profile, while `read_only_l1`, `draft_only_l1`, and `l2_read_only` are approved, `approval_gated_l1` and `apply_prep` are conditional, and `real_apply` plus automatic model selection remain not approved.
+- Used a contextless subagent audit for bounded recursive verification; accepted findings placed the gate inside the existing router path, before downstream routing, and added negative tests for blocked/unknown profiles.
+- Added regression coverage proving not-approved read-only L1 and apply-prep routes fail closed without downstream preview, plus prompt-coverage task-class mapping and draft-only approval classification.
+- Hardened L1 and L2 live validators to require capability gate artifacts, summary fields, task classes, profile IDs, and evidence entries.
+- Focused regression passed with `21 passed` for model capability profile, workflow-router gate, unsupported override, and controlled apply coverage.
+- Skill-eval metadata proof passed for Batch E after the gate: `runtime-state/skill-evals/phase100-batch-e-metadata-after-capability-gate.json`.
+- Bash stack health passed on featured ports: localhost model `8000`, gateway `8300`, controller `8400`, and workflow router `8500`.
+- Representative live L1 validation passed through Bash gateway and AnythingLLM for `L1-002` and `L1-010` on `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Representative live L2 validation passed through Bash gateway and AnythingLLM for `L2-010` on both frozen fixtures.
+- Protected git-enabled fixture status remained clean.
+- Docs index passed with `expected_count=114`, `orphaned_docs=[]`; JSON validation and `git diff --check` passed.
+- Full Bash regression passed after the non-agent code changes: `487 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 101: Multi-Repository Generalization
 
-Status: Approved; pending Phase 100.
+Status: Complete.
 
 Goal: prove the harness is not Coinbase-fixture-specific.
 
@@ -5282,9 +5400,29 @@ Acceptance proof:
 - Fixture manager snapshots and cleanup pass.
 - No protected source mutation occurs.
 
+Completion proof:
+
+- Added `go-http-generalization`, a protected disposable-only Go HTTP service fixture with route registration, handler, repository, SQL table access constants, migration, test file, README, and watched source paths.
+- Updated `runtime/fixtures.json`, `README.fixture-manager.md`, and `docs/examples/fixture-manager.md` so contextless agents can discover and validate Coinbase, Python service, Node CLI, and Go HTTP fixture categories.
+- Extended `scripts/validate_multi_repo_fixtures_live.py` to run fixture-specific natural prompts instead of reusing Coinbase-shaped L1/L2 suites, covering Coinbase code explanation, Python service code explanation and request flow, Node config lookup, Go config lookup, and Go table definition/read/write lookup.
+- Multi-repo validator now records `layout_status`, `selected_context_sources`, `context_gaps`, route decisions, model-capability task class, fixture category, source mutation proof, and explicit repo-layout limitations for generic Go/JavaScript structure indexing.
+- Used a contextless subagent audit for bounded recursive verification; accepted findings avoided generic full L1/L2 suite misuse, kept Go parser expansion out of Phase 101, and separated generic append-only mutation proof from Coinbase-specific disposable-apply cases.
+- Tightened the deterministic table read/write route rule so natural wording like "definition, reads, and writes" routes to the existing `code_investigation.plan` table-read/write artifact instead of relying on advisory model-router output.
+- Added a case filter and protected-source-refusal switch to the existing disposable-apply validator so Phase 101 can run only the generic append-only disposable-copy mutation case across Python/Node/Go fixtures without sending real-apply packets to synthetic source fixtures.
+- Tightened the first-time user doctor so parent allowed roots, such as `/mnt/c/agentic_agents`, satisfy child fixture roots; Phase 101 doctor then passed for both frozen fixtures plus Python, Node, and Go fixtures.
+- Tightened controller run-record loading after full regression exposed a transient async cancel polling `404` on the Windows-mounted filesystem; focused cancel regression passed after the single load-path retry.
+- Fixture manager validation passed with five fixtures; `phase101-snapshots.json` captured tree snapshots; `phase101-go-setup-cleanup.json` proved Go fixture setup and cleanup.
+- Gateway-only multi-repo proof passed in `runtime-state/multi-repo-fixtures/phase101-gateway-after-restart.json`: 7 cases, 5 fixture categories, source unchanged.
+- Gateway plus AnythingLLM multi-repo proof passed in `runtime-state/multi-repo-fixtures/phase101-gateway-anythingllm.json`: 14 client cases, clients `gateway` and `anythingllm`, categories `real-world-python-git`, `real-world-python-non-git`, `synthetic-python-service`, `synthetic-node-cli`, and `synthetic-go-http-service`.
+- Cross-fixture disposable mutation sandbox proof passed in `runtime-state/disposable-apply-expansion/phase101-cross-fixture-append.json`: DAE-001 append-only, gateway plus AnythingLLM, Python/Node/Go target roots, no failed checks.
+- Coinbase V1.1 acceptance baseline remained intact in `runtime-state/v1-acceptance/phase101-v1-1-coinbase.json`: status passed, 13 suites, two frozen target roots, zero errors.
+- Focused regression passed for fixture manager, generalization fixture, disposable-apply case filter, first-time user doctor, and async cancel hardening.
+- Full Bash regression passed after the non-agent code changes: `490 passed, 4 skipped, 23 deselected`.
+- Go fixture-local `go test ./...` was not run because the Bash environment does not have the Go toolchain installed; Go toolchain command quality is explicitly not a Phase 101 pass condition.
+
 ### Approved Phase 102: Multi-Step Execution Planning
 
-Status: Approved; pending Phase 101.
+Status: Complete.
 
 Goal: handle larger tasks by decomposing them into ordered approval-gated work packages.
 
@@ -5302,9 +5440,24 @@ Acceptance proof:
 - Regression covers ordering, dependencies, ambiguity, and unsupported scope.
 - Live AnythingLLM validation returns immediately useful chat summaries.
 
+Completion proof:
+
+- Expanded `task.decompose` into a versioned `work_package_schema_version: 2` contract with deterministic package order `WP1 -> GATE2 -> WP3 -> WP4 -> STOP5`.
+- Added per-package stage, dependency contract, entry conditions, exit criteria, stop conditions, approval gate metadata, mutation policy, expected artifacts, and verification status.
+- Added `advanced_refactor_deferred` handling so broad single-path or one-code-path refactor orchestration returns a blocked/deferred plan with `DEFER1`, `deferred_to_phase: 105`, no executable package workflow, and no packet artifacts.
+- Added FormatA rendering for package schema, stages, stop conditions, package verification, approval gates, selected workflows/skills/tools, and mutation proof.
+- Added JSON `task_decomposition_contract` so AnythingLLM users can review the useful plan inline without opening artifact files.
+- Updated task-decomposition docs and examples to use a supported small multi-step task instead of the deferred advanced-refactor prompt.
+- Contextless subagent audit confirmed the correct implementation point was the existing `task.decompose` workflow, not a new workflow or executor.
+- Focused regression passed: `python -m pytest tests\regression\test_task_decomposition.py tests\regression\test_chat_response_contract.py tests\regression\test_v1_acceptance.py -q` returned `18 passed`.
+- Docs index passed: `python scripts\check_docs_index.py` returned `DOCS INDEX PASS`.
+- Diff whitespace check passed with only the pre-existing `runtime/skill_evals.json` CRLF warning.
+- Bash live validation passed through localhost model `8000`, gateway `8300`, controller `8400`, workflow-router gateway `8500`, role ports `8101`, `8102`, `8201`, `8202`, `8203`, `8204`, `8205`, gateway chat, AnythingLLM API, and both frozen Coinbase fixtures; report: `runtime-state/task-decomposition/phase102-live.json`.
+- Full Bash regression passed after non-agent code changes: `492 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 103: Productized Installer And Reset Path
 
-Status: Approved; pending Phase 102.
+Status: Complete.
 
 Goal: make setup and recovery less founder-dependent.
 
@@ -5322,9 +5475,32 @@ Acceptance proof:
 - Docs index links all setup/reset docs.
 - Regression covers command generation or dry-run installer behavior where applicable.
 
+Completion proof:
+
+- Added `vllm_agent_gateway.acceptance.productized_setup` as the single productized setup command planner/executor for `plan`, `install`, `start`, `validate`, `reset`, and `rerun`.
+- Added `scripts/run_productized_setup.py` as the user-facing CLI, with `scripts/manage_productized_setup.py` retained as a compatibility entrypoint.
+- The start command preserves the existing controller/gateway path by setting `CONTROLLER_DEFAULT_ROLE_BASE_URL=http://127.0.0.1:8300/v1` and uses the existing `start-agent-prompt-proxies.sh`.
+- The reset command is non-destructive and only calls the existing `stop-agent-prompt-proxies.sh`; it does not delete artifacts, restore fixtures, kill arbitrary port owners, or run `git reset`.
+- The validate action wraps the existing first-time user doctor, release-channel validator, and security policy validator.
+- The rerun action wraps the existing stable handoff smoke path, including live AnythingLLM onboarding and protected fixture checks.
+- Reports include planned commands, required files, execution results, and failure-specific guidance for `port.*`, `anythingllm.api_key`, `anythingllm.target_url`, `controller.allowed_roots`, and `fixtures.*`.
+- Added `README.productized-setup.md` and `docs/examples/productized-setup.md`; linked them from the root README, ordered docs index, and examples index.
+- Contextless subagent audit caught an important start-path issue before closeout: the setup wrapper must use the gateway URL `8300/v1`, not direct model `8000/v1`, for controller role calls.
+- Focused regression passed: `python -m pytest tests\regression\test_productized_setup.py tests\regression\test_first_time_user_doctor.py tests\regression\test_stable_handoff.py tests\regression\test_release_channels.py tests\regression\test_docs_index.py -q` returned `24 passed`.
+- Docs index passed with `expected_count=116` and no orphaned docs.
+- Bash productized live proof passed:
+  - `runtime-state/productized-setup/phase103-reset.json`: reset action passed, one stop command executed.
+  - `runtime-state/productized-setup/phase103-start.json`: start action passed, one start command executed.
+  - `runtime-state/productized-setup/phase103-validate.json`: validate action passed, doctor/release/security commands executed.
+  - `runtime-state/productized-setup/phase103-rerun.json`: rerun action passed, stable handoff command executed.
+- Productized validate child doctor passed with `28` passed checks, `0` failed checks, and the known `fixtures.coinbase-frozen-git` line-ending warning.
+- Productized rerun child stable handoff passed with `6` checks, `4` child commands, and `0` failed checks.
+- Protected git-enabled frozen fixture content diff remained clean after live proof; Git only reported known line-ending warnings.
+- Full Bash regression passed after non-agent code changes: `499 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 104: Eval-Driven Repair Loop
 
-Status: Approved; pending Phase 103.
+Status: Complete.
 
 Goal: when a prompt fails, suggest the smallest likely fix instead of vague troubleshooting.
 
@@ -5346,9 +5522,26 @@ Acceptance proof:
 - Regression covers each failure category.
 - Live failed-prompt artifacts produce useful next actions.
 
+Completion proof:
+
+- Added `vllm_agent_gateway.acceptance.eval_repair_loop` and `scripts/report_eval_repair_loop.py` as a read-only advisory layer over existing failure-taxonomy and recursive blind-testing reports.
+- Added Phase 104 repair categories for route rule, skill metadata, tool availability, prompt ambiguity, model quality, docs/setup issue, and unsupported scope; output-contract misses target the chat contract surface while preserving the repair-category contract.
+- Added recommendation fields for evidence refs, target files/artifacts, minimal repair, validation command, target prompt rerun, holdout prompt rerun, repair cycle count, advisory/current-phase status, fixture mutation guard, and target/holdout result status.
+- Hardened validation so current-phase repairs cannot pass without `target_result_status=passed` and `holdout_result_status=passed`.
+- Hardened recursive report blocking for round exhaustion, unresolved critical/high findings, low score, fixture mutation including structured evidence, and holdout regression including structured evidence.
+- Added `README.eval-repair-loop.md`, `docs/examples/eval-repair-loop.md`, and ordered docs-index links.
+- Live failed-prompt proof generated a taxonomy report from `runtime-state/founder-field-tests/founder-field-prompts-20260606T001557214431Z.json`: `runtime-state/failure-taxonomy/phase104-live-failed-founder.json`.
+- Live repair proof combined that failed founder-field taxonomy report with `runtime-state/recursive-blind-testing/phase92-feedback-triage-recursive-report.json`: `runtime-state/eval-repair-loop/phase104-live-failed-founder-repair.json`; status passed with 13 source findings, 12 recommendations, zero blocking errors, and zero validation errors.
+- Model-quality validation command smoke passed by generating `runtime-state/eval-repair-loop/phase104-model-command-smoke.json` from existing model portability evidence.
+- Contextless bounded subagent audits were run twice. The first audit found blockers around target/holdout proof, invalid model-quality command, output-contract target surface, setup `.json` misclassification, and structured fixture mutation evidence; the second audit found structured advisory holdout regression as the remaining hard-stop gap. All accepted findings were fixed in Phase 104 and covered by regression.
+- Focused regression passed after final hardening: `python -m pytest tests\regression\test_eval_repair_loop.py tests\regression\test_failure_taxonomy.py tests\regression\test_recursive_blind_testing.py -q` with `32 passed`.
+- Docs index passed with `expected_count=118`, `linked_count=118`, and `orphaned_docs=[]`.
+- Protected git-enabled frozen fixture content diff remained clean after Phase 104 proof.
+- Full Bash regression passed after non-agent code changes: `515 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 105: Advanced Refactor Readiness Gate
 
-Status: Approved; pending Phase 104.
+Status: Complete.
 
 Goal: reintroduce broad refactor orchestration only after smaller implementation flows are stable.
 
@@ -5365,6 +5558,199 @@ Acceptance proof:
 - Readiness report names the exact prerequisite evidence.
 - Pilot prompts, if admitted, are approval-gated and disposable-copy-only.
 - Broad refactor never becomes part of stable without a later explicit promotion.
+
+Completion summary:
+
+- Added [vllm_agent_gateway/acceptance/advanced_refactor_readiness.py](../vllm_agent_gateway/acceptance/advanced_refactor_readiness.py) and [scripts/report_advanced_refactor_readiness.py](../scripts/report_advanced_refactor_readiness.py) to produce a canonical readiness report at `runtime-state/advanced-refactor-readiness/phase105-readiness.json` plus Markdown summary.
+- The readiness gate now validates the full prerequisite set exactly: implementation prep, approval continuation, disposable apply, rollback, verification, multi-repo fixture coverage, advanced-refactor deferral, model-policy source-apply blocking, and eval-repair loop evidence.
+- Hardened [vllm_agent_gateway/controllers/workflow_router/plan.py](../vllm_agent_gateway/controllers/workflow_router/plan.py) so natural `refactor.single_path` requests fail closed when the Phase 105 report is missing, invalid, truncated, failed, or outside the limited pilot scope.
+- The admitted pilot scope is limited to narrow, investigation-first, approval-gated single-behavior/function prompts. Broad subsystem refactor prompts stay blocked with `advanced_refactor_pilot_scope_not_admitted`.
+- Source apply remains blocked. Stable advanced-refactor promotion remains disabled and requires a later explicit roadmap phase.
+- Added [scripts/validate_advanced_refactor_readiness_live.py](../scripts/validate_advanced_refactor_readiness_live.py) for Bash live validation across localhost `8000`, featured controller/gateway ports, AnythingLLM, `/mnt/c/coinbase_testing_repo_frozen_tmp`, and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Updated [README.advanced-refactor-readiness.md](../README.advanced-refactor-readiness.md), [docs/examples/advanced-refactor-readiness.md](examples/advanced-refactor-readiness.md), [README.md](../README.md), [docs/README.md](README.md), and [docs/examples/README.md](examples/README.md).
+
+Validation proof:
+
+- Contextless bounded subagent audits were run during design and hardening. Accepted findings fixed truncated `pilot_ready` report admission, blocked-route approval artifact leakage, and overly broad pilot matching.
+- Focused regression passed: `python -m pytest tests\regression\test_advanced_refactor_readiness.py -q` with `8 passed`.
+- Cross-check regression passed: `python -m pytest tests\regression\test_advanced_refactor_readiness.py tests\regression\test_task_decomposition.py -q` with `15 passed`.
+- Docs index passed after Phase 105 docs: `python scripts\check_docs_index.py` with `expected_count=120`, `linked_count=120`, and `orphaned_docs=[]`.
+- Readiness report passed: `python scripts\report_advanced_refactor_readiness.py --output-path runtime-state\advanced-refactor-readiness\phase105-readiness.json --markdown-output-path runtime-state\advanced-refactor-readiness\phase105-readiness.md` with `status=passed`, `readiness_status=pilot_ready`, `passed_prerequisite_count=9`, `failed_prerequisite_count=0`, and `missing_prerequisite_count=0`.
+- Bash live validation passed: `python3 scripts/validate_advanced_refactor_readiness_live.py` with `PHASE105 LIVE NATURAL SUMMARY {"anythingllm_skipped": false, "case_count": 2, "error_count": 0, "port_count": 11, "status": "passed"}`.
+- Full Bash regression passed after non-agent code changes: `523 passed, 4 skipped, 23 deselected`.
+- Protected git-enabled frozen fixture content diff remained clean after Phase 105 proof.
+
+### Proposed Phase 106: Chat Answer Artifact Priority And L1/L2 Regression Repair
+
+Status: Proposed; awaiting founder approval.
+
+Goal: make current L1/L2 chat output reliably answer the user's requested task before advanced-refactor work resumes.
+
+Problem evidence:
+
+- Post-Phase-105 gateway-only L1 validation passed 23 of 24 cases on both frozen fixtures; `L1-001` failed on `/mnt/c/coinbase_testing_repo_frozen_tmp` because the visible `Answer:` rendered `downstream_cli_entrypoint_lookup` first and omitted `Beginning point:`, `Related tests:`, and `Recommended commands:`.
+- The failed `L1-001` route and downstream investigation were correct: `selected_workflow=code_investigation.plan`, `verification_command_count=10`, and `downstream_investigation_plan` contained the actual beginning point plus related tests. The user-visible failure was answer artifact priority, not route selection.
+- Post-Phase-105 gateway-only L2 validation passed 11 of 12 cases on both frozen fixtures; `L2-009` failed on `/mnt/c/coinbase_testing_repo_frozen_tmp` because the change-surface output omitted expected source marker `core/stealth_order_manager.py`.
+- The failed `L2-009` non-git fixture run ranked `ID_USAGE_ANALYSIS.md` as the only change-surface file after query extraction produced `placed_order_id_stealth_lookup`; this is a non-git fallback/source-ranking weakness.
+
+Implementation tasks:
+
+- Fix inline `Answer:` artifact selection so the renderer prefers the artifact matching the selected L1/L2 prompt family instead of optional sidecar artifacts.
+- For `L1-001`, render from `downstream_investigation_plan` when the route rule is `l1_find_behavior_start_terms`; include beginning point, evidence files, related tests, recommended commands, confidence/gaps, and source mutation state.
+- Fix change-surface source ranking for non-git fixtures so source files outrank documentation when source evidence exists for the normalized terms.
+- Normalize underscore/space query variants such as `placed_order_id_stealth_lookup` into useful source-search terms without creating a parallel search path.
+- Add regression that fails if `L1-001` returns the CLI `main.py` fallback as the primary answer for the stealth lookup prompt.
+- Add regression that fails if `L2-009` change-surface output omits source files for the non-git Coinbase fixture.
+
+Acceptance proof:
+
+- Full L1 gateway-only suite passes all cases on both frozen fixtures.
+- Full L2 gateway-only suite passes all cases on both frozen fixtures.
+- `L1-001` gateway and AnythingLLM runs pass both frozen fixtures and include `Beginning point:`, `Related tests:`, and `Recommended commands:` in chat.
+- `L2-009` gateway and AnythingLLM runs pass both frozen fixtures and include `core/stealth_order_manager.py` when the prompt asks for the `placed_order_id` stealth lookup change surface.
+- The fix preserves route, skill, and tool selection evidence; it does not add a second routing or editing path.
+- Protected frozen fixture hashes remain unchanged.
+- Full Bash regression passes after non-agent code changes.
+
+### Proposed Phase 107: AnythingLLM UI Semantic E2E Gate
+
+Status: Proposed; awaiting founder approval.
+
+Goal: make the browser-visible AnythingLLM UI validator prove useful answer content, not only transport and marker presence.
+
+Problem evidence:
+
+- Current Desktop UI E2E passed on `anythingllm-ui-e2e-20260607T112652015040Z.json`, but both visible answers for the `L1-001` prompt rendered `Entrypoints: main.py:65 (python_main_guard): python main.py`.
+- The validator accepted the run because it checked transport and coarse markers: `workflow_router.plan completed`, `run_id:`, `selected_workflow: code_investigation.plan`, and `Answer:`.
+- This means the UI E2E can pass while showing a semantically wrong or unhelpful answer to the tester.
+
+Implementation tasks:
+
+- Extend the UI E2E validator with case-specific semantic markers for the same prompt family it submits.
+- For the default UI prompt, require `Beginning point:`, `Related tests:`, `Recommended commands:`, and reject `Entrypoints: main.py` as the primary answer for the stealth lookup question.
+- Add at least one passing holdout prompt, such as `L1-002` or `L2-001`, so the UI validator proves more than one answer renderer.
+- Keep screenshots, `/stream-chat` proof, and fixture mutation proof.
+- Record UI semantic misses separately from transport misses.
+
+Acceptance proof:
+
+- UI E2E fails against the current known-bad `L1-001` renderer before Phase 106 is fixed or uses a controlled negative fixture proving the semantic gate fails closed.
+- UI E2E passes after Phase 106 with case-specific semantic markers on both frozen fixtures.
+- The report records semantic marker hits, rejected wrong-answer markers, screenshots, stream-chat proof, run IDs, and fixture mutation proof.
+- The validator remains Windows/Chrome-specific where appropriate, while runtime stack validation remains Bash-hosted.
+
+### Proposed Phase 108: Runtime-State Repository Hygiene And Proof Retention
+
+Status: Proposed; awaiting founder approval.
+
+Goal: stop generated runtime artifacts from being committed while preserving enough canonical proof for contextless agents and testers.
+
+Problem evidence:
+
+- `runtime-state/` is now correctly ignored, but previously tracked `runtime-state` files remain tracked until removed from the index.
+- Roadmap and README files currently reference generated runtime reports that may no longer exist in a clean clone once `runtime-state/` is untracked.
+- Contextless audits can be confused by stale failed debug artifacts such as `runtime-state/disposable-apply-expansion/debug-direct.json` when they glob all runtime-state JSON.
+
+Implementation tasks:
+
+- Remove tracked `runtime-state/` files from the git index without deleting local files.
+- Define the retention rule: generated runtime proof stays local or under the private state root; committed docs contain concise proof summaries and commands, not large generated reports.
+- Add or update a small committed proof-index document if needed so contextless agents know which local reports are canonical and which are stale/debug.
+- Update docs that imply generated runtime-state artifacts are committed source-of-truth files.
+- Add a simple repo hygiene check that fails if new generated runtime-state files are tracked.
+- Label or quarantine stale debug artifacts in local runtime-state reports when used during audits.
+
+Acceptance proof:
+
+- `git ls-files runtime-state` returns no tracked generated runtime-state files.
+- `git check-ignore -v runtime-state/<sample>` proves generated runtime-state files are ignored.
+- Docs still provide enough proof summaries, commands, and canonical local artifact paths for contextless continuation.
+- Docs index passes.
+- No validation capability is lost; validators continue writing local reports under ignored runtime-state or the private controller state root.
+
+### Proposed Phase 109: Current Local Model Release-Adherence Gate
+
+Status: Proposed; awaiting founder approval.
+
+Goal: create one consolidated gate that answers whether the current localhost model and harness are releasable for normal founder/testing use.
+
+Problem evidence:
+
+- Current evidence is spread across first-time doctor, release channels, security policy, L1/L2 suites, UI E2E, model capability profile, founder-field reports, and runtime artifacts.
+- Some reports are stale or partial. For example, a model-portability artifact failed due missing `ANYTHINGLLM_API_KEY` even though later live paths passed with explicit key export.
+- The active model capability profile is `warning` because latency remains unmeasured, even though functional quality gates pass.
+
+Implementation tasks:
+
+- Add a consolidated release-adherence validator that runs setup preflight, port health, model probe, release channel, security policy, L1/L2 suite, representative AnythingLLM cases, UI semantic E2E, fixture mutation checks, and current model capability profile.
+- Classify failures as setup, route, skill/tool selection, answer renderer, semantic quality, output contract, model quality, latency, AnythingLLM config, fixture mutation, or stale artifact confusion.
+- Capture timing/latency enough to remove or justify the model profile `warning` state.
+- Require the Bash-hosted stack, localhost `8000`, all featured controller/gateway ports, AnythingLLM, and both frozen fixtures.
+- Produce a single JSON and Markdown release-readiness report for founder review.
+
+Acceptance proof:
+
+- The consolidated gate fails before Phase 106/107 gaps are fixed, or records those gaps as blockers with exact run IDs and artifact refs.
+- After repairs, the gate passes with zero blocker findings.
+- The report includes current model name, port evidence, route/skill/tool proof, answer-quality proof, UI semantic proof, fixture mutation proof, latency summary, and actionable failure classifications.
+- Full Bash regression passes after non-agent code changes.
+
+### Proposed Phase 110: Semi-Well-Defined Prompt Generalization Suite
+
+Status: Proposed; awaiting founder approval.
+
+Goal: prove the product works for semi-well-defined natural coding prompts, not only exact governed prompt wording.
+
+Problem evidence:
+
+- Contextless audit found that current proof is strong for governed L1/L2 prompt families but weak for arbitrary semi-well-defined prompt wording.
+- Founder-field prompts include refined wording and risk notes; semantic gates are still mostly marker/concept based.
+- Current tests prove controller-selected workflows more than raw local-model resilience to natural user phrasing.
+
+Implementation tasks:
+
+- Create a governed suite of 20 to 30 semi-well-defined prompts across the current supported L1/L2 capabilities.
+- Include prompt variants with omitted wording such as missing `Read only`, different order of requested outputs, partial target descriptions, and user phrasing that does not name internal skill/workflow terms.
+- Run the prompts through gateway and AnythingLLM on both frozen Coinbase fixtures plus representative non-Coinbase fixtures where appropriate.
+- Use bounded contextless evaluators to judge visible answer usefulness, then adjudicate findings with deterministic artifacts.
+- Add prompt-improvement suggestions for misses without accepting prompt tweaks as fixes unless runtime artifacts prove the result.
+
+Acceptance proof:
+
+- Suite report lists each prompt, route decision, selected workflow/skills/tools, visible answer markers, semantic score, fixture mutation proof, and prompt suggestion when missed.
+- Mean score meets the stable-channel threshold from the bounded recursive testing policy, with no required case below the minimum threshold.
+- Accepted findings either become current-phase fixes or proposed roadmap work with exact evidence.
+- No prompt requires manual skill injection, controller JSON, or internal workflow names.
+
+### Proposed Phase 111: Closed-Loop Eval Repair Execution Gate
+
+Status: Proposed; awaiting founder approval.
+
+Goal: prove the project can turn a failed local-model/harness eval into an accepted fix and verified holdout pass.
+
+Problem evidence:
+
+- The eval repair loop currently produces useful advisory recommendations, but live proof records `target_result_status=not_run_advisory` and `holdout_result_status=not_run_advisory`.
+- Contextless audit found no closed loop from a local-model miss to roadmap item, repair, rerun, and holdout validation.
+- Some repair recommendations are broad enough that they still require human triage before implementation.
+
+Implementation tasks:
+
+- Pick one current failing case from Phase 106 or 107 as the target repair.
+- Run failure taxonomy and eval repair recommendation generation.
+- Convert the accepted recommendation into the smallest implementation plan and record rejected broad explanations.
+- Implement the repair only after the phase is approved.
+- Rerun the target case and at least one holdout from a different prompt family.
+- Record accepted/rejected blind findings and deterministic adjudication.
+
+Acceptance proof:
+
+- A failed target case is captured before repair with route, chat, artifact, and fixture proof.
+- Eval repair produces a recommendation narrow enough to implement.
+- The repair is applied through the normal code-change process, not prompt-only claims.
+- Target and holdout validations pass after repair.
+- Full Bash regression passes after non-agent code changes.
+- The final report proves no protected fixture mutation and no route/skill/tool regression.
 
 ## Stop Conditions
 
@@ -5391,4 +5777,4 @@ When a new Codex session starts, do this:
 6. Run regression after non-agent code changes.
 7. Follow the Structured Development Rule in this roadmap for every non-trivial change: define the problem, gather evidence, identify root cause, design the smallest correction, implement, verify, inspect artifacts, and document the result.
 
-Phases 43 through 94 are complete. Phase 95 is approved and active. Phases 96 through 105 are approved and pending completion of the lower-numbered phases.
+Phases 43 through 105 are complete. Phases 106 through 111 are proposed current-model release-readiness work and are not approved yet.
