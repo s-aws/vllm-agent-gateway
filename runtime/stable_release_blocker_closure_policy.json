@@ -1,0 +1,42 @@
+{
+  "allowed_founder_feedback_closure_statuses": [
+    "closed_as_synthetic_fixture",
+    "closed_by_required_gate"
+  ],
+  "allowed_prompt_tightening_closure_statuses": [
+    "rejected",
+    "accepted_with_rerun_proof"
+  ],
+  "founder_feedback_closures": [
+    {
+      "case_id": "FL125-001",
+      "closure_status": "closed_as_synthetic_fixture",
+      "rationale": "Phase 125 generated this accepted baseline-candidate feedback as a synthetic workflow-feedback validation fixture. It proves classification and durable decision recording, but it is not production founder feedback that should mutate the stable baseline corpus.",
+      "required_gate": "baseline_corpus"
+    },
+    {
+      "case_id": "FL125-002",
+      "closure_status": "closed_as_synthetic_fixture",
+      "rationale": "Phase 125 generated this accepted holdout-candidate feedback as a synthetic workflow-feedback validation fixture. It proves holdout classification and durable decision recording, but it is not production founder feedback that should mutate the holdout prompt bank.",
+      "required_gate": "holdout_prompt_bank"
+    },
+    {
+      "case_id": "FL125-003",
+      "closure_status": "closed_as_synthetic_fixture",
+      "rationale": "Phase 125 generated this accepted repair-followup feedback as a synthetic workflow-feedback validation fixture. It proves repair classification and durable decision recording, but it is not production founder feedback that should enqueue a model repair.",
+      "required_gate": "eval_repair_loop"
+    }
+  ],
+  "kind": "stable_release_blocker_closure_policy",
+  "phase": 131,
+  "priority_backlog_id": "P0-BB-016",
+  "prompt_tightening_closures": [
+    {
+      "candidate_id": "PTR-phase117_defect_diagnosis-DD117-009",
+      "closure_status": "rejected",
+      "prompt_catalog_changed": false,
+      "rationale": "Reject this prompt-tightening candidate for stable release because it was triggered only by a low-confidence pass at the governed floor, has no unresolved findings, fresh drift is none, and changing the prompt catalog would add churn without proven user-visible failure."
+    }
+  ],
+  "schema_version": 1
+}

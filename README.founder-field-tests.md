@@ -4,6 +4,8 @@ This field test checks whether the V1 harness behaves like a usable product from
 
 It runs natural-language prompts through the AnythingLLM workspace API, with AnythingLLM pointed at the workflow-router gateway `http://127.0.0.1:8500/v1`. Each prompt has a baseline target, expected workflow, required chat-visible markers, semantic answer markers, forbidden mutation markers, and a refined prompt when the original wording has ambiguity risk.
 
+Before running the field suite, run the stable release gate from [README.stable-chat-quality-release.md](README.stable-chat-quality-release.md). The current expected readiness is `ready_for_founder_testing`.
+
 ## What This Proves
 
 - natural prompts do not require manual skill injection
@@ -36,6 +38,12 @@ From Bash:
 ```bash
 cd /mnt/c/agentic_agents
 export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/validate_stable_release_blocker_closure.py \
+  --require-artifacts \
+  --output-path runtime-state/stable-release-blocker-closure/phase131/phase131-stable-release-blocker-closure-report.json
+python3 scripts/validate_stable_chat_quality_release.py \
+  --require-artifacts \
+  --output-path runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json
 python3 scripts/run_founder_field_prompt_eval.py \
   --anythingllm-api-base-url http://127.0.0.1:3001 \
   --workspace my-workspace \
@@ -47,6 +55,8 @@ Expected final marker:
 ```text
 FOUNDER FIELD PASS
 ```
+
+Do not run the full field suite until the stable release gate reports `STABLE CHAT QUALITY RELEASE PASS`.
 
 Reports are written under:
 

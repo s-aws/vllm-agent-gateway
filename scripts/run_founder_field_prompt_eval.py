@@ -12,6 +12,7 @@ import sys
 import urllib.error
 import urllib.request
 import uuid
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -123,6 +124,15 @@ def digest_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def digest_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8", errors="replace")).hexdigest()
+
+
+def write_text(path: Path, value: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(value, encoding="utf-8")
+
+
 def watched_hashes(target_root: str) -> dict[str, str]:
     root = Path(target_root)
     hashes: dict[str, str] = {}
@@ -232,8 +242,9 @@ def evaluate_text(case: FieldPrompt, text: str) -> dict[str, Any]:
         "run_id": run_id_from_text(text),
         "expected_skill_id": case.expected_skill_id,
         "expected_artifact_key": case.expected_artifact_key,
-        "text_sha256": hashlib.sha256(text.encode("utf-8", errors="replace")).hexdigest(),
+        "text_sha256": digest_text(text),
         "text_sample": text[:1600],
+        "_full_text": text,
         "initial_difference": "No marker-level or semantic difference from the baseline target." if not difference_parts else (
             " ".join(difference_parts)
         ),
@@ -243,11 +254,32 @@ def evaluate_text(case: FieldPrompt, text: str) -> dict[str, Any]:
     }
 
 
+def prompt_for_case(args: argparse.Namespace, case: FieldPrompt) -> str:
+    if args.use_refined_prompts and case.refined_prompt:
+        return case.refined_prompt
+    return case.prompt
+
+
+def evaluation_case_for_prompt(args: argparse.Namespace, case: FieldPrompt) -> FieldPrompt:
+    if not (args.use_refined_prompts and case.refined_prompt):
+        return case
+    return replace(
+        case,
+        expected_rule=case.refined_expected_rule or case.expected_rule,
+        expected_markers=case.refined_expected_markers or case.expected_markers,
+        semantic_markers=case.refined_semantic_markers or case.semantic_markers,
+        expected_skill_id=case.refined_expected_skill_id or case.expected_skill_id,
+        expected_artifact_key=case.refined_expected_artifact_key or case.expected_artifact_key,
+    )
+
+
 def run_anythingllm_case(args: argparse.Namespace, case: FieldPrompt, api_key: str) -> dict[str, Any]:
+    prompt = prompt_for_case(args, case)
+    evaluation_case = evaluation_case_for_prompt(args, case)
     status, body = json_request(
         f"{args.anythingllm_api_base_url.rstrip('/')}/api/v1/workspace/{args.workspace}/chat",
         payload={
-            "message": case.prompt,
+            "message": prompt,
             "mode": "chat",
             "sessionId": f"founder-field-{case.case_id.lower()}-{uuid.uuid4().hex}",
         },
@@ -257,11 +289,13 @@ def run_anythingllm_case(args: argparse.Namespace, case: FieldPrompt, api_key: s
     result: dict[str, Any] = {
         "case_id": case.case_id,
         "target_root": case.target_root,
-        "prompt": case.prompt,
+        "prompt": prompt,
+        "source_prompt": case.prompt,
+        "prompt_variant": "refined" if prompt != case.prompt else "original",
         "baseline_target": case.baseline_target,
-        "expected_workflow": case.expected_workflow,
-        "expected_skill_id": case.expected_skill_id,
-        "expected_artifact_key": case.expected_artifact_key,
+        "expected_workflow": evaluation_case.expected_workflow,
+        "expected_skill_id": evaluation_case.expected_skill_id,
+        "expected_artifact_key": evaluation_case.expected_artifact_key,
         "http_status": status,
     }
     if status != 200:
@@ -275,7 +309,8 @@ def run_anythingllm_case(args: argparse.Namespace, case: FieldPrompt, api_key: s
         )
         return result
     text = text_response(body)
-    result.update(evaluate_text(case, text))
+    result.update(evaluate_text(evaluation_case, text))
+    result["route_surface"] = "anythingllm_via_workflow_router_gateway"
     return result
 
 
@@ -314,6 +349,18 @@ def write_json(path: Path, value: dict[str, Any]) -> None:
     path.write_text(json.dumps(value, ensure_ascii=True, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def write_response_artifact(report_path: Path, item: dict[str, Any]) -> None:
+    text = item.pop("_full_text", None)
+    if not isinstance(text, str):
+        return
+    response_dir = report_path.with_suffix("")
+    response_path = response_dir / "responses" / f"{item['case_id']}.txt"
+    write_text(response_path, text)
+    item["response_artifact_path"] = str(response_path.resolve())
+    item["response_artifact_sha256"] = digest_file(response_path)
+    item["response_artifact_bytes"] = response_path.stat().st_size
+
+
 def write_markdown(path: Path, report: dict[str, Any]) -> None:
     lines = [
         "# Founder Field Prompt Evaluation",
@@ -327,21 +374,22 @@ def write_markdown(path: Path, report: dict[str, Any]) -> None:
         "",
         "## Results",
         "",
-        "| Case | Status | Output contract | Semantic quality | Expected workflow | Run ID | Initial difference | Miss suggestion | Refined prompt |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| Case | Status | Output contract | Semantic quality | Expected workflow | Run ID | Response artifact | Initial difference | Miss suggestion | Refined prompt |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for item in report["cases"]:
         difference = str(item.get("initial_difference", "")).replace("\n", " ")
         suggestion = str(item.get("suggested_prompt_if_missed", "")).replace("\n", " ")
         refined_prompt = str(item.get("refined_prompt", "")).replace("\n", " ")
         lines.append(
-            "| {case_id} | {status} | {output_contract} | {semantic_quality} | {workflow} | {run_id} | {difference} | {suggestion} | {refined_prompt} |".format(
+            "| {case_id} | {status} | {output_contract} | {semantic_quality} | {workflow} | {run_id} | {artifact} | {difference} | {suggestion} | {refined_prompt} |".format(
                 case_id=item["case_id"],
                 status=item["status"],
                 output_contract=item.get("output_contract_status", ""),
                 semantic_quality=item.get("semantic_quality_status", ""),
                 workflow=item["expected_workflow"],
                 run_id=item.get("run_id", ""),
+                artifact=item.get("response_artifact_path", ""),
                 difference=difference[:500],
                 suggestion=suggestion[:300],
                 refined_prompt=refined_prompt[:300],
@@ -387,6 +435,8 @@ def write_markdown(path: Path, report: dict[str, Any]) -> None:
                 "",
                 f"Run ID: `{item.get('run_id', 'unknown')}`",
                 "",
+                f"Response artifact: `{item.get('response_artifact_path', 'missing')}`",
+                "",
             ]
         )
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -405,6 +455,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-path", default=None)
     parser.add_argument("--markdown-output-path", default=None)
     parser.add_argument("--list-prompts", action="store_true")
+    parser.add_argument("--use-refined-prompts", action="store_true")
     return parser.parse_args()
 
 
@@ -442,6 +493,7 @@ def main() -> int:
             raise RuntimeError("AnythingLLM preflight failed")
         for case in cases:
             item = run_anythingllm_case(args, case, api_key)
+            write_response_artifact(report_path, item)
             report["cases"].append(item)
             print(
                 "FIELD PROMPT {case_id} {status} run_id={run_id}".format(

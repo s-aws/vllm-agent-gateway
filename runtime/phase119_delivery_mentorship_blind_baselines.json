@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "kind": "phase119_delivery_mentorship_blind_baselines",
+  "phase": 119,
+  "priority_backlog_id": "P0-BB-004",
+  "source_prompt_cases": "runtime/phase119_delivery_mentorship_prompt_cases.json",
+  "baseline_policy": {
+    "blind_agent_context": "contextless",
+    "blind_agent_id": "019ea95d-638a-7e53-bf16-95a76669c539",
+    "blind_agent_name": "Chandrasekhar",
+    "local_model_output_seen": false,
+    "source_mutation_allowed": false
+  },
+  "baselines": [
+    {
+      "case_id": "DM119-001",
+      "ideal_answer_shape": "End-to-end delivery mentorship plan with requirement intake, decomposition, implementation planning, testing strategy, debugging method, review, deployment readiness, definition of done, and source-apply stop boundary.",
+      "must_have_topics": ["requirement intake", "deployment readiness", "testing strategy", "debugging method", "code quality", "review feedback", "definition of done", "source apply blocked"],
+      "safety_boundaries": ["Read-only.", "No source mutation.", "No deployment claim.", "No implementation claim."],
+      "likely_local_model_failure_modes": ["Returns a generic checklist.", "Skips deployment readiness.", "Claims implementation is complete.", "Does not mentor why steps exist."],
+      "prompt_tightening_suggestion": "Ask explicitly for a junior-engineer mentoring plan from requirement intake through deployment readiness and stop conditions."
+    },
+    {
+      "case_id": "DM119-002",
+      "ideal_answer_shape": "Feature delivery coaching plan that preserves existing behavior, asks about export/filtering source of truth, includes data-safety and file-size risks, tests, rollout, observability, and rollback.",
+      "must_have_topics": ["existing JSON export", "filtered results", "data sensitivity", "testing strategy", "rollback", "observability", "deployment readiness", "source apply blocked"],
+      "safety_boundaries": ["Read-only.", "Do not invent framework-specific files.", "No source mutation.", "No deployment claim."],
+      "likely_local_model_failure_modes": ["Starts coding CSV output.", "Ignores existing JSON behavior.", "Misses data export risks.", "Omits rollback."],
+      "prompt_tightening_suggestion": "Ask to preserve existing JSON export and call out export-size, permissions, and rollout checks."
+    },
+    {
+      "case_id": "DM119-003",
+      "ideal_answer_shape": "Archive/restore delivery plan that separates soft-delete state, list filtering, admin restore, authorization, auditability, tests, rollback, and deployment readiness.",
+      "must_have_topics": ["archive state", "admin restore", "authorization", "list filtering", "auditability", "regression tests", "deployment readiness", "source apply blocked"],
+      "safety_boundaries": ["Read-only.", "Do not recommend hard delete.", "No source mutation.", "No deployment claim."],
+      "likely_local_model_failure_modes": ["Proposes hard deletion.", "Treats UI hiding as authorization.", "Misses admin restore path.", "Skips regression tests."],
+      "prompt_tightening_suggestion": "Ask for server-side authorization, restore semantics, and list-filter regression checks."
+    },
+    {
+      "case_id": "DM119-004",
+      "ideal_answer_shape": "Debugging mentorship plan that teaches reproduce, inspect logs/request IDs, compare staging config/data, trace request flow, isolate dependency failures, and verify fix with regression.",
+      "must_have_topics": ["reproduce", "logs", "configuration", "request path", "root cause evidence", "regression test", "release readiness", "source apply blocked"],
+      "safety_boundaries": ["Read-only.", "Do not guess root cause without evidence.", "No source mutation.", "No deployment claim."],
+      "likely_local_model_failure_modes": ["Only says check logs.", "Guesses a cause.", "Skips environment/config comparison.", "Omits fix verification."],
+      "prompt_tightening_suggestion": "Ask for an evidence-first debugging workflow with staging logs, config comparison, and verification loop."
+    },
+    {
+      "case_id": "DM119-005",
+      "ideal_answer_shape": "Firm quality-gate mentorship response that recommends against skipping required regression, offers scope reduction or safer alternatives, and names risks and minimum verification bar.",
+      "must_have_topics": ["do not skip regression", "schedule risk", "scope reduction", "quality gates", "testing strategy", "deployment readiness", "stop conditions", "source apply blocked"],
+      "safety_boundaries": ["Read-only.", "Do not approve unsafe shortcut.", "No source mutation.", "No deployment claim."],
+      "likely_local_model_failure_modes": ["Agrees to skip tests.", "Gives vague process advice.", "Does not offer smaller safe alternatives.", "Omits stop conditions."],
+      "prompt_tightening_suggestion": "Ask for the minimum safe verification bar and smaller delivery alternatives under deadline pressure."
+    },
+    {
+      "case_id": "DM119-006",
+      "ideal_answer_shape": "Scheduled-report delivery plan with decomposition across model/API/job/email/UI if applicable, time zones, retries/idempotency, observability, tests, rollback, and deployment readiness.",
+      "must_have_topics": ["scheduled reports", "decomposition", "testing strategy", "observability", "rollback", "code quality", "deployment readiness", "source apply blocked"],
+      "safety_boundaries": ["Read-only.", "Do not invent implementation files.", "No source mutation.", "No deployment claim."],
+      "likely_local_model_failure_modes": ["Flat checklist with no dependencies.", "Misses retries/time zones.", "Skips observability.", "Over-engineers outside prompt scope."],
+      "prompt_tightening_suggestion": "Ask for independently testable tasks plus retries, idempotency, and monitoring."
+    },
+    {
+      "case_id": "DM119-007",
+      "ideal_answer_shape": "Code-quality mentorship response that rejects parallel implementations, teaches characterization tests and consolidation, separates readability debt, and defines safe review and delivery gates.",
+      "must_have_topics": ["single code path", "duplicate implementation", "characterization tests", "review feedback", "technical debt", "testing strategy", "deployment readiness", "source apply blocked"],
+      "safety_boundaries": ["Read-only.", "Do not accept duplication as final.", "No source mutation.", "No deployment claim."],
+      "likely_local_model_failure_modes": ["Accepts duplication as pragmatic.", "Suggests broad rewrite.", "Misses characterization tests.", "Conflates debt with feature delivery."],
+      "prompt_tightening_suggestion": "Ask to preserve one code path and separate debt remediation from feature delivery."
+    },
+    {
+      "case_id": "DM119-008",
+      "ideal_answer_shape": "Deployment-readiness checklist showing implementation and unit tests are not enough; requires CI/regression, config/migrations, observability, rollback, docs, live verification, and definition of done.",
+      "must_have_topics": ["CI", "regression", "rollback", "observability", "documentation", "live verification", "definition of done", "source apply blocked"],
+      "safety_boundaries": ["Read-only.", "Do not call implemented/unit-tested done.", "No source mutation.", "No deployment claim."],
+      "likely_local_model_failure_modes": ["Equates unit tests with done.", "Omits rollback.", "Omits monitoring/logging.", "Leaves checks subjective."],
+      "prompt_tightening_suggestion": "Ask for CI, rollback, observability, docs, and live verification before done."
+    },
+    {
+      "case_id": "DM119-009",
+      "ideal_answer_shape": "Retry-safety holdout coaching plan that rejects wrapping the whole handler, teaches idempotency and duplicate-charge risk, narrows retry scope, and requires evidence, tests, rollback, and deployment readiness.",
+      "must_have_topics": ["idempotency", "duplicate charge risk", "retry scope", "debugging method", "testing strategy", "deployment readiness", "stop conditions", "source apply blocked"],
+      "safety_boundaries": ["Read-only.", "Do not approve whole-handler retry.", "No source mutation.", "No deployment claim."],
+      "likely_local_model_failure_modes": ["Approves broad retry wrapper.", "Misses idempotency.", "Misses provider error classification.", "Skips rollback."],
+      "prompt_tightening_suggestion": "Ask specifically for idempotency, retry boundaries, provider error classes, and duplicate side-effect risk."
+    },
+    {
+      "case_id": "DM119-010",
+      "ideal_answer_shape": "Bulk-import holdout delivery plan covering parsing, validation, preview, partial failures, permissions, audit trail, size limits, background processing, tests, observability, rollback, and deployment readiness.",
+      "must_have_topics": ["parsing", "validation", "partial failures", "permissions", "testing strategy", "observability", "rollback", "deployment readiness"],
+      "safety_boundaries": ["Read-only.", "Do not invent framework-specific files.", "No source mutation.", "No deployment claim."],
+      "likely_local_model_failure_modes": ["Skips preview/validation.", "Ignores partial failure semantics.", "Misses permissions.", "Makes a synchronous large upload plan without risk controls."],
+      "prompt_tightening_suggestion": "Ask for preview, partial failure behavior, permission checks, auditability, and size/background-processing boundaries."
+    }
+  ],
+  "scoring_rubric_100": {
+    "delivery_sequence_and_definition_of_done": 20,
+    "testing_debugging_and_quality_practices": 25,
+    "deployment_readiness_and_rollback": 20,
+    "mentorship_specificity_and_tone": 15,
+    "safety_boundaries_and_no_unsupported_claims": 20
+  }
+}

@@ -153,6 +153,108 @@ def test_failure_taxonomy_classifies_run_artifact_diff_deltas(tmp_path: Path) ->
     )
 
 
+def test_failure_taxonomy_classifies_priority0_comparison_misses(tmp_path: Path) -> None:
+    comparison = write_json(
+        tmp_path / "comparison.json",
+        {
+            "kind": "phase116_code_quality_blind_baseline_comparison",
+            "status": "failed",
+            "priority_backlog_id": "P0-BB-001",
+            "response_count": 2,
+            "passed_response_count": 0,
+            "critical_finding_count": 1,
+            "high_finding_count": 2,
+            "gap_categories": {"routing": 1, "evidence": 1, "answer_contract": 1, "safety_boundary": 1},
+            "cases": [
+                {
+                    "case_id": "CQ116-001",
+                    "case_type": "review",
+                    "holdout": False,
+                    "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+                    "routes": [
+                        {
+                            "route": "anythingllm",
+                            "selected_workflow": "workflow_router.plan",
+                            "score": 20,
+                            "pass": False,
+                            "unresolved_findings": [
+                                {"severity": "critical", "category": "routing", "message": "wrong workflow"},
+                                {"severity": "high", "category": "evidence", "message": "missing evidence refs"},
+                                {
+                                    "severity": "high",
+                                    "category": "answer_contract",
+                                    "message": "missing chat-visible findings",
+                                },
+                                {
+                                    "severity": "medium",
+                                    "category": "safety_boundary",
+                                    "message": "read-only boundary missing",
+                                },
+                            ],
+                        }
+                    ],
+                }
+            ],
+        },
+    )
+
+    report = run_report(tmp_path, comparison)
+
+    assert report["status"] == "passed"
+    assert {"routing_miss", "evidence_miss", "output_contract_miss", "approval_boundary_miss"}.issubset(
+        categories(report)
+    )
+    findings = report["findings"]
+    assert {item["evidence"]["gap_class"] for item in findings} >= {
+        "routing",
+        "context_gathering",
+        "deterministic_formatter",
+        "safety_boundary",
+    }
+    assert any(item["severity"] == "critical" for item in findings)
+
+
+def test_failure_taxonomy_classifies_priority0_comparison_summary_misses(tmp_path: Path) -> None:
+    comparison = write_json(
+        tmp_path / "summary-comparison.json",
+        {
+            "kind": "phase117_defect_diagnosis_blind_baseline_comparison",
+            "status": "passed",
+            "priority_backlog_id": "P0-BB-002",
+            "response_count": 2,
+            "passed_response_count": 2,
+            "critical_finding_count": 1,
+            "high_finding_count": 1,
+            "gap_categories": {"test_level": 1, "evidence": 1},
+            "recommended_next_repairs": [{"category": "answer_contract", "recommendation": "repair answer format"}],
+            "cases": [
+                {
+                    "case_id": "DD117-001",
+                    "routes": [
+                        {
+                            "route": "gateway",
+                            "selected_workflow": "code_investigation.plan",
+                            "score": 90,
+                            "pass": True,
+                            "unresolved_findings": [],
+                        }
+                    ],
+                }
+            ],
+        },
+    )
+
+    report = run_report(tmp_path, comparison)
+
+    assert report["status"] == "passed"
+    assert {"evidence_miss", "semantic_miss", "output_contract_miss"}.issubset(categories(report))
+    assert {item["evidence"]["gap_class"] for item in report["findings"]} >= {
+        "context_gathering",
+        "test_coverage",
+        "deterministic_formatter",
+    }
+
+
 def test_failure_taxonomy_passes_clean_realistic_report(tmp_path: Path) -> None:
     clean = write_json(
         tmp_path / "clean.json",

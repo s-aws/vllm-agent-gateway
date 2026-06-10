@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "phase116_code_quality_prompt_cases",
+  "phase": 116,
+  "priority_backlog_id": "P0-BB-001",
+  "description": "Blind-baseline-first prompt cases for Phase 116 code quality and self-review chat quality.",
+  "acceptance_threshold": {
+    "minimum_score": 85,
+    "unresolved_critical_findings_allowed": 0,
+    "unresolved_high_findings_allowed": 0
+  },
+  "cases": [
+    {
+      "case_id": "CQ116-001",
+      "case_type": "duplication_review",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, review core/stealth_order_manager.py for duplicated logic or repeated code-quality risks around stealth order lookup and reveal state handling. Read only. Return findings with severity, evidence refs, impact, and bounded remediation options.",
+      "holdout": false,
+      "expected_scope": "bounded_file_review",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "CQ116-002",
+      "case_type": "complexity_review",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, review business/order_event_stream.py for excessive complexity, broad exception handling, or maintainability risks. Read only. Return only evidence-backed code-quality findings and note any false positives you reject.",
+      "holdout": false,
+      "expected_scope": "bounded_file_review",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "CQ116-003",
+      "case_type": "naming_boundary_review",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, review service/orders.py for naming clarity, function boundaries, and simple code-quality issues. Read only. If no meaningful issue is supported, say that and explain why.",
+      "holdout": false,
+      "expected_scope": "bounded_file_review",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "CQ116-004",
+      "case_type": "coupling_review",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, review service/api.py and service/orders.py for tight coupling between request handling and business logic. Read only. Return findings, evidence refs, and any rejected false positives.",
+      "holdout": false,
+      "expected_scope": "bounded_multi_file_review",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "CQ116-005",
+      "case_type": "proposed_patch_self_review",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, self-review this proposed patch before implementation: in service/api.py, change `paid = bool(message.get(\"paid\", False))` to `paid = message.get(\"paid\") == True`. Read only. Identify correctness, maintainability, naming/style, and test risks with evidence refs and a recommendation.",
+      "holdout": false,
+      "expected_scope": "patch_review_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "CQ116-006",
+      "case_type": "false_positive_guard",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, review service/orders.py specifically for duplicated logic. Read only. Do not invent issues; if duplication is not supported, return no finding with evidence.",
+      "holdout": false,
+      "expected_scope": "bounded_file_review",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "CQ116-007",
+      "case_type": "standards_review",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, review core/stealth_order_manager.py for code-quality issues related to magic strings, enum usage, and single-code-path maintainability. Read only. Return evidence-backed findings and rejected assumptions.",
+      "holdout": false,
+      "expected_scope": "bounded_file_review",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "CQ116-008",
+      "case_type": "self_review_checklist",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, create a self-review checklist for a planned change that adds a requirement note to the stealth order lookup answer. Read only. Include coding standards, tests, evidence refs to inspect, risks, and explicit non-goals.",
+      "holdout": false,
+      "expected_scope": "self_review_plan_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "CQ116-009",
+      "case_type": "holdout_duplication_review",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, review core/stealth_order_manager.py for duplicated stealth-order lookup logic. Read only. Return at most three evidence-backed findings and say when evidence is insufficient.",
+      "holdout": true,
+      "expected_scope": "bounded_file_review",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "CQ116-010",
+      "case_type": "holdout_patch_review",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, self-review this proposed patch before implementation: in service/orders.py, remove the `if item_count <= 0: return \"empty\"` branch from resolve_order_status. Read only. Identify correctness, edge-case, test, and maintainability risks.",
+      "holdout": true,
+      "expected_scope": "patch_review_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    }
+  ],
+  "baseline_requirements": [
+    "selected_workflow_expectation",
+    "must_have_facts",
+    "evidence_expectations",
+    "safety_boundaries",
+    "output_shape",
+    "scoring_rubric",
+    "likely_failure_modes"
+  ]
+}

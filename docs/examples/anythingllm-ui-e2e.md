@@ -9,6 +9,7 @@ $env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_
 python scripts\validate_anythingllm_ui_e2e.py `
   --anythingllm-api-base-url http://127.0.0.1:3001 `
   --workspace my-workspace `
+  --prompt-catalog-path runtime\anythingllm_ui_prompt_cases.json `
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp `
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github `
   --timeout-seconds 420 `
@@ -25,6 +26,66 @@ The report should include:
 - no rejected markers, such as `Entrypoints:` for the `L1-001` behavior-start case
 - `fixture_unchanged=true`
 - before/after screenshots for each prompt
+
+## Phase 126 Stable Corpus UI Subset
+
+Run the bounded stable-corpus UI proof:
+
+```powershell
+$env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
+python scripts\validate_anythingllm_ui_e2e.py `
+  --anythingllm-api-base-url http://127.0.0.1:3001 `
+  --workspace my-workspace `
+  --ui-dist-root runtime-state\anythingllm-ui\asar-dist\dist `
+  --timeout-seconds 300 `
+  --output-path runtime-state\anythingllm-ui\phase126-corpus-ui-usefulness.json `
+  --case-id UI126-CQ116-001 `
+  --case-id UI126-CQ116-009 `
+  --case-id UI126-DD117-001 `
+  --case-id UI126-DD117-002 `
+  --case-id UI126-EJ118-001 `
+  --case-id UI126-EJ118-002 `
+  --case-id UI126-DM119-001 `
+  --case-id UI126-DM119-002
+```
+
+The report should include:
+
+- `status=passed`
+- `case_count=8`
+- `fixture_unchanged=true`
+- all cases have `stream_chat_seen=true`
+- all cases have screenshot status `passed`
+- all stable cases have `answer_usefulness.usefulness_status=passed`
+- `case_target_roots` includes both frozen Coinbase fixtures
+
+## Phase 167 No-Target UI Replay Gate
+
+Run the generic/vague prompt UI replay slice:
+
+```powershell
+$env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
+python scripts\validate_anythingllm_ui_e2e.py `
+  --anythingllm-api-base-url http://127.0.0.1:3001 `
+  --workspace my-workspace `
+  --ui-dist-root runtime-state\anythingllm-ui\asar-dist\dist `
+  --timeout-seconds 300 `
+  --output-path runtime-state\anythingllm-ui\phase167\phase167-ui-replay.json `
+  --case-id UI167-GENCHAT-001 `
+  --case-id UI167-GENHELP-001 `
+  --case-id UI167-VAGUE-001
+```
+
+The report should include:
+
+- `status=passed`
+- three browser-visible no-target cases
+- `stream_chat_seen=true` for each case
+- `Answer:` appears before `I completed workflow_router.plan.`
+- `Selected workflow: none`
+- route statuses `general_chat_no_target`, `general_help_no_target`, and `missing_target_root_for_coding_request`
+- `Artifacts:` absent from the no-target response segments
+- `fixture_unchanged=true` for both frozen Coinbase fixtures
 
 ## Reuse An Extracted UI Bundle
 

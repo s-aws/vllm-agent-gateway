@@ -4,10 +4,13 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
+Current stable-readiness status: the Phase 170 stable release refresh passes with `ready_for_founder_testing` and `release_for_founder_testing` after the Phase 163-169 chat-quality batch. Phase 161 remains the latest approved skill/tool batch decision and passes with `decision=no_new_batch_justified`; Phase 169 produced six unapproved product-gap proposals that are not implementation work until approved.
+
 ## What This Proves
 
 - AnythingLLM is pointed at the natural workflow-router gateway.
 - The local model on `localhost:8000` is reached through the gateway/router stack.
+- The current Priority 0 chat-quality proof reports `readiness=ready_for_founder_testing`.
 - A normal natural-language request routes to `workflow_router.plan`.
 - The controller can run small read-only L1 investigations against the frozen Coinbase fixtures.
 - The controller can draft an exact small documentation edit through the existing implementation workflow without mutating source files.
@@ -65,6 +68,18 @@ FIRST TIME USER DOCTOR PASS
 
 If it fails, fix the listed `failed_check_ids` before running prompt tests. See [README.first-time-user-doctor.md](README.first-time-user-doctor.md).
 
+After a reboot or service restart, run the Phase 163 restart gate:
+
+```bash
+python3 scripts/validate_post_restart_runtime_readiness.py
+```
+
+Expected marker:
+
+```text
+POST RESTART RUNTIME READINESS PASS
+```
+
 Validate the release-channel contract before first prompt testing:
 
 ```bash
@@ -99,7 +114,74 @@ SECURITY POLICY PASS
 
 See [README.security-policy.md](README.security-policy.md).
 
+Run the stable chat-quality release gate before first founder testing:
+
+```bash
+python3 scripts/validate_stable_release_blocker_closure.py \
+  --require-artifacts \
+  --output-path runtime-state/stable-release-blocker-closure/phase131/phase131-stable-release-blocker-closure-report.json
+
+python3 scripts/validate_stable_chat_quality_release.py \
+  --require-artifacts \
+  --output-path runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json
+```
+
+Expected markers:
+
+```text
+STABLE RELEASE BLOCKER CLOSURE PASS
+STABLE CHAT QUALITY RELEASE PASS
+```
+
+The release summary should include `readiness=ready_for_founder_testing`, `passed_gate_count=11`, and `blocker_count=0`. See [README.stable-release-blocker-closure.md](README.stable-release-blocker-closure.md) and [README.stable-chat-quality-release.md](README.stable-chat-quality-release.md).
+
+Refresh the current founder-testing proof floor and skill/tool batch decision:
+
+```bash
+python3 scripts/validate_stable_release_refresh.py \
+  --policy-path runtime/stable_release_refresh_phase170_policy.json \
+  --run-refresh \
+  --execute-reset-start \
+  --execute-recovery \
+  --output-path runtime-state/stable-release-refresh/phase170/phase170-stable-release-refresh-report.json \
+  --markdown-output-path runtime-state/stable-release-refresh/phase170/phase170-stable-release-refresh-report.md
+
+python3 scripts/validate_skill_tool_gap_batch_proposal.py \
+  --output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.json \
+  --markdown-output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.md
+```
+
+Expected markers:
+
+```text
+PHASE170 STABLE RELEASE REFRESH PASS
+PHASE161 SKILL TOOL GAP BATCH PROPOSAL PASS
+```
+
+The current Phase 170 summary should show `source_report_count=17`, `phase169_proposal_count=6`, `phase169_release_blocker_count=0`, and `validation_error_count=0`. The current Phase 161 summary should show `decision=no_new_batch_justified`, `gap_candidate_count=0`, `missing_skill_tool_finding_count=0`, and `non_batch_finding_count=14`. The six Phase 169 proposals are approved for Phases 171-176, but they are not part of the stable tester path until those phases pass.
+
 After this setup path passes, use [README.external-tester-onboarding.md](README.external-tester-onboarding.md) for the contextless first-test prompt set and feedback capture templates.
+
+## Minimum External Tester Dry Run
+
+For the current founder-testing release, this is the minimum external tester proof. It uses the stable channel, `ONB-001`, AnythingLLM at `http://127.0.0.1:8500/v1`, and linked feedback capture. Run from Bash/WSL:
+
+```bash
+cd /mnt/c/agentic_agents
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/validate_external_tester_dry_run.py \
+  --live-runtime \
+  --include-feedback \
+  --output-path runtime-state/external-tester-dry-run/phase147/phase147-external-tester-dry-run.json
+```
+
+Expected marker:
+
+```text
+EXTERNAL TESTER DRY RUN PASS
+```
+
+The first manual external-tester prompt is `ONB-001` in [README.external-tester-onboarding.md](README.external-tester-onboarding.md). The sample prompts below are useful after this minimum dry run passes.
 
 Optional stable handoff smoke:
 
@@ -190,7 +272,7 @@ This serves the extracted AnythingLLM Desktop UI bundle, drives it with Playwrig
 
 The default visible response format is `format_a`: deterministic human-readable text with a natural completion sentence, a `Result:` block, summary fields, bounded inline `Answer:` content for supported L1 artifacts, and artifact links. The structured `agentic_controller_response` is still returned for API clients.
 
-Optional approval UX check:
+Optional approval UX check for later validation, not the first founder smoke:
 
 ```text
 In /mnt/c/coinbase_testing_repo_frozen_tmp.github, refactor the placed_order_id stealth lookup so there is only one code path. Start from the logic beginning point, investigate first, create an implementation plan, wait for approval before implementation prep, and provide verification commands.
@@ -206,7 +288,7 @@ Expected initial response markers:
 - `Type: packet_design`
 - `run_id: workflow-router-...`
 
-Only continue if you intend to approve draft-only implementation prep. The approval message must name the returned run ID:
+Only continue if you intend to approve draft-only implementation prep. Do not use this as the first founder smoke. The approval message must name the returned run ID:
 
 ```text
 Approve packet design for run workflow-router-YYYYMMDDTHHMMSSffffffZ. Proceed with implementation prep.
@@ -633,11 +715,14 @@ The Markdown output is the quick review surface. Start with `summary.highest_sev
 - If Windows clients receive headers but time out waiting for the response body, run the validator from Bash.
 - If `8000/v1/models` is not healthy, start or fix the vLLM server before testing the harness.
 - If an old AnythingLLM thread behaves inconsistently, start a fresh thread; long chat history can consume the gateway input budget.
+- If a founder prompt misses the target but Phase 161 still reports `no_new_batch_justified`, treat it as prompt wording or documentation feedback first. Do not create a new skill/tool unless a later governed report produces `decision=propose_batch_for_founder_approval`.
 
 ## Deeper Recipes
 
 - [L1 Coding Agent Prompt Backlog](docs/L1_CODING_AGENT_PROMPTS.md)
 - [Founder Field Tests](README.founder-field-tests.md)
+- [Founder Field Round 1](README.founder-field-round1.md)
+- [Skill/Tool Gap Batch Proposal](README.skill-tool-gap-batch-proposal.md)
 - [AnythingLLM Founder Testing Examples](docs/examples/anythingllm-founder-testing.md)
 - [Workflow Router README](README.workflow-router.md)
 - [Actionable Workflow Roadmap](docs/ACTIONABLE_WORKFLOW_ROADMAP.md)

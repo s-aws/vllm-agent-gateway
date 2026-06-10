@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "kind": "requirements_translation_phase114_case_catalog",
+  "catalog_id": "requirements_translation_phase114_cases",
+  "version": "0.1.0",
+  "description": "Phase 114 natural prompt cases and contextless audit packet for business requirement translation and effort estimation.",
+  "owner": "agentic_agents",
+  "cases": [
+    {
+      "case_id": "RT114-BTR-001",
+      "case_type": "business_to_technical",
+      "fixture_id": "coinbase-frozen-git",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, translate this business requirement into technical requirements and estimate effort: users need the stealth order lookup answer to say whether placed_order_id evidence was found.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "requirements_translation",
+      "expected_markers": [
+        "Requirements Translation:",
+        "- Business requirements:",
+        "- Technical requirements:",
+        "- Explicit assumptions:",
+        "- Rejected assumptions:",
+        "- Effort estimate:",
+        "- Revision triggers:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "RT114-REV-001",
+      "case_type": "estimate_revision",
+      "fixture_id": "python-service-generalization",
+      "target_root": "tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In tests/fixtures/generalization/python_service_fixture, translate this business requirement into technical requirements and revise estimate because scope changed: the create-order response should show resolved order status and now also include a requirement note without changing files yet.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "requirements_translation",
+      "expected_markers": [
+        "Requirements Translation:",
+        "- Business requirements:",
+        "- Technical requirements:",
+        "- Explicit assumptions:",
+        "- Rejected assumptions:",
+        "- Effort estimate:",
+        "- Revision triggers:",
+        "- Estimate revision:",
+        "- Source mutation: False"
+      ]
+    }
+  ],
+  "contextless_audit_packet": {
+    "kind": "requirements_translation_contextless_audit_packet",
+    "phase": 114,
+    "tenet_ids": [
+      "T04",
+      "T05"
+    ],
+    "score_threshold": 85,
+    "category_floor": 70,
+    "input_refs": [
+      "docs/ACTIONABLE_WORKFLOW_ROADMAP.md#approved-phase-114-requirements-translation-and-estimation-tenets",
+      "README.task-decomposition.md",
+      "runtime/requirements_translation_phase114_cases.json",
+      "vllm_agent_gateway/controllers/task_decompose/decompose.py",
+      "vllm_agent_gateway/acceptance/task_decomposition_quality.py",
+      "scripts/validate_requirements_translation_live.py",
+      "runtime-state/task-decomposition/phase114-requirements-live.json"
+    ],
+    "audit_dimensions": [
+      {
+        "id": "business_to_technical_traceability",
+        "question": "Does each technical requirement trace to an explicit business requirement without inventing product scope?"
+      },
+      {
+        "id": "unsupported_assumption_rejection",
+        "question": "Are unstated APIs, databases, migrations, broad architecture changes, and source edits rejected or moved to clarification?"
+      },
+      {
+        "id": "estimate_traceability",
+        "question": "Does the effort estimate include assumptions, confidence, and scope drivers?"
+      },
+      {
+        "id": "estimate_revision_triggers",
+        "question": "Does the answer explain when and why the estimate must be revised as scope changes?"
+      }
+    ]
+  }
+}

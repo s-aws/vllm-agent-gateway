@@ -2962,6 +2962,8 @@
       "triggers": [
         "handler branch trace",
         "follow handler branch",
+        "handler branch",
+        "snapshot function",
         "downstream snapshot function"
       ],
       "version": "0.1.0",
@@ -3021,7 +3023,9 @@
       "triggers": [
         "table schema only",
         "schema field names",
-        "exclude runtime fields"
+        "exclude runtime fields",
+        "runtime dictionary fields",
+        "exclude runtime dictionary fields"
       ],
       "version": "0.1.0",
       "workflow_priorities": {

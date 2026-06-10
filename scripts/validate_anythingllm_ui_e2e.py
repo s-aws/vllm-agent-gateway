@@ -39,6 +39,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--browser-channel", default="")
     parser.add_argument("--timeout-seconds", type=int, default=420)
     parser.add_argument("--static-port", type=int, default=None)
+    parser.add_argument("--prompt-catalog-path", default=None)
+    parser.add_argument("--case-id", action="append", dest="case_ids")
     return parser.parse_args()
 
 
@@ -60,6 +62,8 @@ def main() -> int:
             browser_channel=args.browser_channel,
             timeout_seconds=args.timeout_seconds,
             static_port=args.static_port,
+            prompt_catalog_path=Path(args.prompt_catalog_path) if args.prompt_catalog_path else None,
+            case_ids=tuple(args.case_ids or ()),
         )
     )
     print(f"ANYTHINGLLM UI E2E REPORT {report['report_path']}")

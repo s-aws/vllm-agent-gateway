@@ -240,6 +240,7 @@ def finding(
     source: str,
     category: FailureCategory,
     message: object,
+    severity: str | None = None,
     evidence: dict[str, Any] | None = None,
     matched_terms: list[str] | None = None,
 ) -> dict[str, Any]:
@@ -248,7 +249,7 @@ def finding(
         "report_path": str(report_path),
         "source": source,
         "category": category.value,
-        "severity": SEVERITY_BY_CATEGORY[category],
+        "severity": severity or SEVERITY_BY_CATEGORY[category],
         "message": bounded_text(message),
         "matched_terms": matched_terms or [],
         "evidence": evidence or {},
@@ -540,8 +541,275 @@ def collect_run_diff_findings(report: dict[str, Any], *, report_label: str, repo
     return findings
 
 
+COMPARISON_CATEGORY_MAP: dict[str, tuple[FailureCategory, str]] = {
+    "routing": (FailureCategory.ROUTING_MISS, "routing"),
+    "route": (FailureCategory.ROUTING_MISS, "routing"),
+    "evidence": (FailureCategory.EVIDENCE_MISS, "context_gathering"),
+    "missing_data": (FailureCategory.EVIDENCE_MISS, "context_gathering"),
+    "observability": (FailureCategory.EVIDENCE_MISS, "context_gathering"),
+    "unknowns": (FailureCategory.EVIDENCE_MISS, "context_gathering"),
+    "answer_contract": (FailureCategory.OUTPUT_CONTRACT_MISS, "deterministic_formatter"),
+    "output_contract": (FailureCategory.OUTPUT_CONTRACT_MISS, "deterministic_formatter"),
+    "baseline_topic_gap": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "root_cause": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "recommendation": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "tradeoffs": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "risk": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "validation": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "confidence": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "technical_debt": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "engineering_method": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "deployment_readiness": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "mentorship_quality": (FailureCategory.SEMANTIC_MISS, "model_capability"),
+    "unsupported_preference": (FailureCategory.MODEL_QUALITY, "model_capability"),
+    "test_level": (FailureCategory.SEMANTIC_MISS, "test_coverage"),
+    "reproduction": (FailureCategory.SEMANTIC_MISS, "test_coverage"),
+    "safety_boundary": (FailureCategory.APPROVAL_BOUNDARY_MISS, "safety_boundary"),
+    "read_only_boundary": (FailureCategory.APPROVAL_BOUNDARY_MISS, "safety_boundary"),
+    "documentation": (FailureCategory.HARNESS_ERROR, "documentation"),
+    "docs": (FailureCategory.HARNESS_ERROR, "documentation"),
+    "tool_availability": (FailureCategory.EVIDENCE_MISS, "skill_tool_selection"),
+    "tool_selection": (FailureCategory.EVIDENCE_MISS, "skill_tool_selection"),
+    "skill_selection": (FailureCategory.SEMANTIC_MISS, "skill_tool_selection"),
+}
+
+
+COMPARISON_REPAIR_ACTION_BY_GAP_CLASS: dict[str, str] = {
+    "routing": "Repair the narrowest workflow-router rule or prompt-family expectation, then rerun target and holdout cases.",
+    "context_gathering": "Repair deterministic source, test, log, or evidence extraction before changing prompt wording.",
+    "skill_tool_selection": "Repair the selected skill, rejected skill, tool catalog, or allowlist evidence before changing answer text.",
+    "deterministic_formatter": "Repair the chat renderer or FormatA/JSON contract so required fields are visible in chat.",
+    "model_capability": "Inspect local-model output and model capability profile before changing routing or skills.",
+    "safety_boundary": "Fail closed and repair approval, read-only, or no-mutation boundary rendering before any apply work.",
+    "documentation": "Repair setup, tester, or workflow documentation and rerun the affected chat-quality proof.",
+    "test_coverage": "Repair the test-selection, reproduction, or verification strategy output and rerun the affected prompt family.",
+}
+COMPARISON_MINIMUM_SCORE = 85
+
+
+def is_priority0_comparison_kind(kind: str) -> bool:
+    return kind.endswith("_blind_baseline_comparison")
+
+
+def comparison_category_details(category: object, message: object) -> tuple[FailureCategory, str, list[str]]:
+    category_text = str(category or "").strip().lower()
+    if category_text in COMPARISON_CATEGORY_MAP:
+        failure_category, gap_class = COMPARISON_CATEGORY_MAP[category_text]
+        return failure_category, gap_class, [category_text]
+    text_category, terms = classify_text(f"{category_text} {message}")
+    if text_category != FailureCategory.UNKNOWN:
+        gap_class = {
+            FailureCategory.ROUTING_MISS: "routing",
+            FailureCategory.OUTPUT_CONTRACT_MISS: "deterministic_formatter",
+            FailureCategory.EVIDENCE_MISS: "context_gathering",
+            FailureCategory.APPROVAL_BOUNDARY_MISS: "safety_boundary",
+            FailureCategory.MODEL_QUALITY: "model_capability",
+            FailureCategory.HARNESS_ERROR: "documentation",
+            FailureCategory.ANYTHINGLLM_CONFIG_ERROR: "documentation",
+        }.get(text_category, "model_capability")
+        return text_category, gap_class, terms
+    return FailureCategory.SEMANTIC_MISS, "model_capability", []
+
+
+def collect_priority0_comparison_findings(
+    report: dict[str, Any],
+    *,
+    report_label: str,
+    report_path: Path,
+) -> list[dict[str, Any]]:
+    findings: list[dict[str, Any]] = []
+    for index, error in enumerate(report.get("errors") if isinstance(report.get("errors"), list) else []):
+        findings.append(classify_message_finding(report_label, report_path, f"errors[{index}]", error))
+    priority_backlog_id = report.get("priority_backlog_id")
+    cases = report.get("cases") if isinstance(report.get("cases"), list) else []
+    route_count = 0
+    for case_index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            continue
+        case_id = str(case.get("case_id") or f"case_{case_index}")
+        case_type = case.get("case_type")
+        target_root = case.get("target_root")
+        holdout = case.get("holdout") is True
+        routes = case.get("routes") if isinstance(case.get("routes"), list) else []
+        for route_index, route in enumerate(routes):
+            if not isinstance(route, dict):
+                continue
+            route_count += 1
+            route_name = str(route.get("route") or f"route_{route_index}")
+            unresolved = route.get("unresolved_findings") if isinstance(route.get("unresolved_findings"), list) else []
+            route_issues = list(unresolved)
+            if not unresolved and route.get("pass") is not True:
+                route_issues.append(
+                    {
+                        "severity": "high",
+                        "category": "routing" if not route.get("selected_workflow") else "baseline_topic_gap",
+                        "message": "comparison route failed without a specific unresolved finding",
+                    }
+                )
+            score = route.get("score")
+            if isinstance(score, int) and score < COMPARISON_MINIMUM_SCORE:
+                route_issues.append(
+                    {
+                        "severity": "high",
+                        "category": "baseline_topic_gap",
+                        "message": f"comparison route score {score} is below {COMPARISON_MINIMUM_SCORE}",
+                    }
+                )
+            for finding_index, unresolved_item in enumerate(route_issues):
+                if not isinstance(unresolved_item, dict):
+                    continue
+                message = unresolved_item.get("message") or unresolved_item
+                source_category = unresolved_item.get("category")
+                category, gap_class, matched_terms = comparison_category_details(source_category, message)
+                evidence = {
+                    "comparison_kind": report.get("kind"),
+                    "priority_backlog_id": priority_backlog_id,
+                    "case_id": case_id,
+                    "case_type": case_type,
+                    "holdout": holdout,
+                    "target_root": target_root,
+                    "route": route_name,
+                    "selected_workflow": route.get("selected_workflow"),
+                    "score": route.get("score"),
+                    "pass": route.get("pass"),
+                    "comparison_category": source_category,
+                    "gap_class": gap_class,
+                    "bounded_repair_action": COMPARISON_REPAIR_ACTION_BY_GAP_CLASS[gap_class],
+                }
+                findings.append(
+                    finding(
+                        report_label=report_label,
+                        report_path=report_path,
+                        source=f"cases[{case_id}].routes[{route_name}].unresolved_findings[{finding_index}]",
+                        category=category,
+                        severity=str(unresolved_item.get("severity") or SEVERITY_BY_CATEGORY[category]),
+                        message=message,
+                        matched_terms=matched_terms,
+                        evidence=evidence,
+                    )
+                )
+    summary_gap_categories = report.get("gap_categories") if isinstance(report.get("gap_categories"), dict) else {}
+    for gap_category, count in sorted(summary_gap_categories.items()):
+        if not isinstance(count, int) or count <= 0:
+            continue
+        category, gap_class, matched_terms = comparison_category_details(
+            gap_category,
+            f"comparison summary reported {count} {gap_category} gap(s)",
+        )
+        findings.append(
+            finding(
+                report_label=report_label,
+                report_path=report_path,
+                source=f"comparison.gap_categories[{gap_category}]",
+                category=category,
+                severity="high",
+                message=f"Comparison summary reported {count} {gap_category} gap(s).",
+                matched_terms=matched_terms,
+                evidence={
+                    "comparison_kind": report.get("kind"),
+                    "priority_backlog_id": priority_backlog_id,
+                    "comparison_category": gap_category,
+                    "gap_count": count,
+                    "gap_class": gap_class,
+                    "bounded_repair_action": COMPARISON_REPAIR_ACTION_BY_GAP_CLASS[gap_class],
+                },
+            )
+        )
+    for field, severity in (("critical_finding_count", "critical"), ("high_finding_count", "high")):
+        count = report.get(field)
+        if isinstance(count, int) and count > 0 and not summary_gap_categories:
+            gap_class = "documentation"
+            findings.append(
+                finding(
+                    report_label=report_label,
+                    report_path=report_path,
+                    source=f"comparison.{field}",
+                    category=FailureCategory.HARNESS_ERROR,
+                    severity=severity,
+                    message=f"Comparison summary reported {field}={count} without route-level gap categories.",
+                    evidence={
+                        "comparison_kind": report.get("kind"),
+                        "priority_backlog_id": priority_backlog_id,
+                        "summary_field": field,
+                        "summary_count": count,
+                        "gap_class": gap_class,
+                        "bounded_repair_action": COMPARISON_REPAIR_ACTION_BY_GAP_CLASS[gap_class],
+                    },
+                )
+            )
+    response_count = report.get("response_count")
+    passed_response_count = report.get("passed_response_count")
+    if (
+        isinstance(response_count, int)
+        and isinstance(passed_response_count, int)
+        and response_count > passed_response_count
+        and not findings
+    ):
+        gap_class = "documentation"
+        findings.append(
+            finding(
+                report_label=report_label,
+                report_path=report_path,
+                source="comparison.passed_response_count",
+                category=FailureCategory.HARNESS_ERROR,
+                severity="high",
+                message="Comparison summary has fewer passed responses than responses without route-level findings.",
+                evidence={
+                    "comparison_kind": report.get("kind"),
+                    "priority_backlog_id": priority_backlog_id,
+                    "response_count": response_count,
+                    "passed_response_count": passed_response_count,
+                    "gap_class": gap_class,
+                    "bounded_repair_action": COMPARISON_REPAIR_ACTION_BY_GAP_CLASS[gap_class],
+                },
+            )
+        )
+    repairs = report.get("recommended_next_repairs") if isinstance(report.get("recommended_next_repairs"), list) else []
+    for index, repair in enumerate(repairs):
+        repair_category = repair.get("category") if isinstance(repair, dict) else None
+        repair_message = repair.get("recommendation") if isinstance(repair, dict) else repair
+        category, gap_class, matched_terms = comparison_category_details(repair_category, repair_message)
+        findings.append(
+            finding(
+                report_label=report_label,
+                report_path=report_path,
+                source=f"comparison.recommended_next_repairs[{index}]",
+                category=category,
+                severity="medium",
+                message=repair_message,
+                matched_terms=matched_terms,
+                evidence={
+                    "comparison_kind": report.get("kind"),
+                    "priority_backlog_id": priority_backlog_id,
+                    "comparison_category": repair_category,
+                    "gap_class": gap_class,
+                    "bounded_repair_action": COMPARISON_REPAIR_ACTION_BY_GAP_CLASS[gap_class],
+                },
+            )
+        )
+    if str(report.get("status") or "") != "passed" and not findings:
+        findings.append(
+            finding(
+                report_label=report_label,
+                report_path=report_path,
+                source="comparison.status",
+                category=FailureCategory.HARNESS_ERROR if route_count == 0 else FailureCategory.SEMANTIC_MISS,
+                severity="high",
+                message=f"Priority 0 comparison status is {report.get('status')} without route-level findings.",
+                evidence={
+                    "comparison_kind": report.get("kind"),
+                    "priority_backlog_id": priority_backlog_id,
+                    "gap_class": "documentation" if route_count == 0 else "model_capability",
+                },
+            )
+        )
+    return dedupe_findings(findings)
+
+
 def collect_findings(report: dict[str, Any], *, report_label: str, report_path: Path) -> list[dict[str, Any]]:
     kind = str(report.get("kind") or report_kind(report).value)
+    if is_priority0_comparison_kind(kind):
+        return collect_priority0_comparison_findings(report, report_label=report_label, report_path=report_path)
     if kind == "founder_field_prompt_evaluation":
         return collect_founder_field_findings(report, report_label=report_label, report_path=report_path)
     if kind == "v1_acceptance_report":

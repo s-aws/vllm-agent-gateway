@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "kind": "contextless_audit_scorecard_policy",
+  "phase": 149,
+  "priority_backlog_id": "P0-BB-020",
+  "policy_version": "1.0.0",
+  "purpose": "Consolidate contextless audit and blind-baseline evidence into a deterministic scorecard for founder review. This scorecard is not a substitute for blind-baseline-first chat-quality tests and does not grant release approval.",
+  "recursive_policy_path": "runtime/recursive_blind_testing_policy.json",
+  "authority_policy": {
+    "blind_evaluator_is_pass_fail_authority": false,
+    "scorecard_grants_release_approval": false,
+    "deterministic_validator_is_pass_fail_authority": true
+  },
+  "release_signal_values": [
+    "blocked",
+    "needs_review",
+    "evidence_complete_not_sufficient",
+    "candidate_ready_for_founder_review"
+  ],
+  "score_floors": {
+    "aggregate_minimum": 85,
+    "source_minimum": 85,
+    "dimension_minimum": 70
+  },
+  "scoring_dimensions": [
+    {
+      "id": "blind_baseline_before_local",
+      "points": 20,
+      "objective_predicate": "Fresh local-model drift evidence references governed blind-baseline hashes before local output comparison."
+    },
+    {
+      "id": "context_isolation",
+      "points": 15,
+      "objective_predicate": "Recursive audit reports and policy prove fork_context=false and no session-history context."
+    },
+    {
+      "id": "chat_visible_answer_quality",
+      "points": 15,
+      "objective_predicate": "Founder smoke and chat transcript quality reports pass with no blocker findings."
+    },
+    {
+      "id": "route_skill_tool_evidence",
+      "points": 15,
+      "objective_predicate": "Gateway and AnythingLLM routes, run IDs, selected workflows, skills, or tools are recorded."
+    },
+    {
+      "id": "fixture_mutation_safety",
+      "points": 15,
+      "objective_predicate": "Protected frozen fixture hashes and target-changed-file summaries show no new mutation."
+    },
+    {
+      "id": "repair_rerun_traceability",
+      "points": 10,
+      "objective_predicate": "Accepted audit findings have validation references and current failure-to-roadmap output has no unapproved blocker proposal."
+    },
+    {
+      "id": "residual_risk_handling",
+      "points": 10,
+      "objective_predicate": "Critical/high residual risks, blockers, findings, and next actions are zero or explicitly disposed."
+    }
+  ],
+  "hard_blocker_codes": [
+    "missing_required_artifact",
+    "malformed_required_artifact",
+    "source_status_failed",
+    "source_kind_mismatch",
+    "source_phase_mismatch",
+    "blind_agent_release_authority",
+    "context_leakage",
+    "missing_blind_baseline_order",
+    "missing_local_gateway_anythingllm_evidence",
+    "protected_fixture_mutation",
+    "missing_repair_rerun_trace",
+    "unresolved_critical_high_risk",
+    "source_score_below_floor",
+    "aggregate_score_below_floor"
+  ],
+  "forbidden_blind_authority_markers": [
+    "blind evaluator approved release",
+    "blind agent approved release",
+    "contextless evaluator approved release",
+    "blind evaluator is pass/fail authority",
+    "blind agent is pass/fail authority"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_routes": [
+    "gateway",
+    "anythingllm"
+  ],
+  "source_artifacts": [
+    {
+      "id": "phase120_baseline_corpus",
+      "type": "baseline_corpus",
+      "path": "runtime-state/baseline-corpus/phase120-baseline-corpus-report.json",
+      "required": true,
+      "expected_kind": "baseline_corpus_governance_report",
+      "expected_status": "passed"
+    },
+    {
+      "id": "phase127_fresh_local_model_drift",
+      "type": "fresh_local_model_drift",
+      "path": "runtime-state/fresh-local-model-drift/phase127/phase127-fresh-local-model-drift-report.json",
+      "required": true,
+      "expected_kind": "fresh_local_model_drift_report",
+      "expected_status": "passed",
+      "expected_phase": 127
+    },
+    {
+      "id": "phase134_founder_smoke",
+      "type": "founder_smoke",
+      "path": "runtime-state/founder-field-tests/phase134-founder-smoke.json",
+      "required": true,
+      "expected_kind": "founder_field_prompt_evaluation",
+      "expected_status": "passed"
+    },
+    {
+      "id": "phase138_chat_transcript_quality",
+      "type": "chat_transcript_quality",
+      "path": "runtime-state/chat-transcript-quality/phase138/phase138-chat-transcript-quality-report.json",
+      "required": true,
+      "expected_kind": "chat_transcript_quality_report",
+      "expected_status": "passed",
+      "expected_phase": 138
+    },
+    {
+      "id": "phase113_recursive_audit",
+      "type": "recursive_audit",
+      "path": "runtime-state/recursive-blind-testing/phase113-task-decomposition-recursive-report.json",
+      "required": true,
+      "expected_kind": "recursive_blind_testing_report",
+      "expected_status": "passed",
+      "expected_phase": 113
+    },
+    {
+      "id": "phase114_recursive_audit",
+      "type": "recursive_audit",
+      "path": "runtime-state/recursive-blind-testing/phase114-requirements-translation-recursive-report.json",
+      "required": true,
+      "expected_kind": "recursive_blind_testing_report",
+      "expected_status": "passed",
+      "expected_phase": 114
+    },
+    {
+      "id": "phase115_recursive_audit",
+      "type": "recursive_audit",
+      "path": "runtime-state/recursive-blind-testing/phase115-incremental-implementation-recursive-report.json",
+      "required": true,
+      "expected_kind": "recursive_blind_testing_report",
+      "expected_status": "passed",
+      "expected_phase": 115
+    },
+    {
+      "id": "phase147_external_tester_dry_run",
+      "type": "external_tester_dry_run",
+      "path": "runtime-state/external-tester-dry-run/phase147/phase147-external-tester-dry-run.json",
+      "required": true,
+      "expected_kind": "external_tester_dry_run_report",
+      "expected_status": "passed",
+      "expected_phase": 147
+    },
+    {
+      "id": "phase148_failure_to_roadmap",
+      "type": "failure_to_roadmap",
+      "path": "runtime-state/failure-to-roadmap/phase148/phase148-failure-to-roadmap-report.json",
+      "required": true,
+      "expected_kind": "failure_to_roadmap_report",
+      "expected_status": "passed",
+      "expected_phase": 148
+    }
+  ]
+}

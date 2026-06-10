@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "kind": "baseline_corpus_promotion_rules",
+  "phase": 142,
+  "priority_backlog_id": "P0-BB-020",
+  "description": "Governed rules for promoting founder smoke or prompt-pack cases into the stable Priority 0 baseline corpus. This policy does not mutate runtime/baseline_corpus.json; it blocks promotion until every required proof artifact and founder approval are present.",
+  "source_corpus": {
+    "path": "runtime/baseline_corpus.json",
+    "sha256": "3b4857316f1a1b2cf18f54bde6909b8112247b46971ca0b1ef15fe2bc2782dcc",
+    "expected_entry_count": 4
+  },
+  "source_prompt_pack": {
+    "path": "runtime/founder_test_prompt_pack.json",
+    "sha256": "8f662bf48d4d8201979f359febf85bf15ea4cb9ec523127a71b78320a0e5f495",
+    "catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+    "catalog_sha256": "357559a750ce3630b5a6e3a2eb76126eebd7136d0f088a208c695b398326fcd2",
+    "expected_case_ids": [
+      "P01",
+      "P02",
+      "P03",
+      "P22",
+      "P04",
+      "P05",
+      "P06",
+      "P08",
+      "P09",
+      "P10",
+      "P13",
+      "P17",
+      "P19",
+      "P21"
+    ]
+  },
+  "promotion_policy": {
+    "required_evidence": [
+      "blind_baseline",
+      "local_model_comparison",
+      "holdout",
+      "route_proof",
+      "no_mutation_proof",
+      "founder_approval"
+    ],
+    "required_routes": ["anythingllm", "gateway"],
+    "required_target_roots": [
+      "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    ],
+    "minimum_score": 85,
+    "critical_findings_allowed": 0,
+    "high_findings_allowed": 0,
+    "source_mutation_allowed": false,
+    "stale_source_hashes_allowed": false,
+    "auto_promote_allowed": false,
+    "stable_corpus_update_requires_separate_phase": true
+  },
+  "candidates": [
+    {
+      "candidate_id": "founder-pack-phase137",
+      "proposed_entry_id": "phase137_founder_test_prompt_pack",
+      "source": "founder_test_prompt_pack",
+      "source_case_ids": [
+        "P01",
+        "P02",
+        "P03",
+        "P22",
+        "P04",
+        "P05",
+        "P06",
+        "P08",
+        "P09",
+        "P10",
+        "P13",
+        "P17",
+        "P19",
+        "P21"
+      ],
+      "decision_status": "blocked_pending_evidence",
+      "founder_approval": {
+        "status": "not_requested"
+      },
+      "evidence_refs": [],
+      "missing_evidence": [
+        "blind_baseline",
+        "local_model_comparison",
+        "holdout",
+        "route_proof",
+        "no_mutation_proof",
+        "founder_approval"
+      ],
+      "promotion_blocker": "Founder prompt pack cases are validated for smoke/regression coverage, but they are not stable corpus entries until blind baselines, local comparisons, holdouts, route proof, no-mutation proof, and explicit founder approval are recorded."
+    }
+  ]
+}

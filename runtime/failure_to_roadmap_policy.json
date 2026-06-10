@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "failure_to_roadmap_policy",
+  "phase": 148,
+  "priority_backlog_id": "P0-BB-020",
+  "source_reports": [
+    {
+      "id": "phase147_external_tester_dry_run",
+      "path": "runtime-state/external-tester-dry-run/phase147/phase147-external-tester-dry-run.json",
+      "required": true,
+      "expected_status": "passed"
+    },
+    {
+      "id": "phase146_release_notes",
+      "path": "runtime-state/release-notes/phase146/phase146-release-notes-report.json",
+      "required": true,
+      "expected_status": "passed"
+    },
+    {
+      "id": "phase145_founder_feedback_triage_dashboard",
+      "path": "runtime-state/founder-feedback-triage-dashboard/phase145/phase145-founder-feedback-triage-dashboard.json",
+      "required": true,
+      "expected_status": "passed"
+    }
+  ],
+  "proposal_policy": {
+    "default_approval_status": "unapproved",
+    "approved_proposal_ids": [],
+    "implementation_status": "not_started",
+    "allowed_approval_statuses": [
+      "unapproved",
+      "approved_by_founder"
+    ],
+    "release_blocker_severities": [
+      "critical",
+      "high"
+    ],
+    "roadmap_mutation_allowed": false,
+    "source_mutation_allowed": false,
+    "required_proposal_fields": [
+      "proposal_id",
+      "approval_status",
+      "implementation_status",
+      "severity",
+      "category",
+      "source_report_id",
+      "source_path",
+      "evidence",
+      "candidate_phase_title",
+      "goal",
+      "implementation_tasks",
+      "acceptance_proof",
+      "dependencies",
+      "recommended_roadmap_position"
+    ]
+  }
+}

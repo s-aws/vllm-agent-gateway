@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "kind": "transcript_quality_feedback_intake_policy",
+  "phase": 158,
+  "priority_backlog_id": "P0-BB-022",
+  "inputs": {
+    "phase157_report": "runtime-state/founder-field-round1/phase157/phase157-founder-field-round1-report.json",
+    "optional_founder_notes": "runtime-state/founder-field-round1/phase157/founder-notes.json"
+  },
+  "expected_source": {
+    "kind": "founder_field_round1_report",
+    "phase": 157,
+    "status": "passed",
+    "priority_backlog_id": "P0-BB-021"
+  },
+  "required_quality_classifications": [
+    "pass",
+    "advisory",
+    "blocker"
+  ],
+  "finding_categories": [
+    "prompt_issue",
+    "harness_issue",
+    "missing_skill_tool",
+    "model_capability",
+    "safety_boundary",
+    "unsupported_scope",
+    "documentation_issue"
+  ],
+  "severity_levels": [
+    "info",
+    "low",
+    "medium",
+    "high",
+    "critical"
+  ],
+  "decision_kinds": [
+    "accepted_for_phase159",
+    "accepted_for_monitoring",
+    "rejected_no_action"
+  ],
+  "owner_paths": [
+    "prompt_catalog_review",
+    "controller_or_formatter_repair",
+    "skill_tool_gap_review",
+    "model_capability_watchlist",
+    "documentation_update",
+    "unsupported_scope_boundary"
+  ],
+  "required_rerun_gates": [
+    "phase157_founder_field_round1",
+    "phase159_target_plus_holdout",
+    "phase160_stable_release_refresh"
+  ],
+  "phase159_eligible_categories": [
+    "harness_issue",
+    "missing_skill_tool",
+    "model_capability"
+  ],
+  "founder_note_min_length": 12,
+  "require_raw_transcript_source": true
+}

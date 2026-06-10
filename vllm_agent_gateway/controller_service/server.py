@@ -209,6 +209,8 @@ WINDOWS_TARGET_RE = re.compile(r"(?P<path>[A-Za-z]:[\\/][^\s,;:'\"`<>]+(?:[\\/][
 TERMINAL_STATUSES = {"completed", "failed", "canceled"}
 RUN_RECORD_VISIBILITY_RETRIES = 20
 RUN_RECORD_VISIBILITY_SLEEP_SECONDS = 0.01
+RUN_RECORD_CACHE_LOCK = threading.Lock()
+RUN_RECORD_CACHE: dict[tuple[str, str], dict[str, Any]] = {}
 NATURAL_IMPLEMENTATION_PREP_EXECUTION_BUDGETS = {
     "max_context_requests": 5,
     "max_files": 10,
@@ -523,7 +525,10 @@ class ControllerOutputFormat(str, Enum):
 
 
 class InlineArtifactKind(str, Enum):
+    DEFECT_DIAGNOSIS_SUMMARY = "defect_diagnosis_summary"
+    ENGINEERING_JUDGMENT_REVIEW = "engineering_judgment_review"
     CODE_EXPLANATION = "code_explanation"
+    CODE_QUALITY_REVIEW = "code_quality_review"
     BEHAVIOR_EXISTENCE = "behavior_existence"
     ENDPOINT_ROUTE_LOOKUP = "endpoint_route_lookup"
     MESSAGE_SOURCE_LOOKUP = "message_source_lookup"
@@ -567,6 +572,7 @@ class InlineArtifactKind(str, Enum):
 
 INLINE_ARTIFACT_BYTE_LIMIT = 256 * 1024
 INLINE_ARTIFACT_ITEM_LIMIT = 5
+DATA_MODEL_FIELD_ITEM_LIMIT = 40
 FORMAT_A_SUMMARY_KEY_LIMIT = 24
 FORMAT_A_ARTIFACT_LIMIT = 10
 FORMAT_A_MAX_LINES = 220
@@ -577,6 +583,9 @@ FORMAT_A_SUMMARY_KEY_PRIORITY = (
     "downstream_workflow",
     "downstream_status",
     "next_action",
+    "answer",
+    "blocker_reasons",
+    "blocker_messages",
     "source_changed",
     "source_tree_changed",
     "disposable_copy_changed",
@@ -595,6 +604,9 @@ FORMAT_A_SUMMARY_KEY_PRIORITY = (
 
 
 INLINE_ARTIFACT_KEYS: tuple[tuple[InlineArtifactKind, tuple[str, ...]], ...] = (
+    (InlineArtifactKind.DEFECT_DIAGNOSIS_SUMMARY, ("downstream_defect_diagnosis_summary", "defect_diagnosis_summary")),
+    (InlineArtifactKind.ENGINEERING_JUDGMENT_REVIEW, ("downstream_engineering_judgment_review", "engineering_judgment_review")),
+    (InlineArtifactKind.CODE_QUALITY_REVIEW, ("downstream_code_quality_review", "code_quality_review")),
     (InlineArtifactKind.CODE_EXPLANATION, ("downstream_code_explanation", "code_explanation")),
     (InlineArtifactKind.BEHAVIOR_EXISTENCE, ("downstream_behavior_existence", "behavior_existence")),
     (InlineArtifactKind.ENDPOINT_ROUTE_LOOKUP, ("downstream_endpoint_route_lookup", "endpoint_route_lookup")),
@@ -1148,7 +1160,31 @@ def workflow_router_summary(report: dict[str, Any] | None) -> dict[str, Any] | N
     if not isinstance(report, dict) or report.get("kind") != "workflow_router_report":
         return None
     summary = report.get("summary")
-    return summary if isinstance(summary, dict) else None
+    if not isinstance(summary, dict):
+        return None
+    compact = dict(summary)
+    decision = report.get("decision") if isinstance(report.get("decision"), dict) else {}
+    blockers = decision.get("blockers") if isinstance(decision.get("blockers"), list) else []
+    if blockers:
+        blocker_reasons = [
+            str(item.get("reason"))
+            for item in blockers
+            if isinstance(item, dict) and isinstance(item.get("reason"), str)
+        ]
+        blocker_messages = [
+            str(item.get("message"))
+            for item in blockers
+            if isinstance(item, dict) and isinstance(item.get("message"), str)
+        ]
+        if blocker_reasons:
+            compact["blocker_reasons"] = blocker_reasons[:5]
+        if blocker_messages:
+            compact["blocker_messages"] = blocker_messages[:5]
+            compact.setdefault(
+                "answer",
+                f"I did not start a repository workflow. {blocker_messages[0]}",
+            )
+    return compact
 
 
 def compact_tool_policy_record(value: Any) -> dict[str, Any] | None:
@@ -1525,6 +1561,10 @@ def inline_artifact_keys_for_response(
         return INLINE_ARTIFACT_KEYS
     route_decision = artifact_json_by_key(artifacts, "route_decision") or {}
     route_rules = set(route_rules_from_route_decision(route_decision))
+    if "l2_engineering_judgment_terms" in route_rules:
+        return promoted_inline_artifact_keys(InlineArtifactKind.ENGINEERING_JUDGMENT_REVIEW)
+    if "l2_code_quality_review_terms" in route_rules:
+        return promoted_inline_artifact_keys(InlineArtifactKind.CODE_QUALITY_REVIEW)
     if "l1_find_behavior_start_terms" in route_rules:
         return promoted_inline_artifact_keys(InlineArtifactKind.INVESTIGATION_PLAN)
     return INLINE_ARTIFACT_KEYS
@@ -1567,6 +1607,27 @@ def registry_items_by_key(registry_snapshot: dict[str, Any], key: str) -> dict[s
     return value if isinstance(value, dict) else {}
 
 
+def selected_workflow_display(
+    route_decision: dict[str, Any],
+    summary: dict[str, Any],
+    fallback: Any = None,
+) -> str:
+    for source in (route_decision, summary):
+        if "selected_workflow" not in source:
+            continue
+        value = source.get("selected_workflow")
+        if value is None:
+            return "none"
+        if isinstance(value, str) and value.strip():
+            return value
+    downstream = summary.get("downstream_workflow")
+    if isinstance(downstream, str) and downstream.strip():
+        return downstream
+    if isinstance(fallback, str) and fallback.strip():
+        return fallback
+    return "unknown"
+
+
 def skill_selection_explanation_for_response(response: dict[str, Any]) -> dict[str, Any] | None:
     artifacts = response.get("artifacts") if isinstance(response.get("artifacts"), dict) else {}
     route_decision = artifact_json_by_key(artifacts, "route_decision") or {}
@@ -1574,12 +1635,7 @@ def skill_selection_explanation_for_response(response: dict[str, Any]) -> dict[s
         return None
     summary = response.get("summary") if isinstance(response.get("summary"), dict) else {}
     registry_snapshot = artifact_json_by_key(artifacts, "registry_snapshot") or {}
-    selected_workflow = first_string(
-        route_decision.get("selected_workflow"),
-        summary.get("selected_workflow"),
-        summary.get("downstream_workflow"),
-        response.get("workflow"),
-    ) or "unknown"
+    selected_workflow = selected_workflow_display(route_decision, summary, response.get("workflow"))
     selected_skills = string_items(route_decision.get("selected_skills")) or string_items(summary.get("selected_skill_ids"))
     selected_tools = string_items(route_decision.get("selected_tools"))
     route_rules = route_rules_from_route_decision(route_decision)
@@ -1740,12 +1796,6 @@ def chat_contract_for_response(response: dict[str, Any]) -> dict[str, Any]:
     tool_policy = response.get("tool_policy") if isinstance(response.get("tool_policy"), dict) else {}
     route_decision = artifact_json_by_key(artifacts, "route_decision") or {}
     workflow = first_string(response.get("workflow")) or "workflow"
-    selected_workflow = first_string(
-        route_decision.get("selected_workflow"),
-        summary.get("selected_workflow"),
-        summary.get("downstream_workflow"),
-        workflow,
-    )
     selected_skills = string_items(route_decision.get("selected_skills")) or string_items(summary.get("selected_skill_ids"))
     selected_tools = string_items(route_decision.get("selected_tools"))
     if not selected_tools:
@@ -1761,6 +1811,7 @@ def chat_contract_for_response(response: dict[str, Any]) -> dict[str, Any]:
     verification = verification_commands_summary(verification_records)
     if not verification and verification_count:
         verification = f"{verification_count} command(s)"
+    selected_workflow = selected_workflow_display(route_decision, summary, workflow)
     next_action = first_string(summary.get("next_action"), route_decision.get("next_action")) or "none"
     downstream = route_decision.get("downstream") if isinstance(route_decision.get("downstream"), dict) else {}
     if (
@@ -1769,12 +1820,14 @@ def chat_contract_for_response(response: dict[str, Any]) -> dict[str, Any]:
         and (summary.get("downstream_status") == "completed" or downstream.get("status") == "completed")
     ):
         next_action = "none"
+    answer = first_string(summary.get("answer"))
     return {
         "workflow": workflow,
         "status": first_string(response.get("status")) or "unknown",
         "selected_workflow": selected_workflow,
         "selected_skills": selected_skills,
         "selected_tools": selected_tools,
+        "answer": answer,
         "next_action": next_action,
         "verification": verification or "none",
         "verification_command_count": verification_count,
@@ -1957,6 +2010,42 @@ def participating_files_summary(records: Any) -> str:
     return limited_join(values, limit=5)
 
 
+def boundary_files_summary(records: Any) -> str:
+    if not isinstance(records, list):
+        return ""
+    values: list[str] = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        path = record.get("path")
+        if not isinstance(path, str):
+            continue
+        role = record.get("role")
+        reason = record.get("reason")
+        suffix_parts: list[str] = []
+        if isinstance(role, str) and role:
+            suffix_parts.append(role)
+        if isinstance(reason, str) and reason:
+            suffix_parts.append(inline_text(reason, 140))
+        suffix = f" ({'; '.join(suffix_parts)})" if suffix_parts else ""
+        values.append(f"{path}{suffix}")
+    return limited_join(values, limit=5)
+
+
+def unknowns_summary(records: Any) -> str:
+    if not isinstance(records, list):
+        return ""
+    values: list[str] = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        unknown = record.get("unknown")
+        reason = record.get("reason")
+        if isinstance(unknown, str):
+            values.append(f"{unknown}: {reason}" if isinstance(reason, str) and reason else unknown)
+    return limited_join(values, limit=4)
+
+
 def usage_evidence_summary(records: Any) -> str:
     if not isinstance(records, list):
         return ""
@@ -2010,11 +2099,30 @@ def gaps_summary(records: Any) -> str:
     return limited_join(values, limit=4)
 
 
-def source_refs_summary(records: Any) -> str:
+def source_refs_summary(records: Any, *, limit: int = INLINE_ARTIFACT_ITEM_LIMIT) -> str:
     if not isinstance(records, list):
         return ""
     values = [path_with_line(record) for record in records if isinstance(record, dict)]
-    return limited_join(values)
+    return limited_join(values, limit=limit)
+
+
+def data_model_fields_summary(records: Any) -> str:
+    if not isinstance(records, list):
+        return ""
+    values: list[str] = []
+    for item in records:
+        if not isinstance(item, dict) or not isinstance(item.get("name"), str):
+            continue
+        definition = inline_text(item.get("definition"), 120)
+        path = item.get("path")
+        line = item.get("line")
+        ref = ""
+        if isinstance(path, str) and isinstance(line, int):
+            ref = f" ({path}:{line})"
+        elif isinstance(path, str):
+            ref = f" ({path})"
+        values.append(f"{item['name']}: {definition}{ref}" if definition else f"{item['name']}{ref}")
+    return limited_join(values, limit=DATA_MODEL_FIELD_ITEM_LIMIT)
 
 
 def operation_target(operation: dict[str, Any]) -> str:
@@ -2128,10 +2236,200 @@ def append_code_explanation_answer(lines: list[str], artifact: dict[str, Any]) -
     related_tests = related_tests_summary(artifact.get("related_tests"))
     if related_tests:
         lines.append(f"- Related tests: {related_tests}")
-    source_refs = source_refs_summary(artifact.get("source_refs"))
+    source_refs = source_refs_summary(artifact.get("source_refs"), limit=20)
     if source_refs:
         lines.append(f"- Source refs: {source_refs}")
     return True
+
+
+def finding_refs_summary(records: Any) -> str:
+    if not isinstance(records, list):
+        return ""
+    values = [path_with_line(item) for item in records if isinstance(item, dict)]
+    return limited_join(values, limit=12)
+
+
+def append_code_quality_review_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
+    target = artifact.get("target") if isinstance(artifact.get("target"), dict) else {}
+    paths = target.get("paths") if isinstance(target.get("paths"), list) else []
+    path_values = [item for item in paths if isinstance(item, str)]
+    if path_values:
+        lines.append(f"- Target: {limited_join(path_values, limit=6)}")
+    status = artifact.get("status")
+    if isinstance(status, str) and status:
+        lines.append(f"- Status: {status}")
+    mode = artifact.get("review_mode")
+    if isinstance(mode, str) and mode:
+        lines.append(f"- Review mode: {mode}")
+    recommendation = artifact.get("recommendation")
+    if isinstance(recommendation, str) and recommendation:
+        lines.append(f"- Recommendation: {recommendation}")
+    no_finding_reason = artifact.get("no_finding_reason")
+    if isinstance(no_finding_reason, str) and no_finding_reason:
+        lines.append(f"- Findings: none supported - {inline_text(no_finding_reason, 280)}")
+    findings = artifact.get("findings")
+    if isinstance(findings, list) and findings:
+        lines.append("- Findings:")
+        for finding in findings[:3]:
+            if not isinstance(finding, dict):
+                continue
+            finding_id = finding.get("id") if isinstance(finding.get("id"), str) else "finding"
+            severity = finding.get("severity") if isinstance(finding.get("severity"), str) else "unknown"
+            category = finding.get("category") if isinstance(finding.get("category"), str) else "code_quality"
+            title = inline_text(finding.get("title"), 220)
+            lines.append(f"  - {finding_id} [{severity}/{category}]: {title}")
+            refs = finding_refs_summary(finding.get("evidence_refs"))
+            if refs:
+                lines.append(f"    Evidence: {refs}")
+            impact = inline_text(finding.get("impact"), 240)
+            if impact:
+                lines.append(f"    Impact: {impact}")
+            remediation = inline_text(finding.get("bounded_remediation"), 240)
+            if remediation:
+                lines.append(f"    Bounded remediation: {remediation}")
+    checklist = artifact.get("checklist")
+    if isinstance(checklist, list) and checklist:
+        values = [inline_text(item, 180) for item in checklist if isinstance(item, str)]
+        lines.append(f"- Checklist: {limited_join(values, limit=6)}")
+    comparison = artifact.get("behavior_comparison")
+    if isinstance(comparison, list) and comparison:
+        values: list[str] = []
+        for item in comparison:
+            if isinstance(item, dict):
+                values.append(inline_text(item, 180))
+        lines.append(f"- Behavior comparison: {limited_join(values, limit=4)}")
+    test_cases = artifact.get("test_cases")
+    if isinstance(test_cases, list) and test_cases:
+        values = [inline_text(item, 120) for item in test_cases if isinstance(item, str)]
+        lines.append(f"- Test cases: {limited_join(values, limit=6)}")
+    rejected = artifact.get("rejected_false_positives")
+    if isinstance(rejected, list) and rejected:
+        values: list[str] = []
+        for item in rejected:
+            if not isinstance(item, dict):
+                continue
+            claim = inline_text(item.get("claim"), 120)
+            reason = inline_text(item.get("reason"), 180)
+            if claim and reason:
+                values.append(f"{claim}: {reason}")
+            elif claim:
+                values.append(claim)
+        joined = limited_join(values, limit=4)
+        if joined:
+            lines.append(f"- Rejected false positives: {joined}")
+    insufficient = artifact.get("insufficient_evidence")
+    if isinstance(insufficient, list) and insufficient:
+        values = [inline_text(item, 160) for item in insufficient if isinstance(item, str)]
+        lines.append(f"- Insufficient evidence: {limited_join(values, limit=4)}")
+    source_refs = source_refs_summary(artifact.get("source_refs"), limit=20)
+    if source_refs:
+        lines.append(f"- Source refs: {source_refs}")
+    gaps = gaps_summary(artifact.get("gaps"))
+    if gaps:
+        lines.append(f"- Gaps: {gaps}")
+    if artifact.get("mutation_policy") == "read_only_no_source_mutation":
+        lines.append("- Source mutation: false")
+    return bool(lines)
+
+
+def judgment_records_summary(records: Any, *, label_key: str = "title", limit: int = 5) -> str:
+    if not isinstance(records, list):
+        return ""
+    values: list[str] = []
+    for item in records:
+        if isinstance(item, str):
+            values.append(inline_text(item, 180))
+            continue
+        if not isinstance(item, dict):
+            continue
+        label = item.get(label_key)
+        if not isinstance(label, str) or not label:
+            label = item.get("name") if isinstance(item.get("name"), str) else item.get("risk")
+        if not isinstance(label, str) or not label:
+            label = item.get("item") if isinstance(item.get("item"), str) else item.get("claim")
+        detail = item.get("reason")
+        if not isinstance(detail, str) or not detail:
+            detail = item.get("impact") if isinstance(item.get("impact"), str) else item.get("validation")
+        if isinstance(label, str) and label and isinstance(detail, str) and detail:
+            values.append(f"{inline_text(label, 100)}: {inline_text(detail, 160)}")
+        elif isinstance(label, str) and label:
+            values.append(inline_text(label, 180))
+    return limited_join(values, limit=limit)
+
+
+def append_engineering_judgment_review_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
+    target = artifact.get("target") if isinstance(artifact.get("target"), dict) else {}
+    paths = target.get("paths") if isinstance(target.get("paths"), list) else []
+    path_values = [item for item in paths if isinstance(item, str)]
+    if path_values:
+        lines.append(f"- Target: {limited_join(path_values, limit=6)}")
+    status = artifact.get("status")
+    if isinstance(status, str) and status:
+        lines.append(f"- Status: {status}")
+    mode = artifact.get("review_mode")
+    if isinstance(mode, str) and mode:
+        lines.append(f"- Review mode: {mode}")
+    question = inline_text(artifact.get("question"), 240)
+    if question:
+        lines.append(f"- Question: {question}")
+    assessment = artifact.get("direct_assessment")
+    if isinstance(assessment, dict):
+        recommendation = inline_text(assessment.get("recommendation"), 260)
+        decision = inline_text(assessment.get("decision"), 180)
+        confidence = inline_text(assessment.get("confidence"), 80)
+        if recommendation:
+            suffix = f" (decision: {decision})" if decision else ""
+            if confidence:
+                suffix = f"{suffix} (confidence: {confidence})"
+            lines.append(f"- Recommendation: {recommendation}{suffix}")
+        reason = inline_text(assessment.get("reason"), 260)
+        if reason:
+            lines.append(f"- Reason: {reason}")
+    evidence = judgment_records_summary(artifact.get("evidence_used"), label_key="path", limit=5)
+    if evidence:
+        lines.append(f"- Evidence used: {evidence}")
+    alternatives = judgment_records_summary(artifact.get("alternatives"), label_key="name", limit=4)
+    if alternatives:
+        lines.append(f"- Alternatives: {alternatives}")
+    tradeoffs = judgment_records_summary(artifact.get("tradeoffs"), label_key="dimension", limit=5)
+    if tradeoffs:
+        lines.append(f"- Tradeoffs: {tradeoffs}")
+    risks = judgment_records_summary(artifact.get("risks_and_blockers"), label_key="risk", limit=5)
+    if risks:
+        lines.append(f"- Risks/blockers: {risks}")
+    debt = judgment_records_summary(artifact.get("technical_debt"), label_key="item", limit=5)
+    if debt:
+        lines.append(f"- Technical debt: {debt}")
+    validation = judgment_records_summary(artifact.get("validation_steps"), label_key="step", limit=6)
+    if validation:
+        lines.append(f"- Validation: {validation}")
+    unknowns = judgment_records_summary(artifact.get("unknowns"), label_key="unknown", limit=4)
+    if unknowns:
+        lines.append(f"- Unknowns: {unknowns}")
+    rejected = artifact.get("rejected_claims")
+    if isinstance(rejected, list) and rejected:
+        values: list[str] = []
+        for item in rejected:
+            if not isinstance(item, dict):
+                continue
+            claim = inline_text(item.get("claim"), 120)
+            reason = inline_text(item.get("reason"), 180)
+            if claim and reason:
+                values.append(f"{claim}: {reason}")
+            elif claim:
+                values.append(claim)
+        joined = limited_join(values, limit=4)
+        if joined:
+            lines.append(f"- Rejected claims: {joined}")
+    source_refs = source_refs_summary(artifact.get("source_refs"), limit=24)
+    if source_refs:
+        lines.append(f"- Source refs: {source_refs}")
+    gaps = gaps_summary(artifact.get("gaps"))
+    if gaps:
+        lines.append(f"- Gaps: {gaps}")
+    if artifact.get("mutation_policy") == "read_only_no_source_mutation":
+        lines.append("- Source mutation: false")
+    return bool(lines)
 
 
 def append_behavior_existence_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
@@ -2283,12 +2581,7 @@ def append_data_model_lookup_answer(lines: list[str], artifact: dict[str, Any]) 
         lines.append(f"- Target model/schema: {target}")
     fields = artifact.get("fields")
     if isinstance(fields, list):
-        values = [
-            f"{item.get('name')}: {inline_text(item.get('definition'), 120)}"
-            for item in fields
-            if isinstance(item, dict) and isinstance(item.get("name"), str)
-        ]
-        joined = limited_join(values)
+        joined = data_model_fields_summary(fields)
         if joined:
             lines.append(f"- Fields: {joined}")
     files = artifact.get("model_files")
@@ -2641,6 +2934,128 @@ def append_configuration_lookup_answer(lines: list[str], artifact: dict[str, Any
     return True
 
 
+def append_defect_diagnosis_summary_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
+    added = False
+    target = artifact.get("target")
+    if isinstance(target, str) and target:
+        lines.append(f"- Target: {inline_text(target, 220)}")
+        added = True
+    status = artifact.get("status")
+    if isinstance(status, str) and status:
+        lines.append(f"- Status: {status}")
+        added = True
+    observed = artifact.get("observed_failure") if isinstance(artifact.get("observed_failure"), dict) else {}
+    observed_summary = observed.get("summary")
+    if isinstance(observed_summary, str) and observed_summary:
+        lines.append(f"- Observed failure: {inline_text(observed_summary, 260)}")
+        added = True
+    primary_error = observed.get("primary_error") if isinstance(observed.get("primary_error"), dict) else {}
+    error_type = primary_error.get("type") if isinstance(primary_error.get("type"), str) else None
+    error_message = primary_error.get("message") if isinstance(primary_error.get("message"), str) else None
+    if error_type or error_message:
+        lines.append(f"- Primary error: {inline_text(': '.join(item for item in [error_type, error_message] if item), 260)}")
+        added = True
+    failed_tests = related_tests_summary(observed.get("failed_tests"))
+    if failed_tests:
+        lines.append(f"- Failed tests: {failed_tests}")
+        added = True
+    first_command = observed.get("first_failing_command") if isinstance(observed.get("first_failing_command"), dict) else {}
+    rendered_first = command_text(first_command.get("command")) if first_command else ""
+    if rendered_first:
+        lines.append(f"- First failing command: {rendered_first}")
+        added = True
+    cause = artifact.get("likely_root_cause") if isinstance(artifact.get("likely_root_cause"), dict) else {}
+    cause_summary = cause.get("summary") if isinstance(cause.get("summary"), str) else None
+    confidence = cause.get("confidence") if isinstance(cause.get("confidence"), str) else None
+    if cause_summary:
+        suffix = f" (confidence: {confidence})" if confidence else ""
+        lines.append(f"- Likely root cause: {inline_text(cause_summary, 320)}{suffix}")
+        added = True
+    reproduction = artifact.get("reproduction_steps")
+    if isinstance(reproduction, list):
+        values: list[str] = []
+        for item in reproduction:
+            if not isinstance(item, dict) or not isinstance(item.get("step"), str):
+                continue
+            detail_parts: list[str] = []
+            path = item.get("path")
+            if isinstance(path, str) and path:
+                detail_parts.append(path)
+            test_name = item.get("test_name")
+            if isinstance(test_name, str) and test_name:
+                detail_parts.append(test_name)
+            command = command_text(item.get("command")) if item.get("command") else ""
+            if command:
+                detail_parts.append(command)
+            detail = f" ({'; '.join(detail_parts)})" if detail_parts else ""
+            values.append(f"{item['step']}{detail}")
+        joined = limited_join(values, limit=4)
+        if joined:
+            lines.append(f"- Reproduction steps: {joined}")
+            added = True
+    test_levels = artifact.get("test_levels")
+    if isinstance(test_levels, list):
+        for level in test_levels[:4]:
+            if not isinstance(level, dict):
+                continue
+            level_name = first_string(level.get("level"), level.get("tier")) or "test"
+            commands = verification_commands_summary(level.get("commands"))
+            rationale = level.get("rationale") if isinstance(level.get("rationale"), str) else ""
+            covered = level.get("covered_risk") if isinstance(level.get("covered_risk"), str) else ""
+            confidence = level.get("confidence") if isinstance(level.get("confidence"), str) else ""
+            if "smallest" in level_name:
+                label = "Smallest test"
+            elif level_name in {"broad", "broader_regression"} or "broad" in level_name:
+                label = "Broader regression test"
+            else:
+                label = f"{level_name.title()} test"
+            parts = [part for part in (commands, rationale, covered, f"confidence: {confidence}" if confidence else "") if part]
+            if parts:
+                lines.append(f"- {label}: {inline_text('; '.join(parts), 360)}")
+                added = True
+    observability = artifact.get("observability_evidence")
+    if isinstance(observability, list):
+        values: list[str] = []
+        for item in observability:
+            if not isinstance(item, dict):
+                continue
+            signal = item.get("signal")
+            location = item.get("location")
+            why = item.get("why")
+            if not isinstance(signal, str):
+                continue
+            label = signal
+            if isinstance(location, str) and location:
+                label = f"{label} @ {location}"
+            if isinstance(why, str) and why:
+                label = f"{label}: {why}"
+            values.append(label)
+        joined = limited_join(values, limit=4)
+        if joined:
+            lines.append(f"- Observability evidence: {joined}")
+            added = True
+    missing = gaps_summary(artifact.get("missing_data"))
+    if missing:
+        lines.append(f"- Missing data: {missing}")
+        added = True
+    related_tests = related_tests_summary(artifact.get("related_tests"))
+    if related_tests:
+        lines.append(f"- Related tests: {related_tests}")
+        added = True
+    evidence_files = participating_files_summary(artifact.get("evidence_files"))
+    if evidence_files:
+        lines.append(f"- Evidence files: {evidence_files}")
+        added = True
+    refs = source_refs_summary(artifact.get("source_refs"), limit=8)
+    if refs:
+        lines.append(f"- Source refs: {refs}")
+        added = True
+    if artifact.get("mutation_policy") == "read_only_no_source_mutation":
+        lines.append("- Source mutation: false")
+        added = True
+    return added
+
+
 def append_ci_failure_summary_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
     first = artifact.get("first_failing_command") if isinstance(artifact.get("first_failing_command"), dict) else {}
     command = first.get("command") if isinstance(first.get("command"), str) else None
@@ -2961,9 +3376,33 @@ def append_reproduction_checklist_answer(lines: list[str], artifact: dict[str, A
 
 def append_request_flow_map_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
     added = False
+    target_value = artifact.get("target")
+    if isinstance(target_value, str) and target_value:
+        lines.append(f"- Target: {inline_text(target_value, 180)}")
+        added = True
     target = artifact.get("target_flow")
     if isinstance(target, str) and target:
         lines.append(f"- Target flow: {inline_text(target, 180)}")
+        added = True
+    handlers = artifact.get("handler_files")
+    handler_values: list[str] = []
+    if isinstance(handlers, list):
+        for handler in handlers:
+            if not isinstance(handler, dict):
+                continue
+            path = path_with_line(handler)
+            role = handler.get("role")
+            evidence = handler.get("evidence")
+            label = path
+            if isinstance(role, str) and role:
+                label = f"{label} ({role})" if label else role
+            if isinstance(evidence, str) and evidence:
+                label = f"{label}: {inline_text(evidence, 140)}" if label else inline_text(evidence, 140)
+            if label:
+                handler_values.append(label)
+    handler_summary = limited_join(handler_values, limit=5)
+    if handler_summary:
+        lines.append(f"- Handler files: {handler_summary}")
         added = True
     steps = artifact.get("flow_steps")
     if isinstance(steps, list):
@@ -2973,9 +3412,12 @@ def append_request_flow_map_answer(lines: list[str], artifact: dict[str, Any]) -
                 continue
             path = path_with_line(step)
             role = step.get("role")
+            evidence = step.get("evidence")
             label = path
             if isinstance(role, str) and role:
                 label = f"{label} ({role})" if label else role
+            if isinstance(evidence, str) and evidence:
+                label = f"{label}: {inline_text(evidence, 140)}" if label else inline_text(evidence, 140)
             if label:
                 values.append(label)
         joined = limited_join(values, limit=5)
@@ -2989,6 +3431,13 @@ def append_request_flow_map_answer(lines: list[str], artifact: dict[str, Any]) -
     related_tests = related_tests_summary(artifact.get("related_tests"))
     if related_tests:
         lines.append(f"- Related tests: {related_tests}")
+        added = True
+    else:
+        lines.append("- Related tests: none found in bounded evidence")
+        added = True
+    source_refs = source_refs_summary(artifact.get("source_refs"), limit=20)
+    if source_refs:
+        lines.append(f"- Source refs: {source_refs}")
         added = True
     risks = risks_summary(artifact.get("risks"))
     if risks:
@@ -3067,6 +3516,14 @@ def append_change_surface_summary_answer(lines: list[str], artifact: dict[str, A
     if files:
         lines.append(f"- Change surface files: {files}")
         added = True
+    files_to_touch = boundary_files_summary(artifact.get("files_to_touch"))
+    if files_to_touch:
+        lines.append(f"- Files to touch: {files_to_touch}")
+        added = True
+    files_not_to_touch = boundary_files_summary(artifact.get("files_not_to_touch"))
+    if files_not_to_touch:
+        lines.append(f"- Files not to touch: {files_not_to_touch}")
+        added = True
     related_tests = related_tests_summary(artifact.get("related_tests"))
     if related_tests:
         lines.append(f"- Related tests: {related_tests}")
@@ -3086,6 +3543,10 @@ def append_change_surface_summary_answer(lines: list[str], artifact: dict[str, A
     gaps = gaps_summary(artifact.get("gaps"))
     if gaps:
         lines.append(f"- Gaps: {gaps}")
+        added = True
+    unknowns = unknowns_summary(artifact.get("unknowns"))
+    if unknowns:
+        lines.append(f"- Unknowns: {unknowns}")
         added = True
     verification = verification_commands_summary(artifact.get("verification_commands"))
     if verification:
@@ -3453,6 +3914,234 @@ def append_task_decomposition_answer(lines: list[str], artifact: dict[str, Any])
     deferred_to_phase = artifact.get("deferred_to_phase")
     if deferred_to_phase:
         lines.append(f"- Deferred to phase: {deferred_to_phase}")
+    requirements_translation = (
+        artifact.get("requirements_translation")
+        if isinstance(artifact.get("requirements_translation"), dict)
+        else {}
+    )
+    if requirements_translation:
+        business_requirements = (
+            requirements_translation.get("source_business_requirements")
+            if isinstance(requirements_translation.get("source_business_requirements"), list)
+            else []
+        )
+        technical_requirements = (
+            requirements_translation.get("technical_requirements")
+            if isinstance(requirements_translation.get("technical_requirements"), list)
+            else []
+        )
+        assumptions = (
+            requirements_translation.get("explicit_assumptions")
+            if isinstance(requirements_translation.get("explicit_assumptions"), list)
+            else []
+        )
+        rejected = (
+            requirements_translation.get("rejected_assumptions")
+            if isinstance(requirements_translation.get("rejected_assumptions"), list)
+            else []
+        )
+        estimate = (
+            requirements_translation.get("effort_estimate")
+            if isinstance(requirements_translation.get("effort_estimate"), dict)
+            else {}
+        )
+        revision = (
+            requirements_translation.get("estimate_revision")
+            if isinstance(requirements_translation.get("estimate_revision"), dict)
+            else {}
+        )
+        lines.append("Requirements Translation:")
+        br_lines = [
+            f"{item.get('id')}: {inline_text(item.get('text'), 160)}"
+            for item in business_requirements[:INLINE_ARTIFACT_ITEM_LIMIT]
+            if isinstance(item, dict)
+        ]
+        tr_lines = [
+            f"{item.get('id')}: {inline_text(item.get('requirement'), 180)}"
+            for item in technical_requirements[:INLINE_ARTIFACT_ITEM_LIMIT]
+            if isinstance(item, dict)
+        ]
+        assumption_lines = [
+            f"{item.get('id')}: {inline_text(item.get('assumption'), 140)}"
+            for item in assumptions[:INLINE_ARTIFACT_ITEM_LIMIT]
+            if isinstance(item, dict)
+        ]
+        rejected_lines = [
+            f"{item.get('id')}: {inline_text(item.get('assumption'), 140)}"
+            for item in rejected[:INLINE_ARTIFACT_ITEM_LIMIT]
+            if isinstance(item, dict)
+        ]
+        if br_lines:
+            lines.append(f"- Business requirements: {limited_join(br_lines)}")
+        if tr_lines:
+            lines.append(f"- Technical requirements: {limited_join(tr_lines)}")
+        if assumption_lines:
+            lines.append(f"- Explicit assumptions: {limited_join(assumption_lines)}")
+        if rejected_lines:
+            lines.append(f"- Rejected assumptions: {limited_join(rejected_lines)}")
+        if estimate:
+            estimate_bits = [
+                f"band={inline_text(estimate.get('estimate_band'), 40)}",
+                f"cycles={inline_text(estimate.get('cycle_count_range'), 60)}",
+                f"confidence={inline_text(estimate.get('confidence'), 40)}",
+            ]
+            lines.append(f"- Effort estimate: {', '.join(estimate_bits)}")
+            triggers = string_items(estimate.get("revision_triggers"))
+            if triggers:
+                lines.append(f"- Revision triggers: {limited_join(triggers, limit=3)}")
+        if revision.get("status") == "revised":
+            lines.append("- Estimate revision: revised; review required before implementation prep")
+    incremental_plan = (
+        artifact.get("incremental_implementation_plan")
+        if isinstance(artifact.get("incremental_implementation_plan"), dict)
+        else {}
+    )
+    if incremental_plan:
+        changesets = (
+            incremental_plan.get("changesets")
+            if isinstance(incremental_plan.get("changesets"), list)
+            else []
+        )
+        version_control = (
+            incremental_plan.get("version_control_plan")
+            if isinstance(incremental_plan.get("version_control_plan"), dict)
+            else {}
+        )
+        source_apply = (
+            incremental_plan.get("source_apply_policy")
+            if isinstance(incremental_plan.get("source_apply_policy"), dict)
+            else {}
+        )
+        lines.append("Incremental Implementation Plan:")
+        changeset_lines: list[str] = []
+        verification_lines: list[str] = []
+        commit_lines: list[str] = []
+        for item in changesets[:INLINE_ARTIFACT_ITEM_LIMIT]:
+            if not isinstance(item, dict):
+                continue
+            changeset_lines.append(
+                f"{item.get('id')}: {inline_text(item.get('title'), 120)} -> {inline_text(item.get('functional_outcome'), 160)}"
+            )
+            commands = string_items(item.get("verification_commands"))
+            if commands:
+                verification_lines.append(f"{item.get('id')}: {limited_join(commands, limit=2)}")
+            commit_message = item.get("commit_message") if isinstance(item.get("commit_message"), dict) else {}
+            subject = commit_message.get("subject") if isinstance(commit_message.get("subject"), str) else ""
+            if subject:
+                commit_lines.append(f"{item.get('id')}: {inline_text(subject, 90)}")
+        if changeset_lines:
+            lines.append(f"- Changesets: {limited_join(changeset_lines)}")
+        if verification_lines:
+            lines.append(f"- Changeset verification: {limited_join(verification_lines)}")
+        if commit_lines:
+            lines.append(f"- Commit messages: {limited_join(commit_lines)}")
+        if version_control:
+            lines.append(f"- Commit order: {limited_join(string_items(version_control.get('commit_order')))}")
+            lines.append(f"- Branch: {inline_text(version_control.get('branch_name'), 100)}")
+            lines.append(f"- Version-control policy: {inline_text(version_control.get('commit_policy'), 180)}")
+        if source_apply:
+            lines.append(f"- Source apply policy: {inline_text(source_apply.get('status'), 100)}")
+    delivery_mentorship = (
+        artifact.get("delivery_mentorship")
+        if isinstance(artifact.get("delivery_mentorship"), dict)
+        else {}
+    )
+    if delivery_mentorship:
+        delivery_sequence = (
+            delivery_mentorship.get("delivery_sequence")
+            if isinstance(delivery_mentorship.get("delivery_sequence"), list)
+            else []
+        )
+        testing_strategy = (
+            delivery_mentorship.get("testing_strategy")
+            if isinstance(delivery_mentorship.get("testing_strategy"), dict)
+            else {}
+        )
+        testing_tiers = (
+            testing_strategy.get("tiers")
+            if isinstance(testing_strategy.get("tiers"), list)
+            else []
+        )
+        deployment = (
+            delivery_mentorship.get("deployment_readiness")
+            if isinstance(delivery_mentorship.get("deployment_readiness"), dict)
+            else {}
+        )
+        source_apply = (
+            delivery_mentorship.get("source_apply_policy")
+            if isinstance(delivery_mentorship.get("source_apply_policy"), dict)
+            else {}
+        )
+        source_request = (
+            delivery_mentorship.get("source_request")
+            if isinstance(delivery_mentorship.get("source_request"), dict)
+            else {}
+        )
+        lines.append("Delivery Mentorship Plan:")
+        if source_request:
+            source_text = source_request.get("text") if isinstance(source_request.get("text"), str) else ""
+            domain_terms = string_items(source_request.get("domain_terms"))
+            if source_text:
+                lines.append(f"- Intake focus: {inline_text(source_text, 220)}")
+            if domain_terms:
+                lines.append(f"- Prompt-derived terms: {limited_join(domain_terms, limit=6)}")
+        risk_controls = string_items(delivery_mentorship.get("case_specific_risk_controls"))
+        if risk_controls:
+            lines.append(f"- Risk controls: {limited_join(risk_controls, limit=6)}")
+        sequence_lines = [
+            f"{item.get('id')}: {inline_text(item.get('stage'), 70)} -> {inline_text(item.get('deliverable'), 150)}"
+            for item in delivery_sequence[:INLINE_ARTIFACT_ITEM_LIMIT]
+            if isinstance(item, dict)
+        ]
+        why_lines = [
+            f"{item.get('id')}: {inline_text(item.get('why'), 160)}"
+            for item in delivery_sequence[:INLINE_ARTIFACT_ITEM_LIMIT]
+            if isinstance(item, dict)
+        ]
+        tier_lines = [
+            f"{item.get('tier')}: {inline_text(item.get('purpose'), 150)}"
+            for item in testing_tiers[:INLINE_ARTIFACT_ITEM_LIMIT]
+            if isinstance(item, dict)
+        ]
+        mentorship_notes = string_items(delivery_mentorship.get("mentorship_notes"))
+        quality_practices = string_items(delivery_mentorship.get("code_quality_practices"))
+        debugging_steps = string_items(delivery_mentorship.get("debugging_methodology"))
+        readiness_checks = string_items(deployment.get("checks"))
+        done_items = string_items(delivery_mentorship.get("definition_of_done"))
+        stop_conditions = (
+            delivery_mentorship.get("stop_conditions")
+            if isinstance(delivery_mentorship.get("stop_conditions"), list)
+            else []
+        )
+        stop_items = [
+            f"{item.get('code')}: {inline_text(item.get('reason'), 140)}"
+            for item in stop_conditions[:INLINE_ARTIFACT_ITEM_LIMIT]
+            if isinstance(item, dict)
+        ]
+        if sequence_lines:
+            lines.append(f"- Delivery sequence: {limited_join(sequence_lines)}")
+        if why_lines:
+            lines.append(f"- Why these steps: {limited_join(why_lines)}")
+        if tier_lines:
+            lines.append(f"- Testing strategy: {limited_join(tier_lines)}")
+        if debugging_steps:
+            lines.append(f"- Debugging method: {limited_join(debugging_steps, limit=3)}")
+        if quality_practices:
+            lines.append(f"- Code quality practices: {limited_join(quality_practices, limit=3)}")
+        if readiness_checks:
+            lines.append(f"- Deployment readiness: {limited_join(readiness_checks, limit=4)}")
+        if mentorship_notes:
+            lines.append(f"- Mentorship notes: {limited_join(mentorship_notes, limit=3)}")
+        if done_items:
+            lines.append(f"- Definition of done: {limited_join(done_items, limit=4)}")
+        if stop_items:
+            lines.append(f"- Stop conditions: {limited_join(stop_items, limit=3)}")
+        if source_apply:
+            deployment_status = source_apply.get("deployment_status")
+            lines.append(
+                f"- Source apply policy: {inline_text(source_apply.get('status'), 100)}"
+                + (f"; deployment={inline_text(deployment_status, 80)}" if deployment_status else "")
+            )
     work_packages = artifact.get("work_packages") if isinstance(artifact.get("work_packages"), list) else []
     if work_packages:
         package_lines: list[str] = []
@@ -3469,10 +4158,19 @@ def append_task_decomposition_answer(lines: list[str], artifact: dict[str, Any])
             lines.append(f"- Work packages: {limited_join(package_lines)}")
         stop_lines: list[str] = []
         verification_lines: list[str] = []
+        acceptance_lines: list[str] = []
         for item in work_packages[:INLINE_ARTIFACT_ITEM_LIMIT]:
             if not isinstance(item, dict):
                 continue
             package_id = item.get("id")
+            criteria = item.get("acceptance_criteria") if isinstance(item.get("acceptance_criteria"), list) else []
+            criteria_names = [
+                criterion.get("id")
+                for criterion in criteria[:2]
+                if isinstance(criterion, dict) and isinstance(criterion.get("id"), str)
+            ]
+            if criteria_names:
+                acceptance_lines.append(f"{package_id}: {limited_join(criteria_names, limit=2)}")
             stops = item.get("stop_conditions") if isinstance(item.get("stop_conditions"), list) else []
             stop_codes = [
                 stop.get("code")
@@ -3489,6 +4187,8 @@ def append_task_decomposition_answer(lines: list[str], artifact: dict[str, Any])
                 if proof_gates:
                     detail = f"{detail} ({limited_join(proof_gates, limit=2)})"
                 verification_lines.append(f"{package_id}: {inline_text(detail, 180)}")
+        if acceptance_lines:
+            lines.append(f"- Acceptance criteria: {limited_join(acceptance_lines)}")
         if stop_lines:
             lines.append(f"- Stop conditions: {limited_join(stop_lines)}")
         if verification_lines:
@@ -3576,12 +4276,11 @@ def append_disposable_mutation_diff_answer(lines: list[str], artifact: dict[str,
     return True
 
 
-def append_inline_artifact_answer(
-    lines: list[str],
-    artifacts: dict[str, Any],
-    response: dict[str, Any] | None = None,
-) -> None:
-    renderers = {
+def inline_artifact_answer_renderers() -> dict[InlineArtifactKind, Any]:
+    return {
+        InlineArtifactKind.DEFECT_DIAGNOSIS_SUMMARY: append_defect_diagnosis_summary_answer,
+        InlineArtifactKind.ENGINEERING_JUDGMENT_REVIEW: append_engineering_judgment_review_answer,
+        InlineArtifactKind.CODE_QUALITY_REVIEW: append_code_quality_review_answer,
         InlineArtifactKind.CODE_EXPLANATION: append_code_explanation_answer,
         InlineArtifactKind.BEHAVIOR_EXISTENCE: append_behavior_existence_answer,
         InlineArtifactKind.ENDPOINT_ROUTE_LOOKUP: append_endpoint_route_lookup_answer,
@@ -3623,43 +4322,107 @@ def append_inline_artifact_answer(
         InlineArtifactKind.SKILL_SCAFFOLD: append_skill_scaffold_answer,
         InlineArtifactKind.TASK_DECOMPOSITION: append_task_decomposition_answer,
     }
-    for kind, _keys in inline_artifact_keys_for_response(response, artifacts):
-        artifact = inline_artifact_by_kind(artifacts, kind)
-        if artifact is None:
+
+
+def inline_artifact_answer_heading(kind: InlineArtifactKind) -> str:
+    if kind in {
+        InlineArtifactKind.PACKET_OPERATION_PROPOSAL,
+        InlineArtifactKind.SMALL_TEXT_EDIT_PROPOSAL,
+        InlineArtifactKind.SMALL_UNIT_TEST_PROPOSAL,
+        InlineArtifactKind.SIMPLE_TEST_FIX_PROPOSAL,
+        InlineArtifactKind.SKILL_BATCH_PROPOSAL,
+    }:
+        return "Draft proposal:"
+    if kind == InlineArtifactKind.SKILL_BATCH_REGISTRATION:
+        return "Registration:"
+    if kind == InlineArtifactKind.SKILL_EVAL_PROMOTION:
+        return "Promotion:"
+    if kind == InlineArtifactKind.SKILL_LIFECYCLE_AUDIT:
+        return "Lifecycle Audit:"
+    if kind == InlineArtifactKind.SKILL_SELECTION_EXPLANATION:
+        return "Skill Selection:"
+    if kind == InlineArtifactKind.SKILL_PACK_VALIDATION:
+        return "Skill Pack Validation:"
+    if kind == InlineArtifactKind.SKILL_PACK_INSTALLATION:
+        return "Skill Pack Installation:"
+    if kind == InlineArtifactKind.SKILL_SCAFFOLD:
+        return "Skill Scaffold:"
+    if kind == InlineArtifactKind.TASK_DECOMPOSITION:
+        return "Task Decomposition:"
+    if kind == InlineArtifactKind.DISPOSABLE_MUTATION_DIFF:
+        return "Disposable Apply:"
+    if kind == InlineArtifactKind.CODE_QUALITY_REVIEW:
+        return "Code Quality Review:"
+    if kind == InlineArtifactKind.ENGINEERING_JUDGMENT_REVIEW:
+        return "Engineering Judgment:"
+    if kind == InlineArtifactKind.DEFECT_DIAGNOSIS_SUMMARY:
+        return "Defect Diagnosis:"
+    return "Answer:"
+
+
+def primary_answer_contract_for_response(response: dict[str, Any]) -> dict[str, Any] | None:
+    summary = response.get("summary") if isinstance(response.get("summary"), dict) else {}
+    answer = first_string(summary.get("answer"))
+    if not answer:
+        return None
+    return {
+        "kind": "primary_summary_answer_contract",
+        "source": "summary.answer",
+        "route_status": summary.get("route_status") if isinstance(summary.get("route_status"), str) else None,
+        "selected_workflow": summary.get("selected_workflow")
+        if isinstance(summary.get("selected_workflow"), str)
+        else None,
+        "heading": "Answer:",
+        "text": answer,
+    }
+
+
+def inline_artifact_answer_contract_for_response(response: dict[str, Any]) -> dict[str, Any] | None:
+    artifacts = response.get("artifacts") if isinstance(response.get("artifacts"), dict) else {}
+    renderers = inline_artifact_answer_renderers()
+    for kind, keys in inline_artifact_keys_for_response(response, artifacts):
+        renderer = renderers.get(kind)
+        if renderer is None:
             continue
-        answer_lines: list[str] = []
-        if renderers[kind](answer_lines, artifact):
-            lines.append("")
-            if kind in {
-                InlineArtifactKind.PACKET_OPERATION_PROPOSAL,
-                InlineArtifactKind.SMALL_TEXT_EDIT_PROPOSAL,
-                InlineArtifactKind.SMALL_UNIT_TEST_PROPOSAL,
-                InlineArtifactKind.SIMPLE_TEST_FIX_PROPOSAL,
-                InlineArtifactKind.SKILL_BATCH_PROPOSAL,
-            }:
-                lines.append("Draft proposal:")
-            elif kind == InlineArtifactKind.SKILL_BATCH_REGISTRATION:
-                lines.append("Registration:")
-            elif kind == InlineArtifactKind.SKILL_EVAL_PROMOTION:
-                lines.append("Promotion:")
-            elif kind == InlineArtifactKind.SKILL_LIFECYCLE_AUDIT:
-                lines.append("Lifecycle Audit:")
-            elif kind == InlineArtifactKind.SKILL_SELECTION_EXPLANATION:
-                lines.append("Skill Selection:")
-            elif kind == InlineArtifactKind.SKILL_PACK_VALIDATION:
-                lines.append("Skill Pack Validation:")
-            elif kind == InlineArtifactKind.SKILL_PACK_INSTALLATION:
-                lines.append("Skill Pack Installation:")
-            elif kind == InlineArtifactKind.SKILL_SCAFFOLD:
-                lines.append("Skill Scaffold:")
-            elif kind == InlineArtifactKind.TASK_DECOMPOSITION:
-                lines.append("Task Decomposition:")
-            elif kind == InlineArtifactKind.DISPOSABLE_MUTATION_DIFF:
-                lines.append("Disposable Apply:")
-            else:
-                lines.append("Answer:")
-            lines.extend(answer_lines)
-            return
+        for key in keys:
+            artifact = read_inline_artifact(artifacts.get(key))
+            if artifact is None or artifact.get("status") == "not_requested":
+                continue
+            answer_lines: list[str] = []
+            if not renderer(answer_lines, artifact):
+                break
+            heading = inline_artifact_answer_heading(kind)
+            answer_text_lines = [heading, *answer_lines]
+            return {
+                "kind": "inline_artifact_answer_contract",
+                "artifact_kind": kind.value,
+                "artifact_key": key,
+                "artifact_status": artifact.get("status"),
+                "heading": heading,
+                "lines": answer_lines,
+                "text": "\n".join(answer_text_lines),
+                "source_mutation": "false"
+                if any(line.strip().lower() == "- source mutation: false" for line in answer_lines)
+                else None,
+            }
+            break
+    return None
+
+
+def append_inline_artifact_answer(
+    lines: list[str],
+    artifacts: dict[str, Any],
+    response: dict[str, Any] | None = None,
+) -> None:
+    contract_response = dict(response) if isinstance(response, dict) else {}
+    contract_response["artifacts"] = artifacts
+    contract = inline_artifact_answer_contract_for_response(contract_response)
+    if contract is None:
+        return
+    answer_lines = contract.get("lines") if isinstance(contract.get("lines"), list) else []
+    lines.append("")
+    lines.append(str(contract["heading"]))
+    lines.extend(str(line) for line in answer_lines)
 
 
 def append_summary_lines(lines: list[str], summary: Any) -> None:
@@ -3672,7 +4435,8 @@ def append_summary_lines(lines: list[str], summary: Any) -> None:
             key for key in sorted(summary) if key not in FORMAT_A_SUMMARY_KEY_PRIORITY
         ]
         for key in keys[:FORMAT_A_SUMMARY_KEY_LIMIT]:
-            lines.append(f"- {key}: {format_summary_value(summary[key])}")
+            value = "none" if key == "selected_workflow" and summary[key] is None else format_summary_value(summary[key])
+            lines.append(f"- {key}: {value}")
         if len(keys) > FORMAT_A_SUMMARY_KEY_LIMIT:
             lines.append(f"- ... omitted {len(keys) - FORMAT_A_SUMMARY_KEY_LIMIT} summary field(s)")
     else:
@@ -3726,13 +4490,19 @@ def assistant_content_format_a(response: dict[str, Any]) -> str:
     workflow = response.get("workflow") or "workflow"
     status = response.get("status") or "unknown"
     run_id = response.get("run_id")
-    lines = [
-        f"I completed {workflow}." if status == "completed" else f"{workflow} finished with status {status}.",
-        f"{workflow} {status}",
-        f"run_id: {run_id}",
-        f"warnings: {response.get('warning_count', 0)}",
-        f"failures: {response.get('failure_count', 0)}",
-    ]
+    lines: list[str] = []
+    primary_answer = primary_answer_contract_for_response(response)
+    if primary_answer is not None:
+        lines.extend([str(primary_answer["heading"]), str(primary_answer["text"]), ""])
+    lines.extend(
+        [
+            f"I completed {workflow}." if status == "completed" else f"{workflow} finished with status {status}.",
+            f"{workflow} {status}",
+            f"run_id: {run_id}",
+            f"warnings: {response.get('warning_count', 0)}",
+            f"failures: {response.get('failure_count', 0)}",
+        ]
+    )
     review_summary = response.get("review_summary") if isinstance(response.get("review_summary"), dict) else {}
     if review_summary:
         lines.extend(
@@ -3784,6 +4554,12 @@ def task_decomposition_contract_for_response(response: dict[str, Any]) -> dict[s
                     else [],
                 },
                 "mutation_policy": item.get("mutation_policy"),
+                "acceptance_criteria": item.get("acceptance_criteria")
+                if isinstance(item.get("acceptance_criteria"), list)
+                else [],
+                "scope_boundary": item.get("scope_boundary")
+                if isinstance(item.get("scope_boundary"), dict)
+                else {},
                 "stop_conditions": item.get("stop_conditions")
                 if isinstance(item.get("stop_conditions"), list)
                 else [],
@@ -3809,6 +4585,16 @@ def task_decomposition_contract_for_response(response: dict[str, Any]) -> dict[s
         "work_packages": compact_packages,
         "dependency_edges": artifact.get("dependency_edges") if isinstance(artifact.get("dependency_edges"), list) else [],
         "approval_gates": artifact.get("approval_gates") if isinstance(artifact.get("approval_gates"), list) else [],
+        "tenet_contract": artifact.get("tenet_contract") if isinstance(artifact.get("tenet_contract"), dict) else {},
+        "requirements_translation": artifact.get("requirements_translation")
+        if isinstance(artifact.get("requirements_translation"), dict)
+        else {},
+        "incremental_implementation_plan": artifact.get("incremental_implementation_plan")
+        if isinstance(artifact.get("incremental_implementation_plan"), dict)
+        else {},
+        "delivery_mentorship": artifact.get("delivery_mentorship")
+        if isinstance(artifact.get("delivery_mentorship"), dict)
+        else {},
         "verification_strategy": artifact.get("verification_strategy")
         if isinstance(artifact.get("verification_strategy"), dict)
         else {},
@@ -3836,6 +4622,8 @@ def assistant_content_json(response: dict[str, Any]) -> str:
             "chat_contract": chat_contract_for_response(response),
             "selection_explanation": skill_selection_explanation_for_response(response),
             "context_explanation": context_source_explanation_for_response(response),
+            "primary_answer_contract": primary_answer_contract_for_response(response),
+            "inline_answer_contract": inline_artifact_answer_contract_for_response(response),
             "task_decomposition_contract": task_decomposition_contract_for_response(response),
             "tool_policy": response.get("tool_policy"),
             "review_summary": response.get("review_summary"),
@@ -3939,6 +4727,8 @@ def persist_run_record(config: ControllerServiceConfig, response: dict[str, Any]
         handle.flush()
         os.fsync(handle.fileno())
     temp_path.replace(path)
+    with RUN_RECORD_CACHE_LOCK:
+        RUN_RECORD_CACHE[(str(config.run_registry_root.resolve()), run_id)] = json.loads(json.dumps(record))
     for _ in range(RUN_RECORD_VISIBILITY_RETRIES):
         if path.exists():
             return
@@ -3959,6 +4749,10 @@ def load_run_record(config: ControllerServiceConfig, run_id: str) -> dict[str, A
             break
         time.sleep(RUN_RECORD_VISIBILITY_SLEEP_SECONDS)
     if not path.exists():
+        with RUN_RECORD_CACHE_LOCK:
+            cached = RUN_RECORD_CACHE.get((str(config.run_registry_root.resolve()), run_id))
+        if cached is not None:
+            return json.loads(json.dumps(cached))
         raise ControllerServiceError("Run not found.", status=HTTPStatus.NOT_FOUND, code="run_not_found")
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -4162,6 +4956,86 @@ def target_root_from_natural_request(user_request: str, payload: dict[str, Any])
         "Workflow-router natural-language requests must name an allowed target_root path.",
         code="missing_target_root",
     )
+
+
+def is_natural_control_request_without_target(user_request: str) -> bool:
+    text = user_request.lower()
+    control_terms = (
+        "explain skill selection",
+        "skill selection for",
+        "skill.selection.explain",
+        "scaffold a skill",
+        "skill.scaffold",
+        "skill_id:",
+        "prompt_family:",
+        "workflow_id:",
+        "skill.update",
+        "update skill",
+        "update skill metadata",
+        "skill.deprecate",
+        "deprecate a skill",
+        "deprecate skill",
+        "skill lifecycle",
+        "skill_lifecycle",
+        "skill batch",
+        "skill_batch",
+        "register skill",
+        "promote skill",
+        "skill pack",
+        "skill_pack",
+        "tool catalog",
+        "tool_catalog",
+    )
+    return any(term in text for term in control_terms)
+
+
+def no_target_guidance_kind(user_request: str, payload: dict[str, Any]) -> str | None:
+    payload_target = payload.get("target_root")
+    if isinstance(payload_target, str) and payload_target.strip():
+        return None
+    if target_paths_from_natural_text(user_request):
+        return None
+    if RUN_ID_IN_TEXT_RE.search(user_request):
+        return None
+    if is_natural_control_request_without_target(user_request):
+        return None
+    guidance_request = re.sub(r"\btracking\s+tag\s*:\s*\S+", " ", user_request, flags=re.IGNORECASE)
+    normalized = re.sub(r"[^a-z0-9]+", " ", guidance_request.lower()).strip()
+    if normalized in {"hi", "hello", "hey", "ping", "test", "hello there"}:
+        return "general_chat_no_target"
+    if normalized in {"help", "what can you do", "what can you do for me", "how can you help"}:
+        return "general_help_no_target"
+    coding_or_mutation_terms = {
+        "add",
+        "bug",
+        "change",
+        "code",
+        "debug",
+        "edit",
+        "error",
+        "explain",
+        "failure",
+        "file",
+        "find",
+        "fix",
+        "function",
+        "investigate",
+        "locate",
+        "refactor",
+        "repo",
+        "repository",
+        "test",
+        "update",
+        "without approval",
+        "skip approval",
+        "bypass approval",
+    }
+    guidance_request_lower = guidance_request.lower()
+    if any(term in guidance_request_lower for term in coding_or_mutation_terms):
+        if any(term in guidance_request_lower for term in ("without approval", "skip approval", "bypass approval")):
+            return "blocked_missing_target_and_approval"
+        return "missing_target_root_for_coding_request"
+    return None
 
 
 def infer_workflow_router_mode(user_request: str) -> str:
@@ -4383,6 +5257,18 @@ def natural_feedback_from_text(user_request: str) -> dict[str, Any]:
     if any(term in text for term in ("unsafe", "dangerous", "security issue", "mutated source")):
         feedback["unsafe"].append(bounded_string(user_request, 1000))
     return feedback
+
+
+def prompt_case_id_from_text(user_request: str) -> str | None:
+    patterns = (
+        r"\bprompt\s+case\s*[:#-]?\s*([A-Za-z0-9_.:-]+)",
+        r"\bcase_id\s*[:#-]?\s*([A-Za-z0-9_.:-]+)",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, user_request, flags=re.IGNORECASE)
+        if match:
+            return match.group(1).rstrip(".,;:)")
+    return None
 
 
 def natural_skill_batch_registration_requested(user_request: str) -> bool:
@@ -5541,6 +6427,9 @@ def natural_workflow_feedback_payload(
         "source": "workflow_router_natural_feedback",
         "mentioned_run_ids": run_ids,
     }
+    prompt_case_id = prompt_case_id_from_text(user_request)
+    if prompt_case_id:
+        artifact_refs["prompt_case_id"] = prompt_case_id
     related_run_ids = [run_id for run_id in run_ids if run_id != target_run_id]
     if related_run_ids:
         artifact_refs["related_run_ids"] = related_run_ids
@@ -6062,6 +6951,82 @@ def natural_workflow_router_payload(payload: dict[str, Any], config: ControllerS
     if isinstance(role_base_url, str) and role_base_url.strip():
         request["role_base_url"] = role_base_url
     return request
+
+
+def is_general_chat_without_target(user_request: str, payload: dict[str, Any]) -> bool:
+    return no_target_guidance_kind(user_request, payload) == "general_chat_no_target"
+
+
+def no_target_guidance_summary(kind: str) -> dict[str, Any]:
+    if kind == "general_chat_no_target":
+        return {
+            "route_status": "general_chat_no_target",
+            "selected_workflow": "none",
+            "answer": "Hi. For coding workflow help, include an allowed target_root path and the task you want planned or investigated.",
+            "next_action": (
+                "Example: In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what a function does. "
+                "For ordinary model chat, use the non-router model endpoint instead of the workflow-router gateway."
+            ),
+        }
+    if kind == "general_help_no_target":
+        return {
+            "route_status": "general_help_no_target",
+            "selected_workflow": "none",
+            "answer": (
+                "I can help with local coding workflows when you include an allowed target_root path and a concrete task. "
+                "I can inspect code, explain functions or files, find related tests, summarize failures, locate config, "
+                "plan small changes, and prepare approval-gated implementation packets."
+            ),
+            "next_action": (
+                "Send a prompt like: In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what "
+                "find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only."
+            ),
+        }
+    if kind == "blocked_missing_target_and_approval":
+        return {
+            "route_status": "blocked_missing_target_and_approval",
+            "selected_workflow": "none",
+            "answer": (
+                "I cannot change files or bypass approval from this prompt. I did not start a repository workflow."
+            ),
+            "next_action": (
+                "Provide an allowed target_root path, a concrete change request, and use approval-gated planning. "
+                "I can start with read-only inspection."
+            ),
+            "blocker_reasons": ["missing_target_root", "blocked_approval_bypass"],
+        }
+    return {
+        "route_status": "missing_target_root_for_coding_request",
+        "selected_workflow": "none",
+        "answer": (
+            "I need an allowed target_root path before I can inspect code. I did not start a repository workflow."
+        ),
+        "next_action": (
+            "Include the repository path and the specific behavior, file, symbol, error, or test you want investigated."
+        ),
+        "blocker_reasons": ["missing_target_root"],
+    }
+
+
+def general_workflow_router_chat_response(
+    user_request: str,
+    config: ControllerServiceConfig,
+    *,
+    kind: str = "general_chat_no_target",
+) -> dict[str, Any]:
+    run_id = f"workflow-router-general-{natural_artifact_timestamp()}"
+    response = {
+        "run_id": run_id,
+        "workflow": WORKFLOW_ROUTER_WORKFLOW_ID,
+        "status": "completed",
+        "artifacts": {},
+        "summary": no_target_guidance_summary(kind),
+        "warnings": [],
+        "failures": [],
+        "resume_key": None,
+    }
+    persist_run_record(config, response)
+    return response
 
 
 def optional_string(payload: dict[str, Any], key: str) -> str | None:
@@ -7509,6 +8474,12 @@ def handle_harness_chat_completion(payload: dict[str, Any], config: ControllerSe
 
 def handle_workflow_router_chat_completion(payload: dict[str, Any], config: ControllerServiceConfig) -> dict[str, Any]:
     user_request = latest_user_message_text(payload)
+    guidance_kind = no_target_guidance_kind(user_request, payload)
+    if guidance_kind is not None:
+        return chat_completion_response(
+            payload,
+            general_workflow_router_chat_response(user_request, config, kind=guidance_kind),
+        )
     controller_request = natural_workflow_router_payload(payload, config)
     workflow = controller_request.get("workflow")
     if workflow == NATURAL_LIFECYCLE_APPROVAL_REQUIRED_WORKFLOW:
@@ -7621,6 +8592,8 @@ def cleanup_run_records(payload: dict[str, Any], config: ControllerServiceConfig
             if stop_path.exists() and is_under(stop_path, config.output_root):
                 stop_path.unlink()
         path.unlink()
+        with RUN_RECORD_CACHE_LOCK:
+            RUN_RECORD_CACHE.pop((str(config.run_registry_root.resolve()), run_id), None)
         deleted.append(run_id)
     return {
         "schema_version": 1,
@@ -7854,6 +8827,7 @@ class ControllerRequestHandler(BaseHTTPRequestHandler):
 
 class ControllerHTTPServer(ThreadingHTTPServer):
     allow_reuse_address = True
+    daemon_threads = True
 
     def __init__(self, server_address: tuple[str, int], config: ControllerServiceConfig):
         super().__init__(server_address, ControllerRequestHandler)

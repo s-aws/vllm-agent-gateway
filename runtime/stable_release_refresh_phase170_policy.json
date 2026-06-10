@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "kind": "stable_release_refresh_policy",
+  "phase": 170,
+  "priority_backlog_id": "P0-BB-034",
+  "required_refresh_commands": [
+    "stable_chat_quality_release",
+    "stable_release_reset_rehearsal",
+    "model_swap_smoke_probe",
+    "v1_product_readiness_review",
+    "v1_stable_release_decision"
+  ],
+  "required_reports": [
+    {
+      "id": "stable_chat_quality_release",
+      "path": "runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json",
+      "expected_kind": "stable_chat_quality_release_report",
+      "expected_status": "passed",
+      "expected_phase": 130,
+      "expected_readiness": "ready_for_founder_testing"
+    },
+    {
+      "id": "stable_release_reset_rehearsal",
+      "path": "runtime-state/stable-release-reset-rehearsal/phase153/phase153-live-report.json",
+      "expected_kind": "stable_release_reset_rehearsal_report",
+      "expected_status": "passed",
+      "expected_phase": 153
+    },
+    {
+      "id": "model_swap_smoke_probe",
+      "path": "runtime-state/model-swap-smoke-probe/phase154/phase154-model-swap-smoke-probe-report.json",
+      "expected_kind": "model_swap_smoke_probe_report",
+      "expected_status": "passed",
+      "expected_phase": 154,
+      "expected_decision": "current_model_ready"
+    },
+    {
+      "id": "v1_product_readiness_review",
+      "path": "runtime-state/v1-product-readiness-review/phase155/phase155-v1-product-readiness-review-report.json",
+      "expected_kind": "v1_product_readiness_review_report",
+      "expected_status": "passed",
+      "expected_phase": 155,
+      "expected_recommendation": "go_for_founder_testing"
+    },
+    {
+      "id": "v1_stable_release_decision",
+      "path": "runtime-state/v1-stable-release-decision/phase156/phase156-v1-stable-release-decision-report.json",
+      "expected_kind": "v1_stable_release_decision_report",
+      "expected_status": "passed",
+      "expected_phase": 156,
+      "expected_decision": "release_for_founder_testing"
+    },
+    {
+      "id": "founder_field_round1",
+      "path": "runtime-state/founder-field-round1/phase157/phase157-founder-field-round1-report.json",
+      "expected_kind": "founder_field_round1_report",
+      "expected_status": "passed",
+      "expected_phase": 157
+    },
+    {
+      "id": "transcript_quality_feedback_intake",
+      "path": "runtime-state/transcript-quality-feedback-intake/phase158/phase158-transcript-quality-feedback-intake-report.json",
+      "expected_kind": "transcript_quality_feedback_intake_report",
+      "expected_status": "passed",
+      "expected_phase": 158
+    },
+    {
+      "id": "priority0_repair_loop",
+      "path": "runtime-state/priority0-repair-loop/phase159/phase159-priority0-repair-loop-report.json",
+      "expected_kind": "priority0_repair_loop_report",
+      "expected_status": "passed",
+      "expected_phase": 159
+    },
+    {
+      "id": "post_restart_runtime_readiness_phase163",
+      "path": "runtime-state/post-restart-runtime-readiness/phase163/phase163-post-restart-runtime-readiness-report.json",
+      "expected_kind": "post_restart_runtime_readiness_report",
+      "expected_status": "passed",
+      "expected_phase": 163,
+      "expected_decision": "ready_after_restart"
+    },
+    {
+      "id": "founder_field_round2",
+      "path": "runtime-state/founder-field-round2/phase164/phase164-founder-field-round2-report.json",
+      "expected_kind": "founder_field_round2_report",
+      "expected_status": "passed",
+      "expected_phase": 164
+    },
+    {
+      "id": "prompt_advisory_closure",
+      "path": "runtime-state/prompt-advisory-closure/phase165/phase165-prompt-advisory-closure-report.json",
+      "expected_kind": "prompt_advisory_closure_report",
+      "expected_status": "passed",
+      "expected_phase": 165
+    },
+    {
+      "id": "generic_chat_vague_prompt_contract",
+      "path": "runtime-state/generic-chat-vague-prompt-contract/phase166/phase166-generic-chat-vague-prompt-contract-report.json",
+      "expected_kind": "generic_chat_vague_prompt_contract_report",
+      "expected_status": "passed",
+      "expected_phase": 166
+    },
+    {
+      "id": "anythingllm_ui_replay_phase167",
+      "path": "runtime-state/anythingllm-ui/phase167/phase167-ui-replay-mixed.json",
+      "expected_kind": "anythingllm_ui_e2e_report",
+      "expected_status": "passed"
+    },
+    {
+      "id": "answer_first_ui_replay_phase168",
+      "path": "runtime-state/anythingllm-ui/phase168/phase168-answer-first-ui-replay-mixed.json",
+      "expected_kind": "anythingllm_ui_e2e_report",
+      "expected_status": "passed"
+    },
+    {
+      "id": "post_restart_runtime_readiness_phase168",
+      "path": "runtime-state/post-restart-runtime-readiness/phase168/phase168-post-restart-runtime-readiness-report.json",
+      "expected_kind": "post_restart_runtime_readiness_report",
+      "expected_status": "passed",
+      "expected_decision": "ready_after_restart"
+    },
+    {
+      "id": "failure_to_roadmap_phase169",
+      "path": "runtime-state/failure-to-roadmap/phase169/phase169-failure-to-roadmap-report.json",
+      "expected_kind": "failure_to_roadmap_report",
+      "expected_status": "passed",
+      "expected_phase": 169
+    },
+    {
+      "id": "release_notes_phase169",
+      "path": "runtime-state/release-notes/phase169/phase169-release-notes-report.json",
+      "expected_kind": "release_notes_validation_report",
+      "expected_status": "passed",
+      "expected_phase": 146
+    }
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "expected_model_ids": [
+    "Qwen3-Coder-30B-A3B-Instruct"
+  ],
+  "allowed_phase159_repair_modes": [
+    "no_repair_required",
+    "repairs_closed"
+  ],
+  "required_release_limitations": [
+    "not_production_deployment",
+    "not_advanced_broad_refactor_orchestration",
+    "not_every_repository_language_or_coding_task",
+    "not_direct_mutation_of_protected_fixtures",
+    "not_unsupported_output_format_parity",
+    "not_automatic_model_selection"
+  ],
+  "next_phase": null
+}

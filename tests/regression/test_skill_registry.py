@@ -269,6 +269,25 @@ def test_skill_registry_validates_all_project_skill_metadata() -> None:
         registry["user-facing-message-test-target-locator"]["capability_contract"]["route_key"]
         == "diagnostics.user_facing_message_test_target"
     )
+
+
+def test_table_schema_isolator_selected_for_persisted_schema_only_prompt() -> None:
+    registry = load_skill_registry(REPO_ROOT)
+    prompt = (
+        "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find only the persisted stealth_orders table schema. "
+        "Read only. Return schema field names, model files, and source refs. Exclude runtime dictionary fields."
+    )
+
+    selected = select_skills_for_workflow(
+        registry,
+        "code_investigation.plan",
+        query_text=prompt,
+        limit=5,
+    )
+
+    assert "table-schema-isolator" in selected
+    if "data-model-schema-locator" in selected:
+        assert selected.index("table-schema-isolator") < selected.index("data-model-schema-locator")
     assert registry["user-facing-message-test-target-locator"]["eval_status"] == "validated"
     assert all(Path(skill["path"]).exists() for skill in registry.values())
 

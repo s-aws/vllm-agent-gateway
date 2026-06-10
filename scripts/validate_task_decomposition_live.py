@@ -16,16 +16,23 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from vllm_agent_gateway.acceptance.task_decomposition_quality import evaluate_task_decomposition_plan
+
 
 DEFAULT_CONTROLLER_BASE_URL = "http://127.0.0.1:8400"
 DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL = "http://127.0.0.1:8500/v1"
 DEFAULT_ANYTHINGLLM_API_BASE_URL = "http://127.0.0.1:3001"
 DEFAULT_WORKSPACE = "my-workspace"
 DEFAULT_CONFIG_ROOT = "/mnt/c/agentic_agents"
-DEFAULT_REPORT_PATH = "runtime-state/task-decomposition/phase102-live.json"
+DEFAULT_REPORT_PATH = "runtime-state/task-decomposition/phase113-live.json"
 DEFAULT_TARGET_ROOTS = [
     "/mnt/c/coinbase_testing_repo_frozen_tmp",
     "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+    "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
 ]
 PORT_HEALTH_PROBES = [
     ("localhost-model", "http://127.0.0.1:8000/v1/models"),
@@ -50,6 +57,7 @@ WATCHED_TARGET_FILES = [
     "tests/unit/test_order_id_and_followup_rules.py",
     "docs/agents/INVARIANTS.md",
 ]
+WATCHED_SOURCE_SUFFIXES = {".go", ".js", ".json", ".md", ".py", ".toml", ".yaml", ".yml"}
 FORMAT_A_MARKERS = [
     "I completed workflow_router.plan.",
     "workflow_router.plan completed",
@@ -58,8 +66,9 @@ FORMAT_A_MARKERS = [
     "- Selected workflow: task.decompose",
     "- Next action: none",
     "Task Decomposition:",
-    "- Work-package schema: 2",
+    "- Work-package schema: 3",
     "- Work packages:",
+    "- Acceptance criteria:",
     "- Dependencies:",
     "- Approval gates:",
     "- Stop conditions:",
@@ -102,12 +111,40 @@ def json_request(
         return exc.code, body
 
 
-def task_prompt(target_root: str, *, json_output: bool = False) -> str:
+def task_subject_for_target(target_root: str) -> str:
+    root = Path(target_root)
+    if (root / "service" / "orders.py").exists():
+        return phase113_subjects_for_target(target_root)["feature"]
+    return "add a focused unit test for placed_order_id stealth lookup after investigating related tests"
+
+
+def phase113_subjects_for_target(target_root: str) -> dict[str, str]:
+    root = Path(target_root)
+    if (root / "service" / "orders.py").exists():
+        return {
+            "feature": "add a focused unit test for resolve_order_status after investigating related tests",
+            "bug": "fix a failing test around resolve_order_status returning empty for zero-item orders",
+            "requirement": "add a requirement note for the create-order response to document the resolved order status without changing files yet",
+        }
+    return {
+        "feature": "add a focused unit test for placed_order_id stealth lookup after investigating related tests",
+        "bug": "fix a failing test around placed_order_id stealth lookup returning no result for a stored order",
+        "requirement": "add a requirement note for the stealth-order lookup answer to include whether placed_order_id evidence was found without changing files yet",
+    }
+
+
+def deferred_subject_for_target(target_root: str) -> str:
+    root = Path(target_root)
+    if (root / "service" / "orders.py").exists():
+        return "refactor the resolve_order_status decision logic so there is one code path"
+    return "refactor the placed_order_id stealth lookup so there is one code path"
+
+
+def task_prompt(target_root: str, *, json_output: bool = False, subject: str | None = None) -> str:
     suffix = " Return JSON." if json_output else " Return the answer in the default format."
     return (
         f"In {target_root}, decompose this multi-step task into work packages with dependencies, "
-        "approval gates, and verification strategy: add a focused unit test for placed_order_id "
-        f"stealth lookup after investigating related tests.{suffix}"
+        f"approval gates, and verification strategy: {subject or task_subject_for_target(target_root)}.{suffix}"
     )
 
 
@@ -119,28 +156,34 @@ def direct_payload(target_root: str, user_request: str | None = None) -> dict[st
         "user_request": user_request
         or (
             "Decompose this multi-step task into work packages with dependencies, approval gates, "
-            "and verification strategy: add a focused unit test for placed_order_id stealth lookup "
-            "after investigating related tests."
+            f"and verification strategy: {task_subject_for_target(target_root)}."
         ),
     }
 
 
-def gateway_payload(target_root: str, *, json_output: bool = False) -> dict[str, Any]:
+def gateway_payload(target_root: str, *, json_output: bool = False, subject: str | None = None) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "model": "agentic-workflow-router",
-        "messages": [{"role": "user", "content": task_prompt(target_root, json_output=json_output)}],
+        "messages": [{"role": "user", "content": task_prompt(target_root, json_output=json_output, subject=subject)}],
     }
     if json_output:
         payload["response_format"] = {"type": "json_object"}
     return payload
 
 
-def anythingllm_payload(target_root: str, *, json_output: bool = False) -> dict[str, Any]:
+def anythingllm_payload(target_root: str, *, json_output: bool = False, subject: str | None = None) -> dict[str, Any]:
     return {
-        "message": task_prompt(target_root, json_output=json_output),
+        "message": task_prompt(target_root, json_output=json_output, subject=subject),
         "mode": "chat",
         "sessionId": f"task-decomposition-{uuid.uuid4().hex}",
     }
+
+
+def phase113_family_request(target_root: str, subject: str) -> str:
+    return (
+        "Decompose this multi-step task into work packages with dependencies, approval gates, "
+        f"and verification strategy: {subject}."
+    )
 
 
 def text_response(body: dict[str, Any]) -> str:
@@ -182,9 +225,12 @@ def read_json_artifact(path_value: Any) -> dict[str, Any]:
     return parsed
 
 
-def require_phase102_contract(plan: dict[str, Any], target_root: str, label: str) -> None:
-    if plan.get("work_package_schema_version") != 2:
+def require_phase113_contract(plan: dict[str, Any], target_root: str, label: str) -> None:
+    if plan.get("work_package_schema_version") != 3:
         raise RuntimeError(f"{label} work package schema mismatch for {target_root}: {plan.get('work_package_schema_version')!r}")
+    quality_report = evaluate_task_decomposition_plan(plan)
+    if quality_report.get("status") != "passed":
+        raise RuntimeError(f"{label} Phase 113 quality contract failed for {target_root}: {json.dumps(quality_report, ensure_ascii=True)}")
     packages = plan.get("work_packages")
     if not isinstance(packages, list):
         raise RuntimeError(f"{label} missing work_packages for {target_root}")
@@ -214,6 +260,10 @@ def require_phase102_contract(plan: dict[str, Any], target_root: str, label: str
             raise RuntimeError(f"{label} stage mismatch for {target_root} package={package_id}: {item}")
         if not isinstance(item.get("stop_conditions"), list) or not item["stop_conditions"]:
             raise RuntimeError(f"{label} missing stop conditions for {target_root} package={package_id}")
+        if not isinstance(item.get("acceptance_criteria"), list) or not item["acceptance_criteria"]:
+            raise RuntimeError(f"{label} missing acceptance criteria for {target_root} package={package_id}")
+        if not isinstance(item.get("scope_boundary"), dict) or item["scope_boundary"].get("independently_reviewable") is not True:
+            raise RuntimeError(f"{label} missing independent scope boundary for {target_root} package={package_id}")
         verification = item.get("verification")
         if not isinstance(verification, dict) or not verification.get("status"):
             raise RuntimeError(f"{label} missing verification status for {target_root} package={package_id}")
@@ -223,7 +273,37 @@ def require_phase102_contract(plan: dict[str, Any], target_root: str, label: str
         raise RuntimeError(f"{label} approval gate package mismatch for {target_root}: {gate_packages!r}")
 
 
+def require_phase113_inline_contract(contract: dict[str, Any], target_root: str, label: str) -> None:
+    if contract.get("work_package_schema_version") != 3:
+        raise RuntimeError(f"{label} inline work package schema mismatch for {target_root}: {contract.get('work_package_schema_version')!r}")
+    tenet_contract = contract.get("tenet_contract")
+    if not isinstance(tenet_contract, dict) or tenet_contract.get("phase") != 113:
+        raise RuntimeError(f"{label} inline contract missing Phase 113 tenet contract for {target_root}")
+    packages = contract.get("work_packages")
+    if not isinstance(packages, list):
+        raise RuntimeError(f"{label} inline contract missing work packages for {target_root}")
+    package_ids = [item.get("id") for item in packages if isinstance(item, dict)]
+    expected_ids = ["WP1", "GATE2", "WP3", "WP4", "STOP5"]
+    if package_ids != expected_ids:
+        raise RuntimeError(f"{label} inline package order mismatch for {target_root}: {package_ids!r}")
+    for item in packages:
+        if not isinstance(item, dict):
+            continue
+        package_id = item.get("id")
+        if not isinstance(item.get("acceptance_criteria"), list) or not item["acceptance_criteria"]:
+            raise RuntimeError(f"{label} inline contract missing acceptance criteria for {target_root} package={package_id}")
+        if not isinstance(item.get("scope_boundary"), dict) or item["scope_boundary"].get("independently_reviewable") is not True:
+            raise RuntimeError(f"{label} inline contract missing scope boundary for {target_root} package={package_id}")
+    gates = contract.get("approval_gates")
+    gate_packages = [item.get("package_id") for item in gates if isinstance(item, dict)] if isinstance(gates, list) else []
+    if gate_packages != ["GATE2", "STOP5"]:
+        raise RuntimeError(f"{label} inline approval gate package mismatch for {target_root}: {gate_packages!r}")
+
+
 def require_advanced_refactor_deferred(plan: dict[str, Any], target_root: str, label: str) -> None:
+    quality_report = evaluate_task_decomposition_plan(plan)
+    if quality_report.get("status") != "passed":
+        raise RuntimeError(f"{label} Phase 113 quality contract failed for {target_root}: {json.dumps(quality_report, ensure_ascii=True)}")
     if plan.get("status") != "blocked" or plan.get("prompt_family") != "advanced_refactor_deferred":
         raise RuntimeError(f"{label} did not defer advanced refactor for {target_root}: {json.dumps(plan, ensure_ascii=True)[:1000]}")
     if plan.get("deferred_to_phase") != 105:
@@ -245,6 +325,24 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def watched_files_for_root(root: Path) -> list[str]:
+    preferred = [relative for relative in WATCHED_TARGET_FILES if (root / relative).exists()]
+    if preferred:
+        return preferred
+    selected: list[str] = []
+    for path in sorted(root.rglob("*")):
+        if not path.is_file():
+            continue
+        if ".git" in path.parts or "__pycache__" in path.parts:
+            continue
+        if path.suffix.lower() not in WATCHED_SOURCE_SUFFIXES:
+            continue
+        selected.append(path.relative_to(root).as_posix())
+        if len(selected) >= 20:
+            break
+    return selected
+
+
 def watched_hashes(root: Path, relatives: list[str]) -> dict[str, str]:
     hashes: dict[str, str] = {}
     for relative in relatives:
@@ -257,7 +355,7 @@ def watched_hashes(root: Path, relatives: list[str]) -> dict[str, str]:
 
 
 def changed_hashes(before: dict[str, str], after: dict[str, str]) -> list[str]:
-    return sorted(key for key, value in after.items() if before.get(key) != value)
+    return sorted(key for key in set(before) | set(after) if before.get(key) != after.get(key))
 
 
 def git_status(root: Path) -> str | None:
@@ -267,8 +365,14 @@ def git_status(root: Path) -> str | None:
     return result.stdout
 
 
-def validate_no_target_mutation(root: Path, before_hashes: dict[str, str], before_status: str | None, label: str) -> None:
-    changed = changed_hashes(before_hashes, watched_hashes(root, WATCHED_TARGET_FILES))
+def validate_no_target_mutation(
+    root: Path,
+    relatives: list[str],
+    before_hashes: dict[str, str],
+    before_status: str | None,
+    label: str,
+) -> None:
+    changed = changed_hashes(before_hashes, watched_hashes(root, relatives))
     if changed:
         raise RuntimeError(f"{label} mutated watched files for {root}: {changed}")
     after_status = git_status(root)
@@ -283,17 +387,22 @@ def validate_port_health(timeout_seconds: int) -> list[dict[str, Any]]:
         if status != 200:
             raise RuntimeError(f"{label} health probe returned HTTP {status}: {json.dumps(body, ensure_ascii=True)}")
         checks.append({"label": label, "url": url, "status": "passed"})
-        print(f"PHASE102 PORT PASS label={label} url={url}")
+        print(f"PHASE113 PORT PASS label={label} url={url}")
     return checks
 
 
-def require_direct_response(body: dict[str, Any], target_root: str) -> None:
+def require_direct_response(
+    body: dict[str, Any],
+    target_root: str,
+    *,
+    expected_prompt_family: str = "feature_or_small_change",
+) -> None:
     summary = body.get("summary")
     if not isinstance(summary, dict):
         raise RuntimeError("direct response did not include summary")
     expected = {
         "decomposition_status": "ready",
-        "prompt_family": "feature_or_small_change",
+        "prompt_family": expected_prompt_family,
         "target_repository_changed": False,
         "runtime_registry_changed": False,
     }
@@ -309,7 +418,7 @@ def require_direct_response(body: dict[str, Any], target_root: str) -> None:
         raise RuntimeError(f"direct response missing task_decomposition artifact for {target_root}")
     if any("packet" in key for key in artifacts):
         raise RuntimeError(f"direct response created packet artifact for {target_root}: {sorted(artifacts)}")
-    require_phase102_contract(read_json_artifact(artifacts["task_decomposition"]), target_root, "direct")
+    require_phase113_contract(read_json_artifact(artifacts["task_decomposition"]), target_root, "direct")
 
 
 def require_ambiguous_response(body: dict[str, Any], target_root: str) -> None:
@@ -368,7 +477,12 @@ def require_json_contract(parsed: dict[str, Any], target_root: str, label: str) 
     contract = parsed.get("task_decomposition_contract")
     if not isinstance(contract, dict):
         raise RuntimeError(f"{label} JSON did not include task_decomposition_contract for {target_root}")
-    require_phase102_contract(contract, target_root, f"{label} JSON contract")
+    require_phase113_inline_contract(contract, target_root, f"{label} JSON contract")
+    require_phase113_contract(
+        read_json_artifact(artifacts["downstream_task_decomposition"]),
+        target_root,
+        f"{label} JSON artifact",
+    )
 
 
 def validate_direct(args: argparse.Namespace, target_root: str) -> dict[str, Any]:
@@ -380,6 +494,23 @@ def validate_direct(args: argparse.Namespace, target_root: str) -> dict[str, Any
     if status != 200:
         raise RuntimeError(f"direct controller returned HTTP {status} for {target_root}: {json.dumps(body, ensure_ascii=True)}")
     require_direct_response(body, target_root)
+    family_runs: list[dict[str, Any]] = [{"family": "feature", "run_id": body.get("run_id")}]
+    for family, subject in phase113_subjects_for_target(target_root).items():
+        if family == "feature":
+            continue
+        family_status, family_body = json_request(
+            f"{args.controller_base_url.rstrip('/')}/v1/controller/task-decompositions",
+            payload=direct_payload(target_root, phase113_family_request(target_root, subject)),
+            timeout_seconds=args.timeout_seconds,
+        )
+        if family_status != 200:
+            raise RuntimeError(
+                f"direct controller returned HTTP {family_status} for {target_root} family={family}: "
+                f"{json.dumps(family_body, ensure_ascii=True)}"
+            )
+        expected_family = "failing_test_remediation" if family == "bug" else "feature_or_small_change"
+        require_direct_response(family_body, target_root, expected_prompt_family=expected_family)
+        family_runs.append({"family": family, "run_id": family_body.get("run_id")})
     ambiguous_status, ambiguous_body = json_request(
         f"{args.controller_base_url.rstrip('/')}/v1/controller/task-decompositions",
         payload=direct_payload(target_root, "fix it"),
@@ -396,7 +527,7 @@ def validate_direct(args: argparse.Namespace, target_root: str) -> dict[str, Any
         payload=direct_payload(
             target_root,
             "Decompose this multi-step task into work packages with dependencies, approval gates, "
-            "and verification strategy: refactor the placed_order_id stealth lookup so there is one code path.",
+            f"and verification strategy: {deferred_subject_for_target(target_root)}.",
         ),
         timeout_seconds=args.timeout_seconds,
     )
@@ -413,10 +544,11 @@ def validate_direct(args: argparse.Namespace, target_root: str) -> dict[str, Any
         target_root,
         "direct advanced refactor",
     )
-    print(f"PHASE102 DIRECT PASS target={target_root} run_id={body.get('run_id')}")
+    print(f"PHASE113 DIRECT PASS target={target_root} run_id={body.get('run_id')}")
     return {
         "target_root": target_root,
         "run_id": body.get("run_id"),
+        "family_runs": family_runs,
         "ambiguous_run_id": ambiguous_body.get("run_id"),
         "deferred_run_id": deferred_body.get("run_id"),
     }
@@ -431,6 +563,22 @@ def validate_gateway(args: argparse.Namespace, target_root: str) -> dict[str, An
     if status != 200:
         raise RuntimeError(f"gateway returned HTTP {status} for {target_root}: {json.dumps(body, ensure_ascii=True)}")
     text = require_format_a(body, target_root, "gateway")
+    family_runs: list[dict[str, Any]] = [{"family": "feature", "format_a_run_id": run_id_from_text(text)}]
+    for family, subject in phase113_subjects_for_target(target_root).items():
+        if family == "feature":
+            continue
+        family_status, family_body = json_request(
+            f"{args.workflow_router_gateway_base_url.rstrip('/')}/chat/completions",
+            payload=gateway_payload(target_root, subject=subject),
+            timeout_seconds=args.timeout_seconds,
+        )
+        if family_status != 200:
+            raise RuntimeError(
+                f"gateway returned HTTP {family_status} for {target_root} family={family}: "
+                f"{json.dumps(family_body, ensure_ascii=True)}"
+            )
+        family_text = require_format_a(family_body, target_root, f"gateway {family}")
+        family_runs.append({"family": family, "format_a_run_id": run_id_from_text(family_text)})
 
     json_status, json_body = json_request(
         f"{args.workflow_router_gateway_base_url.rstrip('/')}/chat/completions",
@@ -442,8 +590,8 @@ def validate_gateway(args: argparse.Namespace, target_root: str) -> dict[str, An
     parsed = json_content(json_body)
     require_json_contract(parsed, target_root, "gateway")
     run_id = parsed.get("run_id")
-    print(f"PHASE102 GATEWAY PASS target={target_root} run_id={run_id}")
-    return {"target_root": target_root, "format_a_run_id": run_id_from_text(text), "json_run_id": run_id}
+    print(f"PHASE113 GATEWAY PASS target={target_root} run_id={run_id}")
+    return {"target_root": target_root, "format_a_run_id": run_id_from_text(text), "json_run_id": run_id, "family_runs": family_runs}
 
 
 def run_id_from_text(text: str) -> str:
@@ -464,6 +612,23 @@ def validate_anythingllm(args: argparse.Namespace, target_root: str, api_key: st
     if status != 200:
         raise RuntimeError(f"AnythingLLM returned HTTP {status} for {target_root}: {json.dumps(body, ensure_ascii=True)}")
     text = require_format_a(body, target_root, "AnythingLLM")
+    family_runs: list[dict[str, Any]] = [{"family": "feature", "format_a_run_id": run_id_from_text(text)}]
+    for family, subject in phase113_subjects_for_target(target_root).items():
+        if family == "feature":
+            continue
+        family_status, family_body = json_request(
+            f"{args.anythingllm_api_base_url.rstrip('/')}/api/v1/workspace/{args.workspace}/chat",
+            payload=anythingllm_payload(target_root, subject=subject),
+            headers=headers,
+            timeout_seconds=args.timeout_seconds,
+        )
+        if family_status != 200:
+            raise RuntimeError(
+                f"AnythingLLM returned HTTP {family_status} for {target_root} family={family}: "
+                f"{json.dumps(family_body, ensure_ascii=True)}"
+            )
+        family_text = require_format_a(family_body, target_root, f"AnythingLLM {family}")
+        family_runs.append({"family": family, "format_a_run_id": run_id_from_text(family_text)})
 
     json_status, json_body = json_request(
         f"{args.anythingllm_api_base_url.rstrip('/')}/api/v1/workspace/{args.workspace}/chat",
@@ -476,8 +641,8 @@ def validate_anythingllm(args: argparse.Namespace, target_root: str, api_key: st
     parsed = json_content(json_body)
     require_json_contract(parsed, target_root, "AnythingLLM")
     run_id = parsed.get("run_id")
-    print(f"PHASE102 ANYTHINGLLM PASS target={target_root} run_id={run_id}")
-    return {"target_root": target_root, "format_a_run_id": run_id_from_text(text), "json_run_id": run_id}
+    print(f"PHASE113 ANYTHINGLLM PASS target={target_root} run_id={run_id}")
+    return {"target_root": target_root, "format_a_run_id": run_id_from_text(text), "json_run_id": run_id, "family_runs": family_runs}
 
 
 def write_json(path: Path, value: dict[str, Any]) -> None:
@@ -509,7 +674,8 @@ def main() -> int:
     target_roots = [Path(value).resolve() for value in (args.target_roots or DEFAULT_TARGET_ROOTS)]
 
     runtime_before = watched_hashes(config_root, WATCHED_RUNTIME_FILES)
-    target_before = {str(root): watched_hashes(root, WATCHED_TARGET_FILES) for root in target_roots}
+    target_watch_files = {str(root): watched_files_for_root(root) for root in target_roots}
+    target_before = {str(root): watched_hashes(root, target_watch_files[str(root)]) for root in target_roots}
     target_git_before = {str(root): git_status(root) for root in target_roots}
     checks: dict[str, Any] = {
         "ports": validate_port_health(args.timeout_seconds),
@@ -520,9 +686,9 @@ def main() -> int:
     for root in target_roots:
         target = str(root)
         checks["direct"].append(validate_direct(args, target))
-        validate_no_target_mutation(root, target_before[target], target_git_before[target], "direct controller")
+        validate_no_target_mutation(root, target_watch_files[target], target_before[target], target_git_before[target], "direct controller")
         checks["gateway"].append(validate_gateway(args, target))
-        validate_no_target_mutation(root, target_before[target], target_git_before[target], "gateway")
+        validate_no_target_mutation(root, target_watch_files[target], target_before[target], target_git_before[target], "gateway")
 
     if not args.skip_anythingllm:
         api_key = os.environ.get(args.api_key_env)
@@ -531,7 +697,7 @@ def main() -> int:
         for root in target_roots:
             target = str(root)
             checks["anythingllm"].append(validate_anythingllm(args, target, api_key))
-            validate_no_target_mutation(root, target_before[target], target_git_before[target], "AnythingLLM")
+            validate_no_target_mutation(root, target_watch_files[target], target_before[target], target_git_before[target], "AnythingLLM")
 
     runtime_changed = changed_hashes(runtime_before, watched_hashes(config_root, WATCHED_RUNTIME_FILES))
     if runtime_changed:
@@ -552,7 +718,7 @@ def main() -> int:
         "target_changed_files": {},
     }
     write_json(output_path, report)
-    print(f"PHASE102 TASK DECOMPOSITION LIVE PASS report={output_path}")
+    print(f"PHASE113 TASK DECOMPOSITION LIVE PASS report={output_path}")
     return 0
 
 

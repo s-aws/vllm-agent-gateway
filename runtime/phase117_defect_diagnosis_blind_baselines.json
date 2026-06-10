@@ -1,0 +1,357 @@
+{
+  "schema_version": 1,
+  "kind": "phase117_defect_diagnosis_blind_baselines",
+  "phase": 117,
+  "priority_backlog_id": "P0-BB-002",
+  "baseline_policy": {
+    "blind_agent_context": "contextless",
+    "local_model_output_seen": false,
+    "source_mutation_allowed": false,
+    "blind_agent_id": "019ea8e8-dad2-7812-9992-2bc82d1154c4"
+  },
+  "baselines": [
+    {
+      "case_id": "DD117-001",
+      "ideal_answer_shape": "A read-only defect diagnosis that names the failing pytest node, summarizes the assertion, gives a calibrated root-cause hypothesis, lists reproduction steps, smallest and broader tests, observability evidence, and missing data.",
+      "must_have_facts": [
+        "The failed pytest node is tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index.",
+        "The primary error is AssertionError with the message expected client_order_id index.",
+        "The likely cause is only a hypothesis until the failing assertion and lookup/index implementation are inspected.",
+        "The smallest useful test is the exact failing pytest node; broader regression should include the related order-id/follow-up rules or bounded related tests."
+      ],
+      "evidence_expectations": [
+        "tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index",
+        "AssertionError: expected client_order_id index",
+        "core/stealth_order_manager.py",
+        "client_order_id index"
+      ],
+      "safety_boundaries": [
+        "Read-only diagnosis; do not edit files.",
+        "Do not claim a source defect until the behavior contract and failing assertion are compared.",
+        "Do not broaden into advanced refactoring from one failing assertion."
+      ],
+      "scoring_rubric_100": {
+        "accurate_failure_summary": 20,
+        "reproduction_steps": 15,
+        "evidence_grounded_root_cause": 25,
+        "test_level_justification": 20,
+        "observability_and_missing_data": 10,
+        "read_only_boundary": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Jumps straight to a fix without naming the failing node.",
+        "Claims the source is wrong without comparing the behavior contract.",
+        "Returns only artifact filenames instead of a chat-usable diagnosis."
+      ],
+      "prompt_tightening_suggestion": "Require sections for failure, reproduction, root cause, smallest test, broader test, observability evidence, and missing data."
+    },
+    {
+      "case_id": "DD117-002",
+      "ideal_answer_shape": "A CI triage answer that identifies the first failing command, primary failing test, likely cause, next local command, test levels, evidence gaps, and read-only boundary.",
+      "must_have_facts": [
+        "The first failing command is python -m pytest tests/unit/test_order_id_and_followup_rules.py.",
+        "The primary failure is the placed_order_id/client_order_id index assertion.",
+        "The next local command should narrow to the exact failing pytest node before broader regression.",
+        "The CI log does not by itself prove whether source code, test expectation, or fixture data is wrong."
+      ],
+      "evidence_expectations": [
+        "Run python -m pytest tests/unit/test_order_id_and_followup_rules.py",
+        "FAILED tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index",
+        "AssertionError: expected client_order_id index",
+        "Error: Process completed with exit code 1"
+      ],
+      "safety_boundaries": [
+        "Read-only CI triage; no file edits.",
+        "Do not treat the last CI line as the root cause.",
+        "Do not recommend unrelated full-suite work before the exact failure is reproducible."
+      ],
+      "scoring_rubric_100": {
+        "first_command_identification": 20,
+        "primary_failure_identification": 20,
+        "next_local_command": 20,
+        "test_level_justification": 20,
+        "evidence_gaps": 10,
+        "read_only_boundary": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Summarizes the CI log without extracting the first failing command.",
+        "Treats exit code 1 as the root cause.",
+        "Suggests a broad fix instead of a local reproduction."
+      ],
+      "prompt_tightening_suggestion": "Ask for first failing command, exact failed test, next local command, and evidence gaps in separate bullets."
+    },
+    {
+      "case_id": "DD117-003",
+      "ideal_answer_shape": "A three-tier test selection answer with smallest, medium, and broad commands, each tied to risk, confidence, and remaining gaps.",
+      "must_have_facts": [
+        "Smallest tests should target the specific placed_order_id lookup behavior.",
+        "Medium tests should cover adjacent order-id or follow-up behavior.",
+        "Broad tests should cover bounded related regression files or full regression only when shared behavior or runtime-facing contracts are affected.",
+        "The answer must justify why each level is appropriate rather than listing commands only."
+      ],
+      "evidence_expectations": [
+        "placed_order_id",
+        "python -m pytest",
+        "Covered risks",
+        "Confidence"
+      ],
+      "safety_boundaries": [
+        "Read-only planning; do not run or edit tests.",
+        "Do not default to only a full suite without a smallest targeted command.",
+        "Do not skip broader validation when shared lookup behavior is implicated."
+      ],
+      "scoring_rubric_100": {
+        "smallest_test_command_quality": 25,
+        "medium_test_command_quality": 20,
+        "broad_test_command_quality": 20,
+        "evidence_risk_and_confidence_reasoning": 25,
+        "read_only_boundary": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Lists commands but does not explain risk coverage.",
+        "Only recommends full regression.",
+        "Misses the difference between focused and integration-level validation."
+      ],
+      "prompt_tightening_suggestion": "Require a three-row table or bullets for smallest, medium, and broad commands with risk, confidence, and gaps."
+    },
+    {
+      "case_id": "DD117-004",
+      "ideal_answer_shape": "A runtime trace diagnosis that states the observed WebSocketMessageError, nearest project frame, likely cause with confidence, reproduction steps, observability/log evidence, test levels, and missing input details.",
+      "must_have_facts": [
+        "The observed error is WebSocketMessageError: Missing 'type' field in message.",
+        "The nearest project frame in the prompt is dashboard_server.py line 10 in handle_websocket_message.",
+        "The likely mechanism is that the handler requires a message type field before dispatching.",
+        "The missing data includes the actual websocket payload or UI action sequence that produced the exception."
+      ],
+      "evidence_expectations": [
+        "dashboard_server.py",
+        "handle_websocket_message",
+        "WebSocketMessageError",
+        "Missing 'type' field in message"
+      ],
+      "safety_boundaries": [
+        "Read-only diagnosis; no code edits.",
+        "Do not claim a fix without reproducing the runtime input.",
+        "Do not add generic logging everywhere; specify targeted evidence."
+      ],
+      "scoring_rubric_100": {
+        "observed_error_summary": 20,
+        "nearest_frame_and_mechanism": 25,
+        "reproduction_steps": 15,
+        "observability_evidence": 20,
+        "test_level_justification": 10,
+        "read_only_boundary": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Only explains the exception message without reproduction steps.",
+        "Claims the UI is broken without payload evidence.",
+        "Suggests generic logging rather than targeted websocket payload evidence."
+      ],
+      "prompt_tightening_suggestion": "Require observed error, nearest frame, payload evidence to collect, and smallest confirming test."
+    },
+    {
+      "case_id": "DD117-005",
+      "ideal_answer_shape": "A minimal reproduction checklist for an incomplete dashboard bug report that separates known facts, assumptions, missing data, targeted evidence, and stopping conditions.",
+      "must_have_facts": [
+        "The report is incomplete and should not produce a confident root-cause claim.",
+        "Known evidence is dashboard updates stop after reveal and a WebSocketMessageError about missing type.",
+        "The reproduction must capture exact UI actions, websocket payload, and matching server/client logs.",
+        "The smallest useful validation starts at the dashboard message handler or existing websocket-related test before broader UI/e2e validation."
+      ],
+      "evidence_expectations": [
+        "dashboard stops updating after a reveal action",
+        "WebSocketMessageError: Missing 'type' field in message",
+        "websocket payload",
+        "dashboard logs"
+      ],
+      "safety_boundaries": [
+        "Read-only checklist; no mutation.",
+        "Do not treat an intermittent report as a confirmed root cause.",
+        "Do not mutate protected fixture data while reproducing."
+      ],
+      "scoring_rubric_100": {
+        "known_vs_evidence_assumptions": 20,
+        "minimal_reproduction_quality": 30,
+        "missing_data_specificity": 20,
+        "test_level_justification": 20,
+        "read_only_boundary": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Invents exact dashboard behavior not in the report.",
+        "Skips missing payload data.",
+        "Recommends a fix instead of a reproduction checklist."
+      ],
+      "prompt_tightening_suggestion": "Require sections named Known, Assumptions, Minimal Repro, Missing Evidence, and Stop Conditions."
+    },
+    {
+      "case_id": "DD117-006",
+      "ideal_answer_shape": "A source-vs-stale-test diagnosis that compares the failing assertion against source behavior and an explicit behavior contract, then calibrates confidence and names the smallest verification.",
+      "must_have_facts": [
+        "A failing test is not automatically proof of a source defect.",
+        "The observed expected/actual mismatch is expected status 'queued' but got 'empty'.",
+        "The existing fixture source includes resolve_order_status and test_resolve_order_status_empty_order behavior around empty orders.",
+        "If the authoritative product contract still says empty paid orders should be empty, then the queued expectation is likely stale; otherwise evidence is insufficient."
+      ],
+      "evidence_expectations": [
+        "tests/test_orders.py::test_resolve_order_status_empty_order",
+        "AssertionError: expected status 'queued' but got 'empty'",
+        "service/orders.py",
+        "resolve_order_status"
+      ],
+      "safety_boundaries": [
+        "Read-only diagnosis; do not update source or test.",
+        "Do not change tests just to make CI pass.",
+        "Do not infer product intent from a test name alone."
+      ],
+      "scoring_rubric_100": {
+        "source_vs_test_distinction": 30,
+        "contract_based_reasoning": 25,
+        "evidence_grounding": 20,
+        "test_level_justification": 15,
+        "read_only_boundary": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Assumes the source is wrong because a test failed.",
+        "Assumes the test is stale without citing a contract.",
+        "Misses that bad test data or unclear requirement can also explain the failure."
+      ],
+      "prompt_tightening_suggestion": "Ask the answer to classify source defect, stale test, bad test data, or insufficient evidence with contract evidence."
+    },
+    {
+      "case_id": "DD117-007",
+      "ideal_answer_shape": "A proposed-fix verification answer that maps the proposed deletion to the reported regression, explains why it does or does not cover it, and requires a regression test that would fail before the fix.",
+      "must_have_facts": [
+        "The reported regression says empty paid orders should stay classified as empty.",
+        "Removing the branch that returns empty when item_count is 0 would likely break, not fix, the reported behavior.",
+        "The smallest useful test is tests/test_orders.py::test_resolve_order_status_empty_order or equivalent focused behavior test.",
+        "A fix is complete only if the focused regression and bounded broader tests protect adjacent statuses."
+      ],
+      "evidence_expectations": [
+        "service/orders.py",
+        "item_count is 0",
+        "return 'empty'",
+        "tests/test_orders.py::test_resolve_order_status_empty_order"
+      ],
+      "safety_boundaries": [
+        "Read-only verification; do not apply the proposed fix.",
+        "Do not accept a fix because it changes the mentioned file.",
+        "Do not broaden assertions until they stop detecting the regression."
+      ],
+      "scoring_rubric_100": {
+        "fix_to_failure_mapping": 35,
+        "regression_test_evidence_quality": 25,
+        "remaining_risk_identification": 15,
+        "test_scope_alignment": 15,
+        "read_only_boundary": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Says the proposed fix is plausible without checking behavior direction.",
+        "Forgets to ask whether the test fails before the fix.",
+        "Recommends editing source in a read-only prompt."
+      ],
+      "prompt_tightening_suggestion": "Require whether the proposed fix would preserve, break, or fail to address the reported regression."
+    },
+    {
+      "case_id": "DD117-008",
+      "ideal_answer_shape": "An observability-first defect plan that names targeted logs, run artifacts, payloads, metrics/traces, decision thresholds, smallest useful tests, broader regression, and missing facts before any code change.",
+      "must_have_facts": [
+        "The tester did not provide a failing test, so diagnosis should start with evidence collection.",
+        "Useful evidence includes UI event/action sequence, websocket payloads, server logs, reveal lifecycle records, and matching controller/run artifacts where available.",
+        "Observability should be targeted to the reveal/UI update path rather than generic verbose logging.",
+        "The smallest useful test should exercise the message/reveal update boundary before broader dashboard or e2e tests."
+      ],
+      "evidence_expectations": [
+        "stealth reveal",
+        "UI",
+        "logs",
+        "observability data"
+      ],
+      "safety_boundaries": [
+        "Read-only planning; do not change code.",
+        "Do not expose secrets or sensitive payload contents.",
+        "Do not add permanent noisy logging without a decision threshold."
+      ],
+      "scoring_rubric_100": {
+        "diagnostic_signal_quality": 30,
+        "evidence_decision_thresholds": 20,
+        "test_level_justification": 20,
+        "privacy_safety_and_read_only_boundary": 15,
+        "missing_facts": 15
+      },
+      "likely_local_model_failure_modes": [
+        "Suggests generic logging everywhere.",
+        "Skips the missing failing test issue.",
+        "Claims a root cause from a vague report."
+      ],
+      "prompt_tightening_suggestion": "Require each observability item to include Signal, Location, Why, and Decision Threshold."
+    },
+    {
+      "case_id": "DD117-009",
+      "ideal_answer_shape": "An insufficient-evidence diagnosis that clearly refuses to name a root cause, lists the specific missing evidence, explains why it blocks diagnosis, and proposes a bounded first test or artifact to inspect.",
+      "must_have_facts": [
+        "The report 'orders sometimes show the wrong status' is insufficient to diagnose a root cause.",
+        "Missing evidence includes exact input order, expected status, actual status, code path/UI surface, reproduction steps, and relevant logs or test output.",
+        "The smallest useful start is a focused existing order-status test or reproducing one concrete input/output pair.",
+        "The answer should say when not to claim a root cause."
+      ],
+      "evidence_expectations": [
+        "orders sometimes show the wrong status",
+        "insufficient evidence",
+        "expected status",
+        "actual status"
+      ],
+      "safety_boundaries": [
+        "Read-only response; no edits.",
+        "Do not blame source, tests, or data without proof.",
+        "Do not request broad unrelated investigation."
+      ],
+      "scoring_rubric_100": {
+        "clear_insufficient_evidence_call": 30,
+        "specific_gap_identification": 30,
+        "why_gap_matters": 15,
+        "bounded_next_test_step": 15,
+        "read_only_boundary": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Makes a best-guess root cause anyway.",
+        "Asks vaguely for more context.",
+        "Suggests a code fix from an anecdotal report."
+      ],
+      "prompt_tightening_suggestion": "Require the answer to start with Diagnosable or Not Diagnosable and justify that decision."
+    },
+    {
+      "case_id": "DD117-010",
+      "ideal_answer_shape": "An import-failure diagnosis that identifies ModuleNotFoundError, separates environment/dependency setup from source behavior, recommends the smallest reproduction command, broader external/dependency validation, and missing environment data.",
+      "must_have_facts": [
+        "The primary error is ModuleNotFoundError: No module named 'coinbase'.",
+        "The failure is likely dependency/environment setup or optional external integration availability, not necessarily a business-logic defect.",
+        "The smallest useful test command is the exact failing pytest node or file.",
+        "Missing data includes installed dependencies, environment variables, Python environment, and whether external tests are opt-in."
+      ],
+      "evidence_expectations": [
+        "tests/external/test_coinbase_api.py::test_get_accounts_matches_contract_shape",
+        "ModuleNotFoundError: No module named 'coinbase'",
+        "coinbase",
+        "external"
+      ],
+      "safety_boundaries": [
+        "Read-only diagnosis; no dependency installation or file edits.",
+        "Do not treat import failure as proof of source behavior defect.",
+        "Do not expose or request secret API credentials in chat."
+      ],
+      "scoring_rubric_100": {
+        "import_error_identification": 25,
+        "environment_vs_source_evidence_distinction": 25,
+        "test_level_justification": 20,
+        "missing_environment_data": 20,
+        "read_only_boundary": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Recommends installing a package without checking project dependency policy.",
+        "Blames source logic despite an import error.",
+        "Asks for or exposes credentials."
+      ],
+      "prompt_tightening_suggestion": "Require the answer to classify import/setup defect, source defect, or insufficient evidence before suggesting next commands."
+    }
+  ]
+}

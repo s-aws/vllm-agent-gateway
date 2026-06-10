@@ -5,7 +5,10 @@ from __future__ import annotations
 import json
 import os
 import re
+import socket
 import subprocess
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -19,7 +22,6 @@ from vllm_agent_gateway.acceptance.v1 import (
     DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL,
     DEFAULT_WORKSPACE,
     HEALTH_TARGETS,
-    json_request,
 )
 from vllm_agent_gateway.fixtures.manager import (
     DEFAULT_MANIFEST_PATH,
@@ -41,6 +43,27 @@ class DoctorStatus(str, Enum):
     FAILED = "failed"
     WARNING = "warning"
     SKIPPED = "skipped"
+
+
+class DoctorRequestDiagnostic(str, Enum):
+    HEADERS_WITHOUT_BODY_TIMEOUT = "headers_without_body_timeout"
+    INVALID_JSON_BODY = "invalid_json_body"
+    UNREACHABLE_PORT = "unreachable_port"
+
+
+class DoctorRequestError(RuntimeError):
+    def __init__(
+        self,
+        message: str,
+        *,
+        diagnostic_kind: DoctorRequestDiagnostic,
+        stage: str,
+        http_status: int | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.diagnostic_kind = diagnostic_kind.value
+        self.stage = stage
+        self.http_status = http_status
 
 
 @dataclass(frozen=True)
@@ -167,6 +190,85 @@ def find_key(value: Any, key: str) -> Any:
     return None
 
 
+def json_request(
+    url: str,
+    *,
+    payload: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+    timeout_seconds: int,
+) -> tuple[int, dict[str, Any]]:
+    request_headers = dict(headers or {})
+    data = None
+    method = "GET"
+    if payload is not None:
+        data = json.dumps(payload, ensure_ascii=True).encode("utf-8")
+        request_headers["Content-Type"] = "application/json"
+        method = "POST"
+    request = urllib.request.Request(url, data=data, headers=request_headers, method=method)
+    try:
+        response = urllib.request.urlopen(request, timeout=timeout_seconds)
+    except urllib.error.HTTPError as exc:
+        try:
+            body_text = exc.read().decode("utf-8", errors="replace")
+        except (TimeoutError, socket.timeout) as body_exc:
+            raise DoctorRequestError(
+                f"headers received with HTTP {exc.code}, but response body timed out: {body_exc}",
+                diagnostic_kind=DoctorRequestDiagnostic.HEADERS_WITHOUT_BODY_TIMEOUT,
+                stage="body_read",
+                http_status=exc.code,
+            ) from body_exc
+        try:
+            body = json.loads(body_text)
+        except json.JSONDecodeError:
+            body = {"error": {"message": body_text, "code": "invalid_json_error_body"}}
+        return exc.code, body
+    except (TimeoutError, socket.timeout) as exc:
+        raise DoctorRequestError(
+            f"connection timed out before response headers: {exc}",
+            diagnostic_kind=DoctorRequestDiagnostic.UNREACHABLE_PORT,
+            stage="open",
+        ) from exc
+    except urllib.error.URLError as exc:
+        raise DoctorRequestError(
+            f"connection failed before response headers: {exc}",
+            diagnostic_kind=DoctorRequestDiagnostic.UNREACHABLE_PORT,
+            stage="open",
+        ) from exc
+
+    with response:
+        status = int(response.status)
+        try:
+            body_text = response.read().decode("utf-8")
+        except (TimeoutError, socket.timeout) as exc:
+            raise DoctorRequestError(
+                f"headers received with HTTP {status}, but response body timed out: {exc}",
+                diagnostic_kind=DoctorRequestDiagnostic.HEADERS_WITHOUT_BODY_TIMEOUT,
+                stage="body_read",
+                http_status=status,
+            ) from exc
+        try:
+            return status, json.loads(body_text)
+        except json.JSONDecodeError as exc:
+            raise DoctorRequestError(
+                f"response body was not valid JSON after HTTP {status}: {exc}",
+                diagnostic_kind=DoctorRequestDiagnostic.INVALID_JSON_BODY,
+                stage="json_parse",
+                http_status=status,
+            ) from exc
+
+
+def exception_details(exc: BaseException) -> dict[str, Any]:
+    if isinstance(exc, DoctorRequestError):
+        details: dict[str, Any] = {
+            "diagnostic_kind": exc.diagnostic_kind,
+            "stage": exc.stage,
+        }
+        if exc.http_status is not None:
+            details["http_status"] = exc.http_status
+        return details
+    return {}
+
+
 def run_get_json(url: str, *, headers: dict[str, str] | None, timeout_seconds: int) -> tuple[int, dict[str, Any]]:
     return json_request(url, headers=headers, timeout_seconds=timeout_seconds)
 
@@ -194,7 +296,7 @@ def port_health_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                     f"port.{target['name']}",
                     f"{target['name']} health check failed: {type(exc).__name__}: {exc}",
                     category="port_health",
-                    details={**target, "url": url},
+                    details={**target, "url": url, **exception_details(exc)},
                     next_action="Start or restart the local model/gateway/controller stack from Bash.",
                 )
             )
@@ -264,7 +366,7 @@ def gateway_config_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, A
                     f"gateway.{item['id']}",
                     f"{item['id']} internal health failed: {type(exc).__name__}: {exc}",
                     category="gateway_config",
-                    details={"url": url},
+                    details={"url": url, **exception_details(exc)},
                     next_action="Restart the gateway stack from Bash and inspect runtime-state gateway logs.",
                 )
             )
@@ -325,7 +427,7 @@ def role_proxy_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]]
                     f"role.{role_id}",
                     f"{role_id} proxy health failed: {type(exc).__name__}: {exc}",
                     category="role_proxy",
-                    details={"url": url},
+                    details={"url": url, **exception_details(exc)},
                     next_action="Restart role prompt proxies from Bash and inspect runtime-state proxy logs.",
                 )
             )
@@ -342,7 +444,7 @@ def controller_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]]
                 "controller.health",
                 f"Controller health failed: {type(exc).__name__}: {exc}",
                 category="controller",
-                details={"url": url},
+                details={"url": url, **exception_details(exc)},
                 next_action="Restart the controller with start-agent-prompt-proxies.sh from Bash.",
             )
         ]
@@ -423,7 +525,7 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                 "anythingllm.ping",
                 f"AnythingLLM ping failed: {type(exc).__name__}: {exc}",
                 category="anythingllm",
-                details={"url": f"{api_root}/api/ping"},
+                details={"url": f"{api_root}/api/ping", **exception_details(exc)},
                 next_action="Start AnythingLLM or correct --anythingllm-api-base-url.",
             )
         )
@@ -459,7 +561,7 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                 "anythingllm.workspace",
                 f"AnythingLLM workspace lookup failed: {type(exc).__name__}: {exc}",
                 category="anythingllm",
-                details={"url": f"{api_root}/api/v1/workspaces"},
+                details={"url": f"{api_root}/api/v1/workspaces", **exception_details(exc)},
                 next_action="Check ANYTHINGLLM_API_KEY and the AnythingLLM API base URL.",
             )
         )
@@ -506,7 +608,7 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                 "anythingllm.target_url",
                 f"AnythingLLM system lookup failed: {type(exc).__name__}: {exc}",
                 category="anythingllm",
-                details={"url": f"{api_root}/api/v1/system"},
+                details={"url": f"{api_root}/api/v1/system", **exception_details(exc)},
                 next_action="Check ANYTHINGLLM_API_KEY and the AnythingLLM API base URL.",
             )
         )

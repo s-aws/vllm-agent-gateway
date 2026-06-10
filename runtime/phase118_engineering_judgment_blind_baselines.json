@@ -1,0 +1,413 @@
+{
+  "schema_version": 1,
+  "kind": "phase118_engineering_judgment_blind_baselines",
+  "phase": 118,
+  "priority_backlog_id": "P0-BB-003",
+  "source_prompt_cases": "runtime/phase118_engineering_judgment_prompt_cases.json",
+  "baseline_policy": {
+    "blind_agent_context": "contextless",
+    "blind_agent_id": "019ea914-f504-7b70-b7a8-4da6cc0480fc",
+    "local_model_output_seen": false,
+    "source_mutation_allowed": false
+  },
+  "baselines": [
+    {
+      "case_id": "EJ118-001",
+      "ideal_answer_shape": "Read-only tradeoff assessment with direct recommendation, alternatives, rejected reasons, maintainability/testability comparison, risks, validation steps, confidence, unknowns, and source refs.",
+      "must_have_facts": [
+        "_placed_order_index is initialized for O(1) placed-order lookup.",
+        "find_stealth_order_by_placed_order_id is the explicit placed-order-id lookup surface.",
+        "Reveal paths append revealed_orders and update _placed_order_index.",
+        "Scanning revealed_orders on every lookup would avoid rebuild debt but add repeated runtime traversal and a second lookup behavior."
+      ],
+      "evidence_expectations": [
+        "core/stealth_order_manager.py:235",
+        "core/stealth_order_manager.py:1116",
+        "core/stealth_order_manager.py:1117",
+        "core/stealth_order_manager.py:4169"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "No implementation claim.",
+        "Do not recommend a broad rewrite without evidence."
+      ],
+      "scoring_rubric_100": {
+        "direct_recommendation": 15,
+        "evidence_and_source_refs": 20,
+        "alternatives_and_rejected_reasons": 15,
+        "maintainability_testability_tradeoffs": 20,
+        "risks_unknowns_and_debt": 15,
+        "validation_steps_read_only_boundary_confidence": 15
+      },
+      "likely_local_model_failure_modes": [
+        "Gives generic architecture advice without line evidence.",
+        "Claims scanning is simpler without accounting for second lookup behavior.",
+        "Misses the need to rebuild index on load.",
+        "Forgets read-only boundary or validation steps."
+      ],
+      "prompt_tightening_suggestion": "Ask for a direct A/B recommendation plus rejected alternative and validation plan tied to _placed_order_index and find_stealth_order_by_placed_order_id evidence."
+    },
+    {
+      "case_id": "EJ118-002",
+      "ideal_answer_shape": "Technical-debt ledger that separates feature delivery from remediation, cites reveal-pricing policy evidence, rejects overbroad string-literal claims, and gives validation steps.",
+      "must_have_facts": [
+        "configured_limit is used as the default reveal pricing policy.",
+        "Allowed reveal pricing policy values are raw strings in the resolver.",
+        "Price resolution branches compare reveal_pricing_policy to raw strings.",
+        "Debt remediation should be separate from unrelated feature delivery because enum/schema conversion can affect persisted compatibility."
+      ],
+      "evidence_expectations": [
+        "core/stealth_order_manager.py:379",
+        "core/stealth_order_manager.py:382",
+        "core/stealth_order_manager.py:439",
+        "core/stealth_order_manager.py:453"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "Do not call every string literal technical debt.",
+        "Do not mix debt remediation into feature delivery without acceptance criteria."
+      ],
+      "scoring_rubric_100": {
+        "debt_items_and_separation": 20,
+        "evidence_and_source_refs": 20,
+        "tradeoffs_and_compatibility_risk": 20,
+        "rejected_assumptions": 15,
+        "validation_steps": 15,
+        "read_only_boundary_and_confidence": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Flags all strings as debt.",
+        "Proposes immediate enum migration without compatibility tests.",
+        "Does not separate remediation from feature delivery.",
+        "Omits validation and confidence."
+      ],
+      "prompt_tightening_suggestion": "Require a debt ledger with deferred remediation, compatibility risk, rejected assumptions, and exact policy source refs."
+    },
+    {
+      "case_id": "EJ118-003",
+      "ideal_answer_shape": "Risk and blocker summary for fail-soft exception handling with confirmed evidence, inferred risks, unknowns, do-not-proceed conditions, tradeoffs, and validation steps.",
+      "must_have_facts": [
+        "_build_fee_manager_audit_context catches TypeError and retries the provider with no arguments.",
+        "publish_event catches Exception and returns False.",
+        "Fail-soft behavior may be intentional for audit/event paths but can hide loss of observability.",
+        "Changing exception propagation may affect order flow and must not proceed without caller impact and observability checks."
+      ],
+      "evidence_expectations": [
+        "business/order_event_stream.py:49",
+        "business/order_event_stream.py:51",
+        "business/order_event_stream.py:97",
+        "business/order_event_stream.py:139"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "Do not demand removing all broad catches.",
+        "Do not claim runtime impact without caller evidence or tests."
+      ],
+      "scoring_rubric_100": {
+        "confirmed_evidence": 20,
+        "risk_and_blocker_classification": 20,
+        "tradeoff_nuance": 20,
+        "unknowns_and_do_not_proceed_conditions": 15,
+        "validation_steps": 15,
+        "read_only_boundary_confidence": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Treats all broad exception handling as equally wrong.",
+        "Misses the fail-soft audit path tradeoff.",
+        "Claims a safe fix without caller and observability evidence.",
+        "Does not state blockers."
+      ],
+      "prompt_tightening_suggestion": "Ask for confirmed versus inferred risk, do-not-proceed conditions, and validation before changing fail-soft behavior."
+    },
+    {
+      "case_id": "EJ118-004",
+      "ideal_answer_shape": "Review feedback on the proposed paid-coercion change with direct recommendation, behavior comparison, risks, alternatives, tests, rejected preference claims, source refs, and read-only boundary.",
+      "must_have_facts": [
+        "Current code uses bool(message.get(\"paid\", False)).",
+        "Proposed message.get(\"paid\") == True is less idiomatic and does not create strict boolean validation.",
+        "1 == True remains true in Python.",
+        "The accepted API contract must be defined before changing coercion semantics."
+      ],
+      "evidence_expectations": [
+        "service/api.py:11",
+        "service/api.py:12",
+        "service/orders.py:4",
+        "service/orders.py:7"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No patch apply.",
+        "No recommendation based only on style preference.",
+        "No test claim unless tests are specified."
+      ],
+      "scoring_rubric_100": {
+        "review_recommendation": 15,
+        "behavior_and_correctness_analysis": 25,
+        "evidence_and_source_refs": 20,
+        "risk_maintainability_testability_system_impact": 15,
+        "alternatives_rejected_claims": 15,
+        "validation_boundary_confidence": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Says == True is strict boolean validation.",
+        "Accepts or rejects only because of style.",
+        "Omits behavior cases for strings and integers.",
+        "Does not separate tests from implementation."
+      ],
+      "prompt_tightening_suggestion": "Require current versus proposed behavior and tests for missing, boolean, integer, and string paid values."
+    },
+    {
+      "case_id": "EJ118-005",
+      "ideal_answer_shape": "Architecture-decision explanation that recommends keeping the Repository interface unless the fixture goal changes, with alternatives, engineering principles, tests, risks, source refs, and confidence.",
+      "must_have_facts": [
+        "Handlers depend on the Repository interface, not directly on MemoryRepository.",
+        "MemoryRepository uses a lock around map access.",
+        "HandleOrderStatus has a focused test using the repository and config settings.",
+        "Directly wiring handlers to MemoryRepository would reduce a small abstraction but weaken substitutability and test seams."
+      ],
+      "evidence_expectations": [
+        "internal/orders/handler.go:21",
+        "internal/orders/handler.go:26",
+        "internal/orders/handler.go:45",
+        "internal/orders/repository.go:10",
+        "internal/orders/repository.go:15",
+        "internal/orders/handler_test.go:12"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "Do not call an interface over-engineered without stating fixture/product context.",
+        "Do not claim performance benefit without measurement."
+      ],
+      "scoring_rubric_100": {
+        "architecture_recommendation": 15,
+        "evidence_and_source_refs": 20,
+        "engineering_principles": 20,
+        "alternatives_and_rejected_reasons": 15,
+        "maintainability_testability_risk": 20,
+        "validation_boundary_confidence": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Defaults to fewer abstractions without considering testability.",
+        "Claims performance improvements without measurement.",
+        "Misses lock/thread-safety context.",
+        "Omits source refs."
+      ],
+      "prompt_tightening_suggestion": "Require an explicit decision principle and source refs for handler dependency, repository interface, lock, and focused tests."
+    },
+    {
+      "case_id": "EJ118-006",
+      "ideal_answer_shape": "Preference-guard answer that avoids unsupported claims, compares env-default versus hardcoded API base URL using evidence, states unknowns, recommendation, validation, and confidence.",
+      "must_have_facts": [
+        "API_BASE_URL currently comes from process.env.API_BASE_URL with a fallback default.",
+        "describeRuntimeConfig exposes apiBaseUrl.",
+        "main includes apiBaseUrl in its output.",
+        "Hardcoding would remove runtime configurability unless requirements prove configurability is unnecessary."
+      ],
+      "evidence_expectations": [
+        "src/config.js:1",
+        "src/config.js:2",
+        "src/config.js:4",
+        "src/index.js:4",
+        "src/index.js:6",
+        "tests/config.test.js:4"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "No unsupported preference claim.",
+        "No runtime requirement invention."
+      ],
+      "scoring_rubric_100": {
+        "unsupported_preference_guard": 20,
+        "evidence_and_source_refs": 20,
+        "tradeoffs": 20,
+        "risk_recommendation_and_unknowns": 15,
+        "validation_steps": 15,
+        "read_only_boundary_confidence": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Says hardcoding is simpler without defining simplicity.",
+        "Invents deployment requirements.",
+        "Misses environment configurability.",
+        "Omits validation and unknowns."
+      ],
+      "prompt_tightening_suggestion": "Ask the model to reject unsupported preference claims and tie simplicity to measurable configurability, testability, or deployment criteria."
+    },
+    {
+      "case_id": "EJ118-007",
+      "ideal_answer_shape": "Quick-patch versus debt assessment that recommends preserving tested empty-order behavior unless requirements change, separates debt remediation, cites tests and source refs, and gives validation.",
+      "must_have_facts": [
+        "resolve_order_status returns empty before checking paid.",
+        "The API defaults missing items to an empty list before calling resolve_order_status.",
+        "There is a test for empty paid orders.",
+        "Removing the branch changes behavior and is not just debt cleanup."
+      ],
+      "evidence_expectations": [
+        "service/orders.py:4",
+        "service/orders.py:5",
+        "service/orders.py:6",
+        "service/api.py:10",
+        "service/api.py:12",
+        "tests/test_orders.py:13"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "Do not label behavior removal as technical debt cleanup.",
+        "Do not proceed without requirement change."
+      ],
+      "scoring_rubric_100": {
+        "direct_recommendation": 15,
+        "behavior_and_debt_separation": 25,
+        "evidence_and_source_refs": 20,
+        "risks_and_tradeoffs": 15,
+        "tests_and_validation": 15,
+        "boundary_confidence_rejected_alternatives": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Calls the empty branch dead code.",
+        "Misses API missing-items behavior.",
+        "Treats test update as enough without requirement change.",
+        "Fails to separate debt from feature delivery."
+      ],
+      "prompt_tightening_suggestion": "Require behavior comparison and debt separation before accepting any quick patch."
+    },
+    {
+      "case_id": "EJ118-008",
+      "ideal_answer_shape": "Implementation-decision reasoning that evaluates canonical resolver versus fallback branch using principles of single source of truth, failure transparency, compatibility, tests, risks, unknowns, and source refs.",
+      "must_have_facts": [
+        "build_stealth_move_plan calls resolve_stealth_chain_root.",
+        "The call is wrapped in a broad fallback to parent_order_id or stealth_order_id.",
+        "The fallback may protect compatibility but can hide resolver defects.",
+        "The decision should depend on test coverage and error-handling requirements, not preference."
+      ],
+      "evidence_expectations": [
+        "core/stealth_order_manager.py:1315",
+        "core/stealth_order_manager.py:1316",
+        "core/stealth_order_manager.py:1317",
+        "core/stealth_order_manager.py:1318"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "No preference-only conclusion.",
+        "No broad refactor recommendation without tests."
+      ],
+      "scoring_rubric_100": {
+        "principled_decision_reasoning": 20,
+        "evidence_and_source_refs": 20,
+        "alternatives_and_rejected_reasons": 15,
+        "risks_unknowns_tradeoffs": 20,
+        "validation_steps": 15,
+        "read_only_boundary_confidence": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Says remove fallback because broad except is bad without compatibility analysis.",
+        "Says keep fallback because safer without failure-transparency analysis.",
+        "Omits tests and unknowns.",
+        "Misses source refs."
+      ],
+      "prompt_tightening_suggestion": "Ask for single-source-of-truth versus compatibility tradeoff with validation criteria."
+    },
+    {
+      "case_id": "EJ118-009",
+      "ideal_answer_shape": "Holdout answer that recommends not optimizing locking without measurements, cites current lock evidence, identifies missing performance data, tradeoffs, validation measurements, risk, and confidence.",
+      "must_have_facts": [
+        "MemoryRepository uses sync.RWMutex.",
+        "SaveOrder takes a write lock.",
+        "FindOrder takes a read lock.",
+        "No prompt evidence shows lock contention or performance targets."
+      ],
+      "evidence_expectations": [
+        "internal/orders/repository.go:15",
+        "internal/orders/repository.go:24",
+        "internal/orders/repository.go:25",
+        "internal/orders/repository.go:30",
+        "internal/orders/repository.go:31"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "Do not claim performance problem without measurement.",
+        "Do not recommend optimization before evidence."
+      ],
+      "scoring_rubric_100": {
+        "measurement_blocker": 20,
+        "evidence_and_source_refs": 20,
+        "tradeoffs_and_risks": 20,
+        "unknowns_and_do_not_proceed": 15,
+        "validation_measurements": 15,
+        "read_only_boundary_confidence": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Recommends optimization because locks sound expensive.",
+        "Invents load or latency requirements.",
+        "Omits measurement plan.",
+        "Misses read/write lock evidence."
+      ],
+      "prompt_tightening_suggestion": "Require measurements and current lock evidence before allowing optimization recommendations."
+    },
+    {
+      "case_id": "EJ118-010",
+      "ideal_answer_shape": "Holdout missing-context decision that does not invent API behavior, cites config/main evidence, identifies missing runtime requirements, tradeoffs, do-not-proceed conditions, validation steps, and confidence.",
+      "must_have_facts": [
+        "API_BASE_URL is a config value, not currently used for a network call in the fixture.",
+        "main reads describeRuntimeConfig and returns a formatted string.",
+        "There is no evidence of HTTP requests, retries, or backoff requirements in the fixture.",
+        "Retry/backoff should not be added without a real outbound call path and failure requirements."
+      ],
+      "evidence_expectations": [
+        "src/config.js:2",
+        "src/config.js:4",
+        "src/index.js:1",
+        "src/index.js:4",
+        "src/index.js:6",
+        "tests/config.test.js:4"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "Do not invent runtime requirements.",
+        "Do not proceed without evidence of network call/failure mode."
+      ],
+      "scoring_rubric_100": {
+        "missing_context_boundary": 20,
+        "evidence_and_source_refs": 20,
+        "tradeoffs": 15,
+        "risk_do_not_proceed_conditions": 15,
+        "validation_steps": 15,
+        "confidence_and_read_only_boundary": 15
+      },
+      "likely_local_model_failure_modes": [
+        "Invents a network request path.",
+        "Recommends retries as generic resiliency.",
+        "Misses that main returns a string.",
+        "Omits do-not-proceed conditions."
+      ],
+      "prompt_tightening_suggestion": "Require the answer to identify missing outbound-call evidence and refuse to add retry/backoff until requirements exist."
+    }
+  ],
+  "blind_agent_summary": {
+    "must_have_fields": [
+      "question restatement",
+      "scope and constraints",
+      "evidence used",
+      "direct assessment",
+      "tradeoffs",
+      "risks and blockers",
+      "recommendation",
+      "validation plan",
+      "confidence"
+    ],
+    "hard_fail_conditions": [
+      "claims inspection, editing, execution, or testing without evidence",
+      "invents project-specific facts",
+      "recommends based mainly on taste",
+      "ignores the requested tradeoff, debt, risk, review, or decision topic"
+    ]
+  }
+}

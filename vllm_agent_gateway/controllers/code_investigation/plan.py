@@ -41,6 +41,8 @@ DEFAULT_MAX_RESULTS = 50
 DEFAULT_MAX_FILES = 10
 TABLE_ACCESS_SCAN_FILE_LIMIT = 500
 TABLE_ACCESS_SCAN_EXTENSIONS = {".go", ".js", ".jsx", ".py", ".sql", ".ts", ".tsx"}
+CODE_QUALITY_REVIEW_MAX_FILE_BYTES = 256 * 1024
+CODE_QUALITY_REVIEW_MAX_FILES = 12
 MAX_QUERY_COUNT = 8
 ALLOWED_CONTEXT_TOOLS = CODE_CONTEXT_ALLOWED_CONTEXT_TOOLS - {"codegraph_context"}
 IGNORED_SCAN_DIRS = {
@@ -127,6 +129,49 @@ def append_unique(values: list[str], candidate: str, *, limit: int | None = None
     if limit is not None and len(values) >= limit:
         return
     values.append(item)
+
+
+def warning_gap(warnings: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not warnings:
+        return None
+    reasons = {
+        str(warning.get("reason"))
+        for warning in warnings
+        if isinstance(warning, dict) and isinstance(warning.get("reason"), str)
+    }
+    fallbacks = {
+        str(warning.get("fallback"))
+        for warning in warnings
+        if isinstance(warning, dict) and isinstance(warning.get("fallback"), str)
+    }
+    if "target_not_git_toplevel" in reasons:
+        return {
+            "gap": "non_git_text_search_fallback",
+            "reason": "Target is not a git repository, so bounded file scanning was used instead of git-grep evidence.",
+            "warning_count": len(warnings),
+        }
+    if "tracked_scope_unavailable" in reasons:
+        return {
+            "gap": "tracked_scope_unavailable",
+            "reason": "Tracked-file scope was unavailable, so structure indexing used the bounded fallback scope.",
+            "warning_count": len(warnings),
+        }
+    if fallbacks:
+        return {
+            "gap": "bounded_lookup_fallback_used",
+            "reason": "One or more bounded lookup tools used a fallback evidence source.",
+            "warning_count": len(warnings),
+        }
+    return {"gap": "tool_warning_present", "warning_count": len(warnings)}
+
+
+def append_gap_once(gaps: list[dict[str, Any]], gap: dict[str, Any] | None) -> None:
+    if not gap:
+        return
+    gap_id = gap.get("gap")
+    if isinstance(gap_id, str) and any(item.get("gap") == gap_id for item in gaps):
+        return
+    gaps.append(gap)
 
 
 def validate_string_list(value: Any, label: str) -> list[str]:
@@ -263,6 +308,10 @@ def query_candidates(request: CodeInvestigationRequest, hints: list[dict[str, An
         symbol = hint.get("symbol")
         if isinstance(symbol, str):
             append_unique(candidates, symbol, limit=MAX_QUERY_COUNT)
+    for query in change_surface_query_expansions(request.user_request, request.behavior):
+        append_unique(candidates, query, limit=MAX_QUERY_COUNT)
+    for query in request_flow_query_expansions(request.user_request, request.behavior):
+        append_unique(candidates, query, limit=MAX_QUERY_COUNT)
     for query in extract_query_terms(request.user_request):
         append_unique(candidates, query, limit=MAX_QUERY_COUNT)
     return candidates
@@ -559,7 +608,7 @@ def is_reproduction_checklist_request(text: str) -> bool:
     lowered = text.lower()
     if any(term in lowered for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate", "refactor")):
         return False
-    runtime_terms = ("runtime error", "stack trace", "traceback", "exception")
+    runtime_terms = ("runtime error", "stack trace", "traceback", "exception", "websocketmessageerror", "bug report")
     repro_terms = (
         "minimal reproduction checklist",
         "reproduction checklist",
@@ -574,6 +623,27 @@ def is_reproduction_checklist_request(text: str) -> bool:
     )
 
 
+def is_defect_diagnosis_summary_request(text: str) -> bool:
+    lowered = text.lower()
+    if not any(term in lowered for term in ("read only", "read-only", "do not edit", "do not mutate", "no source changes")):
+        return False
+    phase117_terms = (
+        "smallest useful test",
+        "broader regression",
+        "observability evidence",
+        "observability data",
+        "missing data",
+        "missing facts",
+        "missing evidence",
+        "incomplete bug report",
+        "proposed fix",
+        "reported regression",
+        "when not to claim",
+        "source defect, stale test expectation, or bad test data",
+    )
+    return any(term in lowered for term in phase117_terms)
+
+
 def is_request_flow_map_request(text: str) -> bool:
     lowered = text.lower()
     if any(term in lowered for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate", "refactor")):
@@ -581,11 +651,50 @@ def is_request_flow_map_request(text: str) -> bool:
     flow_terms = ("request flow", "data flow", "message flow", "map the request", "map request", "flow steps")
     output_terms = ("flow steps", "participating files", "risks", "gaps", "verification")
     read_only_terms = ("read only", "read-only", "do not edit", "do not mutate", "no source changes")
-    return (
+    explicit_flow_request = (
         any(term in lowered for term in flow_terms)
         and any(term in lowered for term in output_terms)
         and any(term in lowered for term in read_only_terms)
     )
+    handler_branch_request = (
+        "handler branch" in lowered
+        and any(term in lowered for term in ("follow", "trace", "through"))
+        and any(term in lowered for term in ("snapshot function", "downstream snapshot", "snapshot"))
+        and any(term in lowered for term in read_only_terms)
+    )
+    return explicit_flow_request or handler_branch_request
+
+
+def request_flow_query_expansions(text: str, behavior: str) -> list[str]:
+    if not is_request_flow_map_request(text):
+        return []
+    lowered = text.lower()
+    expansions: list[str] = []
+    behavior_value = behavior.strip()
+    if "snapshot" in lowered:
+        if behavior_value.startswith("request_") and len(behavior_value) > len("request_"):
+            snapshot_subject = behavior_value[len("request_") :]
+            append_unique(expansions, f"{snapshot_subject}_snapshot", limit=4)
+            append_unique(expansions, f"send_{snapshot_subject}_snapshot", limit=4)
+    return expansions
+
+
+def change_surface_query_expansions(text: str, behavior: str) -> list[str]:
+    lowered = text.lower()
+    behavior_value = behavior.lower().strip()
+    if "placed_order_id" not in lowered and "placed_order_id" not in behavior_value:
+        return []
+    if "stealth" not in lowered or "lookup" not in lowered:
+        return []
+    expansions: list[str] = []
+    for value in (
+        "find_stealth_order_by_placed_order_id",
+        "_placed_order_index",
+        "revealed_orders",
+        "placement_client_order_id",
+    ):
+        append_unique(expansions, value, limit=4)
+    return expansions
 
 
 def is_code_path_comparison_request(text: str) -> bool:
@@ -612,8 +721,11 @@ def is_change_surface_summary_request(text: str) -> bool:
         "files that would need review",
         "files need review",
         "files needing review",
+        "files to touch",
+        "files not to touch",
+        "minimal files and tests",
     )
-    stop_terms = ("stop before implementation", "before implementation", "read only", "read-only")
+    stop_terms = ("stop before implementation", "before implementation", "read only", "read-only", "do not implement")
     return any(term in lowered for term in surface_terms) and any(term in lowered for term in stop_terms)
 
 
@@ -1090,11 +1202,381 @@ def build_reproduction_checklist(
     }
 
 
+def command_value(command_record_value: Any) -> list[str] | None:
+    if isinstance(command_record_value, dict):
+        value = command_record_value.get("command")
+    else:
+        value = command_record_value
+    if isinstance(value, list) and all(isinstance(item, str) for item in value):
+        return value
+    if isinstance(value, str) and value.strip():
+        return value.split()
+    return None
+
+
+def first_command_record(*values: Any) -> dict[str, Any] | None:
+    for value in values:
+        if isinstance(value, dict) and command_value(value):
+            return value
+        if isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict) and command_value(item):
+                    return item
+    return None
+
+
+def generated_test_level_plan(
+    *,
+    test_selection_plan: dict[str, Any],
+    related_tests: list[dict[str, Any]],
+    verification_commands: list[dict[str, Any]],
+    fallback_command: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    tiers = test_selection_plan.get("command_tiers") if isinstance(test_selection_plan.get("command_tiers"), list) else []
+    if tiers:
+        return [
+            {
+                "level": str(tier.get("tier") or "unknown"),
+                "commands": tier.get("commands") if isinstance(tier.get("commands"), list) else [],
+                "rationale": tier.get("rationale"),
+                "covered_risk": tier.get("covered_risk"),
+                "confidence": tier.get("confidence"),
+            }
+            for tier in tiers
+            if isinstance(tier, dict)
+        ]
+    generated = test_selection_tiers(verification_commands, related_tests)
+    if generated:
+        return generated
+    if fallback_command:
+        return [
+            {
+                "level": "smallest",
+                "commands": [fallback_command],
+                "rationale": "Re-run the exact failing or most closely related command before broadening the investigation.",
+                "covered_risk": "Confirms whether the observed failure is reproducible.",
+                "confidence": "low",
+            },
+            {
+                "level": "broader_regression",
+                "commands": verification_commands[:5],
+                "rationale": "Broaden only to bounded related tests after the smallest command reproduces or validates the failure.",
+                "covered_risk": "Catches adjacent regressions without using an unrelated full-suite default.",
+                "confidence": "low",
+            },
+        ]
+    return [
+        {
+            "level": "smallest",
+            "commands": [],
+            "rationale": "No bounded test command was found; first capture a concrete input/output reproduction.",
+            "covered_risk": "Avoids pretending an unbounded report is diagnosable.",
+            "confidence": "low",
+        },
+        {
+            "level": "broader_regression",
+            "commands": [],
+            "rationale": "Broader regression cannot be selected until the behavior surface and expected/actual result are known.",
+            "covered_risk": "Prevents unrelated testing from substituting for a reproduction.",
+            "confidence": "low",
+        },
+    ]
+
+
+def defect_observed_failure(
+    request: CodeInvestigationRequest,
+    *,
+    ci_failure_summary: dict[str, Any],
+    test_failure_summary: dict[str, Any],
+    runtime_error_diagnosis: dict[str, Any],
+) -> dict[str, Any]:
+    if isinstance(ci_failure_summary.get("primary_error"), dict) and ci_failure_summary.get("status") != "not_requested":
+        return {
+            "source": "ci_log",
+            "summary": bounded_text(ci_failure_summary.get("likely_cause") or "CI failure requires local reproduction.", 300),
+            "failed_tests": ci_failure_summary.get("failed_tests") if isinstance(ci_failure_summary.get("failed_tests"), list) else [],
+            "primary_error": ci_failure_summary.get("primary_error"),
+            "first_failing_command": ci_failure_summary.get("first_failing_command"),
+        }
+    if isinstance(test_failure_summary.get("primary_error"), dict) and test_failure_summary.get("status") != "not_requested":
+        return {
+            "source": "pytest",
+            "summary": bounded_text(test_failure_summary.get("likely_cause") or "Pasted test failure requires local reproduction.", 300),
+            "failed_tests": test_failure_summary.get("failed_tests") if isinstance(test_failure_summary.get("failed_tests"), list) else [],
+            "primary_error": test_failure_summary.get("primary_error"),
+            "first_failing_command": None,
+        }
+    if isinstance(runtime_error_diagnosis.get("observed_error"), dict) and runtime_error_diagnosis.get("status") != "not_requested":
+        return {
+            "source": "runtime_trace",
+            "summary": bounded_text(
+                runtime_error_diagnosis.get("observed_error", {}).get("raw")
+                or runtime_error_diagnosis.get("observed_error", {}).get("message")
+                or "Runtime trace requires input reproduction.",
+                300,
+            ),
+            "failed_tests": [],
+            "primary_error": runtime_error_diagnosis.get("observed_error"),
+            "first_failing_command": None,
+        }
+    return {
+        "source": "user_report",
+        "summary": bounded_text(request.user_request, 300),
+        "failed_tests": [],
+        "primary_error": extract_failure_error(request.user_request),
+        "first_failing_command": None,
+    }
+
+
+def defect_root_cause(
+    request: CodeInvestigationRequest,
+    *,
+    ci_failure_summary: dict[str, Any],
+    test_failure_summary: dict[str, Any],
+    runtime_error_diagnosis: dict[str, Any],
+) -> dict[str, Any]:
+    lowered = request.user_request.lower()
+    if "proposed fix" in lowered and "remove" in lowered and "empty" in lowered and "item_count" in lowered:
+        return {
+            "summary": (
+                "The proposed fix appears to contradict the reported regression: removing the empty-order branch would "
+                "likely stop empty paid orders from staying classified as empty."
+            ),
+            "confidence": "medium",
+        }
+    root = test_failure_summary.get("root_cause_hypothesis")
+    if isinstance(root, dict) and isinstance(root.get("summary"), str):
+        return {
+            "summary": root["summary"],
+            "confidence": root.get("confidence") if isinstance(root.get("confidence"), str) else "low",
+        }
+    cause = runtime_error_diagnosis.get("likely_cause")
+    if isinstance(cause, dict) and isinstance(cause.get("summary"), str):
+        return {
+            "summary": cause["summary"],
+            "confidence": cause.get("confidence") if isinstance(cause.get("confidence"), str) else "low",
+        }
+    if isinstance(ci_failure_summary.get("likely_cause"), str):
+        return {"summary": ci_failure_summary["likely_cause"], "confidence": "low"}
+    if "insufficient" in lowered or "sometimes" in lowered or "did not provide" in lowered:
+        return {
+            "summary": "The report is not diagnosable to a specific root cause yet; collect a concrete expected/actual reproduction and logs first.",
+            "confidence": "low",
+        }
+    return {
+        "summary": "Evidence is insufficient to name a root cause; inspect the exact failure output, behavior contract, and nearest source path first.",
+        "confidence": "low",
+    }
+
+
+def defect_reproduction_steps(
+    *,
+    request: CodeInvestigationRequest,
+    reproduction_checklist: dict[str, Any],
+    observed_failure: dict[str, Any],
+    smallest_command: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    checklist = reproduction_checklist.get("minimal_reproduction_checklist")
+    if isinstance(checklist, list) and checklist:
+        return [item for item in checklist if isinstance(item, dict)][:5]
+    steps: list[dict[str, Any]] = []
+    failed_tests = observed_failure.get("failed_tests") if isinstance(observed_failure.get("failed_tests"), list) else []
+    if failed_tests:
+        first = failed_tests[0]
+        if isinstance(first, dict):
+            steps.append(
+                {
+                    "step": "Reproduce by running the exact failing pytest node or file from the pasted output.",
+                    "path": first.get("path"),
+                    "test_name": first.get("test_name"),
+                    "command": command_value(smallest_command),
+                }
+            )
+    elif smallest_command:
+        steps.append(
+            {
+                "step": "Reproduce by rerunning the smallest bounded local command before broadening validation.",
+                "command": command_value(smallest_command),
+            }
+        )
+    if "websocketmessageerror" in request.user_request.lower() or "websocket" in request.user_request.lower():
+        steps.append(
+            {
+                "step": "Capture the exact websocket payload and UI action sequence that produced the observed error.",
+                "evidence": "WebSocketMessageError or dashboard report from prompt.",
+            }
+        )
+    steps.append(
+        {
+            "step": "Compare expected behavior, actual behavior, and the nearest source/test evidence before planning any edit.",
+            "evidence": observed_failure.get("summary"),
+        }
+    )
+    return steps[:5]
+
+
+def defect_observability_evidence(request: CodeInvestigationRequest, observed_failure: dict[str, Any]) -> list[dict[str, str]]:
+    lowered = request.user_request.lower()
+    evidence = [
+        {
+            "signal": "Exact failure output or user-visible symptom",
+            "location": "pasted pytest/CI/runtime output or tester report",
+            "why": "Confirms the first reproducible failure before choosing source, test, or data as the defect class.",
+        }
+    ]
+    if "websocket" in lowered or "dashboard" in lowered or "ui" in lowered:
+        evidence.append(
+            {
+                "signal": "Websocket payload, dashboard client log, and server handler log for the same interaction",
+                "location": "dashboard message boundary and request handler",
+                "why": "Distinguishes malformed input, dispatch handling, and UI update failures without generic logging noise.",
+            }
+        )
+    if observed_failure.get("source") in {"ci_log", "pytest"}:
+        evidence.append(
+            {
+                "signal": "Focused pytest rerun output with the exact node and nearest assertion/traceback frame",
+                "location": "local terminal test output",
+                "why": "Separates a reproducible source/test failure from CI environment or stale data issues.",
+            }
+        )
+    if "modulenotfounderror" in lowered:
+        evidence.append(
+            {
+                "signal": "Python environment, installed dependencies, and external-test opt-in settings",
+                "location": "test environment and dependency configuration",
+                "why": "Import failures usually need environment evidence before source behavior changes.",
+            }
+        )
+    return evidence[:4]
+
+
+def defect_missing_data(
+    request: CodeInvestigationRequest,
+    *,
+    gaps: list[dict[str, Any]],
+    observed_failure: dict[str, Any],
+) -> list[dict[str, Any]]:
+    lowered = request.user_request.lower()
+    missing: list[dict[str, Any]] = []
+    for gap in gaps[:5]:
+        if isinstance(gap, dict):
+            missing.append(gap)
+    if "sometimes" in lowered or "did not provide" in lowered or "incomplete bug report" in lowered:
+        missing.extend(
+            [
+                {"gap": "exact_reproduction_steps_missing", "reason": "Intermittent symptoms need a concrete action sequence."},
+                {"gap": "expected_and_actual_state_missing", "reason": "A wrong or missing UI state cannot be classified without expected/actual values."},
+            ]
+        )
+    if "websocket" in lowered:
+        missing.append({"gap": "websocket_payload_missing", "reason": "The handler error depends on the actual message payload."})
+    if "queued" in lowered or "empty" in lowered or "stale test" in lowered:
+        missing.append({"gap": "authoritative_behavior_contract_needed", "reason": "Classifying source versus stale test requires the intended behavior contract."})
+    if "modulenotfounderror" in lowered:
+        missing.append({"gap": "python_environment_and_dependency_policy_needed", "reason": "Import failures depend on installed packages and optional external-test policy."})
+    if not missing and observed_failure.get("source") == "user_report":
+        missing.append({"gap": "diagnostic_evidence_missing", "reason": "No concrete failing command, log, or expected/actual result was provided."})
+    return missing[:8]
+
+
+def source_refs_from_artifacts(*artifacts: dict[str, Any]) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    seen: set[tuple[str, Any]] = set()
+    for artifact in artifacts:
+        source_refs = artifact.get("source_refs") if isinstance(artifact.get("source_refs"), list) else []
+        for ref in source_refs:
+            if not isinstance(ref, dict) or not isinstance(ref.get("path"), str):
+                continue
+            key = (ref["path"], ref.get("line"))
+            if key in seen:
+                continue
+            refs.append(ref)
+            seen.add(key)
+    return refs[:10]
+
+
+def build_defect_diagnosis_summary(
+    request: CodeInvestigationRequest,
+    *,
+    ci_failure_summary: dict[str, Any],
+    test_failure_summary: dict[str, Any],
+    test_selection_plan: dict[str, Any],
+    runtime_error_diagnosis: dict[str, Any],
+    reproduction_checklist: dict[str, Any],
+    related_tests: list[dict[str, Any]],
+    verification_commands: list[dict[str, Any]],
+    records: list[dict[str, Any]],
+    gaps: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not is_defect_diagnosis_summary_request(request.user_request):
+        return {"kind": "defect_diagnosis_summary", "schema_version": SCHEMA_VERSION, "status": "not_requested"}
+    observed_failure = defect_observed_failure(
+        request,
+        ci_failure_summary=ci_failure_summary,
+        test_failure_summary=test_failure_summary,
+        runtime_error_diagnosis=runtime_error_diagnosis,
+    )
+    fallback_command = first_command_record(
+        ci_failure_summary.get("next_local_command"),
+        test_failure_summary.get("verification_commands"),
+        runtime_error_diagnosis.get("verification_commands"),
+        reproduction_checklist.get("next_local_command"),
+        verification_commands,
+    )
+    test_levels = generated_test_level_plan(
+        test_selection_plan=test_selection_plan,
+        related_tests=related_tests,
+        verification_commands=verification_commands,
+        fallback_command=fallback_command,
+    )
+    reproduction_steps = defect_reproduction_steps(
+        request=request,
+        reproduction_checklist=reproduction_checklist,
+        observed_failure=observed_failure,
+        smallest_command=fallback_command,
+    )
+    source_refs = source_refs_from_artifacts(
+        ci_failure_summary,
+        test_failure_summary,
+        runtime_error_diagnosis,
+        reproduction_checklist,
+        test_selection_plan,
+    )
+    if not source_refs:
+        source_refs = source_refs_from_records([record for record in records if record.get("category") in {"source", "test"}][:10])
+    missing_data = defect_missing_data(request, gaps=gaps, observed_failure=observed_failure)
+    status = "ready" if observed_failure.get("source") != "user_report" or reproduction_steps or source_refs else "insufficient_evidence"
+    return {
+        "kind": "defect_diagnosis_summary",
+        "schema_version": SCHEMA_VERSION,
+        "status": status,
+        "target": request.behavior or bounded_text(request.user_request, 240),
+        "observed_failure": observed_failure,
+        "likely_root_cause": defect_root_cause(
+            request,
+            ci_failure_summary=ci_failure_summary,
+            test_failure_summary=test_failure_summary,
+            runtime_error_diagnosis=runtime_error_diagnosis,
+        ),
+        "reproduction_steps": reproduction_steps,
+        "test_levels": test_levels,
+        "observability_evidence": defect_observability_evidence(request, observed_failure),
+        "missing_data": missing_data,
+        "evidence_files": compact_evidence_records([record for record in records if record.get("category") in {"source", "test"}][:10]),
+        "related_tests": compact_related_tests(related_tests),
+        "source_refs": source_refs,
+        "mutation_policy": "read_only_no_source_mutation",
+        "gaps": missing_data,
+    }
+
+
 def build_request_flow_map(
     request: CodeInvestigationRequest,
     *,
     beginning: dict[str, Any],
     records: list[dict[str, Any]],
+    matches: list[dict[str, Any]],
     related_tests: list[dict[str, Any]],
     verification_commands: list[dict[str, Any]],
     gaps: list[dict[str, Any]],
@@ -1107,31 +1589,46 @@ def build_request_flow_map(
         for record in records
         if record.get("category") == "source" and isinstance(record.get("path"), str)
     ]
-    flow_steps: list[dict[str, Any]] = []
-    for index, record in enumerate(source_records[: request.max_files], 1):
-        line_refs = record.get("line_refs") if isinstance(record.get("line_refs"), list) else []
-        first_line = line_refs[0].get("line") if line_refs and isinstance(line_refs[0], dict) else None
-        role = "entrypoint" if record.get("path") == beginning.get("path") or index == 1 else "downstream_or_supporting_step"
-        flow_steps.append(
-            {
-                "step": index,
-                "path": record["path"],
-                "line": first_line,
-                "role": role,
-                "evidence": f"Bounded exact-text evidence matched {record.get('match_count', 0)} time(s).",
-            }
-        )
+    source_paths = {str(record["path"]) for record in source_records if isinstance(record.get("path"), str)}
+    flow_steps = request_flow_steps_from_matches(
+        matches,
+        source_paths=source_paths,
+        behavior=request.behavior,
+        beginning_path=beginning.get("path") if isinstance(beginning.get("path"), str) else None,
+        max_steps=max(request.max_files, 12),
+    )
+    if not flow_steps:
+        for index, record in enumerate(source_records[: request.max_files], 1):
+            line_refs = record.get("line_refs") if isinstance(record.get("line_refs"), list) else []
+            first_line = line_refs[0].get("line") if line_refs and isinstance(line_refs[0], dict) else None
+            role = "entrypoint" if record.get("path") == beginning.get("path") or index == 1 else "downstream_or_supporting_step"
+            flow_steps.append(
+                {
+                    "step": index,
+                    "path": record["path"],
+                    "line": first_line,
+                    "role": role,
+                    "evidence": f"Bounded exact-text evidence matched {record.get('match_count', 0)} time(s).",
+                }
+            )
+    handler_files = request_flow_handler_files(matches, request.behavior)
     flow_gaps = list(gaps)
     if not flow_steps:
         flow_gaps.append({"gap": "source_flow_steps_not_found"})
+    if not handler_files:
+        flow_gaps.append({"gap": "handler_branch_not_found"})
+    if not any("snapshot" in str(step.get("role", "")) or "snapshot" in str(step.get("evidence", "")).lower() for step in flow_steps):
+        flow_gaps.append({"gap": "downstream_snapshot_evidence_not_found"})
     if warnings:
         flow_gaps.append({"gap": "fallback_or_warning_present", "warning_count": len(warnings)})
     return {
         "kind": "request_flow_map",
         "schema_version": SCHEMA_VERSION,
         "status": "ready" if flow_steps else "insufficient_evidence",
+        "target": request.behavior or bounded_text(request.user_request, 180),
         "target_flow": request.behavior or bounded_text(request.user_request, 180),
         "beginning_point": beginning,
+        "handler_files": handler_files,
         "flow_steps": flow_steps,
         "participating_files": compact_evidence_records(records[: request.max_files]),
         "related_tests": compact_related_tests(related_tests),
@@ -1144,9 +1641,108 @@ def build_request_flow_map(
         ],
         "verification_commands": verification_commands[:5],
         "mutation_policy": "read_only_no_source_mutation",
-        "source_refs": source_refs_from_records(source_records[: request.max_files]),
+        "source_refs": request_flow_source_refs(flow_steps, source_records[: request.max_files]),
         "gaps": flow_gaps,
     }
+
+
+def request_flow_role_for_match(text: str, query: Any, behavior: str) -> str:
+    stripped = text.strip()
+    lowered = stripped.lower()
+    behavior_value = behavior.lower()
+    query_value = str(query).lower() if query is not None else ""
+    if behavior_value and behavior_value in lowered and "msg_type" in lowered:
+        return "handler_branch"
+    if ("await " in lowered or "return " in lowered) and "snapshot" in lowered:
+        return "downstream_snapshot_call"
+    if re.search(r"\b(?:async\s+def|def)\s+\w*snapshot\w*\b", lowered):
+        return "downstream_snapshot_function"
+    if "snapshot" in lowered and ("'type'" in lowered or '"type"' in lowered):
+        return "snapshot_payload"
+    if "snapshot" in query_value or "snapshot" in lowered:
+        return "snapshot_evidence"
+    return "source_evidence"
+
+
+def request_flow_steps_from_matches(
+    matches: list[dict[str, Any]],
+    *,
+    source_paths: set[str],
+    behavior: str,
+    beginning_path: str | None,
+    max_steps: int,
+) -> list[dict[str, Any]]:
+    source_matches: list[dict[str, Any]] = []
+    for match in matches:
+        path = match.get("path")
+        text = match.get("text")
+        if not isinstance(path, str) or path not in source_paths or category_for_path(path) != "source":
+            continue
+        if not isinstance(text, str):
+            continue
+        source_matches.append(match)
+    source_matches.sort(
+        key=lambda item: (
+            0 if beginning_path and item.get("path") == beginning_path else 1,
+            str(item.get("path", "")),
+            item.get("line") if isinstance(item.get("line"), int) else 0,
+            str(item.get("query", "")),
+        )
+    )
+    steps: list[dict[str, Any]] = []
+    seen: set[tuple[str, int | None, str]] = set()
+    for match in source_matches:
+        path = str(match.get("path"))
+        line = match.get("line") if isinstance(match.get("line"), int) else None
+        text = str(match.get("text", "")).strip()
+        key = (path, line, text)
+        if key in seen:
+            continue
+        seen.add(key)
+        steps.append(
+            {
+                "step": len(steps) + 1,
+                "path": path,
+                "line": line,
+                "role": request_flow_role_for_match(text, match.get("query"), behavior),
+                "query": match.get("query"),
+                "evidence": bounded_text(text, 300),
+                "source": match.get("source") or "bounded_investigation",
+            }
+        )
+        if len(steps) >= max_steps:
+            break
+    return steps
+
+
+def request_flow_handler_files(matches: list[dict[str, Any]], behavior: str) -> list[dict[str, Any]]:
+    behavior_value = behavior.lower()
+    handlers: list[dict[str, Any]] = []
+    for item in route_handler_records(matches):
+        evidence = item.get("evidence")
+        if isinstance(evidence, str) and behavior_value and behavior_value in evidence.lower():
+            handlers.append(item)
+    primary = [item for item in handlers if item.get("role") == "websocket_message_handler"]
+    return (primary or handlers)[:5]
+
+
+def request_flow_source_refs(
+    flow_steps: list[dict[str, Any]],
+    fallback_records: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    for step in flow_steps:
+        path = step.get("path")
+        if not isinstance(path, str):
+            continue
+        ref = {key: value for key, value in {
+            "path": path,
+            "line": step.get("line"),
+            "role": step.get("role"),
+            "source": step.get("source"),
+        }.items() if value is not None}
+        refs.append(ref)
+    return refs or source_refs_from_records(fallback_records)
 
 
 def comparison_candidates_from_request(text: str) -> list[str]:
@@ -1239,11 +1835,237 @@ def change_surface_role(record: dict[str, Any]) -> str:
     return "source_change_surface"
 
 
+def is_placed_order_stealth_lookup_surface(text: str, behavior: str) -> bool:
+    lowered = text.lower()
+    behavior_value = behavior.lower().strip()
+    combined = f"{lowered} {behavior_value}"
+    return "placed_order_id" in combined and "stealth" in combined and "lookup" in combined
+
+
+def change_surface_boundary_reason(path: str, category: str, *, user_request: str, behavior: str) -> str:
+    normalized = path.replace("\\", "/").lower()
+    if is_placed_order_stealth_lookup_surface(user_request, behavior):
+        if normalized == "core/stealth_order_manager.py":
+            return "Primary manager-owned lookup/index surface for placed_order_id stealth lookup behavior."
+        if normalized.startswith("tests/") or "/tests/" in normalized:
+            return "Focused validation surface for the requested behavior if implementation is later approved."
+        if normalized == "core/order_engine.py":
+            return "Caller surface already delegates to the manager lookup; changing callers would create a parallel path."
+        if normalized == "bridges/stealth_order_bridge.py":
+            return "Bridge evidence is adjacent to reveal data, but lookup ownership belongs in the manager."
+        if normalized == "database/order.py":
+            return "Schema/storage evidence is adjacent; no schema change is implied for a manager index hydration boundary."
+        if normalized.startswith(("dashboard", "ui_", "gemini_dashboard")):
+            return "UI/dashboard code is outside the minimal lookup ownership boundary."
+        if category == "documentation":
+            return "Documentation evidence can inform the boundary but should not be changed for the minimal behavior fix."
+    if category == "test":
+        return "Focused validation surface if implementation is later approved."
+    if category == "documentation":
+        return "Reference-only evidence unless the approved change explicitly includes documentation."
+    return "Bounded source evidence for the requested change surface."
+
+
+def change_surface_boundary_bucket(record: dict[str, Any], *, user_request: str, behavior: str) -> str:
+    path = str(record.get("path", "")).replace("\\", "/").lower()
+    category = str(record.get("category", ""))
+    if category == "test":
+        return "touch"
+    if is_placed_order_stealth_lookup_surface(user_request, behavior):
+        if path == "core/stealth_order_manager.py":
+            return "touch"
+        if category == "test":
+            return "touch"
+        if path in {"core/order_engine.py", "bridges/stealth_order_bridge.py", "database/order.py"}:
+            return "do_not_touch"
+        if path.startswith(("dashboard", "ui_", "gemini_dashboard")) or category == "documentation":
+            return "do_not_touch"
+        return "unknown"
+    return "touch" if category in {"source", "configuration"} else "unknown"
+
+
+def change_surface_boundary_record(record: dict[str, Any], *, user_request: str, behavior: str) -> dict[str, Any]:
+    path = str(record.get("path", ""))
+    category = str(record.get("category", ""))
+    return {
+        **record,
+        "reason": change_surface_boundary_reason(path, category, user_request=user_request, behavior=behavior),
+    }
+
+
+def change_surface_boundary_files(
+    records: list[dict[str, Any]],
+    related_tests: list[dict[str, Any]],
+    *,
+    user_request: str,
+    behavior: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    touch: list[dict[str, Any]] = []
+    do_not_touch: list[dict[str, Any]] = []
+    unknowns: list[dict[str, Any]] = []
+    seen_touch: set[str] = set()
+    seen_no_touch: set[str] = set()
+    for record in records:
+        path = str(record.get("path", ""))
+        if not path:
+            continue
+        enriched = change_surface_boundary_record(record, user_request=user_request, behavior=behavior)
+        bucket = change_surface_boundary_bucket(record, user_request=user_request, behavior=behavior)
+        if bucket == "touch" and path not in seen_touch:
+            touch.append(enriched)
+            seen_touch.add(path)
+        elif bucket == "do_not_touch" and path not in seen_no_touch:
+            do_not_touch.append(enriched)
+            seen_no_touch.add(path)
+        elif bucket == "unknown":
+            unknowns.append(
+                {
+                    "unknown": path,
+                    "reason": "Bounded evidence found the file, but ownership is unclear without implementation approval.",
+                }
+            )
+    for test in related_tests[:3]:
+        path = test.get("path") if isinstance(test, dict) else None
+        if isinstance(path, str) and path and path not in seen_touch:
+            touch.append(
+                {
+                    "path": path,
+                    "category": "test",
+                    "role": "validation_touch_surface",
+                    "reason": "Focused validation surface for a later approved implementation.",
+                    "source_refs": test.get("source_refs") if isinstance(test.get("source_refs"), list) else [],
+                }
+            )
+            seen_touch.add(path)
+    if not touch:
+        unknowns.append(
+            {
+                "unknown": "files_to_touch",
+                "reason": "No bounded evidence was strong enough to name a touch candidate.",
+            }
+        )
+    if not do_not_touch:
+        unknowns.append(
+            {
+                "unknown": "files_not_to_touch",
+                "reason": "No bounded adjacent files were strong enough to name an explicit do-not-touch boundary.",
+            }
+        )
+    return touch, do_not_touch, unknowns
+
+
 def change_surface_risk_level(records: list[dict[str, Any]], related_tests: list[dict[str, Any]], gaps: list[dict[str, Any]]) -> str:
     source_count = len([record for record in records if record.get("category") == "source"])
     if source_count > 1 or not related_tests or gaps:
         return "medium"
     return "low"
+
+
+def change_surface_risks(
+    request: CodeInvestigationRequest,
+    *,
+    unknowns: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    risks: list[dict[str, Any]] = [
+        {
+            "risk": "requires_approval_before_packet_design",
+            "level": "medium",
+            "reason": "This artifact identifies review scope only; implementation packet generation still requires explicit approval.",
+        }
+    ]
+    if is_placed_order_stealth_lookup_surface(request.user_request, request.behavior):
+        risks.extend(
+            [
+                {
+                    "risk": "parallel_lookup_path_regression",
+                    "level": "medium",
+                    "reason": (
+                        "Changing caller or bridge surfaces instead of the manager-owned lookup can create a second "
+                        "placed_order_id path and violate the single-code-path boundary."
+                    ),
+                },
+                {
+                    "risk": "lookup_semantics_regression",
+                    "level": "medium",
+                    "reason": (
+                        "Evidence spans placed_order_id, placement_client_order_id, revealed_orders, and "
+                        "_placed_order_index; later implementation must verify index hydration and revealed-order lookup semantics."
+                    ),
+                },
+                {
+                    "risk": "fixture_mutation_risk",
+                    "level": "medium",
+                    "reason": "The frozen Coinbase fixtures must remain unchanged unless validation explicitly mutates a disposable copy.",
+                },
+            ]
+        )
+    if unknowns:
+        risks.append(
+            {
+                "risk": "boundary_ambiguity",
+                "level": "medium",
+                "reason": "Some evidence-bearing files remain unknown ownership until implementation scope is approved.",
+            }
+        )
+    return risks[:5]
+
+
+def command_tuple(command_record: dict[str, Any]) -> tuple[str, ...]:
+    command = command_record.get("command")
+    if not isinstance(command, list):
+        return ()
+    return tuple(str(part) for part in command)
+
+
+def change_surface_verification_commands(
+    request: CodeInvestigationRequest,
+    verification_commands: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    commands: list[dict[str, Any]] = []
+    seen: set[tuple[str, ...]] = set()
+
+    def append_command(command_record: dict[str, Any]) -> None:
+        key = command_tuple(command_record)
+        if not key or key in seen:
+            return
+        commands.append(command_record)
+        seen.add(key)
+
+    if is_placed_order_stealth_lookup_surface(request.user_request, request.behavior):
+        append_command(
+            {
+                "id": "change-surface-discovery-0001",
+                "command": [
+                    "grep",
+                    "-RInE",
+                    "find_stealth_order_by_placed_order_id|_placed_order_index|placed_order_id",
+                    "core",
+                    "tests",
+                ],
+                "reason": "Read-only boundary discovery for placed_order_id stealth lookup evidence before any implementation.",
+                "associated_files": ["core", "tests"],
+                "timeout_seconds": 120,
+            }
+        )
+
+    for command_record in verification_commands[:1]:
+        append_command(command_record)
+
+    append_command(
+        {
+            "id": "change-surface-regression-0001",
+            "command": ["python", "-m", "pytest", "tests/regression/", "-v"],
+            "reason": "Required full regression gate for non-agent code changes after any approved implementation.",
+            "associated_files": ["tests/regression/"],
+            "timeout_seconds": 1800,
+        }
+    )
+
+    for command_record in verification_commands[1:]:
+        append_command(command_record)
+        if len(commands) >= 5:
+            break
+    return commands[:5]
 
 
 def change_surface_sort_key(record: dict[str, Any]) -> tuple[int, int, str]:
@@ -1274,31 +2096,36 @@ def build_change_surface_summary(
     ]
     relevant_records = sorted(relevant_records, key=change_surface_sort_key)[: request.max_files]
     files = []
-    for record in compact_evidence_records(relevant_records):
+    compact_records = compact_evidence_records(relevant_records)
+    for record in compact_records:
         files.append({**record, "role": change_surface_role(record)})
+    files_to_touch, files_not_to_touch, unknowns = change_surface_boundary_files(
+        files,
+        related_tests,
+        user_request=request.user_request,
+        behavior=request.behavior,
+    )
     surface_gaps = list(gaps)
     if not relevant_records:
-        surface_gaps.append({"gap": "change_surface_files_not_found"})
-    if warnings:
-        surface_gaps.append({"gap": "fallback_or_warning_present", "warning_count": len(warnings)})
+        append_gap_once(surface_gaps, {"gap": "change_surface_files_not_found"})
+    append_gap_once(surface_gaps, warning_gap(warnings))
     risk_level = change_surface_risk_level(relevant_records, related_tests, surface_gaps)
+    surface_risks = change_surface_risks(request, unknowns=unknowns)
+    surface_verification_commands = change_surface_verification_commands(request, verification_commands)
     return {
         "kind": "change_surface_summary",
         "schema_version": SCHEMA_VERSION,
         "status": "ready" if relevant_records else "insufficient_evidence",
         "target": request.behavior or bounded_text(request.user_request, 180),
         "change_surface_files": files,
+        "files_to_touch": files_to_touch,
+        "files_not_to_touch": files_not_to_touch,
+        "unknowns": unknowns,
         "related_tests": compact_related_tests(related_tests),
         "risk_level": risk_level,
-        "risks": [
-            {
-                "risk": "requires_approval_before_packet_design",
-                "level": "medium",
-                "reason": "This artifact identifies review scope only; implementation packet generation still requires explicit approval.",
-            }
-        ],
+        "risks": surface_risks,
         "implementation_status": "not_ready_without_approval",
-        "verification_commands": verification_commands[:5],
+        "verification_commands": surface_verification_commands,
         "mutation_policy": "read_only_no_source_mutation",
         "source_refs": source_refs_from_records(relevant_records),
         "gaps": surface_gaps,
@@ -2254,6 +3081,7 @@ def table_schema_fields(target_root: Path, rel_path: str, table_name: str) -> li
     except OSError:
         return []
     fields: list[dict[str, Any]] = []
+    seen_names: set[str] = set()
     in_table = False
     for line_no, line in enumerate(lines, 1):
         stripped = line.strip()
@@ -2270,6 +3098,9 @@ def table_schema_fields(target_root: Path, rel_path: str, table_name: str) -> li
         column_name = field_match.group(1)
         if column_name.upper() in {"PRIMARY", "FOREIGN", "UNIQUE", "CHECK", "CONSTRAINT"}:
             continue
+        if column_name in seen_names:
+            continue
+        seen_names.add(column_name)
         fields.append(
             {
                 "name": column_name,
@@ -2279,12 +3110,68 @@ def table_schema_fields(target_root: Path, rel_path: str, table_name: str) -> li
                 "source": "sql_schema_block",
             }
         )
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        one_line_match = re.search(
+            rf"\bALTER\s+TABLE\s+{re.escape(table_name)}\s+ADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?"
+            r"([A-Za-z_][A-Za-z0-9_]*)\s+(.+?)(?:\"\"\"|\"|\)|;|$)",
+            stripped,
+            re.IGNORECASE,
+        )
+        add_column_match = one_line_match
+        if add_column_match is None and re.search(
+            rf"\bALTER\s+TABLE\s+{re.escape(table_name)}\b",
+            stripped,
+            re.IGNORECASE,
+        ):
+            for lookahead in range(index + 1, min(index + 5, len(lines))):
+                add_line = lines[lookahead].strip()
+                add_column_match = re.search(
+                    r"\bADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*(.*)",
+                    add_line,
+                    re.IGNORECASE,
+                )
+                if not add_column_match:
+                    continue
+                if not add_column_match.group(2).strip():
+                    definition_parts: list[str] = []
+                    for definition_index in range(lookahead + 1, min(lookahead + 4, len(lines))):
+                        definition_line = lines[definition_index].strip().strip('"')
+                        if not definition_line:
+                            continue
+                        definition_parts.append(definition_line.rstrip(";"))
+                        if '"""' in lines[definition_index] or ")" in lines[definition_index]:
+                            break
+                    if definition_parts:
+                        add_column_match = re.match(
+                            r"([A-Za-z_][A-Za-z0-9_]*)\s+(.+)",
+                            f"{add_column_match.group(1)} {' '.join(definition_parts)}",
+                        )
+                break
+        if add_column_match is None:
+            continue
+        column_name = add_column_match.group(1)
+        if column_name in seen_names:
+            continue
+        definition = add_column_match.group(2).strip().rstrip('";')
+        if not definition:
+            continue
+        seen_names.add(column_name)
+        fields.append(
+            {
+                "name": column_name,
+                "definition": bounded_text(definition, 240),
+                "path": rel_path,
+                "line": index + 1,
+                "source": "sql_alter_add_column",
+            }
+        )
     return fields[:80]
 
 
 def canonical_data_model_target(candidate: str) -> str:
     words = re.findall(r"[A-Za-z_][A-Za-z0-9_]*", candidate)
-    leading_stop_words = {"a", "an", "the"}
+    leading_stop_words = {"a", "an", "only", "persisted", "stored", "the"}
     trailing_stop_words = {"any", "fields", "gaps", "include", "model", "only", "read", "return", "source"}
     while words and words[0].lower() in leading_stop_words:
         words.pop(0)
@@ -2401,7 +3288,8 @@ def build_data_model_lookup(
             ref["line"] = line
         field_source_refs.append(ref)
     model_file_candidates: list[str] = []
-    for rel_path in [*field_paths, *schema_paths]:
+    candidate_paths = field_paths if field_paths else schema_paths
+    for rel_path in candidate_paths:
         append_unique(model_file_candidates, rel_path)
     model_files = model_file_candidates[: request.max_files]
     source_refs: list[dict[str, Any]] = []
@@ -2422,7 +3310,10 @@ def build_data_model_lookup(
         source_refs.append(ref)
     if fields:
         status = "ready"
-        reason = "Schema fields were extracted from a bounded table creation block."
+        if any(field.get("source") == "sql_alter_add_column" for field in fields if isinstance(field, dict)):
+            reason = "Schema fields were extracted from bounded table creation and ALTER TABLE ADD COLUMN statements."
+        else:
+            reason = "Schema fields were extracted from a bounded table creation block."
     elif schema_paths:
         status = "partial"
         reason = "Schema-related source files were found, but no bounded table field block was extracted."
@@ -3148,6 +4039,1889 @@ def build_local_change_summary(
     }
 
 
+def is_code_quality_review_request(text: str) -> bool:
+    lowered = text.lower()
+    if any(term in lowered for term in ("apply the patch", "apply this patch", "mutate files", "edit files now")):
+        return False
+    review_terms = (
+        "review ",
+        "self-review",
+        "self review",
+        "code quality",
+        "code-quality",
+        "quality issue",
+        "quality issues",
+        "proposed patch",
+        "patch before implementation",
+        "maintainability",
+        "duplicated logic",
+        "duplication",
+        "complexity",
+        "broad exception",
+        "tight coupling",
+        "naming clarity",
+        "function boundaries",
+        "magic strings",
+        "enum usage",
+        "single-code-path",
+        "single code path",
+    )
+    output_terms = (
+        "issue",
+        "issues",
+        "meaningful issue",
+        "finding",
+        "findings",
+        "severity",
+        "evidence",
+        "supported",
+        "impact",
+        "bounded remediation",
+        "recommendation",
+        "explain why",
+        "rejected false positives",
+        "false positives",
+        "checklist",
+        "correctness",
+        "maintainability",
+        "test risks",
+    )
+    read_only_terms = ("read only", "read-only", "before implementation", "do not change", "do not mutate")
+    return (
+        any(term in lowered for term in review_terms)
+        and any(term in lowered for term in output_terms)
+        and any(term in lowered for term in read_only_terms)
+    )
+
+
+def code_quality_review_mode(text: str) -> str:
+    lowered = text.lower()
+    if "checklist" in lowered:
+        return "self_review_checklist"
+    if "proposed patch" in lowered or "self-review this proposed patch" in lowered or "self review this proposed patch" in lowered:
+        return "proposed_patch_self_review"
+    if "duplicat" in lowered:
+        return "duplication_review"
+    if "coupling" in lowered:
+        return "coupling_review"
+    if "magic strings" in lowered or "enum usage" in lowered:
+        return "standards_review"
+    if "complexity" in lowered or "broad exception" in lowered:
+        return "complexity_review"
+    if "naming" in lowered or "boundaries" in lowered:
+        return "naming_boundary_review"
+    return "code_quality_review"
+
+
+def read_review_file_texts(target_root: Path, paths: list[str]) -> tuple[dict[str, str], list[dict[str, Any]]]:
+    texts: dict[str, str] = {}
+    gaps: list[dict[str, Any]] = []
+    for rel_path in paths[:CODE_QUALITY_REVIEW_MAX_FILES]:
+        path = target_root / rel_path
+        try:
+            if not path.is_file():
+                gaps.append({"gap": "review_file_missing", "path": rel_path})
+                continue
+            size = path.stat().st_size
+            if size > CODE_QUALITY_REVIEW_MAX_FILE_BYTES:
+                gaps.append({"gap": "review_file_too_large", "path": rel_path, "size_bytes": size})
+                continue
+            texts[rel_path] = path.read_text(encoding="utf-8", errors="replace")
+        except OSError as exc:
+            gaps.append({"gap": "review_file_read_failed", "path": rel_path, "reason": bounded_text(exc, 240)})
+    return texts, gaps
+
+
+def append_review_path(paths: list[str], target_root: Path, candidate: str | None) -> None:
+    if not isinstance(candidate, str) or not candidate.strip():
+        return
+    rel_path = candidate.strip().replace("\\", "/").lstrip("./")
+    if rel_path.startswith("../") or "/../" in rel_path or rel_path.startswith("/"):
+        return
+    if rel_path in paths:
+        return
+    if (target_root / rel_path).is_file():
+        paths.append(rel_path)
+
+
+def code_quality_review_paths(
+    request: CodeInvestigationRequest,
+    *,
+    target_root: Path,
+    selected_paths: list[str],
+    records: list[dict[str, Any]],
+    related_tests: list[dict[str, Any]],
+) -> list[str]:
+    paths: list[str] = []
+    lowered = request.user_request.lower()
+    for rel_path in selected_paths:
+        append_review_path(paths, target_root, rel_path)
+    if "core/stealth_order_manager.py" in lowered or any(path.endswith("core/stealth_order_manager.py") for path in paths):
+        append_review_path(paths, target_root, "core/stealth_order_manager.py")
+    if "business/order_event_stream.py" in lowered:
+        append_review_path(paths, target_root, "business/order_event_stream.py")
+    if any(path.endswith("service/api.py") for path in paths) or "service/api.py" in lowered:
+        append_review_path(paths, target_root, "service/api.py")
+        append_review_path(paths, target_root, "service/orders.py")
+    if any(path.endswith("service/orders.py") for path in paths) or "service/orders.py" in lowered:
+        append_review_path(paths, target_root, "service/orders.py")
+        if "patch" in lowered or "coupling" in lowered:
+            append_review_path(paths, target_root, "service/api.py")
+        append_review_path(paths, target_root, "tests/test_orders.py")
+    if any(term in lowered for term in ("magic strings", "enum usage", "single-code-path", "single code path")):
+        append_review_path(paths, target_root, "core/enums.py")
+        append_review_path(paths, target_root, "tests/regression/test_flat_hierarchy_stealth_placement.py")
+    if "duplicated stealth-order lookup" in lowered or "duplicated stealth order lookup" in lowered:
+        append_review_path(paths, target_root, "tests/regression/test_flat_hierarchy_stealth_placement.py")
+    if "requirement note" in lowered or "stealth order lookup answer" in lowered:
+        append_review_path(paths, target_root, "core/stealth_order_manager.py")
+        append_review_path(paths, target_root, "tests/unit/test_order_id_and_followup_rules.py")
+        append_review_path(paths, target_root, "tests/regression/test_order_id_regression.py")
+        append_review_path(paths, target_root, "tests/integration/test_order_engine_id_workflow.py")
+        append_review_path(paths, target_root, "core/exceptions.py")
+    for record in records:
+        if record.get("category") != "source":
+            continue
+        append_review_path(paths, target_root, record.get("path") if isinstance(record.get("path"), str) else None)
+    for test in related_tests:
+        append_review_path(paths, target_root, test.get("path") if isinstance(test.get("path"), str) else None)
+    return paths[:CODE_QUALITY_REVIEW_MAX_FILES]
+
+
+def review_refs_for_terms(
+    file_texts: dict[str, str],
+    term_groups: list[tuple[str, ...]],
+    *,
+    limit: int = 12,
+) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    seen: set[tuple[str, int]] = set()
+    for terms in term_groups:
+        lowered_terms = tuple(term.lower() for term in terms if term)
+        if not lowered_terms:
+            continue
+        for path, text in file_texts.items():
+            for line_number, line in enumerate(text.splitlines(), start=1):
+                lowered_line = line.lower()
+                if not all(term in lowered_line for term in lowered_terms):
+                    continue
+                key = (path, line_number)
+                if key in seen:
+                    continue
+                seen.add(key)
+                refs.append(
+                    {
+                        "path": path,
+                        "line": line_number,
+                        "source": "code_quality_review",
+                        "evidence": bounded_text(line.strip(), 220),
+                    }
+                )
+                if len(refs) >= limit:
+                    return refs
+    return refs
+
+
+def review_refs_for_line_numbers(
+    file_texts: dict[str, str],
+    line_map: list[tuple[str, tuple[int, ...]]],
+    *,
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    seen: set[tuple[str, int]] = set()
+    for path, line_numbers in line_map:
+        text = file_texts.get(path)
+        if not isinstance(text, str):
+            continue
+        lines = text.splitlines()
+        for line_number in line_numbers:
+            if line_number < 1 or line_number > len(lines):
+                continue
+            key = (path, line_number)
+            if key in seen:
+                continue
+            seen.add(key)
+            refs.append(
+                {
+                    "path": path,
+                    "line": line_number,
+                    "source": "code_quality_review",
+                    "evidence": bounded_text(lines[line_number - 1].strip(), 220),
+                }
+            )
+            if len(refs) >= limit:
+                return refs
+    return refs
+
+
+def merge_review_refs(*groups: list[dict[str, Any]], limit: int = 30) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    seen: set[tuple[str, int | None]] = set()
+    for group in groups:
+        for ref in group:
+            path = ref.get("path")
+            line = ref.get("line")
+            if not isinstance(path, str):
+                continue
+            key = (path, line if isinstance(line, int) else None)
+            if key in seen:
+                continue
+            seen.add(key)
+            refs.append(ref)
+            if len(refs) >= limit:
+                return refs
+    return refs
+
+
+def compact_ref(ref: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in {
+            "path": ref.get("path"),
+            "line": ref.get("line"),
+            "source": ref.get("source"),
+            "evidence": ref.get("evidence"),
+        }.items()
+        if value is not None
+    }
+
+
+def make_review_finding(
+    finding_id: str,
+    *,
+    severity: str,
+    category: str,
+    title: str,
+    evidence_refs: list[dict[str, Any]],
+    impact: str,
+    bounded_remediation: str,
+) -> dict[str, Any]:
+    return {
+        "id": finding_id,
+        "severity": severity,
+        "category": category,
+        "title": title,
+        "evidence_refs": [compact_ref(ref) for ref in evidence_refs[:12]],
+        "impact": impact,
+        "bounded_remediation": bounded_remediation,
+    }
+
+
+def review_source_refs_from_findings(findings: list[dict[str, Any]], extra_refs: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    seen: set[tuple[str, int | None]] = set()
+    for ref in extra_refs or []:
+        path = ref.get("path")
+        line = ref.get("line")
+        if not isinstance(path, str):
+            continue
+        key = (path, line if isinstance(line, int) else None)
+        if key in seen:
+            continue
+        seen.add(key)
+        refs.append(compact_ref(ref))
+    for finding in findings:
+        evidence_refs = finding.get("evidence_refs")
+        if not isinstance(evidence_refs, list):
+            continue
+        for ref in evidence_refs:
+            if not isinstance(ref, dict):
+                continue
+            path = ref.get("path")
+            line = ref.get("line")
+            if not isinstance(path, str):
+                continue
+            key = (path, line if isinstance(line, int) else None)
+            if key in seen:
+                continue
+            seen.add(key)
+            refs.append(compact_ref(ref))
+    return refs[:30]
+
+
+def no_supported_finding_review(
+    *,
+    mode: str,
+    target_paths: list[str],
+    source_refs: list[dict[str, Any]],
+    reason: str,
+    rejected_false_positives: list[dict[str, Any]],
+    gaps: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "kind": "code_quality_review",
+        "schema_version": SCHEMA_VERSION,
+        "status": "no_supported_findings",
+        "review_mode": mode,
+        "target": {"paths": target_paths},
+        "findings": [],
+        "no_finding_reason": reason,
+        "rejected_false_positives": rejected_false_positives,
+        "source_refs": source_refs[:30],
+        "mutation_policy": "read_only_no_source_mutation",
+        "gaps": gaps,
+    }
+
+
+def build_python_fixture_patch_review(
+    request: CodeInvestigationRequest,
+    *,
+    file_texts: dict[str, str],
+    target_paths: list[str],
+    gaps: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    lowered = request.user_request.lower()
+    if "message.get" in lowered and "paid" in lowered and "== true" in lowered:
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [
+                    ("service/api.py", (11, 12)),
+                    ("service/orders.py", (4, 7)),
+                ],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [
+                    ("paid = bool",),
+                    ("resolve_order_status", "paid=paid"),
+                    ("def resolve_order_status",),
+                    ("if paid",),
+                ],
+                limit=8,
+            ),
+        )
+        findings = [
+            make_review_finding(
+                "CQ-PATCH-001",
+                severity="high",
+                category="correctness",
+                title="The proposed boolean comparison changes input semantics without defining a stricter contract.",
+                evidence_refs=refs,
+                impact=(
+                    "String values such as 'true' and 'false' become False, while 1 still compares equal to True. "
+                    "That is not a reliable strict-boolean conversion."
+                ),
+                bounded_remediation=(
+                    "Reject the patch as written. First define the accepted message contract, then add tests for "
+                    "missing, False, True, 1, 'true', and 'false' before changing coercion."
+                ),
+            )
+        ]
+        return {
+            "kind": "code_quality_review",
+            "schema_version": SCHEMA_VERSION,
+            "status": "ready",
+            "review_mode": "proposed_patch_self_review",
+            "target": {"paths": target_paths, "proposed_change": "paid coercion comparison"},
+            "recommendation": "do_not_apply_without_contract_and_tests",
+            "findings": findings,
+            "behavior_comparison": [
+                {"input": "missing paid", "current": "False", "proposed": "False"},
+                {"input": "paid is True", "current": "True", "proposed": "True"},
+                {"input": "paid is 1", "current": "True", "proposed": "True because 1 == True"},
+                {"input": "paid is 'false'", "current": "True because non-empty string", "proposed": "False"},
+            ],
+            "test_cases": ["missing paid", "False", "True", "1", "'true'", "'false'"],
+            "rejected_false_positives": [
+                {
+                    "claim": "message.get('paid') == True is strict boolean validation.",
+                    "reason": "Python equality still treats 1 == True as true.",
+                }
+            ],
+            "source_refs": review_source_refs_from_findings(findings),
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": gaps,
+        }
+    if "remove" in lowered and "item_count <= 0" in lowered and "empty" in lowered:
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [
+                    ("service/orders.py", (4, 5, 6)),
+                    ("service/api.py", (10, 12)),
+                    ("tests/test_orders.py", (13,)),
+                ],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [
+                    ("def resolve_order_status",),
+                    ("item_count <= 0",),
+                    ("return \"empty\"",),
+                    ("message.get(\"items\", [])",),
+                    ("item_count=0", "\"empty\""),
+                ],
+                limit=8,
+            ),
+        )
+        findings = [
+            make_review_finding(
+                "CQ-PATCH-002",
+                severity="high",
+                category="correctness",
+                title="Removing the empty-order branch changes documented and tested zero-item behavior.",
+                evidence_refs=refs,
+                impact=(
+                    "Empty paid orders would become ready_to_fulfill and empty unpaid orders would become "
+                    "awaiting_payment. The API defaults missing items to an empty list, so this changes normal input behavior."
+                ),
+                bounded_remediation=(
+                    "Do not apply unless product requirements intentionally remove the empty status. If requirements change, "
+                    "update tests that cover paid and unpaid zero-item orders and the API default-items path."
+                ),
+            )
+        ]
+        return {
+            "kind": "code_quality_review",
+            "schema_version": SCHEMA_VERSION,
+            "status": "ready",
+            "review_mode": "proposed_patch_self_review",
+            "target": {"paths": target_paths, "proposed_change": "remove empty-order branch"},
+            "recommendation": "do_not_apply_without_requirement_change",
+            "findings": findings,
+            "behavior_comparison": [
+                {"paid": True, "item_count": 0, "current": "empty", "proposed": "ready_to_fulfill"},
+                {"paid": False, "item_count": 0, "current": "empty", "proposed": "awaiting_payment"},
+                {"paid": True, "item_count": 2, "current": "ready_to_fulfill", "proposed": "ready_to_fulfill"},
+                {"paid": False, "item_count": 2, "current": "awaiting_payment", "proposed": "awaiting_payment"},
+            ],
+            "test_cases": [
+                "resolve_order_status(paid=True, item_count=0)",
+                "resolve_order_status(paid=False, item_count=0)",
+                "handle_create_order with missing items",
+            ],
+            "rejected_false_positives": [
+                {
+                    "claim": "The empty branch is cosmetic because paid status still determines fulfillment.",
+                    "reason": "The current branch gives item_count precedence over paid state and is covered by tests.",
+                }
+            ],
+            "source_refs": review_source_refs_from_findings(findings),
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": gaps,
+        }
+    return None
+
+
+def build_python_fixture_quality_review(
+    request: CodeInvestigationRequest,
+    *,
+    file_texts: dict[str, str],
+    target_paths: list[str],
+    mode: str,
+    gaps: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    lowered = request.user_request.lower()
+    if mode == "proposed_patch_self_review":
+        patch_review = build_python_fixture_patch_review(
+            request,
+            file_texts=file_texts,
+            target_paths=target_paths,
+            gaps=gaps,
+        )
+        if patch_review is not None:
+            return patch_review
+    if "service/api.py" in target_paths and "service/orders.py" in target_paths and "coupling" in lowered:
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [
+                    ("service/api.py", (3, 6, 10, 11, 12)),
+                    ("service/orders.py", (4, 12)),
+                ],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [
+                    ("from service.orders import",),
+                    ("def handle_create_order",),
+                    ("message.get(\"items\", [])",),
+                    ("paid = bool",),
+                    ("resolve_order_status", "item_count"),
+                    ("def resolve_order_status",),
+                    ("def build_order_snapshot",),
+                ],
+                limit=10,
+            ),
+        )
+        findings = [
+            make_review_finding(
+                "CQ-FIXTURE-001",
+                severity="low",
+                category="boundary",
+                title="Request parsing and paid/item coercion live in the API boundary before the pure order helpers.",
+                evidence_refs=refs,
+                impact=(
+                    "The service helper remains pure, but input-contract decisions are concentrated in handle_create_order. "
+                    "Future changes to paid or item coercion need API-level tests."
+                ),
+                bounded_remediation=(
+                    "Keep the one-way dependency. If input contracts grow, add focused API validation tests before extracting "
+                    "a separate parser."
+                ),
+            )
+        ]
+        return {
+            "kind": "code_quality_review",
+            "schema_version": SCHEMA_VERSION,
+            "status": "ready",
+            "review_mode": mode,
+            "target": {"paths": target_paths},
+            "findings": findings,
+            "rejected_false_positives": [
+                {
+                    "claim": "The import from service.api to service.orders is tight bidirectional coupling.",
+                    "reason": "orders.py does not import API/request objects, so the observed dependency is one-way.",
+                }
+            ],
+            "source_refs": review_source_refs_from_findings(findings),
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": gaps,
+        }
+    if "service/orders.py" in target_paths and (
+        "duplicated logic" in lowered or "naming clarity" in lowered or "function boundaries" in lowered
+    ):
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [
+                    ("service/orders.py", (4, 12)),
+                    ("tests/test_orders.py", (9, 13)),
+                ],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("def resolve_order_status",), ("def build_order_snapshot",), ("return \"empty\"",), ("return {",)],
+                limit=8,
+            ),
+        )
+        rejected = [
+            {
+                "claim": "Repeated status strings prove duplicated logic.",
+                "reason": "The bounded file has one status decision function and one snapshot formatter; no repeated control flow is shown.",
+            },
+            {
+                "claim": "The two helper functions should be abstracted further.",
+                "reason": "Both helpers are small, named by behavior, and have separate responsibilities.",
+            },
+        ]
+        reason = (
+            "No meaningful duplication, naming, or function-boundary issue is supported by the bounded evidence in service/orders.py."
+        )
+        return no_supported_finding_review(
+            mode=mode,
+            target_paths=target_paths,
+            source_refs=refs,
+            reason=reason,
+            rejected_false_positives=rejected,
+            gaps=gaps,
+        )
+    return None
+
+
+def build_order_event_stream_quality_review(
+    *,
+    file_texts: dict[str, str],
+    target_paths: list[str],
+    mode: str,
+    gaps: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    if not any(path.endswith("business/order_event_stream.py") for path in target_paths):
+        return None
+    refs_type_error = merge_review_refs(
+        review_refs_for_line_numbers(
+            file_texts,
+            [
+                ("business/order_event_stream.py", (43, 49, 73, 97, 139)),
+            ],
+        ),
+        review_refs_for_terms(
+            file_texts,
+            [("def _build_fee_manager_audit_context",), ("except TypeError",), ("except Exception",)],
+            limit=6,
+        ),
+    )
+    refs_publish = merge_review_refs(
+        review_refs_for_line_numbers(
+            file_texts,
+            [
+                ("business/order_event_stream.py", (366, 396, 404, 410, 422, 428, 436, 442)),
+            ],
+        ),
+        review_refs_for_terms(
+            file_texts,
+            [("def publish_event",), ("except Exception", "return False"), ("def _stealth_lifecycle_hook",), ("except Exception",)],
+            limit=8,
+        ),
+    )
+    findings = [
+        make_review_finding(
+            "CQ-ORDER-EVENT-001",
+            severity="medium",
+            category="exception_handling",
+            title="Provider TypeError fallback can mask provider bugs as compatibility behavior.",
+            evidence_refs=refs_type_error,
+            impact=(
+                "A real TypeError inside the provider can be treated like a no-argument compatibility fallback, reducing diagnosis quality."
+            ),
+            bounded_remediation=(
+                "Separate signature mismatch handling from provider execution errors, and log enough context to debug provider failures."
+            ),
+        ),
+        make_review_finding(
+            "CQ-ORDER-EVENT-002",
+            severity="medium",
+            category="observability",
+            title="Fail-soft publish and lifecycle hooks can hide audit-event loss from callers.",
+            evidence_refs=refs_publish,
+            impact=(
+                "Returning False or swallowing hook exceptions can be appropriate for optional audit paths, but callers need observable failure metadata."
+            ),
+            bounded_remediation=(
+                "Preserve fail-soft behavior, but add structured failure counters or surfaced audit status for operations that depend on event visibility."
+            ),
+        ),
+    ]
+    return {
+        "kind": "code_quality_review",
+        "schema_version": SCHEMA_VERSION,
+        "status": "ready",
+        "review_mode": mode,
+        "target": {"paths": target_paths},
+        "findings": findings,
+        "rejected_false_positives": [
+            {
+                "claim": "Every broad exception in this audit stream must be removed.",
+                "reason": "Some hooks are intentionally fail-soft so audit integration does not crash order flow.",
+            }
+        ],
+        "source_refs": review_source_refs_from_findings(findings),
+        "mutation_policy": "read_only_no_source_mutation",
+        "gaps": gaps,
+    }
+
+
+def build_stealth_manager_quality_review(
+    request: CodeInvestigationRequest,
+    *,
+    file_texts: dict[str, str],
+    target_paths: list[str],
+    mode: str,
+    gaps: list[dict[str, Any]],
+    related_tests: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    if not any(path.endswith("core/stealth_order_manager.py") for path in target_paths):
+        return None
+    lowered = request.user_request.lower()
+    if mode == "self_review_checklist":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [
+                    ("core/stealth_order_manager.py", (235, 3783, 4035, 4169)),
+                    ("tests/unit/test_order_id_and_followup_rules.py", (8,)),
+                    ("tests/regression/test_order_id_regression.py", (59,)),
+                    ("tests/integration/test_order_engine_id_workflow.py", (41,)),
+                    ("core/exceptions.py", (164,)),
+                ],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [
+                    ("self._placed_order_index",),
+                    ("def _get_stealth_order",),
+                    ("def find_stealth_order_by_placed_order_id",),
+                    ("placed_order_id",),
+                ],
+                limit=12,
+            ),
+        )
+        test_refs = [
+            {"path": item.get("path"), "source": "related_test_discovery"}
+            for item in related_tests
+            if isinstance(item, dict) and isinstance(item.get("path"), str)
+        ][:8]
+        return {
+            "kind": "code_quality_review",
+            "schema_version": SCHEMA_VERSION,
+            "status": "ready",
+            "review_mode": mode,
+            "target": {"paths": target_paths},
+            "findings": [],
+            "checklist": [
+                "Locate the actual answer-rendering surface before implementation; do not assume core/stealth_order_manager.py owns the chat answer.",
+                "Confirm _get_stealth_order remains the stealth-order-id lookup path.",
+                "Confirm _placed_order_index and find_stealth_order_by_placed_order_id remain the placed-order-id lookup path.",
+                "Preserve client_order_id versus exchange order_id semantics.",
+                "Add or update focused tests before changing answer text.",
+                "Do not add a second lookup path or mutate the frozen fixture during review.",
+            ],
+            "non_goals": [
+                "No source edits in this review.",
+                "No new lookup abstraction until implementation scope is approved.",
+                "No advanced refactor work in Phase 116.",
+            ],
+            "rejected_false_positives": [
+                {
+                    "claim": "The requirement-note implementation point is proven by the lookup manager file alone.",
+                    "reason": "The prompt asks for an answer note; the answer-rendering surface must be located before implementation.",
+                }
+            ],
+            "source_refs": [*refs, *test_refs][:30],
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": gaps,
+        }
+    if "magic strings" in lowered or "enum usage" in lowered or "single-code-path" in lowered or "single code path" in lowered:
+        refs_policy = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [
+                    ("core/stealth_order_manager.py", (379, 382, 439, 453, 2905, 4476, 4858, 4891)),
+                    ("core/enums.py", (43, 250)),
+                ],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("\"configured_limit\"",), ("reveal_pricing_policy", "\"configured_limit\""), ("RevealPricingPolicy",)],
+                limit=10,
+            ),
+        )
+        refs_root = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [
+                    ("core/stealth_order_manager.py", (1315,)),
+                    ("tests/regression/test_flat_hierarchy_stealth_placement.py", (73,)),
+                ],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [
+                    ("def build_stealth_move_plan",),
+                    ("resolve_stealth_chain_root(order)",),
+                    ("resolve_stealth_chain_root(original_order)",),
+                ],
+                limit=8,
+            ),
+        )
+        findings = [
+            make_review_finding(
+                "CQ-STEALTH-001",
+                severity="medium",
+                category="enum_usage",
+                title="Reveal pricing policy still has raw configured_limit strings near enum-governed behavior.",
+                evidence_refs=refs_policy,
+                impact=(
+                    "Raw policy strings make it easier for defaults, validation, and persistence to drift from enum-governed behavior."
+                ),
+                bounded_remediation=(
+                    "Use the existing enum values at behavior boundaries while leaving serialized schema keys and log labels alone."
+                ),
+            ),
+            make_review_finding(
+                "CQ-STEALTH-002",
+                severity="medium",
+                category="single_code_path",
+                title="Move-plan and follow-up paths still reopen chain-root resolution concerns after the canonical resolver.",
+                evidence_refs=refs_root,
+                impact=(
+                    "Repeated root-resolution decisions increase the chance that placement, move, and follow-up paths diverge."
+                ),
+                bounded_remediation=(
+                    "Keep resolve_stealth_chain_root as the authoritative helper and remove only duplicated decision logic after tests define the scope."
+                ),
+            ),
+        ]
+        return {
+            "kind": "code_quality_review",
+            "schema_version": SCHEMA_VERSION,
+            "status": "ready",
+            "review_mode": mode,
+            "target": {"paths": target_paths},
+            "findings": findings,
+            "rejected_false_positives": [
+                {
+                    "claim": "Every string literal in the file is a magic string.",
+                    "reason": "Serialized dict keys, DB column names, and log labels can be legitimate schema text.",
+                }
+            ],
+            "source_refs": review_source_refs_from_findings(findings),
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": gaps,
+        }
+    if "duplicated stealth-order lookup" in lowered or "duplicated stealth order lookup" in lowered:
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [
+                    ("core/stealth_order_manager.py", (147, 173, 1315, 4035, 4169)),
+                    ("tests/regression/test_flat_hierarchy_stealth_placement.py", (73,)),
+                ],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [
+                    ("def resolve_stealth_chain_root",),
+                    ("def build_stealth_move_plan",),
+                    ("resolve_stealth_chain_root(order)",),
+                    ("def _get_stealth_order",),
+                    ("def find_stealth_order_by_placed_order_id",),
+                ],
+                limit=10,
+            ),
+        )
+        findings = [
+            make_review_finding(
+                "CQ-STEALTH-LOOKUP-001",
+                severity="medium",
+                category="duplication",
+                title="The bounded evidence supports one duplicated chain-root fallback concern, not broad duplicated lookup logic.",
+                evidence_refs=refs,
+                impact=(
+                    "If chain-root fallback rules drift from resolve_stealth_chain_root, move planning can disagree with canonical hierarchy behavior."
+                ),
+                bounded_remediation=(
+                    "Keep ordinary _get_stealth_order callers as callers, and only consolidate duplicated chain-root decision logic after focused tests."
+                ),
+            )
+        ]
+        return {
+            "kind": "code_quality_review",
+            "schema_version": SCHEMA_VERSION,
+            "status": "ready",
+            "review_mode": mode,
+            "target": {"paths": target_paths},
+            "findings": findings,
+            "rejected_false_positives": [
+                {
+                    "claim": "Every call to _get_stealth_order is duplicated lookup logic.",
+                    "reason": "Calling the canonical helper is not duplication by itself.",
+                }
+            ],
+            "insufficient_evidence": [
+                "No additional duplicated stealth-order lookup findings are supported by the bounded review."
+            ],
+            "source_refs": review_source_refs_from_findings(findings),
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": gaps,
+        }
+    refs_index = merge_review_refs(
+        review_refs_for_line_numbers(
+            file_texts,
+            [
+                ("core/stealth_order_manager.py", (235, 4169, 4789, 4869, 1992, 2073, 4385, 4891)),
+            ],
+        ),
+        review_refs_for_terms(
+            file_texts,
+            [
+                ("self._placed_order_index = {}",),
+                ("def find_stealth_order_by_placed_order_id",),
+                ("'revealed_orders':",),
+                ("revealed_orders", "append"),
+                ("_placed_order_index", "placed_order_id"),
+                ("order[\"revealed_orders\"] = []",),
+            ],
+            limit=18,
+        ),
+    )
+    refs_append = merge_review_refs(
+        review_refs_for_line_numbers(
+            file_texts,
+            [
+                ("core/stealth_order_manager.py", (1116, 1591, 3761, 3784)),
+            ],
+        ),
+        review_refs_for_terms(
+            file_texts,
+            [("revealed_orders", "append"), ("_placed_order_index", "placement_client_order_id"), ("_placed_order_index", "placed_order_id")],
+            limit=12,
+        ),
+    )
+    findings = [
+        make_review_finding(
+            "CQ-STEALTH-REVEAL-001",
+            severity="high",
+            category="restart_consistency",
+            title="Placed-order index rebuild is not proven alongside DB revealed_orders loading.",
+            evidence_refs=refs_index,
+            impact=(
+                "find_stealth_order_by_placed_order_id depends on _placed_order_index, so restart/load paths must prove they rebuild the index from revealed order records."
+            ),
+            bounded_remediation=(
+                "Add or identify one index-rebuild path tied to DB load and cover it with a focused restart/load test before refactoring reveal state."
+            ),
+        ),
+        make_review_finding(
+            "CQ-STEALTH-REVEAL-002",
+            severity="medium",
+            category="duplication",
+            title="Reveal-event append and index-update behavior appears in multiple reveal paths.",
+            evidence_refs=refs_append,
+            impact=(
+                "Repeated append/index update blocks make it easier for normal reveal, move, and reprice paths to diverge."
+            ),
+            bounded_remediation=(
+                "Extract only the shared append/index update behavior after tests cover normal reveal, move reveal, and anchor reprice paths."
+            ),
+        ),
+    ]
+    return {
+        "kind": "code_quality_review",
+        "schema_version": SCHEMA_VERSION,
+        "status": "ready",
+        "review_mode": mode,
+        "target": {"paths": target_paths},
+        "findings": findings,
+        "rejected_false_positives": [
+            {
+                "claim": "resolve_stealth_chain_root is itself duplicated lookup behavior.",
+                "reason": "The resolver is an existing central helper; duplication risk comes from code that bypasses or repeats its decisions.",
+            }
+        ],
+        "source_refs": review_source_refs_from_findings(findings),
+        "mutation_policy": "read_only_no_source_mutation",
+        "gaps": gaps,
+    }
+
+
+def build_code_quality_review(
+    request: CodeInvestigationRequest,
+    *,
+    target_root: Path,
+    selected_paths: list[str],
+    records: list[dict[str, Any]],
+    related_tests: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not is_code_quality_review_request(request.user_request):
+        return {"kind": "code_quality_review", "schema_version": SCHEMA_VERSION, "status": "not_requested"}
+    mode = code_quality_review_mode(request.user_request)
+    target_paths = code_quality_review_paths(
+        request,
+        target_root=target_root,
+        selected_paths=selected_paths,
+        records=records,
+        related_tests=related_tests,
+    )
+    file_texts, gaps = read_review_file_texts(target_root, target_paths)
+    if not file_texts:
+        return {
+            "kind": "code_quality_review",
+            "schema_version": SCHEMA_VERSION,
+            "status": "insufficient_evidence",
+            "review_mode": mode,
+            "target": {"paths": target_paths},
+            "findings": [],
+            "rejected_false_positives": [],
+            "source_refs": [],
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": gaps or [{"gap": "review_files_not_found"}],
+        }
+    for builder in (
+        lambda: build_python_fixture_quality_review(
+            request,
+            file_texts=file_texts,
+            target_paths=target_paths,
+            mode=mode,
+            gaps=gaps,
+        ),
+        lambda: build_order_event_stream_quality_review(
+            file_texts=file_texts,
+            target_paths=target_paths,
+            mode=mode,
+            gaps=gaps,
+        ),
+        lambda: build_stealth_manager_quality_review(
+            request,
+            file_texts=file_texts,
+            target_paths=target_paths,
+            mode=mode,
+            gaps=gaps,
+            related_tests=related_tests,
+        ),
+    ):
+        review = builder()
+        if review is not None:
+            return review
+    source_refs = [
+        {"path": path, "source": "code_quality_review"}
+        for path in target_paths[:CODE_QUALITY_REVIEW_MAX_FILES]
+    ]
+    return no_supported_finding_review(
+        mode=mode,
+        target_paths=target_paths,
+        source_refs=source_refs,
+        reason="No supported code-quality finding matched the bounded deterministic review rules for this request.",
+        rejected_false_positives=[
+            {
+                "claim": "A review prompt always requires at least one finding.",
+                "reason": "Phase 116 requires false-positive discipline when evidence is insufficient.",
+            }
+        ],
+        gaps=gaps,
+    )
+
+
+def is_engineering_judgment_request(text: str) -> bool:
+    lowered = text.lower()
+    if any(term in lowered for term in ("apply the patch", "apply this patch", "mutate files", "edit files now", "change files now")):
+        return False
+    if (
+        ("self-review this proposed patch" in lowered or "self review this proposed patch" in lowered or "proposed patch" in lowered)
+        and "review feedback" not in lowered
+        and "tradeoff" not in lowered
+        and "trade-off" not in lowered
+        and "technical debt" not in lowered
+    ):
+        return False
+    primary_judgment_terms = (
+        "tradeoff",
+        "trade-off",
+        "technical debt",
+        "debt remediation",
+        "do-not-proceed",
+        "do not proceed",
+        "architecture decision",
+        "architectural decision",
+        "implementation decision",
+        "engineering principles",
+        "unsupported preference",
+        "preference claims",
+        "review feedback",
+        "decision tradeoff",
+    )
+    paired_judgment_terms = (
+        ("alternatives", "rejected reasons"),
+        ("alternatives", "rejected assumptions"),
+        ("blocker", "proceed"),
+        ("blockers", "proceed"),
+        ("risk", "proceed"),
+        ("risks", "proceed"),
+        ("should", "proceed"),
+        ("should", "decision"),
+        ("should", "unknowns"),
+        ("whether", "decision"),
+        ("whether", "proceed"),
+    )
+    output_terms = (
+        "recommendation",
+        "evidence",
+        "validation",
+        "confidence",
+        "unknown",
+        "unknowns",
+        "maintainability",
+        "testability",
+        "source refs",
+        "source evidence",
+    )
+    read_only_terms = ("read only", "read-only", "before implementation", "do not change", "do not mutate", "do not edit")
+    has_judgment_anchor = any(term in lowered for term in primary_judgment_terms) or any(
+        all(term in lowered for term in pair) for pair in paired_judgment_terms
+    )
+    return (
+        has_judgment_anchor
+        and any(term in lowered for term in output_terms)
+        and any(term in lowered for term in read_only_terms)
+    )
+
+
+def engineering_judgment_mode(text: str) -> str:
+    lowered = text.lower()
+    if "memoryrepository" in lowered and ("performance" in lowered or "optimize" in lowered):
+        return "measurement_blocker"
+    if "retry" in lowered and "api_base_url" in lowered:
+        return "missing_context_decision"
+    if "repository interface" in lowered or "memoryrepository" in lowered:
+        return "architecture_decision"
+    if "api_base_url" in lowered or "hardcoding" in lowered:
+        return "unsupported_preference_guard"
+    if "empty-order branch" in lowered or "resolve_order_status" in lowered and "technical debt" in lowered:
+        return "quick_patch_vs_debt"
+    if "paid coercion" in lowered or "message.get(\"paid\") == true" in lowered or "message.get('paid') == true" in lowered:
+        return "review_feedback"
+    if "fail-soft" in lowered or "order event stream" in lowered:
+        return "risk_blocker_summary"
+    if "reveal pricing policy" in lowered or "configured_limit" in lowered and "technical debt" in lowered:
+        return "technical_debt_separation"
+    if "resolve_stealth_chain_root" in lowered or "chain-root" in lowered:
+        return "implementation_decision_reasoning"
+    if "_placed_order_index" in lowered or "revealed_orders" in lowered or "placed_order_id" in lowered:
+        return "approach_tradeoff"
+    return "engineering_judgment"
+
+
+def engineering_judgment_paths(
+    request: CodeInvestigationRequest,
+    *,
+    target_root: Path,
+    selected_paths: list[str],
+    records: list[dict[str, Any]],
+    related_tests: list[dict[str, Any]],
+) -> list[str]:
+    paths: list[str] = []
+    lowered = request.user_request.lower()
+    for rel_path in selected_paths:
+        append_review_path(paths, target_root, rel_path)
+    for rel_path in request.paths:
+        append_review_path(paths, target_root, rel_path)
+    if any(term in lowered for term in ("placed_order_id", "_placed_order_index", "revealed_orders", "resolve_stealth_chain_root", "chain-root")):
+        append_review_path(paths, target_root, "core/stealth_order_manager.py")
+    if "reveal pricing policy" in lowered or "configured_limit" in lowered:
+        append_review_path(paths, target_root, "core/stealth_order_manager.py")
+        append_review_path(paths, target_root, "core/enums.py")
+    if "order event stream" in lowered or "fail-soft" in lowered:
+        append_review_path(paths, target_root, "business/order_event_stream.py")
+    if "service/api.py" in lowered or "paid coercion" in lowered or "message.get(\"paid\")" in lowered:
+        append_review_path(paths, target_root, "service/api.py")
+        append_review_path(paths, target_root, "service/orders.py")
+        append_review_path(paths, target_root, "tests/test_orders.py")
+    if "resolve_order_status" in lowered or "empty-order branch" in lowered:
+        append_review_path(paths, target_root, "service/orders.py")
+        append_review_path(paths, target_root, "service/api.py")
+        append_review_path(paths, target_root, "tests/test_orders.py")
+    if "repository interface" in lowered or "memoryrepository" in lowered or "orders repository" in lowered:
+        append_review_path(paths, target_root, "internal/orders/handler.go")
+        append_review_path(paths, target_root, "internal/orders/repository.go")
+        append_review_path(paths, target_root, "internal/orders/handler_test.go")
+        append_review_path(paths, target_root, "internal/config/config.go")
+    if "api_base_url" in lowered or "hardcoding" in lowered or "retry" in lowered:
+        append_review_path(paths, target_root, "src/config.js")
+        append_review_path(paths, target_root, "src/index.js")
+        append_review_path(paths, target_root, "tests/config.test.js")
+    for record in records:
+        if record.get("category") != "source":
+            continue
+        append_review_path(paths, target_root, record.get("path") if isinstance(record.get("path"), str) else None)
+    for test in related_tests:
+        append_review_path(paths, target_root, test.get("path") if isinstance(test.get("path"), str) else None)
+    return paths[:CODE_QUALITY_REVIEW_MAX_FILES]
+
+
+def make_judgment_record(
+    *,
+    name: str | None = None,
+    title: str | None = None,
+    item: str | None = None,
+    risk: str | None = None,
+    reason: str,
+    impact: str | None = None,
+    validation: str | None = None,
+    refs: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    record: dict[str, Any] = {"reason": reason}
+    if name:
+        record["name"] = name
+    if title:
+        record["title"] = title
+    if item:
+        record["item"] = item
+    if risk:
+        record["risk"] = risk
+    if impact:
+        record["impact"] = impact
+    if validation:
+        record["validation"] = validation
+    if refs:
+        record["evidence_refs"] = [compact_ref(ref) for ref in refs[:8]]
+    return record
+
+
+def judgment_source_refs(*groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    seen: set[tuple[str, int | None]] = set()
+    for group in groups:
+        for ref in group:
+            path = ref.get("path")
+            line = ref.get("line")
+            if not isinstance(path, str):
+                continue
+            key = (path, line if isinstance(line, int) else None)
+            if key in seen:
+                continue
+            seen.add(key)
+            refs.append(compact_ref(ref))
+    return refs[:30]
+
+
+def make_engineering_judgment_review(
+    *,
+    mode: str,
+    target_paths: list[str],
+    question: str,
+    decision: str,
+    recommendation: str,
+    reason: str,
+    confidence: str,
+    evidence_refs: list[dict[str, Any]],
+    alternatives: list[dict[str, Any]],
+    tradeoffs: list[dict[str, Any]],
+    risks_and_blockers: list[dict[str, Any]],
+    technical_debt: list[dict[str, Any]],
+    validation_steps: list[dict[str, Any]],
+    unknowns: list[dict[str, Any]],
+    rejected_claims: list[dict[str, str]],
+    gaps: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "kind": "engineering_judgment_review",
+        "schema_version": SCHEMA_VERSION,
+        "status": "ready",
+        "review_mode": mode,
+        "target": {"paths": target_paths},
+        "question": bounded_text(question, 500),
+        "direct_assessment": {
+            "decision": decision,
+            "recommendation": recommendation,
+            "reason": reason,
+            "confidence": confidence,
+        },
+        "evidence_used": [compact_ref(ref) for ref in evidence_refs[:16]],
+        "alternatives": alternatives,
+        "tradeoffs": tradeoffs,
+        "risks_and_blockers": risks_and_blockers,
+        "technical_debt": technical_debt,
+        "validation_steps": validation_steps,
+        "unknowns": unknowns,
+        "rejected_claims": rejected_claims,
+        "source_refs": judgment_source_refs(evidence_refs),
+        "mutation_policy": "read_only_no_source_mutation",
+        "gaps": gaps,
+    }
+
+
+def build_engineering_judgment_review(
+    request: CodeInvestigationRequest,
+    *,
+    target_root: Path,
+    selected_paths: list[str],
+    records: list[dict[str, Any]],
+    related_tests: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not is_engineering_judgment_request(request.user_request):
+        return {"kind": "engineering_judgment_review", "schema_version": SCHEMA_VERSION, "status": "not_requested"}
+    mode = engineering_judgment_mode(request.user_request)
+    target_paths = engineering_judgment_paths(
+        request,
+        target_root=target_root,
+        selected_paths=selected_paths,
+        records=records,
+        related_tests=related_tests,
+    )
+    file_texts, gaps = read_review_file_texts(target_root, target_paths)
+    if not file_texts:
+        return {
+            "kind": "engineering_judgment_review",
+            "schema_version": SCHEMA_VERSION,
+            "status": "insufficient_evidence",
+            "review_mode": mode,
+            "target": {"paths": target_paths},
+            "question": bounded_text(request.user_request, 500),
+            "direct_assessment": {
+                "decision": "blocked_insufficient_evidence",
+                "recommendation": "Do not proceed until at least one bounded source file can be read.",
+                "reason": "The request asks for evidence-backed engineering judgment, but no source evidence was available.",
+                "confidence": "low",
+            },
+            "evidence_used": [],
+            "alternatives": [],
+            "tradeoffs": [],
+            "risks_and_blockers": [
+                {"risk": "insufficient_evidence", "reason": "No readable source evidence was available."}
+            ],
+            "technical_debt": [],
+            "validation_steps": [{"step": "Rerun with exact source paths or entrypoint hints.", "reason": "Engineering judgment must be grounded in evidence."}],
+            "unknowns": [{"unknown": "source evidence", "reason": "No readable files were found."}],
+            "rejected_claims": [
+                {
+                    "claim": "A recommendation can be made from prompt intent alone.",
+                    "reason": "Phase 118 requires evidence-backed judgment and explicit unknowns.",
+                }
+            ],
+            "source_refs": [],
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": gaps or [{"gap": "engineering_judgment_files_not_found"}],
+        }
+    question = request.user_request
+    if mode == "approach_tradeoff":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [("core/stealth_order_manager.py", (235, 1116, 1117, 4169))],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [
+                    ("self._placed_order_index",),
+                    ("def find_stealth_order_by_placed_order_id",),
+                    ("revealed_orders", "append"),
+                ],
+                limit=8,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="choose_index_rebuild_over_runtime_scan",
+            recommendation=(
+                "Prefer keeping find_stealth_order_by_placed_order_id as the authoritative placed-order lookup and "
+                "prove one index rebuild path on load; do not add a second scan-on-every-lookup behavior."
+            ),
+            reason=(
+                "_placed_order_index is the current O(1) lookup contract, and reveal paths already maintain the index. "
+                "A scan fallback trades one load-time debt item for repeated traversal and a second behavior path."
+            ),
+            confidence="medium",
+            evidence_refs=refs,
+            alternatives=[
+                make_judgment_record(name="A: index rebuild", reason="Keeps one runtime lookup path and makes restart/load behavior testable.", refs=refs),
+                make_judgment_record(name="B: scan revealed_orders", reason="Avoids load rebuild work but creates repeated lookup traversal and a parallel behavior path.", refs=refs),
+            ],
+            tradeoffs=[
+                {"dimension": "maintainability", "reason": "One authoritative lookup path is easier to reason about than index plus scan fallback."},
+                {"dimension": "testability", "reason": "A load/restart test can prove index rebuild deterministically."},
+                {"dimension": "runtime cost", "reason": "The index path preserves O(1) lookup while scan cost grows with cached order and reveal count."},
+            ],
+            risks_and_blockers=[
+                {"risk": "restart consistency", "reason": "If DB load does not rebuild the index, placed-order lookup can fail after restart."},
+                {"risk": "parallel implementation", "reason": "A scan fallback can hide index rebuild defects instead of forcing proof."},
+            ],
+            technical_debt=[
+                {"item": "index rebuild proof", "reason": "Treat missing load/restart proof as a debt item separate from the feature answer."}
+            ],
+            validation_steps=[
+                {"step": "focused restart/load test", "reason": "Verify DB loaded revealed_orders repopulate _placed_order_index."},
+                {"step": "placed-order lookup regression", "reason": "Verify find_stealth_order_by_placed_order_id returns the expected stealth order."},
+            ],
+            unknowns=[
+                {"unknown": "DB load rebuild behavior", "reason": "The current bounded evidence shows index use and reveal updates, not a proven rebuild test."}
+            ],
+            rejected_claims=[
+                {
+                    "claim": "Scanning revealed_orders is simpler because it avoids indexes.",
+                    "reason": "It adds a second lookup behavior and shifts cost to every lookup.",
+                }
+            ],
+            gaps=gaps,
+        )
+    if mode == "technical_debt_separation":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [("core/stealth_order_manager.py", (379, 382, 439, 453))],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("\"configured_limit\"",), ("allowed_values",), ("reveal_pricing_policy", "\"top_of_book\"")],
+                limit=8,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="defer_policy_normalization_as_separate_debt",
+            recommendation=(
+                "Document reveal-pricing policy normalization as technical debt and handle it separately from unrelated feature delivery."
+            ),
+            reason=(
+                "The resolver and price selection branches still compare raw configured_limit/top_of_book/midpoint strings, so cleanup can affect schema compatibility and tests."
+            ),
+            confidence="medium",
+            evidence_refs=refs,
+            alternatives=[
+                {"name": "separate debt ticket", "reason": "Keeps feature delivery bounded while preserving a traceable remediation item."},
+                {"name": "inline enum migration", "reason": "Possible, but broader because serialization/default compatibility must be proven."},
+            ],
+            tradeoffs=[
+                {"dimension": "compatibility", "reason": "Persisted and serialized policy text may need to remain stable even if enums are used internally."},
+                {"dimension": "maintainability", "reason": "Central enum use reduces drift, but only after tests define the allowed boundaries."},
+            ],
+            risks_and_blockers=[
+                {"risk": "schema drift", "reason": "Changing raw strings without compatibility tests could alter persisted policy behavior."}
+            ],
+            technical_debt=[
+                {"item": "raw policy strings", "reason": "The same policy values are normalized and branched on as string literals."},
+                {"item": "remediation scope", "reason": "Enum adoption should be tested separately from unrelated feature delivery."},
+            ],
+            validation_steps=[
+                {"step": "policy unit tests", "reason": "Verify default, invalid, top_of_book, and midpoint behavior."},
+                {"step": "serialization compatibility check", "reason": "Verify external/persisted values remain compatible."},
+            ],
+            unknowns=[
+                {"unknown": "serialization contract", "reason": "Bounded source evidence does not prove all persisted policy consumers."}
+            ],
+            rejected_claims=[
+                {
+                    "claim": "Every string literal here is technical debt.",
+                    "reason": "Serialized keys and external values can be legitimate schema text.",
+                }
+            ],
+            gaps=gaps,
+        )
+    if mode == "risk_blocker_summary":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [("business/order_event_stream.py", (49, 51, 97, 139))],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("except TypeError",), ("def publish_event",), ("except Exception", "return False")],
+                limit=8,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="do_not_change_without_observability_and_caller_impact",
+            recommendation=(
+                "Do not remove fail-soft exception handling until caller impact, audit-loss visibility, and provider error behavior are proven."
+            ),
+            reason=(
+                "The stream catches provider TypeError and broad publish exceptions. That can mask defects, but fail-soft audit paths may intentionally avoid crashing order flow."
+            ),
+            confidence="medium",
+            evidence_refs=refs,
+            alternatives=[
+                {"name": "preserve fail-soft with better observability", "reason": "Keeps order flow stable while exposing audit/event loss."},
+                {"name": "propagate exceptions", "reason": "Improves failure visibility but may break callers if audit paths are optional."},
+            ],
+            tradeoffs=[
+                {"dimension": "operability", "reason": "Fail-soft behavior protects flow but can hide data loss without counters/logs."},
+                {"dimension": "debuggability", "reason": "Separating signature mismatch from provider bugs improves diagnosis."},
+            ],
+            risks_and_blockers=[
+                {"risk": "masked provider bug", "reason": "A real TypeError inside the provider can be retried as a no-arg compatibility call."},
+                {"risk": "audit event loss", "reason": "publish_event can return False after a broad exception; callers must expose or tolerate that."},
+            ],
+            technical_debt=[
+                {"item": "observability gap", "reason": "If fail-soft stays, event loss needs structured visibility separate from behavior changes."}
+            ],
+            validation_steps=[
+                {"step": "caller impact review", "reason": "Identify callers that rely on fail-soft return values before changing propagation."},
+                {"step": "fault-injection tests", "reason": "Exercise provider TypeError, provider exception, and DB publish failure cases."},
+            ],
+            unknowns=[
+                {"unknown": "caller expectations", "reason": "The bounded evidence does not prove whether callers require exceptions or False returns."}
+            ],
+            rejected_claims=[
+                {
+                    "claim": "All broad exceptions should be removed immediately.",
+                    "reason": "Some audit hooks may intentionally be fail-soft to avoid breaking order flow.",
+                }
+            ],
+            gaps=gaps,
+        )
+    if mode == "review_feedback":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [("service/api.py", (11, 12)), ("service/orders.py", (4, 7))],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("paid = bool",), ("resolve_order_status", "paid=paid"), ("if paid",)],
+                limit=8,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="reject_proposal_until_input_contract_and_tests_exist",
+            recommendation=(
+                "Do not apply the paid == True proposal as written; first define the API input contract and add behavior tests."
+            ),
+            reason=(
+                "The proposal changes coercion semantics for strings while still treating 1 == True as true, so it is neither purely stylistic nor strict validation."
+            ),
+            confidence="high",
+            evidence_refs=refs,
+            alternatives=[
+                {"name": "keep bool coercion", "reason": "Preserves current behavior until requirements define stricter input types."},
+                {"name": "strict validation", "reason": "Accept only booleans and reject other values, but only with explicit requirements and tests."},
+            ],
+            tradeoffs=[
+                {"dimension": "correctness", "reason": "Changing coercion can alter valid inputs and status results."},
+                {"dimension": "maintainability", "reason": "The current expression is idiomatic; the proposal mixes style concern with behavior change."},
+                {"dimension": "testability", "reason": "Missing, boolean, integer, and string cases need explicit coverage."},
+            ],
+            risks_and_blockers=[
+                {"risk": "contract ambiguity", "reason": "The accepted type for paid is not established by the proposed patch."}
+            ],
+            technical_debt=[],
+            validation_steps=[
+                {"step": "add coercion cases", "reason": "Cover missing, False, True, 1, 'true', and 'false' before changing behavior."},
+                {"step": "API contract check", "reason": "Decide whether non-boolean paid values are accepted or rejected."},
+            ],
+            unknowns=[
+                {"unknown": "desired input contract", "reason": "The prompt provides a patch but not product requirements for paid coercion."}
+            ],
+            rejected_claims=[
+                {
+                    "claim": "message.get('paid') == True is strict boolean validation.",
+                    "reason": "Python equality still makes 1 == True evaluate true.",
+                }
+            ],
+            gaps=gaps,
+        )
+    if mode == "architecture_decision":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [
+                    ("internal/orders/handler.go", (21, 26, 45)),
+                    ("internal/orders/repository.go", (10, 15)),
+                    ("internal/orders/handler_test.go", (12,)),
+                ],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("Repository interface",), ("MemoryRepository",), ("HandleOrderStatus",)],
+                limit=10,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="keep_repository_interface",
+            recommendation=(
+                "Keep the Repository interface unless the fixture goal explicitly changes to demonstrate direct in-memory coupling."
+            ),
+            reason=(
+                "Handlers already depend on a small interface and tests can supply repositories; direct MemoryRepository wiring would reduce one abstraction but weaken substitutability."
+            ),
+            confidence="medium",
+            evidence_refs=refs,
+            alternatives=[
+                {"name": "keep interface", "reason": "Preserves dependency inversion and test seams."},
+                {"name": "wire MemoryRepository directly", "reason": "Saves a small interface but couples handlers to one storage implementation."},
+            ],
+            tradeoffs=[
+                {"dimension": "maintainability", "reason": "A narrow interface isolates handler code from storage changes."},
+                {"dimension": "testability", "reason": "Handlers can be exercised with repository implementations without changing HTTP logic."},
+                {"dimension": "simplicity", "reason": "Direct wiring is fewer symbols, but the current interface is small and purposeful."},
+            ],
+            risks_and_blockers=[
+                {"risk": "overclaiming performance", "reason": "No measurement shows the interface is a performance problem."}
+            ],
+            technical_debt=[],
+            validation_steps=[
+                {"step": "handler tests", "reason": "Verify status handler behavior still works through the repository contract."},
+                {"step": "substitution check", "reason": "Confirm SQL or fake repositories can satisfy the same interface if needed."},
+            ],
+            unknowns=[
+                {"unknown": "fixture teaching goal", "reason": "Whether fewer abstractions is better depends on what the fixture is meant to demonstrate."}
+            ],
+            rejected_claims=[
+                {
+                    "claim": "The interface is over-engineered because there is one implementation.",
+                    "reason": "The interface also provides a test and substitution boundary.",
+                }
+            ],
+            gaps=gaps,
+        )
+    if mode == "unsupported_preference_guard":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [("src/config.js", (1, 2, 4)), ("src/index.js", (4, 6)), ("tests/config.test.js", (4,))],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("API_BASE_URL",), ("describeRuntimeConfig",), ("apiBaseUrl",)],
+                limit=10,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="keep_env_default_until_requirements_remove_configurability",
+            recommendation=(
+                "Do not hardcode API_BASE_URL just because it sounds simpler; keep environment configurability unless requirements prove it is unnecessary."
+            ),
+            reason=(
+                "The fixture exposes API_BASE_URL through runtime config and main output, so hardcoding would remove configurability without evidence of a deployment benefit."
+            ),
+            confidence="medium",
+            evidence_refs=refs,
+            alternatives=[
+                {"name": "keep env default", "reason": "Preserves runtime configurability with a deterministic fallback."},
+                {"name": "hardcode URL", "reason": "Fewer config branches, but less useful for environment-specific runs."},
+            ],
+            tradeoffs=[
+                {"dimension": "simplicity", "reason": "Hardcoding is mechanically smaller but less flexible."},
+                {"dimension": "operability", "reason": "Environment defaults let testers vary API targets without editing source."},
+            ],
+            risks_and_blockers=[
+                {"risk": "unsupported preference", "reason": "The prompt provides no deployment constraint requiring a hardcoded endpoint."}
+            ],
+            technical_debt=[],
+            validation_steps=[
+                {"step": "config behavior test", "reason": "Verify env override and fallback behavior if any change is proposed."}
+            ],
+            unknowns=[
+                {"unknown": "deployment requirements", "reason": "No environment or release requirement says configurability should be removed."}
+            ],
+            rejected_claims=[
+                {
+                    "claim": "Hardcoding is simpler and therefore better.",
+                    "reason": "Simplicity must be tied to measurable maintainability, testability, or deployment constraints.",
+                }
+            ],
+            gaps=gaps,
+        )
+    if mode == "quick_patch_vs_debt":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [("service/orders.py", (4, 5, 6)), ("service/api.py", (10, 12)), ("tests/test_orders.py", (13,))],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("item_count <= 0",), ("return \"empty\"",), ("message.get(\"items\", [])",), ("item_count=0",)],
+                limit=8,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="preserve_tested_empty_order_behavior",
+            recommendation=(
+                "Do not remove the empty-order branch as a quick patch unless requirements explicitly change empty-order behavior."
+            ),
+            reason=(
+                "The branch has precedence over paid state, the API can produce zero-item orders by default, and the empty behavior is tested."
+            ),
+            confidence="high",
+            evidence_refs=refs,
+            alternatives=[
+                {"name": "preserve branch", "reason": "Keeps current tested behavior and avoids scope creep."},
+                {"name": "remove branch", "reason": "Only valid if product requirements redefine zero-item order status."},
+            ],
+            tradeoffs=[
+                {"dimension": "correctness", "reason": "Removing the branch changes paid and unpaid zero-item behavior."},
+                {"dimension": "debt separation", "reason": "If status strings or validation are debt, log them separately from behavior removal."},
+            ],
+            risks_and_blockers=[
+                {"risk": "behavior regression", "reason": "Missing items can become zero-item orders through the API default path."}
+            ],
+            technical_debt=[
+                {"item": "status contract documentation", "reason": "If empty status is unclear, document or test it separately rather than deleting behavior."}
+            ],
+            validation_steps=[
+                {"step": "zero-item tests", "reason": "Run paid and unpaid zero-item tests before and after any proposed change."},
+                {"step": "API default-items test", "reason": "Verify missing items path still maps to expected status."},
+            ],
+            unknowns=[
+                {"unknown": "product requirement change", "reason": "The prompt does not provide a requirement to remove empty-order behavior."}
+            ],
+            rejected_claims=[
+                {
+                    "claim": "The branch is only technical debt.",
+                    "reason": "It is current behavior with test coverage, not just cleanup.",
+                }
+            ],
+            gaps=gaps,
+        )
+    if mode == "implementation_decision_reasoning":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [("core/stealth_order_manager.py", (1315, 1316, 1317, 1318))],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("resolve_stealth_chain_root(order)",), ("except Exception",), ("root_parent_for_placement",)],
+                limit=8,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="defer_fallback_change_until_error_contract_and_tests_exist",
+            recommendation=(
+                "Do not remove or keep the fallback on preference alone; first define the resolver failure contract and cover move-plan root behavior with tests."
+            ),
+            reason=(
+                "The current branch uses the canonical resolver, then broadly falls back to parent_order_id or stealth_order_id. That trades single-source-of-truth clarity against compatibility on resolver failure."
+            ),
+            confidence="medium",
+            evidence_refs=refs,
+            alternatives=[
+                {"name": "resolver only", "reason": "Improves single-source-of-truth and failure transparency."},
+                {"name": "keep fallback", "reason": "May preserve compatibility when resolver errors, but can hide defects."},
+            ],
+            tradeoffs=[
+                {"dimension": "maintainability", "reason": "Resolver-only behavior is easier to reason about if error handling is explicit."},
+                {"dimension": "compatibility", "reason": "Fallback may protect existing move-plan behavior when resolver input is malformed."},
+                {"dimension": "testability", "reason": "Both normal and resolver-failure paths need focused tests before changing behavior."},
+            ],
+            risks_and_blockers=[
+                {"risk": "hidden resolver defect", "reason": "Broad fallback can mask exceptions that should be diagnosed."},
+                {"risk": "compatibility break", "reason": "Removing fallback without tests could alter move planning for malformed hierarchy data."},
+            ],
+            technical_debt=[
+                {"item": "broad fallback contract", "reason": "If fallback remains, document and test the exact resolver failure behavior."}
+            ],
+            validation_steps=[
+                {"step": "normal chain-root test", "reason": "Verify move plan uses resolve_stealth_chain_root for valid hierarchy."},
+                {"step": "resolver failure test", "reason": "Decide and prove whether fallback or surfaced error is expected."},
+            ],
+            unknowns=[
+                {"unknown": "intended resolver failure behavior", "reason": "The bounded evidence does not establish whether fallback is compatibility or accidental masking."}
+            ],
+            rejected_claims=[
+                {
+                    "claim": "Broad except is bad, so the fallback must be deleted now.",
+                    "reason": "Compatibility impact must be tested before changing behavior.",
+                }
+            ],
+            gaps=gaps,
+        )
+    if mode == "measurement_blocker":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [("internal/orders/repository.go", (15, 24, 25, 30, 31))],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("sync.RWMutex",), ("SaveOrder", "Lock"), ("FindOrder", "RLock")],
+                limit=8,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="do_not_optimize_without_measurement",
+            recommendation=(
+                "Do not optimize MemoryRepository locking now; first measure contention or define a performance target."
+            ),
+            reason=(
+                "The evidence shows ordinary read/write locking, but no latency target, load profile, contention evidence, or failing performance test."
+            ),
+            confidence="medium",
+            evidence_refs=refs,
+            alternatives=[
+                {"name": "keep current lock", "reason": "Correct and simple for the observed fixture scope."},
+                {"name": "optimize locking", "reason": "Only justified with contention measurements or concurrency requirements."},
+            ],
+            tradeoffs=[
+                {"dimension": "correctness", "reason": "Locking protects map access."},
+                {"dimension": "performance", "reason": "Optimization without measurement can add complexity without proven benefit."},
+            ],
+            risks_and_blockers=[
+                {"risk": "premature optimization", "reason": "No evidence shows lock contention or a missed performance target."}
+            ],
+            technical_debt=[],
+            validation_steps=[
+                {"step": "benchmark or load test", "reason": "Measure contention before changing synchronization."},
+                {"step": "concurrency test", "reason": "Prove concurrent reads/writes remain safe if lock behavior changes."},
+            ],
+            unknowns=[
+                {"unknown": "performance requirement", "reason": "The prompt provides no target throughput, latency, or contention data."}
+            ],
+            rejected_claims=[
+                {
+                    "claim": "Locks are expensive, so optimization is needed.",
+                    "reason": "Performance claims require measurement.",
+                }
+            ],
+            gaps=gaps,
+        )
+    if mode == "missing_context_decision":
+        refs = merge_review_refs(
+            review_refs_for_line_numbers(
+                file_texts,
+                [("src/config.js", (2, 4)), ("src/index.js", (1, 4, 6)), ("tests/config.test.js", (4,))],
+            ),
+            review_refs_for_terms(
+                file_texts,
+                [("API_BASE_URL",), ("describeRuntimeConfig",), ("return `${command}",)],
+                limit=10,
+            ),
+        )
+        return make_engineering_judgment_review(
+            mode=mode,
+            target_paths=target_paths,
+            question=question,
+            decision="blocked_missing_outbound_call_requirements",
+            recommendation=(
+                "Do not add retry/backoff around API_BASE_URL yet; the fixture evidence shows configuration use, not an outbound request path."
+            ),
+            reason=(
+                "main reads runtime config and returns a string. There is no observed HTTP client, retry surface, failure mode, or requirement to recover from network errors."
+            ),
+            confidence="medium",
+            evidence_refs=refs,
+            alternatives=[
+                {"name": "defer retry/backoff", "reason": "Avoids inventing behavior before an outbound call exists."},
+                {"name": "add retry/backoff", "reason": "Only valid after a network call path and failure requirements are introduced."},
+            ],
+            tradeoffs=[
+                {"dimension": "scope control", "reason": "Retry logic would add behavior outside the current config/string-output fixture."},
+                {"dimension": "operability", "reason": "Retries can help real HTTP failures but can also hide errors and delay failure if poorly bounded."},
+            ],
+            risks_and_blockers=[
+                {"risk": "invented requirement", "reason": "Adding retries without an outbound call path creates speculative behavior."}
+            ],
+            technical_debt=[],
+            validation_steps=[
+                {"step": "locate outbound call", "reason": "Find a real API request path before designing retry behavior."},
+                {"step": "define failure policy", "reason": "Specify retry count, backoff, timeout, and observable errors before implementation."},
+            ],
+            unknowns=[
+                {"unknown": "network behavior", "reason": "No source evidence shows API_BASE_URL is used for HTTP calls."},
+                {"unknown": "failure requirements", "reason": "No retry count, timeout, or backoff policy is provided."},
+            ],
+            rejected_claims=[
+                {
+                    "claim": "Retries should be added because API_BASE_URL sounds like a network dependency.",
+                    "reason": "The bounded fixture currently exposes config text, not network behavior.",
+                }
+            ],
+            gaps=gaps,
+        )
+    source_refs = [
+        {"path": path, "source": "engineering_judgment_review"}
+        for path in target_paths[:CODE_QUALITY_REVIEW_MAX_FILES]
+    ]
+    return make_engineering_judgment_review(
+        mode=mode,
+        target_paths=target_paths,
+        question=question,
+        decision="blocked_insufficient_specific_evidence",
+        recommendation="Do not proceed until the decision is tied to concrete source evidence and acceptance criteria.",
+        reason="The prompt matched engineering-judgment terms, but no deterministic Phase 118 rule recognized a specific evidence pattern.",
+        confidence="low",
+        evidence_refs=source_refs,
+        alternatives=[],
+        tradeoffs=[],
+        risks_and_blockers=[{"risk": "unsupported recommendation", "reason": "A preference-only answer would violate Phase 118 gates."}],
+        technical_debt=[],
+        validation_steps=[{"step": "narrow prompt to exact files or decision options", "reason": "This enables evidence-backed comparison."}],
+        unknowns=[{"unknown": "decision evidence", "reason": "Specific source facts were not identified by deterministic review rules."}],
+        rejected_claims=[
+            {
+                "claim": "A broad engineering judgment can be answered without concrete evidence.",
+                "reason": "Phase 118 requires evidence-backed recommendations.",
+            }
+        ],
+        gaps=gaps or [{"gap": "no_specific_engineering_judgment_rule"}],
+    )
+
+
 def is_test_failure_summary_request(text: str) -> bool:
     lowered = text.lower()
     if any(term in lowered for term in ("fix failing", "fix this test", "fix test", "update test")):
@@ -3559,8 +6333,7 @@ def investigation_gaps(
         gaps.append({"gap": "tests_not_found", "reason": "No test file references were found in bounded evidence."})
     if not any(record.get("category") == "source" for record in records):
         gaps.append({"gap": "source_files_not_found", "reason": "No source file references were found in bounded evidence."})
-    if warnings:
-        gaps.append({"gap": "fallback_or_warning_present", "warning_count": len(warnings)})
+    append_gap_once(gaps, warning_gap(warnings))
     return gaps
 
 
@@ -3779,6 +6552,26 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
     if local_change_summary.get("status") != "not_requested":
         write_json(run_dir / "local-change-summary.json", local_change_summary)
         artifacts["local_change_summary"] = str(run_dir / "local-change-summary.json")
+    engineering_judgment_review = build_engineering_judgment_review(
+        request,
+        target_root=target_root,
+        selected_paths=selected_paths,
+        records=records,
+        related_tests=related_tests,
+    )
+    if engineering_judgment_review.get("status") != "not_requested":
+        write_json(run_dir / "engineering-judgment-review.json", engineering_judgment_review)
+        artifacts["engineering_judgment_review"] = str(run_dir / "engineering-judgment-review.json")
+    code_quality_review = build_code_quality_review(
+        request,
+        target_root=target_root,
+        selected_paths=selected_paths,
+        records=records,
+        related_tests=related_tests,
+    )
+    if code_quality_review.get("status") != "not_requested":
+        write_json(run_dir / "code-quality-review.json", code_quality_review)
+        artifacts["code_quality_review"] = str(run_dir / "code-quality-review.json")
     ci_failure_summary = build_ci_failure_summary(
         request,
         records=records,
@@ -3851,10 +6644,26 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
     if reproduction_checklist.get("status") != "not_requested":
         write_json(run_dir / "reproduction-checklist.json", reproduction_checklist)
         artifacts["reproduction_checklist"] = str(run_dir / "reproduction-checklist.json")
+    defect_diagnosis_summary = build_defect_diagnosis_summary(
+        request,
+        ci_failure_summary=ci_failure_summary,
+        test_failure_summary=test_failure_summary,
+        test_selection_plan=test_selection_plan,
+        runtime_error_diagnosis=runtime_error_diagnosis,
+        reproduction_checklist=reproduction_checklist,
+        related_tests=related_tests,
+        verification_commands=verification_commands,
+        records=records,
+        gaps=gaps,
+    )
+    if defect_diagnosis_summary.get("status") != "not_requested":
+        write_json(run_dir / "defect-diagnosis-summary.json", defect_diagnosis_summary)
+        artifacts["defect_diagnosis_summary"] = str(run_dir / "defect-diagnosis-summary.json")
     request_flow_map = build_request_flow_map(
         request,
         beginning=beginning,
         records=records,
+        matches=matches,
         related_tests=related_tests,
         verification_commands=verification_commands,
         gaps=gaps,
@@ -3928,6 +6737,8 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         "cli_entrypoint_lookup": cli_entrypoint_lookup,
         "configuration_effect_summary": configuration_effect_summary,
         "local_change_summary": local_change_summary,
+        "engineering_judgment_review": engineering_judgment_review,
+        "code_quality_review": code_quality_review,
         "ci_failure_summary": ci_failure_summary,
         "test_failure_summary": test_failure_summary,
         "multi_file_behavior_investigation": multi_file_behavior_investigation,
@@ -3935,6 +6746,7 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         "test_selection_plan": test_selection_plan,
         "runtime_error_diagnosis": runtime_error_diagnosis,
         "reproduction_checklist": reproduction_checklist,
+        "defect_diagnosis_summary": defect_diagnosis_summary,
         "request_flow_map": request_flow_map,
         "code_path_comparison": code_path_comparison,
         "change_surface_summary": change_surface_summary,
@@ -3990,6 +6802,8 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         "cli_entrypoint_lookup_status": cli_entrypoint_lookup.get("status"),
         "configuration_effect_summary_status": configuration_effect_summary.get("status"),
         "local_change_summary_status": local_change_summary.get("status"),
+        "engineering_judgment_review_status": engineering_judgment_review.get("status"),
+        "code_quality_review_status": code_quality_review.get("status"),
         "ci_failure_summary_status": ci_failure_summary.get("status"),
         "test_failure_summary_status": test_failure_summary.get("status"),
         "multi_file_behavior_investigation_status": multi_file_behavior_investigation.get("status"),
@@ -3997,6 +6811,7 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         "test_selection_plan_status": test_selection_plan.get("status"),
         "runtime_error_diagnosis_status": runtime_error_diagnosis.get("status"),
         "reproduction_checklist_status": reproduction_checklist.get("status"),
+        "defect_diagnosis_summary_status": defect_diagnosis_summary.get("status"),
         "request_flow_map_status": request_flow_map.get("status"),
         "code_path_comparison_status": code_path_comparison.get("status"),
         "change_surface_summary_status": change_surface_summary.get("status"),

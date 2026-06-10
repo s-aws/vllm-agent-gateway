@@ -6,6 +6,7 @@ import hashlib
 import json
 import mimetypes
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -19,21 +20,30 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from vllm_agent_gateway.acceptance.anythingllm_answer_usefulness import (
+    DEFAULT_CONTRACT_PATH,
+    contract_entries_by_id,
+    validate_response_text,
+)
 from vllm_agent_gateway.run_inspector import mnt_path_to_windows, resolved_existing_path
 
 
 DEFAULT_ANYTHINGLLM_API_BASE_URL = "http://127.0.0.1:3001"
 DEFAULT_WORKSPACE = "my-workspace"
 DEFAULT_REPORT_DIR = Path("runtime-state") / "anythingllm-ui"
+DEFAULT_UI_PROMPT_CATALOG_PATH = Path("runtime") / "anythingllm_ui_prompt_cases.json"
 DEFAULT_TARGET_ROOTS = (
     "/mnt/c/coinbase_testing_repo_frozen_tmp",
     "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
 )
 DEFAULT_MARKERS = (
     "workflow_router.plan completed",
-    "selected_workflow: code_investigation.plan",
+    "Result:",
+    "Skill Selection:",
+    "Summary:",
     "run_id:",
-    "Answer:",
+    "Artifacts:",
+    "Run record:",
 )
 WATCHED_RELATIVE_PATHS = (
     "README.md",
@@ -58,6 +68,11 @@ class AnythingLLMUiE2EStatus(str, Enum):
     FAILED = "failed"
 
 
+class UiPromptTargetRootMode(str, Enum):
+    TARGET_ROOT = "target_root"
+    NO_TARGET = "no_target"
+
+
 @dataclass(frozen=True)
 class AnythingLLMUiE2EConfig:
     config_root: Path
@@ -74,58 +89,30 @@ class AnythingLLMUiE2EConfig:
     browser_channel: str = ""
     timeout_seconds: int = 420
     static_port: int | None = None
+    prompt_catalog_path: Path | None = DEFAULT_UI_PROMPT_CATALOG_PATH
+    case_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
 class UiPromptCase:
     case_id: str
     name: str
+    prompt_family: str
     required_markers: tuple[str, ...]
     rejected_markers: tuple[str, ...]
+    ordered_markers: tuple[str, ...]
     prompt_template: str
+    target_root_mode: UiPromptTargetRootMode = UiPromptTargetRootMode.TARGET_ROOT
+    target_roots: tuple[str, ...] = ()
+    transport_markers: tuple[str, ...] = DEFAULT_MARKERS
+    source_baseline_entry_id: str | None = None
+    source_prompt_case_id: str | None = None
+    expected_workflow: str | None = None
+    expected_route_status: str | None = None
+    priority_backlog_id: str | None = None
 
     def prompt(self, target_root: str, tag: str) -> str:
         return self.prompt_template.format(target_root=target_root, tag=tag)
-
-
-UI_PROMPT_CASES: tuple[UiPromptCase, ...] = (
-    UiPromptCase(
-        case_id="L1-001",
-        name="Find Where Behavior Starts",
-        required_markers=(
-            "Beginning point:",
-            "Related tests:",
-            "Recommended commands:",
-        ),
-        rejected_markers=(
-            "Entrypoints:",
-            "python main.py",
-        ),
-        prompt_template=(
-            "In {target_root}, find where the placed_order_id stealth lookup begins. "
-            "Read only. Return the entrypoint, evidence files, related tests, and confidence. "
-            "Tracking tag: {tag}"
-        ),
-    ),
-    UiPromptCase(
-        case_id="L1-002",
-        name="Explain A Function Or File",
-        required_markers=(
-            "StealthOrderManager.find_stealth_order_by_placed_order_id",
-            "Inputs:",
-            "placed_order_id",
-            "Outputs:",
-            "Side effects:",
-            "Related tests:",
-        ),
-        rejected_markers=(),
-        prompt_template=(
-            "In {target_root}, explain what find_stealth_order_by_placed_order_id does "
-            "in core/stealth_order_manager.py. Read only. Include key inputs, outputs, "
-            "side effects, and tests. Tracking tag: {tag}"
-        ),
-    ),
-)
 
 
 def utc_timestamp() -> str:
@@ -139,6 +126,272 @@ def default_report_path(config_root: Path) -> Path:
 def write_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, ensure_ascii=True, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def resolve_config_path(config_root: Path, value: str | Path) -> Path:
+    path = Path(value)
+    return path if path.is_absolute() else config_root / path
+
+
+def read_json_object(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise RuntimeError(f"expected JSON object at {path}")
+    return value
+
+
+def string_tuple(value: object) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        return ()
+    return tuple(item for item in value if isinstance(item, str) and item.strip())
+
+
+def target_root_mode_from_value(value: object) -> UiPromptTargetRootMode:
+    if not isinstance(value, str) or not value.strip():
+        return UiPromptTargetRootMode.TARGET_ROOT
+    try:
+        return UiPromptTargetRootMode(value)
+    except ValueError:
+        return UiPromptTargetRootMode.TARGET_ROOT
+
+
+def ui_prompt_case_from_entry(entry: dict[str, Any]) -> UiPromptCase:
+    return UiPromptCase(
+        case_id=str(entry["case_id"]),
+        name=str(entry["name"]),
+        prompt_family=str(entry["prompt_family"]),
+        required_markers=string_tuple(entry.get("required_markers")),
+        rejected_markers=string_tuple(entry.get("rejected_markers")),
+        ordered_markers=string_tuple(entry.get("ordered_markers")),
+        prompt_template=str(entry["prompt_template"]),
+        target_root_mode=target_root_mode_from_value(entry.get("target_root_mode")),
+        target_roots=string_tuple(entry.get("target_roots")),
+        transport_markers=string_tuple(entry.get("transport_markers")) or DEFAULT_MARKERS,
+        source_baseline_entry_id=entry.get("source_baseline_entry_id")
+        if isinstance(entry.get("source_baseline_entry_id"), str)
+        else None,
+        source_prompt_case_id=entry.get("source_prompt_case_id")
+        if isinstance(entry.get("source_prompt_case_id"), str)
+        else None,
+        expected_workflow=entry.get("expected_workflow") if isinstance(entry.get("expected_workflow"), str) else None,
+        expected_route_status=entry.get("expected_route_status")
+        if isinstance(entry.get("expected_route_status"), str)
+        else None,
+        priority_backlog_id=entry.get("priority_backlog_id") if isinstance(entry.get("priority_backlog_id"), str) else None,
+    )
+
+
+def case_id_map(path: Path) -> dict[str, dict[str, Any]]:
+    payload = read_json_object(path)
+    cases = payload.get("cases")
+    if not isinstance(cases, list):
+        return {}
+    return {
+        str(item["case_id"]): item
+        for item in cases
+        if isinstance(item, dict) and isinstance(item.get("case_id"), str) and item["case_id"]
+    }
+
+
+def validate_ui_prompt_catalog(catalog: dict[str, Any], *, config_root: Path | None = None) -> list[str]:
+    errors: list[str] = []
+    if catalog.get("schema_version") != 1:
+        errors.append("catalog.schema_version must be 1")
+    if catalog.get("kind") != "anythingllm_ui_prompt_catalog":
+        errors.append("catalog.kind must be anythingllm_ui_prompt_catalog")
+    if catalog.get("priority_backlog_id") != "P0-BB-011":
+        errors.append("catalog.priority_backlog_id must be P0-BB-011")
+    cases = catalog.get("cases")
+    if not isinstance(cases, list) or not cases:
+        errors.append("catalog.cases must be a non-empty list")
+        return errors
+
+    seen: set[str] = set()
+    stable_families: set[str] = set()
+    stable_family_roots: dict[str, set[str]] = {}
+    baseline_entries: dict[str, dict[str, Any]] = {}
+    source_cases_by_entry_id: dict[str, dict[str, dict[str, Any]]] = {}
+    if config_root is not None:
+        baseline_path = config_root / "runtime" / "baseline_corpus.json"
+        if not baseline_path.is_file():
+            errors.append("runtime/baseline_corpus.json is required for catalog validation")
+        else:
+            baseline = read_json_object(baseline_path)
+            baseline_entries = {
+                str(entry["entry_id"]): entry
+                for entry in baseline.get("entries", [])
+                if isinstance(entry, dict)
+                and entry.get("status") == "stable"
+                and isinstance(entry.get("entry_id"), str)
+            }
+    for index, item in enumerate(cases):
+        prefix = f"catalog.cases[{index}]"
+        if not isinstance(item, dict):
+            errors.append(f"{prefix} must be an object")
+            continue
+        case_id = item.get("case_id")
+        if not isinstance(case_id, str) or not case_id.strip():
+            errors.append(f"{prefix}.case_id is required")
+        elif case_id in seen:
+            errors.append(f"{prefix}.case_id duplicates {case_id}")
+        else:
+            seen.add(case_id)
+        for key in ("name", "prompt_family", "prompt_template"):
+            if not isinstance(item.get(key), str) or not str(item.get(key)).strip():
+                errors.append(f"{prefix}.{key} is required")
+        template = item.get("prompt_template") if isinstance(item.get("prompt_template"), str) else ""
+        raw_mode = item.get("target_root_mode", UiPromptTargetRootMode.TARGET_ROOT.value)
+        if not isinstance(raw_mode, str) or raw_mode not in {mode.value for mode in UiPromptTargetRootMode}:
+            errors.append(f"{prefix}.target_root_mode must be target_root or no_target")
+            target_root_mode = UiPromptTargetRootMode.TARGET_ROOT
+        else:
+            target_root_mode = UiPromptTargetRootMode(raw_mode)
+        if "{tag}" not in template:
+            errors.append(f"{prefix}.prompt_template must contain {{tag}}")
+        lower_template = template.lower()
+        if "tracking tag" not in template.lower():
+            errors.append(f"{prefix}.prompt_template must include the tracking tag text")
+        if not string_tuple(item.get("required_markers")):
+            errors.append(f"{prefix}.required_markers is required")
+        rejected = item.get("rejected_markers")
+        if rejected is not None and not isinstance(rejected, list):
+            errors.append(f"{prefix}.rejected_markers must be a list when present")
+        ordered = item.get("ordered_markers")
+        if ordered is not None and not string_tuple(ordered):
+            errors.append(f"{prefix}.ordered_markers must be a non-empty string list when present")
+        transport_markers = string_tuple(item.get("transport_markers"))
+        if item.get("transport_markers") is not None and not transport_markers:
+            errors.append(f"{prefix}.transport_markers must be a non-empty string list when present")
+        target_roots = string_tuple(item.get("target_roots"))
+        if target_root_mode == UiPromptTargetRootMode.TARGET_ROOT:
+            if "{target_root}" not in template:
+                errors.append(f"{prefix}.prompt_template must contain {{target_root}}")
+            if "read only" not in lower_template and "do not edit files" not in lower_template:
+                errors.append(f"{prefix}.prompt_template must declare read-only intent")
+            if not target_roots:
+                errors.append(f"{prefix}.target_roots is required")
+            unsupported_roots = sorted(set(target_roots) - set(DEFAULT_TARGET_ROOTS))
+            if unsupported_roots:
+                errors.append(
+                    f"{prefix}.target_roots contains unsupported Phase 126 root(s): {', '.join(unsupported_roots)}"
+                )
+        else:
+            if "{target_root}" in template:
+                errors.append(f"{prefix}.prompt_template must not contain {{target_root}} in no_target mode")
+            if target_roots:
+                errors.append(f"{prefix}.target_roots must be empty in no_target mode")
+            if not transport_markers:
+                errors.append(f"{prefix}.transport_markers is required in no_target mode")
+            elif "Artifacts:" in transport_markers:
+                errors.append(f"{prefix}.transport_markers must not require Artifacts: in no_target mode")
+            if not isinstance(item.get("expected_route_status"), str) or not item["expected_route_status"].strip():
+                errors.append(f"{prefix}.expected_route_status is required in no_target mode")
+            expected_workflow = item.get("expected_workflow")
+            if expected_workflow not in {None, "none"}:
+                errors.append(f"{prefix}.expected_workflow must be none in no_target mode")
+            if isinstance(item.get("source_baseline_entry_id"), str) and item["source_baseline_entry_id"].strip():
+                errors.append(f"{prefix}.source_baseline_entry_id is not supported in no_target mode")
+        source_entry = item.get("source_baseline_entry_id")
+        if (
+            target_root_mode == UiPromptTargetRootMode.TARGET_ROOT
+            and isinstance(source_entry, str)
+            and source_entry.strip()
+        ):
+            stable_families.add(source_entry)
+            stable_family_roots.setdefault(source_entry, set()).update(target_roots)
+            if not isinstance(item.get("source_prompt_case_id"), str) or not item["source_prompt_case_id"].strip():
+                errors.append(f"{prefix}.source_prompt_case_id is required for stable corpus cases")
+            if not isinstance(item.get("expected_workflow"), str) or not item["expected_workflow"].strip():
+                errors.append(f"{prefix}.expected_workflow is required for stable corpus cases")
+            if item.get("priority_backlog_id") not in {"P0-BB-001", "P0-BB-002", "P0-BB-003", "P0-BB-004"}:
+                errors.append(f"{prefix}.priority_backlog_id must reference a stable Priority 0 backlog item")
+            if config_root is not None:
+                baseline_entry = baseline_entries.get(source_entry)
+                if not isinstance(baseline_entry, dict):
+                    errors.append(f"{prefix}.source_baseline_entry_id is not a stable baseline corpus entry")
+                else:
+                    prompt_cases = baseline_entry.get("prompt_cases") if isinstance(baseline_entry.get("prompt_cases"), dict) else {}
+                    prompt_cases_path = prompt_cases.get("path")
+                    if not isinstance(prompt_cases_path, str) or not prompt_cases_path.strip():
+                        errors.append(f"{prefix}.source baseline entry is missing prompt_cases.path")
+                    else:
+                        source_cases = source_cases_by_entry_id.get(source_entry)
+                        if source_cases is None:
+                            source_cases = case_id_map(resolve_config_path(config_root, prompt_cases_path))
+                            source_cases_by_entry_id[source_entry] = source_cases
+                        source_prompt_id = item.get("source_prompt_case_id")
+                        source_case = source_cases.get(str(source_prompt_id))
+                        if not isinstance(source_case, dict):
+                            errors.append(f"{prefix}.source_prompt_case_id is not present in governed prompt cases")
+                        else:
+                            source_root = source_case.get("target_root")
+                            if source_root not in target_roots:
+                                errors.append(f"{prefix}.target_roots must include the governed source prompt target_root")
+                            source_prompt = source_case.get("prompt")
+                            if isinstance(source_prompt, str):
+                                normalized = source_prompt.replace(str(source_root), "{target_root}")
+                                expected_template = f"{normalized} Tracking tag: {{tag}}"
+                                if item.get("prompt_template") != expected_template and item.get("ui_prompt_variant_approved") is not True:
+                                    errors.append(
+                                        f"{prefix}.prompt_template drift requires ui_prompt_variant_approved=true"
+                                    )
+
+    required_stable_families = {
+        "phase116_code_quality",
+        "phase117_defect_diagnosis",
+        "phase118_engineering_judgment",
+        "phase119_delivery_mentorship",
+    }
+    missing_families = sorted(required_stable_families - stable_families)
+    if missing_families:
+        errors.append("catalog missing stable UI family coverage: " + ", ".join(missing_families))
+    for family in required_stable_families:
+        roots = stable_family_roots.get(family, set())
+        missing_roots = sorted(set(DEFAULT_TARGET_ROOTS) - roots)
+        if missing_roots:
+            errors.append(f"catalog stable family {family} missing frozen root coverage: {', '.join(missing_roots)}")
+    return errors
+
+
+def load_ui_prompt_cases(
+    config_root: Path,
+    prompt_catalog_path: Path | None = DEFAULT_UI_PROMPT_CATALOG_PATH,
+    *,
+    case_ids: tuple[str, ...] = (),
+) -> tuple[UiPromptCase, ...]:
+    catalog_path = resolve_config_path(config_root, prompt_catalog_path or DEFAULT_UI_PROMPT_CATALOG_PATH)
+    catalog = read_json_object(catalog_path)
+    errors = validate_ui_prompt_catalog(catalog, config_root=config_root)
+    if errors:
+        raise RuntimeError("invalid AnythingLLM UI prompt catalog: " + "; ".join(errors))
+    all_cases = tuple(ui_prompt_case_from_entry(item) for item in catalog["cases"] if isinstance(item, dict))
+    if not case_ids:
+        return all_cases
+    requested = set(case_ids)
+    selected = tuple(case for case in all_cases if case.case_id in requested)
+    missing = sorted(requested - {case.case_id for case in selected})
+    if missing:
+        raise RuntimeError("unknown AnythingLLM UI case id(s): " + ", ".join(missing))
+    return selected
+
+
+UI_PROMPT_CASES = load_ui_prompt_cases(Path(__file__).resolve().parents[1])
+
+
+def target_roots_for_prompt_cases(cases: tuple[UiPromptCase, ...], fallback_roots: tuple[str, ...]) -> tuple[str, ...]:
+    roots: set[str] = set()
+    for case in cases:
+        if case.target_root_mode == UiPromptTargetRootMode.NO_TARGET:
+            roots.update(fallback_roots)
+        else:
+            roots.update(case.target_roots or fallback_roots)
+    return tuple(sorted(roots or set(fallback_roots)))
+
+
+def execution_target_roots_for_prompt_case(case: UiPromptCase, fallback_roots: tuple[str, ...]) -> tuple[str, ...]:
+    if case.target_root_mode == UiPromptTargetRootMode.NO_TARGET:
+        return ("",)
+    return case.target_roots or fallback_roots
 
 
 def json_request(
@@ -334,6 +587,8 @@ def start_static_server(dist_root: Path, *, port: int) -> subprocess.Popen[str]:
         "127.0.0.1",
         "--directory",
         str(dist_root),
+        "--protocol",
+        "HTTP/1.1",
     ]
     return subprocess.Popen(
         command,
@@ -470,13 +725,25 @@ def ui_case_passed(case: dict[str, Any], markers: tuple[str, ...] = DEFAULT_MARK
     hits = case.get("marker_hits_after_tag")
     if not isinstance(hits, dict):
         return False
-    if not all(bool(hits.get(marker)) for marker in markers):
+    case_markers = string_tuple(case.get("transport_markers")) or markers
+    if not all(bool(hits.get(marker)) for marker in case_markers):
         return False
     semantic_hits = case.get("semantic_marker_hits_after_tag")
     if isinstance(semantic_hits, dict) and not all(bool(value) for value in semantic_hits.values()):
         return False
     rejected_hits = case.get("rejected_marker_hits_after_tag")
     if isinstance(rejected_hits, dict) and any(bool(value) for value in rejected_hits.values()):
+        return False
+    ordered_errors = case.get("ordered_marker_errors")
+    if isinstance(ordered_errors, list) and ordered_errors:
+        return False
+    usefulness = case.get("answer_usefulness") if isinstance(case.get("answer_usefulness"), dict) else {}
+    if usefulness and usefulness.get("usefulness_status") not in {AnythingLLMUiE2EStatus.PASSED.value, "not_applicable"}:
+        return False
+    screenshots = case.get("screenshots") if isinstance(case.get("screenshots"), dict) else {}
+    if screenshots and screenshots.get("status") != AnythingLLMUiE2EStatus.PASSED.value:
+        return False
+    if case.get("parsed_run_id") in {None, ""}:
         return False
     return bool(case.get("stream_chat_seen"))
 
@@ -486,9 +753,17 @@ def semantic_status_for_segment(segment: str, case: UiPromptCase) -> dict[str, A
     rejected_hits = marker_hits(segment, case.rejected_markers)
     missing_required = [marker for marker, present in required_hits.items() if not present]
     rejected_present = [marker for marker, present in rejected_hits.items() if present]
+    ordered_marker_errors: list[str] = []
+    previous_index = -1
+    for marker in case.ordered_markers:
+        index = segment.find(marker, previous_index + 1)
+        if index < 0:
+            ordered_marker_errors.append(f"ordered marker {marker!r} missing after index {previous_index}")
+            break
+        previous_index = index
     return {
         "semantic_status": AnythingLLMUiE2EStatus.PASSED.value
-        if not missing_required and not rejected_present
+        if not missing_required and not rejected_present and not ordered_marker_errors
         else AnythingLLMUiE2EStatus.FAILED.value,
         "required_markers": list(case.required_markers),
         "semantic_marker_hits_after_tag": required_hits,
@@ -496,6 +771,65 @@ def semantic_status_for_segment(segment: str, case: UiPromptCase) -> dict[str, A
         "rejected_markers": list(case.rejected_markers),
         "rejected_marker_hits_after_tag": rejected_hits,
         "rejected_markers_present": rejected_present,
+        "ordered_markers": list(case.ordered_markers),
+        "ordered_marker_errors": ordered_marker_errors,
+    }
+
+
+def run_id_from_segment(segment: str) -> str | None:
+    match = re.search(r"\brun_id:\s*([A-Za-z0-9_.:-]+)", segment)
+    return match.group(1) if match else None
+
+
+def usefulness_status_for_segment(
+    segment: str,
+    case: UiPromptCase,
+    answer_usefulness_contract: dict[str, Any],
+) -> dict[str, Any]:
+    if not case.source_baseline_entry_id:
+        return {
+            "usefulness_status": "not_applicable",
+            "source_baseline_entry_id": None,
+            "errors": [],
+        }
+    entry_contracts = contract_entries_by_id(answer_usefulness_contract)
+    entry_contract = entry_contracts.get(case.source_baseline_entry_id)
+    if not isinstance(entry_contract, dict):
+        return {
+            "usefulness_status": AnythingLLMUiE2EStatus.FAILED.value,
+            "source_baseline_entry_id": case.source_baseline_entry_id,
+            "errors": [f"missing answer-usefulness contract entry {case.source_baseline_entry_id}"],
+        }
+    errors = validate_response_text(
+        segment,
+        contract=answer_usefulness_contract,
+        entry_contract=entry_contract,
+        prefix=f"ui.case[{case.case_id}]",
+    )
+    return {
+        "usefulness_status": AnythingLLMUiE2EStatus.PASSED.value
+        if not errors
+        else AnythingLLMUiE2EStatus.FAILED.value,
+        "source_baseline_entry_id": case.source_baseline_entry_id,
+        "errors": errors,
+    }
+
+
+def screenshot_status(*paths: Path) -> dict[str, Any]:
+    files = []
+    for path in paths:
+        files.append(
+            {
+                "path": str(path.resolve()),
+                "exists": path.is_file(),
+                "size_bytes": path.stat().st_size if path.is_file() else 0,
+            }
+        )
+    return {
+        "status": AnythingLLMUiE2EStatus.PASSED.value
+        if all(item["exists"] and item["size_bytes"] > 0 for item in files)
+        else AnythingLLMUiE2EStatus.FAILED.value,
+        "files": files,
     }
 
 
@@ -535,6 +869,7 @@ def run_browser_case(
     static_origin: str,
     screenshot_dir: Path,
     timeout_seconds: int,
+    answer_usefulness_contract: dict[str, Any],
 ) -> dict[str, Any]:
     prompt = case.prompt(target_root, tag)
     ui_url = f"{static_origin}/#/workspace/{workspace}"
@@ -558,13 +893,15 @@ def run_browser_case(
     deadline = time.time() + timeout_seconds
     snapshots: list[dict[str, Any]] = []
     latest_segment = ""
-    latest_hits = marker_hits("")
+    latest_hits = marker_hits("", case.transport_markers)
     latest_semantic_status = semantic_status_for_segment("", case)
+    latest_usefulness_status = usefulness_status_for_segment("", case, answer_usefulness_contract)
     while time.time() < deadline:
         text = body_text(page)
         latest_segment = segment_after_new_tag(text, tag, len(initial_text))
-        latest_hits = marker_hits(latest_segment)
+        latest_hits = marker_hits(latest_segment, case.transport_markers)
         latest_semantic_status = semantic_status_for_segment(latest_segment, case)
+        latest_usefulness_status = usefulness_status_for_segment(latest_segment, case, answer_usefulness_contract)
         snapshots.append(
             {
                 "elapsed_seconds": int(timeout_seconds - max(0, deadline - time.time())),
@@ -573,6 +910,9 @@ def run_browser_case(
                 "semantic_marker_hits_after_tag": latest_semantic_status["semantic_marker_hits_after_tag"],
                 "missing_required_markers": latest_semantic_status["missing_required_markers"],
                 "rejected_markers_present": latest_semantic_status["rejected_markers_present"],
+                "ordered_marker_errors": latest_semantic_status["ordered_marker_errors"],
+                "usefulness_status": latest_usefulness_status["usefulness_status"],
+                "usefulness_error_count": len(latest_usefulness_status["errors"]),
                 "segment_tail": latest_segment[-1200:],
             }
         )
@@ -585,6 +925,8 @@ def run_browser_case(
         if (
             all(latest_hits.values())
             and latest_semantic_status["semantic_status"] == AnythingLLMUiE2EStatus.PASSED.value
+            and latest_usefulness_status["usefulness_status"]
+            in {AnythingLLMUiE2EStatus.PASSED.value, "not_applicable"}
             and stream_chat_seen
         ):
             break
@@ -597,25 +939,39 @@ def run_browser_case(
         and int(item.get("status", 0)) == 200
         for item in responses
     )
+    screenshots = screenshot_status(before_screenshot, after_screenshot)
+    passed = (
+        all(latest_hits.values())
+        and latest_semantic_status["semantic_status"] == AnythingLLMUiE2EStatus.PASSED.value
+        and latest_usefulness_status["usefulness_status"] in {AnythingLLMUiE2EStatus.PASSED.value, "not_applicable"}
+        and stream_chat_seen
+        and screenshots["status"] == AnythingLLMUiE2EStatus.PASSED.value
+        and run_id_from_segment(latest_segment) is not None
+    )
     result = {
         "case_id": case.case_id,
         "case_name": case.name,
-        "target_root": target_root,
+        "prompt_family": case.prompt_family,
+        "target_root_mode": case.target_root_mode.value,
+        "source_baseline_entry_id": case.source_baseline_entry_id,
+        "source_prompt_case_id": case.source_prompt_case_id,
+        "expected_workflow": case.expected_workflow,
+        "expected_route_status": case.expected_route_status,
+        "priority_backlog_id": case.priority_backlog_id,
+        "target_root": target_root if case.target_root_mode == UiPromptTargetRootMode.TARGET_ROOT else None,
         "tracking_tag": tag,
         "prompt": prompt,
-        "status": AnythingLLMUiE2EStatus.PASSED.value
-        if (
-            all(latest_hits.values())
-            and latest_semantic_status["semantic_status"] == AnythingLLMUiE2EStatus.PASSED.value
-            and stream_chat_seen
-        )
-        else AnythingLLMUiE2EStatus.FAILED.value,
+        "transport_markers": list(case.transport_markers),
+        "status": AnythingLLMUiE2EStatus.PASSED.value if passed else AnythingLLMUiE2EStatus.FAILED.value,
+        "parsed_run_id": run_id_from_segment(latest_segment),
         "marker_hits_after_tag": latest_hits,
         **latest_semantic_status,
+        "answer_usefulness": latest_usefulness_status,
         "stream_chat_seen": stream_chat_seen,
         "stream_chat_response_count": sum(1 for item in responses if "/stream-chat" in str(item.get("url", ""))),
         "segment_after_tag_tail": latest_segment[-8000:],
         "snapshots_tail": snapshots[-8:],
+        "screenshots": screenshots,
         "before_screenshot": str(before_screenshot.resolve()),
         "after_screenshot": str(after_screenshot.resolve()),
     }
@@ -637,6 +993,12 @@ def run_browser_validation(
 
     screenshot_dir.mkdir(parents=True, exist_ok=True)
     static_origin = f"http://127.0.0.1:{port}"
+    prompt_cases = load_ui_prompt_cases(
+        config.config_root,
+        config.prompt_catalog_path,
+        case_ids=config.case_ids,
+    )
+    answer_usefulness_contract = read_json_object(resolve_config_path(config.config_root, DEFAULT_CONTRACT_PATH))
     cases: list[dict[str, Any]] = []
     console_messages: list[dict[str, str]] = []
     page_errors: list[str] = []
@@ -677,18 +1039,21 @@ def run_browser_validation(
             else None,
         )
 
-        for target_root in config.target_roots:
-            for case in UI_PROMPT_CASES:
+        for case in prompt_cases:
+            target_roots = execution_target_roots_for_prompt_case(case, config.target_roots)
+            for target_root in target_roots:
+                tag_seed = f"{case.case_id}-{target_root or case.target_root_mode.value}"
                 cases.append(
                     run_browser_case(
                         page=page,
                         workspace=config.workspace,
                         target_root=target_root,
                         case=case,
-                        tag=tracking_tag(f"{target_root}-{case.case_id}"),
+                        tag=tracking_tag(tag_seed),
                         static_origin=static_origin,
                         screenshot_dir=screenshot_dir,
                         timeout_seconds=config.timeout_seconds,
+                        answer_usefulness_contract=answer_usefulness_contract,
                     )
                 )
         browser.close()
@@ -701,6 +1066,8 @@ def run_browser_validation(
         else AnythingLLMUiE2EStatus.FAILED.value,
         "static_origin": static_origin,
         "ui_dist_root": str(dist_root.resolve()),
+        "prompt_case_count": len(prompt_cases),
+        "prompt_case_ids": [case.case_id for case in prompt_cases],
         "cases": cases,
         "console_tail": console_messages[-20:],
         "page_errors": page_errors,
@@ -714,6 +1081,16 @@ def run_browser_validation(
 
 def run_anythingllm_ui_e2e(config: AnythingLLMUiE2EConfig) -> dict[str, Any]:
     output_path = config.output_path or default_report_path(config.config_root)
+    prompt_catalog_path = resolve_config_path(
+        config.config_root,
+        config.prompt_catalog_path or DEFAULT_UI_PROMPT_CATALOG_PATH,
+    )
+    prompt_cases = load_ui_prompt_cases(
+        config.config_root,
+        config.prompt_catalog_path,
+        case_ids=config.case_ids,
+    )
+    case_target_roots = target_roots_for_prompt_cases(prompt_cases, config.target_roots)
     report: dict[str, Any] = {
         "schema_version": 1,
         "kind": "anythingllm_ui_e2e_report",
@@ -723,6 +1100,11 @@ def run_anythingllm_ui_e2e(config: AnythingLLMUiE2EConfig) -> dict[str, Any]:
             "anythingllm_api_base_url": config.anythingllm_api_base_url,
             "workspace": config.workspace,
             "target_roots": list(config.target_roots),
+            "case_target_roots": list(case_target_roots),
+            "prompt_catalog_path": str(prompt_catalog_path),
+            "prompt_catalog_sha256": sha256_file(prompt_catalog_path),
+            "case_ids": list(config.case_ids),
+            "resolved_case_ids": [case.case_id for case in prompt_cases],
             "browser_channel": config.browser_channel,
             "timeout_seconds": config.timeout_seconds,
         },
@@ -737,7 +1119,7 @@ def run_anythingllm_ui_e2e(config: AnythingLLMUiE2EConfig) -> dict[str, Any]:
         api_key = os.environ.get(config.api_key_env)
         if not api_key:
             raise RuntimeError(f"{config.api_key_env} is required for AnythingLLM UI E2E")
-        report["fixture_state_before"] = fixture_state(config.target_roots)
+        report["fixture_state_before"] = fixture_state(case_target_roots)
         report["anythingllm_preflight"] = anythingllm_preflight(config, api_key)
         if report["anythingllm_preflight"].get("status") != AnythingLLMUiE2EStatus.PASSED.value:
             raise RuntimeError("AnythingLLM preflight failed")
@@ -756,7 +1138,7 @@ def run_anythingllm_ui_e2e(config: AnythingLLMUiE2EConfig) -> dict[str, Any]:
             port=port,
             screenshot_dir=screenshot_dir,
         )
-        report["fixture_state_after"] = fixture_state(config.target_roots)
+        report["fixture_state_after"] = fixture_state(case_target_roots)
         fixture_unchanged = report["fixture_state_before"] == report["fixture_state_after"]
         report["fixture_unchanged"] = fixture_unchanged
         if not fixture_unchanged:

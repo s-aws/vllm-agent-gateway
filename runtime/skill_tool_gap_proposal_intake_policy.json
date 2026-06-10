@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "kind": "skill_tool_gap_proposal_intake_policy",
+  "phase": 143,
+  "priority_backlog_id": "P0-BB-020",
+  "description": "Governed intake policy for converting Priority 0 skill/tool coverage gaps into deterministic capability proposals. Current evidence has no active skill/tool gaps, so the proposal list is intentionally empty.",
+  "source_skill_tool_gap_report": {
+    "path": "runtime-state/skill-tool-coverage-gap/phase129/phase129-skill-tool-coverage-gap-report.json",
+    "sha256": "9a18a8deaf0768e0e23eb89cdc67f2c2f2a282773a4a2b36768868a06b8ca6a8",
+    "expected_status": "passed",
+    "expected_new_capability_required": false
+  },
+  "source_policy": {
+    "path": "runtime/skill_tool_coverage_gap_policy.json",
+    "sha256": "cbb58676ee93018554a55fe54126e548431cecbab31db6a5729a1a4c37fc0bd1"
+  },
+  "source_prompt_coverage": {
+    "path": "runtime/prompt_skill_coverage.json",
+    "sha256": "5f3288aae98f288dfd160ef0ae109bf679cbe887c16329245f5594f81d133c7b"
+  },
+  "source_capability_backlog": {
+    "path": "runtime/natural_language_capability_gap_backlog.json",
+    "sha256": "6de93bfbd4fa5d857bd0c220b813bf26696c704392833e077eb1a37807f70716"
+  },
+  "proposal_policy": {
+    "allowed_sources": ["skill_tool_coverage_gap_report"],
+    "allowed_capability_types": ["skill", "tool", "skill_and_tool"],
+    "allowed_statuses": ["pending_approval", "approved_for_future_phase", "rejected"],
+    "required_fields": [
+      "proposal_id",
+      "source_candidate_id",
+      "capability_type",
+      "capability_id",
+      "scope",
+      "eval_gate",
+      "validation_tier",
+      "approval_boundary",
+      "implementation_status"
+    ],
+    "allowed_validation_tiers": [
+      "offline",
+      "controller",
+      "gateway_anythingllm",
+      "gateway_anythingllm_fixture_mutation",
+      "ui_release_candidate"
+    ],
+    "allowed_approval_boundaries": [
+      "roadmap_approval_required",
+      "founder_approval_required"
+    ],
+    "implementation_before_approval_allowed": false,
+    "prompt_or_formatter_repair_must_be_insufficient": true,
+    "source_mutation_allowed": false,
+    "auto_register_allowed": false
+  },
+  "proposals": []
+}

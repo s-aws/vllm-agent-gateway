@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "priority0_repair_loop_policy",
+  "phase": 159,
+  "priority_backlog_id": "P0-BB-023",
+  "inputs": {
+    "phase158_report": "runtime-state/transcript-quality-feedback-intake/phase158/phase158-transcript-quality-feedback-intake-report.json",
+    "optional_repair_records": "runtime-state/priority0-repair-loop/phase159/repair-records.json"
+  },
+  "expected_source": {
+    "kind": "transcript_quality_feedback_intake_report",
+    "phase": 158,
+    "status": "passed",
+    "priority_backlog_id": "P0-BB-022"
+  },
+  "allowed_repair_modes": [
+    "no_repair_required",
+    "repairs_closed",
+    "blocked_with_next_action"
+  ],
+  "allowed_closure_statuses": [
+    "closed_with_target_holdout_proof",
+    "open_blocked"
+  ],
+  "required_live_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_result_status": "passed",
+  "required_mutation_status": "unchanged",
+  "required_rerun_gate": "phase159_target_plus_holdout",
+  "next_phase": 160
+}

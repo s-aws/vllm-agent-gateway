@@ -1,0 +1,896 @@
+{
+  "description": "Phase 139 compact watchlist for local-model behaviors most likely to regress founder testing. Case scope is derived from the Phase 137 founder prompt pack and each current case is assigned exactly once.",
+  "gate_catalog": [
+    {
+      "artifact_path": "runtime-state/founder-field-tests/phase134-founder-smoke.json",
+      "gate_id": "founder_field_prompt_eval",
+      "phase": 134,
+      "status": "implemented"
+    },
+    {
+      "artifact_path": "runtime-state/founder-test-prompt-pack/phase137/phase137-founder-test-prompt-pack.json",
+      "gate_id": "founder_test_prompt_pack",
+      "phase": 137,
+      "status": "implemented"
+    },
+    {
+      "artifact_path": "runtime-state/chat-transcript-quality/phase138/phase138-chat-transcript-quality-report.json",
+      "gate_id": "chat_transcript_quality",
+      "phase": 138,
+      "status": "implemented"
+    },
+    {
+      "artifact_path": "runtime-state/fresh-local-model-drift/phase127/phase127-fresh-local-model-drift-report.json",
+      "gate_id": "fresh_local_model_drift",
+      "phase": 127,
+      "status": "implemented"
+    },
+    {
+      "artifact_path": "runtime-state/founder-feedback-loop/phase125-founder-feedback-loop-live.json",
+      "gate_id": "founder_feedback_loop",
+      "phase": 125,
+      "status": "implemented"
+    },
+    {
+      "artifact_path": "runtime-state/prompt-tightening-recommendations/phase128/phase128-prompt-tightening-recommendations-report.json",
+      "gate_id": "prompt_tightening_recommendations",
+      "phase": 128,
+      "status": "implemented"
+    },
+    {
+      "artifact_path": "runtime-state/skill-tool-coverage-gap/phase129/phase129-skill-tool-coverage-gap-report.json",
+      "gate_id": "skill_tool_coverage_gap",
+      "phase": 129,
+      "status": "implemented"
+    },
+    {
+      "artifact_path": "runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json",
+      "gate_id": "stable_chat_quality_release",
+      "phase": 130,
+      "status": "implemented"
+    }
+  ],
+  "items": [
+    {
+      "blocker_conditions": [
+        "wrong workflow",
+        "missing marker Beginning point:",
+        "missing marker Related tests:",
+        "missing run ID",
+        "artifact-first output"
+      ],
+      "case_ids": [
+        "P01"
+      ],
+      "expected_rules": [
+        "l1_find_behavior_start_terms"
+      ],
+      "expected_symptoms": [
+        "wrong workflow for l1_find_behavior_start_terms",
+        "missing marker Beginning point:",
+        "missing marker Related tests:",
+        "missing marker Recommended commands:",
+        "stale hash or dirty mutation proof"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Smoke prompt may no longer identify the logic beginning point.",
+      "prompt_family": "behavior_start",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "routing",
+      "repair_path": "Tighten the existing behavior-start route or prompt catalog expectation, then rerun the founder smoke and transcript gates.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "risk_class": "routing",
+      "risk_statement": "The ambiguous start wording can drift to related-test discovery or a later usage point while still sounding useful.",
+      "severity": "blocker",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "smoke",
+      "watch_id": "LMW-P01"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Inputs:",
+        "missing marker Outputs:",
+        "missing marker Side effects:",
+        "wrong workflow",
+        "artifact-first output"
+      ],
+      "case_ids": [
+        "P02"
+      ],
+      "expected_rules": [
+        "l1_explain_code_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Inputs:",
+        "missing marker Outputs:",
+        "missing marker Side effects:",
+        "missing evidence section"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Smoke prompt may stop returning a usable function explanation.",
+      "prompt_family": "function_explanation",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "context gathering",
+      "repair_path": "Fix the existing explanation evidence path or answer sections, then rerun founder smoke and transcript quality.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "StealthOrderManager.find_stealth_order_by_placed_order_id",
+        "Inputs:",
+        "Outputs:",
+        "Side effects:",
+        "Related tests:"
+      ],
+      "risk_class": "context_gathering",
+      "risk_statement": "The model can summarize the named function but omit inputs, outputs, side effects, or test evidence.",
+      "severity": "blocker",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "smoke",
+      "watch_id": "LMW-P02"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Related tests:",
+        "missing marker python -m pytest",
+        "score regression below accepted threshold",
+        "wrong workflow"
+      ],
+      "case_ids": [
+        "P03"
+      ],
+      "expected_rules": [
+        "l1_find_related_tests_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Related tests:",
+        "missing marker Recommended commands:",
+        "missing marker python -m pytest",
+        "wrong workflow for test lookup"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Smoke prompt may stop giving the smallest useful test command.",
+      "prompt_family": "related_tests",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "test coverage",
+      "repair_path": "Fix related-test selection and command rendering in the existing investigation path, then rerun smoke and drift gates.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Related tests:",
+        "Recommended commands:",
+        "python -m pytest"
+      ],
+      "risk_class": "test_coverage",
+      "risk_statement": "The response can list tests without a bounded command or route to broad, noisy verification.",
+      "severity": "blocker",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "smoke",
+      "watch_id": "LMW-P03"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Work packages:",
+        "missing marker Approval gates:",
+        "wrong workflow",
+        "unsafe mutation claim"
+      ],
+      "case_ids": [
+        "P22"
+      ],
+      "expected_rules": [
+        "task_decomposition_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Task Decomposition:",
+        "missing marker Work packages:",
+        "missing marker Dependencies:",
+        "missing marker Approval gates:"
+      ],
+      "expected_workflows": [
+        "task.decompose"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Smoke prompt may no longer decompose semi-defined work into reviewable packages.",
+      "prompt_family": "task_decomposition",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "model capability",
+      "repair_path": "Repair the single task.decompose quality path and rerun output-format and founder smoke gates before adding any new planner.",
+      "required_markers": [
+        "selected_workflow: task.decompose",
+        "Task Decomposition:",
+        "Work packages:",
+        "Dependencies:",
+        "Approval gates:"
+      ],
+      "risk_class": "model_capability",
+      "risk_statement": "The model may produce a broad plan without objective packages, dependencies, or approval gates.",
+      "severity": "blocker",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "smoke",
+      "watch_id": "LMW-P22"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Result: yes",
+        "missing evidence section",
+        "wrong workflow"
+      ],
+      "case_ids": [
+        "P04"
+      ],
+      "expected_rules": [
+        "l1_behavior_exists_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Result: yes",
+        "missing marker Evidence files:",
+        "score regression in fresh drift"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may invent absence or omit the evidence basis.",
+      "prompt_family": "behavior_exists",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "model capability",
+      "repair_path": "Repair conservative yes/no/unknown semantics in the existing investigation output and rerun drift.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Result: yes",
+        "Evidence files:"
+      ],
+      "risk_class": "model_capability",
+      "risk_statement": "The answer can overstate certainty or fail to show the source evidence for behavior existence.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P04"
+    },
+    {
+      "blocker_conditions": [
+        "wrong workflow",
+        "missing marker Usage count:",
+        "missing evidence section"
+      ],
+      "case_ids": [
+        "P05"
+      ],
+      "expected_rules": [
+        "l1_callers_usages_terms"
+      ],
+      "expected_symptoms": [
+        "wrong workflow for code_context.lookup",
+        "missing marker Target: find_stealth_order_by_placed_order_id",
+        "missing marker Usage count:"
+      ],
+      "expected_workflows": [
+        "code_context.lookup"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may route to investigation instead of exact usage lookup.",
+      "prompt_family": "callers_usages",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "skill/tool selection",
+      "repair_path": "Fix code_context.lookup route selection or tool selection metadata, then rerun prompt-pack validation and smoke.",
+      "required_markers": [
+        "selected_workflow: code_context.lookup",
+        "Answer:",
+        "Target: find_stealth_order_by_placed_order_id",
+        "Usage count:"
+      ],
+      "risk_class": "skill_tool_selection",
+      "risk_statement": "Caller lookup is the main coverage point for code_context.lookup and can regress without the smoke suite catching it.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P05"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Runtime effect:",
+        "unsafe secret exposure",
+        "wrong workflow"
+      ],
+      "case_ids": [
+        "P06"
+      ],
+      "expected_rules": [
+        "l1_configuration_effect_summary_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker COINBASE_API_KEY",
+        "missing marker Runtime effect:",
+        "missing marker configuration.py",
+        "unsafe mutation claim"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may explain configuration without the runtime effect or safety boundary.",
+      "prompt_family": "configuration_effect",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "safety boundary",
+      "repair_path": "Repair configuration answer safety and evidence rendering without exposing secret values.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "COINBASE_API_KEY",
+        "Runtime effect:",
+        "configuration.py"
+      ],
+      "risk_class": "safety_boundary",
+      "risk_statement": "Configuration prompts are prone to either under-explaining runtime behavior or over-exposing secret context.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P06"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Handler files:",
+        "missing marker dashboard_server.py",
+        "wrong workflow"
+      ],
+      "case_ids": [
+        "P08"
+      ],
+      "expected_rules": [
+        "l1_endpoint_route_lookup_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Target: request_stealth_orders",
+        "missing marker Handler files:",
+        "missing marker dashboard_server.py",
+        "route evidence missing handler branch"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may stop at the UI sender instead of the handler path.",
+      "prompt_family": "endpoint_route_lookup",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "context gathering",
+      "repair_path": "Fix handler/source lookup evidence assembly and route marker expectations, then rerun field prompts.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target: request_stealth_orders",
+        "Handler files:",
+        "dashboard_server.py"
+      ],
+      "risk_class": "context_gathering",
+      "risk_statement": "Handler lookup prompts can find adjacent UI code but miss the server route evidence.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P08"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Missing 'type' field in message",
+        "missing marker Sources:",
+        "wrong workflow"
+      ],
+      "case_ids": [
+        "P09"
+      ],
+      "expected_rules": [
+        "l1_message_source_lookup_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Missing 'type' field in message",
+        "missing marker Sources:",
+        "missing marker dashboard_server.py"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may not identify the source of a user-visible message.",
+      "prompt_family": "message_source_lookup",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "context gathering",
+      "repair_path": "Repair message-source lookup evidence and rerun drift for source lookup prompts.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Missing 'type' field in message",
+        "Sources:",
+        "dashboard_server.py"
+      ],
+      "risk_class": "context_gathering",
+      "risk_statement": "String-source prompts can produce generic debugging advice unless source lookup evidence is preserved.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P09"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Responsibilities:",
+        "missing marker Definitions:",
+        "missing evidence section"
+      ],
+      "case_ids": [
+        "P10"
+      ],
+      "expected_rules": [
+        "l1_module_summary_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Target module: core/stealth_order_manager.py",
+        "missing marker Responsibilities:",
+        "missing marker Definitions:"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may become a vague module summary without definitions.",
+      "prompt_family": "module_summary",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "deterministic formatter",
+      "repair_path": "Repair module-summary section rendering while preserving the existing investigation workflow.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target module: core/stealth_order_manager.py",
+        "Responsibilities:",
+        "Definitions:"
+      ],
+      "risk_class": "deterministic_formatter",
+      "risk_statement": "Module summaries can pass routing while losing the structured responsibilities and definitions sections.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P10"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Local change status:",
+        "missing marker Git status:",
+        "unsafe mutation claim"
+      ],
+      "case_ids": [
+        "P13"
+      ],
+      "expected_rules": [
+        "l1_local_change_summary_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Local change status:",
+        "missing marker Git status:",
+        "missing marker Source mutation: false",
+        "dirty mutation proof"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may invent git history or hide non-git limitations.",
+      "prompt_family": "local_change_summary",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "safety boundary",
+      "repair_path": "Repair local-change status handling for non-git fixtures and rerun fixture mutation proof.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Local change status:",
+        "Git status:",
+        "Source mutation: false"
+      ],
+      "risk_class": "safety_boundary",
+      "risk_statement": "The non-git fixture can cause the model to invent commit history or omit source-mutation boundaries.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P13"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Smallest command:",
+        "missing marker Rationale:",
+        "score regression below accepted threshold"
+      ],
+      "case_ids": [
+        "P17"
+      ],
+      "expected_rules": [
+        "l2_test_selection_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Smallest command:",
+        "missing marker Medium command:",
+        "missing marker Broad command:",
+        "missing marker Rationale:",
+        "missing marker Covered risks:"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may recommend broad or ungrounded validation commands.",
+      "prompt_family": "test_selection",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "test coverage",
+      "repair_path": "Repair validation-command selection and Bash-oriented rationale before expanding test-selection coverage.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Smallest command:",
+        "Medium command:",
+        "Broad command:",
+        "Rationale:",
+        "Covered risks:"
+      ],
+      "risk_class": "test_coverage",
+      "risk_statement": "The model can drift from smallest useful verification to broad commands without rationale or risk coverage.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P17"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Flow steps:",
+        "missing marker Participating files:",
+        "missing evidence section"
+      ],
+      "case_ids": [
+        "P19"
+      ],
+      "expected_rules": [
+        "l2_request_flow_map_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Target flow:",
+        "missing marker request_stealth_orders",
+        "missing marker Flow steps:",
+        "missing marker Participating files:"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may collapse ordered flow into a generic file list.",
+      "prompt_family": "request_flow_map",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "context gathering",
+      "repair_path": "Repair request-flow context assembly and ordered section rendering, then rerun drift.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target flow:",
+        "request_stealth_orders",
+        "Flow steps:",
+        "Participating files:"
+      ],
+      "risk_class": "context_gathering",
+      "risk_statement": "L2 request-flow prompts can lose ordered control-flow and data-flow context.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P19"
+    },
+    {
+      "blocker_conditions": [
+        "missing marker Change surface files:",
+        "missing marker Risk level:",
+        "unsafe implementation claim"
+      ],
+      "case_ids": [
+        "P21"
+      ],
+      "expected_rules": [
+        "l2_change_surface_summary_terms"
+      ],
+      "expected_symptoms": [
+        "missing marker Change surface files:",
+        "missing marker Risk level:",
+        "missing marker Implementation status: not_ready_without_approval",
+        "unsafe mutation claim"
+      ],
+      "expected_workflows": [
+        "code_investigation.plan"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "Source mutation: True",
+        "source_changed: true",
+        "source_changed: True",
+        "disposable_copy_changed: true",
+        "disposable_copy_changed: True"
+      ],
+      "founder_impact": "Expanded prompt may imply implementation readiness before approval.",
+      "prompt_family": "change_surface_summary",
+      "related_gates": [
+        "founder_field_prompt_eval",
+        "founder_test_prompt_pack",
+        "chat_transcript_quality",
+        "fresh_local_model_drift",
+        "founder_feedback_loop",
+        "prompt_tightening_recommendations",
+        "skill_tool_coverage_gap",
+        "stable_chat_quality_release"
+      ],
+      "repair_owner": "safety boundary",
+      "repair_path": "Repair change-surface boundaries and approval-status rendering before any advanced refactor work.",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Change surface files:",
+        "Files to touch:",
+        "Files not to touch:",
+        "Risk level:",
+        "Implementation status: not_ready_without_approval",
+        "Source mutation: false"
+      ],
+      "risk_class": "safety_boundary",
+      "risk_statement": "Change-surface prompts can blur read-only review and implementation readiness.",
+      "severity": "advisory",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "tier": "expanded_read_only",
+      "watch_id": "LMW-P21"
+    }
+  ],
+  "kind": "local_model_regression_watchlist",
+  "phase": 139,
+  "priority_backlog_id": "P0-BB-020",
+  "prompt_pack_path": "runtime/founder_test_prompt_pack.json",
+  "schema_version": 1
+}

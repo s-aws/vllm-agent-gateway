@@ -8,12 +8,40 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Getting Started With AnythingLLM](../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup README](../README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
 - [External Tester Onboarding README](../README.external-tester-onboarding.md): contextless release-candidate tester path with curated read-only prompts and linked feedback capture.
+- [External Tester Dry Run README](../README.external-tester-dry-run.md): Phase 147 minimum stable external tester dry run through setup, AnythingLLM, onboarding, feedback, and fixture proof.
 - [First-Time User Doctor README](../README.first-time-user-doctor.md): setup preflight for localhost ports, controller roots, AnythingLLM, and frozen fixtures.
 - [Release Channels README](../README.release-channels.md): dev, release-candidate, and stable channel metadata, setup validator, stable readiness, and rollback path.
 - [Stable Handoff README](../README.stable-handoff.md): stable-channel smoke validation, first external tester prompt, feedback capture, and rollback.
 - [Runtime-State Hygiene README](../README.runtime-state.md): local-only generated report policy, committed release proof metadata, and hygiene validation.
+- [Stable Release Reset Rehearsal README](../README.stable-release-reset-rehearsal.md): Phase 153 reset/start/recovery rehearsal proving runtime-state, source, and fixtures are preserved.
 - [Release Adherence README](../README.release-adherence.md): consolidated current-local-model release gate for founder/testing readiness.
+- [Failure-To-Roadmap README](../README.failure-to-roadmap.md): Phase 148 proposal gate for failed proof artifacts and founder misses.
+- [Contextless Audit Scorecard README](../README.contextless-audit-scorecard.md): Phase 149 deterministic scorecard for contextless audit and blind-baseline evidence packages.
+- [Current-Model Compatibility README](../README.current-model-compatibility.md): Phase 150 current localhost model support matrix, boundaries, and monitored risks.
+- [Model Swap Smoke Probe README](../README.model-swap-smoke-probe.md): Phase 154 localhost model-swap detector and next-gate decision for drift and portability.
+- [V1 Product Readiness Review README](../README.v1-product-readiness-review.md): Phase 155 go/no-go review for V1 founder-testing readiness.
+- [V1 Stable Release Decision README](../README.v1-stable-release-decision.md): Phase 156 final release decision, scope, limitations, rollback path, and next roadmap batch.
+- [Founder Field Round 1 README](../README.founder-field-round1.md): Phase 157 founder field-test round through AnythingLLM with advisory/blocker routing into feedback intake.
+- [Founder Field Round 2 README](../README.founder-field-round2.md): Phase 164 blind-baseline-first founder field round with full response artifacts, route-surface proof, and quality classification.
+- [Prompt Advisory Closure README](../README.prompt-advisory-closure.md): Phase 165 closure decisions for prompt-risk advisories using refined prompt candidates and holdout proof.
+- [Generic Chat And Vague Prompt Contract README](../README.generic-chat-vague-prompt-contract.md): Phase 166 gate for greetings, help, missing targets, vague prompts, and approval-bypass refusal.
+- [Transcript Quality Feedback Intake README](../README.transcript-quality-feedback-intake.md): Phase 158 governed intake for Phase 157 advisory/blocker cases and founder notes.
+- [Priority 0 Repair Loop README](../README.priority0-repair-loop.md): Phase 159 repair-loop closure for Phase 158 findings and target-plus-holdout proof requirements.
+- [Stable Release Refresh README](../README.stable-release-refresh.md): Phase 170 stable proof-floor refresh after the Phase 163-169 chat-quality batch.
+- [Skill/Tool Gap Batch Proposal README](../README.skill-tool-gap-batch-proposal.md): Phase 161 proposal-only decision on whether the Phase 157-160 evidence proves a deterministic skill/tool batch.
+- [Post-Restart Runtime Readiness README](../README.post-restart-runtime-readiness.md): Phase 163 post-restart readiness gate over doctor, health drift, and AnythingLLM greeting/session recovery.
+- [Skill/Tool Selection Explainability E2E README](../README.skill-tool-selection-explainability-e2e.md): Phase 151 live gate proving normal chat explains selected and rejected skills/tools through gateway and AnythingLLM.
+- [AnythingLLM Conversation State Isolation README](../README.anythingllm-conversation-state-isolation.md): Phase 152 gate proving stale AnythingLLM history does not control the current prompt.
 - [Semi-Well-Defined Prompt Generalization README](../README.semi-well-defined-prompts.md): Phase 110 natural prompt generalization gate for current local-model chat quality.
+- [Priority 0 Chat Quality Backlog](PRIORITY0_CHAT_QUALITY_BACKLOG.md): blind-baseline-first process, backlog, thresholds, stable corpus proof, and next Priority 0 planning gate for local-model chat quality.
+- [Baseline Corpus Governance README](../README.baseline-corpus.md): governed Priority 0 baseline corpus, stale-proof checks, repair-status checks, and validation command.
+- [AnythingLLM Answer Usefulness README](../README.anythingllm-answer-usefulness.md): Priority 0 gate proving stable AnythingLLM responses contain useful answer content in chat before artifact links.
+- [Holdout Prompt Bank README](../README.holdout-prompt-bank.md): Priority 0 gate proving stable prompt-family holdouts pass after repairs and are not overfit target cases.
+- [Priority 0 Gap Taxonomy README](../README.priority0-gap-taxonomy.md): Priority 0 gate mapping stable comparison misses to shared taxonomy categories, gap classes, and bounded repair actions.
+- [Output Format Parity README](../README.output-format-parity.md): Priority 0 gate proving default chat and JSON preserve the same answer body, evidence markers, safety boundary, and run traceability.
+- [Natural Output Format Preference README](../README.natural-output-format-preference.md): Phase 144 gate proving natural FormatA and JSON requests route through the same chat-quality contract in gateway and AnythingLLM.
+- [Founder Feedback Loop README](../README.founder-feedback-loop.md): Priority 0 gate converting natural founder feedback into governed baseline, holdout, repair, or rejected-finding decisions.
+- [Engineering Tenet Coverage README](../README.engineering-tenets.md): Phase 112 measurable coverage matrix for the local-model engineering tenets.
 - [Security Policy README](../README.security-policy.md): release-candidate gate for secret exposure, filesystem boundaries, protected fixtures, command fragments, and onboarding prompt safety.
 - [Gateway Feature README](../README.gateway.md): runtime architecture, vLLM gateway behavior, role prompt proxies, ports, and client connection notes.
 - [Controller Service README](../README.controller-service.md): explicit HTTP workflow service, end-to-end documenter service example, allowlisted target roots, and run lookup.
@@ -34,11 +62,28 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Run Observability README](../README.observability.md): recent-run dashboard for workflow selection, model route status, approval state, downstream status, artifacts, failures, mutation proof, and timing.
 - [Run Artifact Diff README](../README.run-artifact-diff.md): read-only comparison for V1 acceptance, founder-field, and model-portability reports.
 - [Failure Taxonomy README](../README.failure-taxonomy.md): read-only failure classification dashboard/report with severity and next-action guidance.
-- [Eval Repair Loop README](../README.eval-repair-loop.md): Phase 104 evidence-backed repair recommendations from failed eval and recursive blind-testing artifacts.
+- [Eval Repair Loop README](../README.eval-repair-loop.md): advisory repair recommendations plus Phase 111 closed-loop target/holdout execution proof.
 - [Advanced Refactor Readiness README](../README.advanced-refactor-readiness.md): Phase 105 fail-closed readiness gate, pilot admission policy, and natural advanced-refactor router guard.
 - [Founder Field Tests README](../README.founder-field-tests.md): natural prompt field-test runner through AnythingLLM with baseline targets, deltas, miss suggestions, and protected fixture checks.
 - [Bounded Recursive Testing README](../README.bounded-recursive-testing.md): no-context recursive evaluation loop with deterministic adjudication, score floors, and bounded repair cycles.
 - [AnythingLLM UI E2E README](../README.anythingllm-ui-e2e.md): browser-rendered Desktop UI validation through real AnythingLLM `/stream-chat`, workflow-router gateway, screenshots, and fixture mutation proof.
+- [Fresh Local-Model Drift README](../README.fresh-local-model-drift.md): bounded Priority 0 live drift gate for the current localhost model, gateway, AnythingLLM, stable prompt families, and both frozen Coinbase fixtures.
+- [Prompt Tightening Recommendations README](../README.prompt-tightening-recommendations.md): Priority 0 review queue for prompt-tightening suggestions tied to baseline misses or low-confidence passes without automatic prompt rewrites.
+- [Skill/Tool Coverage Gap README](../README.skill-tool-coverage-gap.md): Priority 0 gate deciding whether current chat-quality misses require a missing deterministic skill or tool.
+- [Stable Release Blocker Closure README](../README.stable-release-blocker-closure.md): Phase 131 closure gate for prompt-tightening and founder-feedback blockers before stable release readiness can pass.
+- [Stable Chat Quality Release README](../README.stable-chat-quality-release.md): Phase 130 release-readiness gate that consolidates Priority 0 proof and blocks founder testing on unresolved chat-quality items.
+- [AnythingLLM Founder Smoke README](../README.anythingllm-founder-smoke.md): Phase 134 live founder smoke suite through AnythingLLM for the current ready release path.
+- [Founder Smoke Feedback README](../README.founder-smoke-feedback.md): Phase 135 classifier for founder smoke misses and governed follow-up decisions.
+- [Founder Feedback Triage Dashboard README](../README.founder-feedback-triage-dashboard.md): Phase 145 compact dashboard linking feedback run IDs, target run IDs, decisions, closures, roadmap refs, and next actions.
+- [Release Notes README](../README.release-notes.md): Phase 146 release notes, supported scope, known limitations, deferred capabilities, proof artifacts, and rerun commands.
+- [Chat Quality Release Snapshot README](../README.chat-quality-release-snapshot.md): Phase 136 release-candidate snapshot manifest for proof artifact hashes, summaries, and handoff docs.
+- [Founder Test Prompt Pack README](../README.founder-test-prompt-pack.md): Phase 137 governed founder prompt pack expansion after smoke readiness.
+- [Chat Transcript Quality README](../README.chat-transcript-quality.md): Phase 138 deterministic pass/advisory/blocker classifier for AnythingLLM founder smoke transcripts.
+- [Local Model Regression Watchlist README](../README.local-model-regression-watchlist.md): Phase 139 per-case watchlist for current founder prompt regressions and repair ownership.
+- [AnythingLLM Session Recovery README](../README.anythingllm-session-recovery.md): Phase 140 greeting and stale-history smoke for normal chat through AnythingLLM.
+- [Gateway And AnythingLLM Health Drift README](../README.gateway-anythingllm-health-drift.md): Phase 141 diagnostic guard for port, gateway target, response-body timeout, and AnythingLLM auth drift.
+- [Baseline Corpus Promotion Rules README](../README.baseline-corpus-promotion-rules.md): Phase 142 fail-closed rules for promoting founder prompt-pack cases into the stable Priority 0 baseline corpus.
+- [Skill/Tool Gap Proposal Intake README](../README.skill-tool-gap-proposal-intake.md): Phase 143 approval-gated intake for deterministic skill/tool proposals from real Priority 0 gaps.
 - [Model Portability README](../README.model-portability.md): candidate-model V1 acceptance wrapper with model probe, classified misses, and portability report artifacts.
 - [Model Capability Profiles README](../README.model-capability-profiles.md): model capability profile generation and fail-closed routing enforcement from portability evidence.
 - [Prompt Catalogs README](../README.prompt-catalogs.md): governed prompt catalog fixtures, case metadata, validation, matrix expectations, and change-history rules.
@@ -71,12 +116,50 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Run Observability README](../README.observability.md): recent workflow run dashboard from controller artifacts.
 - [Run Artifact Diff README](../README.run-artifact-diff.md): report-to-report comparison for route, suite, semantic, classification, artifact, and fixture-state changes.
 - [Failure Taxonomy README](../README.failure-taxonomy.md): validation artifact failure categories, severity, and recommended next actions.
-- [Eval Repair Loop README](../README.eval-repair-loop.md): read-only repair recommendations with target/holdout rerun gates and hard-stop validation.
+- [Eval Repair Loop README](../README.eval-repair-loop.md): repair recommendations with advisory mode, closed-loop target/holdout execution proof, and hard-stop validation.
+- [Engineering Tenet Coverage README](../README.engineering-tenets.md): governed tenet matrix with status, evidence, live validation tier, known gaps, and contextless audit criteria.
 - [Advanced Refactor Readiness README](../README.advanced-refactor-readiness.md): fail-closed Phase 105 prerequisite report and stable-promotion blocker for advanced refactor pilots.
 - [Founder Field Tests README](../README.founder-field-tests.md): V1 founder field-test prompts through AnythingLLM with reviewable Markdown and JSON reports.
+- [Skill/Tool Selection Explainability E2E README](../README.skill-tool-selection-explainability-e2e.md): normal chat explainability gate for selected workflow, selected skills/tools, rejected candidates, and grounding.
+- [AnythingLLM Conversation State Isolation README](../README.anythingllm-conversation-state-isolation.md): same-session contamination gate for current workflow routing and output-format behavior.
 - [Semi-Well-Defined Prompt Generalization README](../README.semi-well-defined-prompts.md): natural L1/L2 prompt generalization suite with score thresholds and fixture proof.
 - [Bounded Recursive Testing README](../README.bounded-recursive-testing.md): fresh no-context evaluator loops for usability, route, answer, setup, safety, and roadmap-drift findings.
+- [Priority 0 Chat Quality Backlog](PRIORITY0_CHAT_QUALITY_BACKLOG.md): prompt-first blind baselines, local-model comparisons, holdouts, and repair plan.
+- [Baseline Corpus Governance README](../README.baseline-corpus.md): governed corpus for stable blind-baseline prompt families, response summaries, comparisons, repair state, holdouts, and stale-source detection.
+- [AnythingLLM Answer Usefulness README](../README.anythingllm-answer-usefulness.md): response-body gate for AnythingLLM chat usefulness before artifact links.
+- [Holdout Prompt Bank README](../README.holdout-prompt-bank.md): governed holdout IDs, route captures, comparison pass/fail proof, and mutation checks for stable prompt families.
+- [Priority 0 Gap Taxonomy README](../README.priority0-gap-taxonomy.md): stable corpus comparison-miss taxonomy and repair-class validation.
+- [Output Format Parity README](../README.output-format-parity.md): stable corpus output-format parity across gateway and AnythingLLM default/JSON responses.
+- [Natural Output Format Preference README](../README.natural-output-format-preference.md): natural-language selector proof for governed `format_a` and `json` responses across gateway and AnythingLLM.
+- [Founder Feedback Loop README](../README.founder-feedback-loop.md): governed feedback decisions for baseline candidates, holdout candidates, repair follow-ups, and rejected findings.
 - [AnythingLLM UI E2E README](../README.anythingllm-ui-e2e.md): Desktop UI bundle rendering and chat submission proof through the real AnythingLLM backend.
+- [Fresh Local-Model Drift README](../README.fresh-local-model-drift.md): fresh stable-corpus rerun proof against the current localhost model and AnythingLLM path.
+- [Prompt Tightening Recommendations README](../README.prompt-tightening-recommendations.md): governed recommendation records for prompt clarification candidates, approval decisions, and rerun-proof requirements.
+- [Skill/Tool Coverage Gap README](../README.skill-tool-coverage-gap.md): current evidence classifier for missing deterministic skill/tool capability proposals.
+- [Stable Release Blocker Closure README](../README.stable-release-blocker-closure.md): governed closure evidence for stable release blockers.
+- [Stable Chat Quality Release README](../README.stable-chat-quality-release.md): consolidated release-readiness report with artifact hashes, blockers, and founder-testing readiness.
+- [Model Swap Smoke Probe README](../README.model-swap-smoke-probe.md): live localhost model metadata, generation, harness, compatibility, and drift-required decision gate.
+- [V1 Product Readiness Review README](../README.v1-product-readiness-review.md): V1 supported scope, unsupported scope, release blockers, monitored risks, and go/no-go recommendation.
+- [V1 Stable Release Decision README](../README.v1-stable-release-decision.md): final V1 founder-testing release decision with evidence links, rollback path, and next-batch status.
+- [Founder Field Round 1 README](../README.founder-field-round1.md): live Phase 157 field-test evidence, quality classification, and Phase 158 routing.
+- [Transcript Quality Feedback Intake README](../README.transcript-quality-feedback-intake.md): Phase 158 accepted/rejected findings, owner paths, rerun gates, and Phase 159 eligibility.
+- [Priority 0 Repair Loop README](../README.priority0-repair-loop.md): Phase 159 no-repair-required or target-plus-holdout repair closure gate.
+- [Stable Release Refresh README](../README.stable-release-refresh.md): Phase 170 refreshed release proof floor and founder-testing decision.
+- [Skill/Tool Gap Batch Proposal README](../README.skill-tool-gap-batch-proposal.md): Phase 161 proposal-only skill/tool batch decision from field-test proof.
+- [Post-Restart Runtime Readiness README](../README.post-restart-runtime-readiness.md): Phase 163 restart readiness command for local model, gateways, controller, role proxies, AnythingLLM config, and greeting/session recovery.
+- [Generic Chat And Vague Prompt Contract README](../README.generic-chat-vague-prompt-contract.md): Phase 166 direct, gateway, and AnythingLLM proof that under-specified prompts remain useful and safe.
+- [AnythingLLM Founder Smoke README](../README.anythingllm-founder-smoke.md): curated live smoke suite through AnythingLLM before broader field testing.
+- [Founder Smoke Feedback README](../README.founder-smoke-feedback.md): smoke-suite feedback classification into governed next actions.
+- [Chat Quality Release Snapshot README](../README.chat-quality-release-snapshot.md): release-candidate proof manifest for local audit.
+- [Founder Test Prompt Pack README](../README.founder-test-prompt-pack.md): stable read-only founder prompt pack validation.
+- [Chat Transcript Quality README](../README.chat-transcript-quality.md): deterministic transcript-quality classification for founder smoke chat output.
+- [Local Model Regression Watchlist README](../README.local-model-regression-watchlist.md): per-case local-model regression risks, gates, symptoms, and repair owners.
+- [Founder Feedback Triage Dashboard README](../README.founder-feedback-triage-dashboard.md): read-only current feedback state, closure state, and next-action dashboard.
+- [Release Notes README](../README.release-notes.md): current founder-testing release notes and known limitations validated against proof artifacts.
+- [AnythingLLM Session Recovery README](../README.anythingllm-session-recovery.md): normal greeting and same-session recovery proof for AnythingLLM.
+- [Gateway And AnythingLLM Health Drift README](../README.gateway-anythingllm-health-drift.md): setup drift guard over the existing doctor for ports, gateway targets, body timeouts, and auth.
+- [Baseline Corpus Promotion Rules README](../README.baseline-corpus-promotion-rules.md): fail-closed promotion-readiness gate for stable baseline corpus candidates.
+- [Skill/Tool Gap Proposal Intake README](../README.skill-tool-gap-proposal-intake.md): proposal-only gate before any deterministic skill/tool addition can be implemented.
 - [Model Portability README](../README.model-portability.md): Phase 72 candidate-model gate using the existing V1 acceptance path and failure classification.
 - [Model Capability Profiles README](../README.model-capability-profiles.md): profile generation for route stability, output contract, semantic quality, latency, timeout, safe apply readiness, and runtime task-class gating.
 - [Prompt Catalogs README](../README.prompt-catalogs.md): governed prompt catalog fixtures for field tests and prompt-matrix validation.
@@ -116,12 +199,39 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Getting Started With AnythingLLM](../README.getting-started.md)
 - [Productized Setup Examples](examples/productized-setup.md)
 - [External Tester Onboarding Examples](examples/external-tester-onboarding.md)
+- [External Tester Dry Run Examples](examples/external-tester-dry-run.md)
 - [First-Time User Doctor Examples](examples/first-time-user-doctor.md)
 - [Release Channel Examples](examples/release-channels.md)
 - [Stable Handoff Examples](examples/stable-handoff.md)
 - [Runtime-State Examples](examples/runtime-state.md)
+- [Stable Release Reset Rehearsal Examples](examples/stable-release-reset-rehearsal.md)
 - [Release Adherence Examples](examples/release-adherence.md)
+- [Failure-To-Roadmap Examples](examples/failure-to-roadmap.md)
+- [Contextless Audit Scorecard Examples](examples/contextless-audit-scorecard.md)
+- [Current-Model Compatibility Examples](examples/current-model-compatibility.md)
+- [Model Swap Smoke Probe Examples](examples/model-swap-smoke-probe.md)
+- [V1 Product Readiness Review Examples](examples/v1-product-readiness-review.md)
+- [V1 Stable Release Decision Examples](examples/v1-stable-release-decision.md)
+- [Founder Field Round 1 Examples](examples/founder-field-round1.md)
+- [Founder Field Round 2 Examples](examples/founder-field-round2.md)
+- [Prompt Advisory Closure Examples](examples/prompt-advisory-closure.md)
+- [Generic Chat And Vague Prompt Contract Examples](examples/generic-chat-vague-prompt-contract.md)
+- [Transcript Quality Feedback Intake Examples](examples/transcript-quality-feedback-intake.md)
+- [Priority 0 Repair Loop Examples](examples/priority0-repair-loop.md)
+- [Stable Release Refresh Examples](examples/stable-release-refresh.md)
+- [Skill/Tool Gap Batch Proposal Examples](examples/skill-tool-gap-batch-proposal.md)
+- [Post-Restart Runtime Readiness Examples](examples/post-restart-runtime-readiness.md)
+- [Skill/Tool Selection Explainability E2E Examples](examples/skill-tool-selection-explainability-e2e.md)
+- [AnythingLLM Conversation State Isolation Examples](examples/anythingllm-conversation-state-isolation.md)
 - [Semi-Well-Defined Prompt Examples](examples/semi-well-defined-prompts.md)
+- [Baseline Corpus Governance Examples](examples/baseline-corpus.md)
+- [AnythingLLM Answer Usefulness Examples](examples/anythingllm-answer-usefulness.md)
+- [Holdout Prompt Bank Examples](examples/holdout-prompt-bank.md)
+- [Priority 0 Gap Taxonomy Examples](examples/priority0-gap-taxonomy.md)
+- [Output Format Parity Examples](examples/output-format-parity.md)
+- [Natural Output Format Preference Examples](examples/natural-output-format-preference.md)
+- [Founder Feedback Loop Examples](examples/founder-feedback-loop.md)
+- [Engineering Tenet Coverage Examples](examples/engineering-tenets.md)
 - [Security Policy Examples](examples/security-policy.md)
 - [Controller Service Examples](examples/controller-service.md)
 - [Workflow Router Examples](examples/workflow-router.md)
@@ -146,6 +256,32 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Advanced Refactor Readiness Examples](examples/advanced-refactor-readiness.md)
 - [Bounded Recursive Testing Examples](examples/bounded-recursive-testing.md)
 - [AnythingLLM UI E2E Examples](examples/anythingllm-ui-e2e.md)
+- [Fresh Local-Model Drift Examples](examples/fresh-local-model-drift.md)
+- [Prompt Tightening Recommendation Examples](examples/prompt-tightening-recommendations.md)
+- [Skill/Tool Coverage Gap Examples](examples/skill-tool-coverage-gap.md)
+- [Stable Release Blocker Closure Examples](examples/stable-release-blocker-closure.md)
+- [Stable Chat Quality Release Examples](examples/stable-chat-quality-release.md)
+- [AnythingLLM Founder Smoke Examples](examples/anythingllm-founder-smoke.md)
+- [Founder Smoke Feedback Examples](examples/founder-smoke-feedback.md)
+- [Chat Quality Release Snapshot Examples](examples/chat-quality-release-snapshot.md)
+- [Founder Test Prompt Pack Examples](examples/founder-test-prompt-pack.md)
+- [Chat Transcript Quality Examples](examples/chat-transcript-quality.md)
+- [Local Model Regression Watchlist Examples](examples/local-model-regression-watchlist.md)
+- [Founder Feedback Triage Dashboard Examples](examples/founder-feedback-triage-dashboard.md)
+- [Release Notes Examples](examples/release-notes.md)
+- [V1 Stable Release Decision Examples](examples/v1-stable-release-decision.md)
+- [Founder Field Round 1 Examples](examples/founder-field-round1.md)
+- [Founder Field Round 2 Examples](examples/founder-field-round2.md)
+- [Prompt Advisory Closure Examples](examples/prompt-advisory-closure.md)
+- [Transcript Quality Feedback Intake Examples](examples/transcript-quality-feedback-intake.md)
+- [Priority 0 Repair Loop Examples](examples/priority0-repair-loop.md)
+- [Stable Release Refresh Examples](examples/stable-release-refresh.md)
+- [Skill/Tool Gap Batch Proposal Examples](examples/skill-tool-gap-batch-proposal.md)
+- [Post-Restart Runtime Readiness Examples](examples/post-restart-runtime-readiness.md)
+- [AnythingLLM Session Recovery Examples](examples/anythingllm-session-recovery.md)
+- [Gateway And AnythingLLM Health Drift Examples](examples/gateway-anythingllm-health-drift.md)
+- [Baseline Corpus Promotion Rules Examples](examples/baseline-corpus-promotion-rules.md)
+- [Skill/Tool Gap Proposal Intake Examples](examples/skill-tool-gap-proposal-intake.md)
 - [Model Portability Examples](examples/model-portability.md)
 - [Model Capability Profile Examples](examples/model-capability-profiles.md)
 - [Prompt Catalog Examples](examples/prompt-catalogs.md)
@@ -168,19 +304,31 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Stable Handoff Examples](examples/stable-handoff.md): stable-channel validation, handoff smoke, first prompt, feedback, and rollback examples.
 - [Runtime-State Hygiene README](../README.runtime-state.md): clean-clone proof retention policy and repository hygiene gate.
 - [Runtime-State Examples](examples/runtime-state.md): git ignore checks, runtime-state index cleanup, and stable proof validation commands.
+- [Stable Release Reset Rehearsal README](../README.stable-release-reset-rehearsal.md): stable reset/start/recovery rehearsal with source, fixture, runtime-state, and handoff proof.
+- [Stable Release Reset Rehearsal Examples](examples/stable-release-reset-rehearsal.md): dry and live reset rehearsal commands plus failure inspection.
 - [Release Adherence README](../README.release-adherence.md): Phase 109 consolidated current-local-model release gate and finding classes.
 - [Release Adherence Examples](examples/release-adherence.md): Bash command and report review workflow for current localhost release readiness.
+- [Engineering Tenet Coverage README](../README.engineering-tenets.md): Phase 112 coverage matrix for the local-model engineering tenets.
+- [Engineering Tenet Coverage Examples](examples/engineering-tenets.md): validation command, report shape, and review order.
 - [Security Policy Examples](examples/security-policy.md): release-candidate security policy validation and failure review.
 - [V1 Founder Field Test Results](V1_FOUNDER_FIELD_TEST_RESULTS.md): expanded AnythingLLM field test, contextless baseline, initial differences, fixes, Batch D prompt proof, skill-library release-gate integration, final run IDs, and prompt suggestions.
 - [Phase 92 Feedback Triage](PHASE92_FEEDBACK_TRIAGE.md): grouped stable tester and blind-review findings, current fixes, deferred roadmap items, rejected issues, and closeout proof.
 - [Bounded Recursive Testing README](../README.bounded-recursive-testing.md): Phase 92+ governed loop for blind review, evidence adjudication, bounded repairs, and stop conditions.
-- [Eval Repair Loop README](../README.eval-repair-loop.md): Phase 104 advisory repair classification and validation gates for failed eval artifacts.
+- [Eval Repair Loop README](../README.eval-repair-loop.md): Phase 104 advisory repair classification and Phase 111 closed-loop execution proof for failed eval artifacts.
 - [Advanced Refactor Readiness README](../README.advanced-refactor-readiness.md): Phase 105 readiness evidence, pilot admission, natural router guard, and stable-promotion block.
 - [Skill Library Scaling Plan](SKILL_LIBRARY_SCALING_PLAN.md): post-V1 scaling phases, admission gates, candidate prompt families, and validation commands.
 - [Skill Library Packaging Strategy](SKILL_LIBRARY_PACKAGING_STRATEGY.md): Phase 77 package policy and scale rules for skill packs.
 - [Model Capability Routing Policy](MODEL_CAPABILITY_ROUTING_POLICY.md): Phase 100 active profile enforcement and task-class routing-policy state.
 - [Prompt Skill Coverage Map](PROMPT_SKILL_COVERAGE_MAP.md): Phase 79 coverage map and gap backlog state.
 - [Natural-Language Capability Gap Backlog](NATURAL_LANGUAGE_CAPABILITY_GAP_BACKLOG.md): Phase 93 governed prompt-family backlog for existing support, small extensions, new workflows, and deferred requests.
+- [Priority 0 Chat Quality Backlog](PRIORITY0_CHAT_QUALITY_BACKLOG.md): current chat-quality backlog and blind-baseline execution plan.
+- [Baseline Corpus Governance README](../README.baseline-corpus.md): Phase 120 governed corpus for Priority 0 blind baselines and local-model comparison proof.
+- [AnythingLLM Answer Usefulness README](../README.anythingllm-answer-usefulness.md): Phase 121 gate for chat-visible AnythingLLM answer usefulness.
+- [Holdout Prompt Bank README](../README.holdout-prompt-bank.md): Phase 122 gate for stable prompt-family holdout proof.
+- [Priority 0 Gap Taxonomy README](../README.priority0-gap-taxonomy.md): Phase 123 gate for comparison-miss classification and bounded repair actions.
+- [Fresh Local-Model Drift README](../README.fresh-local-model-drift.md): Phase 127 gate for fresh current-local-model drift proof across stable Priority 0 prompt families.
+- [Prompt Tightening Recommendations README](../README.prompt-tightening-recommendations.md): Phase 128 gate for prompt-tightening review candidates and approval/rerun rules.
+- [Skill/Tool Coverage Gap README](../README.skill-tool-coverage-gap.md): Phase 129 gate for missing deterministic skill/tool proposals from current Priority 0 evidence.
 - [Phase 94 Runtime Skill Selection Hardening](PHASE94_RUNTIME_SKILL_SELECTION_HARDENING.md): selector contract, case catalog, live validation, and closeout proof requirements.
 - [Phase 95 Context Retrieval Upgrade](PHASE95_CONTEXT_RETRIEVAL_UPGRADE.md): context-source audit contract, unsupported layout blocking, and live validation proof.
 - [Phase 96 Implementation-Prep Workflow Expansion](PHASE96_IMPLEMENTATION_PREP_EXPANSION.md): draft-only packet proposal expansion, validation reports, fixture mutation proof, and known limits.

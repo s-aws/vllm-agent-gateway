@@ -33,6 +33,20 @@ python3 scripts/report_failure_taxonomy.py \
   --label portability-offline-vs-live
 ```
 
+## Classify A Priority 0 Comparison Directly
+
+```bash
+python3 scripts/report_failure_taxonomy.py \
+  --report runtime-state/phase116/code-quality-comparison.json \
+  --label phase116-code-quality
+```
+
+For the whole governed corpus, prefer the dedicated Priority 0 command:
+
+```bash
+python3 scripts/validate_priority0_gap_taxonomy.py
+```
+
 ## Expected JSON Fields
 
 ```text

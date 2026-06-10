@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "kind": "prompt_advisory_closure_policy",
+  "phase": 165,
+  "priority_backlog_id": "P0-BB-029",
+  "goal": "Close, document, or escalate Phase 158 prompt-risk advisories using refined prompt candidates, holdouts, and blind-baseline-first evidence.",
+  "required_advisory_case_ids": [
+    "P01",
+    "P08",
+    "P11",
+    "P16",
+    "P17",
+    "P21",
+    "P27",
+    "P28",
+    "P29",
+    "P30",
+    "P31",
+    "P32",
+    "P33",
+    "P34"
+  ],
+  "holdout_case_ids": [
+    "P02",
+    "P03"
+  ],
+  "required_source_paths": {
+    "phase158_feedback_report": "runtime-state/transcript-quality-feedback-intake/phase158/phase158-transcript-quality-feedback-intake-report.json",
+    "phase164_round2_report": "runtime-state/founder-field-round2/phase164/phase164-founder-field-round2-report.json",
+    "prompt_catalog": "runtime/prompt_catalogs/founder_field_v1.json"
+  },
+  "minimum_refined_score": 85,
+  "minimum_holdout_score": 85,
+  "allowed_closure_decisions": [
+    "closed_refined_prompt_proven",
+    "documented_guidance",
+    "product_gap_escalation"
+  ],
+  "required_route_surface": "anythingllm_via_workflow_router_gateway",
+  "refined_prompts_are_test_candidates_only": true,
+  "acceptance_marker": "PHASE165 PROMPT ADVISORY CLOSURE PASS"
+}

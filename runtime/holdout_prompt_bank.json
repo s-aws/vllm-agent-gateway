@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "kind": "priority0_holdout_prompt_bank",
+  "bank_id": "priority0_holdout_prompt_bank_v1",
+  "description": "Governed holdout prompt bank for stable Priority 0 prompt families. Holdouts are separate prompt cases that must continue to pass after target repairs so chat-quality work does not overfit one prompt.",
+  "policy": {
+    "minimum_holdouts_per_entry": 2,
+    "required_routes": ["gateway", "anythingllm"],
+    "minimum_route_score": 85,
+    "comparison_status_required": "passed",
+    "critical_findings_allowed": 0,
+    "high_findings_allowed": 0,
+    "frozen_target_roots_for_reporting": [
+      "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    ],
+    "allow_justified_missing_frozen_holdouts": true,
+    "source_mutation_allowed": false,
+    "holdout_rerun_required_after_repair": true
+  },
+  "entries": [
+    {
+      "entry_id": "phase116_code_quality",
+      "priority_backlog_id": "P0-BB-001",
+      "prompt_family": "code_quality_and_self_review",
+      "holdout_case_ids": ["CQ116-009", "CQ116-010"],
+      "holdout_target_roots": [
+        "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      ],
+      "target_coverage": {
+        "covered_target_roots": [
+          "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp"
+        ],
+        "missing_frozen_target_roots": [
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ],
+        "justification": "The stable corpus covers the git-enabled Coinbase fixture in target cases; this holdout pair exercises the non-git Coinbase fixture and a generated Python service layout to detect overfitting across repository shapes."
+      },
+      "proof_refs": {
+        "prompt_cases": {
+          "path": "runtime/phase116_code_quality_prompt_cases.json",
+          "sha256": "0644022409f3d70607fa2c4fca018d0a94a854fa7b20deeab4904423b8e2dbdb"
+        },
+        "blind_baselines": {
+          "path": "runtime/phase116_code_quality_blind_baselines.json",
+          "sha256": "53a012b2eb424c7fe0451dae6eea122cd3aebfe20725e6a417f0c7a01ee0b629"
+        },
+        "local_eval": {
+          "path": "runtime-state/phase116/code-quality-local-eval.json",
+          "sha256": "ebd228fa218bb59455fe3bfdc083bf4533cfedfdaeb6651b97d8dbee392dc568"
+        },
+        "comparison": {
+          "path": "runtime-state/phase116/code-quality-comparison.json",
+          "sha256": "2cd0cd988e9cc2a703ab94af9f94d90c49a4f4cd55bd892587c3b8a9f617b49b"
+        }
+      }
+    },
+    {
+      "entry_id": "phase117_defect_diagnosis",
+      "priority_backlog_id": "P0-BB-002",
+      "prompt_family": "testing_and_defect_diagnosis",
+      "holdout_case_ids": ["DD117-009", "DD117-010"],
+      "holdout_target_roots": [
+        "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      ],
+      "target_coverage": {
+        "covered_target_roots": [
+          "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp"
+        ],
+        "missing_frozen_target_roots": [
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ],
+        "justification": "The stable corpus covers the git-enabled Coinbase fixture in target cases; this holdout pair exercises the non-git Coinbase fixture and a generated Python service layout to detect overfitting across repository shapes."
+      },
+      "proof_refs": {
+        "prompt_cases": {
+          "path": "runtime/phase117_defect_diagnosis_prompt_cases.json",
+          "sha256": "bff15aceb296ee460b502504c745a05e74d03cdd4379ec6e938e56e121246024"
+        },
+        "blind_baselines": {
+          "path": "runtime/phase117_defect_diagnosis_blind_baselines.json",
+          "sha256": "d3a183b69327d61c1029ed62ebfa316ddaa455d5f05c9c0f448804ce9c19c4b3"
+        },
+        "local_eval": {
+          "path": "runtime-state/phase117/defect-diagnosis-local-eval.json",
+          "sha256": "a7537193cd8df8db74f53846208cc47a8e98f92d70161aa4644eb751bbb25dc7"
+        },
+        "comparison": {
+          "path": "runtime-state/phase117/defect-diagnosis-comparison.json",
+          "sha256": "19f212adf01c8ddec4e27e9bbed7b3ea1d401f1f5d01d2b99a1bf8a85b4e8961"
+        }
+      }
+    },
+    {
+      "entry_id": "phase118_engineering_judgment",
+      "priority_backlog_id": "P0-BB-003",
+      "prompt_family": "tradeoffs_debt_and_engineering_judgment",
+      "holdout_case_ids": ["EJ118-009", "EJ118-010"],
+      "holdout_target_roots": [
+        "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
+        "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture"
+      ],
+      "target_coverage": {
+        "covered_target_roots": [
+          "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
+          "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture"
+        ],
+        "missing_frozen_target_roots": [
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ],
+        "justification": "The stable corpus covers both frozen Coinbase fixtures in target cases; this holdout pair intentionally exercises generated Go and Node fixtures to detect prompt-family overfitting beyond the Coinbase codebase."
+      },
+      "proof_refs": {
+        "prompt_cases": {
+          "path": "runtime/phase118_engineering_judgment_prompt_cases.json",
+          "sha256": "33d887fc55abe0d783e0af6c99e251aeb1750998fc5d283eb40d3619622b17ce"
+        },
+        "blind_baselines": {
+          "path": "runtime/phase118_engineering_judgment_blind_baselines.json",
+          "sha256": "b91fca98ebfc6d74dc6bf95e1b6c5b0ab5610679798541c57bb6edf71e3303c3"
+        },
+        "local_eval": {
+          "path": "runtime-state/phase118/engineering-judgment-local-eval.json",
+          "sha256": "0b82b5750d6cfc89adf3f571a0de6cf0f6e77ad738d354a2156bd63bc03dcc8f"
+        },
+        "comparison": {
+          "path": "runtime-state/phase118/engineering-judgment-comparison.json",
+          "sha256": "e4bbc00970289add93c8f25defbbe20d4e8d4e84742b546bc0eb65cf09d85131"
+        }
+      }
+    },
+    {
+      "entry_id": "phase119_delivery_mentorship",
+      "priority_backlog_id": "P0-BB-004",
+      "prompt_family": "delivery_and_mentorship",
+      "holdout_case_ids": ["DM119-009", "DM119-010"],
+      "holdout_target_roots": [
+        "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
+        "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture"
+      ],
+      "target_coverage": {
+        "covered_target_roots": [
+          "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
+          "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture"
+        ],
+        "missing_frozen_target_roots": [
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+        ],
+        "justification": "The stable corpus covers both frozen Coinbase fixtures in target cases; this holdout pair intentionally exercises generated Go and Node fixtures to detect prompt-family overfitting beyond the Coinbase codebase."
+      },
+      "proof_refs": {
+        "prompt_cases": {
+          "path": "runtime/phase119_delivery_mentorship_prompt_cases.json",
+          "sha256": "b62d7c465c42410103fceedd7e60d003620381d727c762e20b8a721fd792b0c4"
+        },
+        "blind_baselines": {
+          "path": "runtime/phase119_delivery_mentorship_blind_baselines.json",
+          "sha256": "674c8a76646a21456cc45f39d3b684e648227caf590b9b34a850cba493bc22be"
+        },
+        "local_eval": {
+          "path": "runtime-state/phase119/delivery-mentorship-local-eval.json",
+          "sha256": "d800bbef3377443156d28720f353110ca88a0cba73b3167908642b6429ae0940"
+        },
+        "comparison": {
+          "path": "runtime-state/phase119/delivery-mentorship-comparison.json",
+          "sha256": "38697fb7ee7cafa0452a02b0f964500ceef8511a39fb248ae53e757011367f8d"
+        }
+      }
+    }
+  ]
+}

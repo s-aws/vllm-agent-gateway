@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "kind": "anythingllm_ui_prompt_catalog",
+  "catalog_id": "phase167_anythingllm_ui_prompt_cases_v2",
+  "phase": 167,
+  "priority_backlog_id": "P0-BB-011",
+  "description": "Governed AnythingLLM Desktop UI prompt cases. Phase 126 extended browser-visible proof beyond the original L1 smoke prompts to a representative stable Priority 0 corpus subset. Phase 167 adds no-target generic and vague prompt replay cases.",
+  "cases": [
+    {
+      "case_id": "L1-001",
+      "name": "Find Where Behavior Starts",
+      "prompt_family": "l1_behavior_start_lookup",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:"
+      ],
+      "rejected_markers": [
+        "Entrypoints:",
+        "python main.py"
+      ],
+      "prompt_template": "In {target_root}, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, and confidence. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "L1-002",
+      "name": "Explain A Function Or File",
+      "prompt_family": "l1_code_explanation",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "StealthOrderManager.find_stealth_order_by_placed_order_id",
+        "Inputs:",
+        "placed_order_id",
+        "Outputs:",
+        "Side effects:",
+        "Related tests:"
+      ],
+      "rejected_markers": [],
+      "prompt_template": "In {target_root}, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI167-GENCHAT-001",
+      "name": "UI Generic Greeting No Target",
+      "prompt_family": "generic_chat_no_target",
+      "target_root_mode": "no_target",
+      "expected_workflow": "none",
+      "expected_route_status": "general_chat_no_target",
+      "priority_backlog_id": "P0-BB-031",
+      "transport_markers": [
+        "workflow_router.plan completed",
+        "Result:",
+        "Summary:",
+        "run_id:",
+        "Run record:"
+      ],
+      "required_markers": [
+        "Answer:",
+        "route_status: general_chat_no_target",
+        "Selected workflow: none",
+        "selected_workflow: none",
+        "include an allowed target_root path",
+        "answer: Hi."
+      ],
+      "ordered_markers": [
+        "Answer:",
+        "I completed workflow_router.plan.",
+        "Result:",
+        "Summary:",
+        "Run record:"
+      ],
+      "rejected_markers": [
+        "Selected workflow: code_investigation.plan",
+        "selected_workflow: code_investigation.plan",
+        "Selected workflow: task.decompose",
+        "selected_workflow: task.decompose",
+        "Artifacts:",
+        "Beginning point:"
+      ],
+      "prompt_template": "hi Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI167-GENHELP-001",
+      "name": "UI Generic Help No Target",
+      "prompt_family": "generic_help_no_target",
+      "target_root_mode": "no_target",
+      "expected_workflow": "none",
+      "expected_route_status": "general_help_no_target",
+      "priority_backlog_id": "P0-BB-031",
+      "transport_markers": [
+        "workflow_router.plan completed",
+        "Result:",
+        "Summary:",
+        "run_id:",
+        "Run record:"
+      ],
+      "required_markers": [
+        "Answer:",
+        "route_status: general_help_no_target",
+        "Selected workflow: none",
+        "selected_workflow: none",
+        "I can help with local coding workflows",
+        "inspect code",
+        "explain functions"
+      ],
+      "ordered_markers": [
+        "Answer:",
+        "I completed workflow_router.plan.",
+        "Result:",
+        "Summary:",
+        "Run record:"
+      ],
+      "rejected_markers": [
+        "Selected workflow: code_investigation.plan",
+        "selected_workflow: code_investigation.plan",
+        "Selected workflow: task.decompose",
+        "selected_workflow: task.decompose",
+        "Artifacts:",
+        "Beginning point:"
+      ],
+      "prompt_template": "what can you do? Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI167-VAGUE-001",
+      "name": "UI Vague Coding Prompt No Target",
+      "prompt_family": "vague_coding_no_target",
+      "target_root_mode": "no_target",
+      "expected_workflow": "none",
+      "expected_route_status": "missing_target_root_for_coding_request",
+      "priority_backlog_id": "P0-BB-031",
+      "transport_markers": [
+        "workflow_router.plan completed",
+        "Result:",
+        "Summary:",
+        "run_id:",
+        "Run record:"
+      ],
+      "required_markers": [
+        "Answer:",
+        "route_status: missing_target_root_for_coding_request",
+        "Selected workflow: none",
+        "selected_workflow: none",
+        "target_root",
+        "I did not start a repository workflow"
+      ],
+      "ordered_markers": [
+        "Answer:",
+        "I completed workflow_router.plan.",
+        "Result:",
+        "Summary:",
+        "Run record:"
+      ],
+      "rejected_markers": [
+        "Selected workflow: code_investigation.plan",
+        "selected_workflow: code_investigation.plan",
+        "Selected workflow: task.decompose",
+        "selected_workflow: task.decompose",
+        "Artifacts:",
+        "Beginning point:"
+      ],
+      "prompt_template": "find the bug Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI126-CQ116-001",
+      "name": "UI Code Quality Review Git Fixture",
+      "prompt_family": "code_quality_and_self_review",
+      "priority_backlog_id": "P0-BB-001",
+      "source_baseline_entry_id": "phase116_code_quality",
+      "source_prompt_case_id": "CQ116-001",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Code Quality Review:",
+        "Findings:",
+        "Evidence:",
+        "Bounded remediation:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "rejected_markers": [
+        "Source mutation: true"
+      ],
+      "prompt_template": "In {target_root}, review core/stealth_order_manager.py for duplicated logic or repeated code-quality risks around stealth order lookup and reveal state handling. Read only. Return findings with severity, evidence refs, impact, and bounded remediation options. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI126-CQ116-009",
+      "name": "UI Code Quality Review Non Git Fixture",
+      "prompt_family": "code_quality_and_self_review",
+      "priority_backlog_id": "P0-BB-001",
+      "source_baseline_entry_id": "phase116_code_quality",
+      "source_prompt_case_id": "CQ116-009",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Code Quality Review:",
+        "Findings:",
+        "Evidence:",
+        "Bounded remediation:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "rejected_markers": [
+        "Source mutation: true"
+      ],
+      "prompt_template": "In {target_root}, review core/stealth_order_manager.py for duplicated stealth-order lookup logic. Read only. Return at most three evidence-backed findings and say when evidence is insufficient. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI126-DD117-001",
+      "name": "UI Defect Diagnosis Git Fixture",
+      "prompt_family": "testing_and_defect_diagnosis",
+      "priority_backlog_id": "P0-BB-002",
+      "source_baseline_entry_id": "phase117_defect_diagnosis",
+      "source_prompt_case_id": "DD117-001",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Defect Diagnosis:",
+        "Observed failure:",
+        "Likely root cause:",
+        "Smallest test:",
+        "Broader regression test:",
+        "Source mutation: false"
+      ],
+      "rejected_markers": [
+        "Source mutation: true"
+      ],
+      "prompt_template": "In {target_root}, diagnose why this pytest failure is happening. Do not edit files. Return reproduction steps, likely root cause, confidence, smallest useful test, broader regression test, observability evidence, and missing data.\nFAILED tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - AssertionError: expected client_order_id index\nE   AssertionError: expected client_order_id index Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI126-DD117-002",
+      "name": "UI Defect Diagnosis Non Git Fixture",
+      "prompt_family": "testing_and_defect_diagnosis",
+      "priority_backlog_id": "P0-BB-002",
+      "source_baseline_entry_id": "phase117_defect_diagnosis",
+      "source_prompt_case_id": "DD117-002",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Defect Diagnosis:",
+        "First failing command:",
+        "Likely",
+        "Smallest",
+        "Broader",
+        "Source mutation: false"
+      ],
+      "rejected_markers": [
+        "Source mutation: true"
+      ],
+      "prompt_template": "In {target_root}, summarize this failing CI log and identify the first failing command, likely cause, next local command, smallest useful test level, broader regression test, and evidence gaps. Read only.\nRun python -m pytest tests/unit/test_order_id_and_followup_rules.py\nFAILED tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - AssertionError: expected client_order_id index\nE   AssertionError: expected client_order_id index\nError: Process completed with exit code 1. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI126-EJ118-001",
+      "name": "UI Engineering Judgment Git Fixture",
+      "prompt_family": "tradeoffs_debt_and_engineering_judgment",
+      "priority_backlog_id": "P0-BB-003",
+      "source_baseline_entry_id": "phase118_engineering_judgment",
+      "source_prompt_case_id": "EJ118-001",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Engineering Judgment:",
+        "Recommendation:",
+        "Reason:",
+        "Alternatives:",
+        "Tradeoffs:",
+        "Validation:",
+        "Source mutation: false"
+      ],
+      "rejected_markers": [
+        "Source mutation: true"
+      ],
+      "prompt_template": "In {target_root}, compare two approaches before implementation: A) keep find_stealth_order_by_placed_order_id as the authoritative lookup and rebuild _placed_order_index on load, or B) scan revealed_orders on every lookup. Read only. Include alternatives considered, rejected reasons, maintainability/testability tradeoffs, risks, validation steps, confidence, and source evidence. Do not edit files. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI126-EJ118-002",
+      "name": "UI Engineering Judgment Non Git Fixture",
+      "prompt_family": "tradeoffs_debt_and_engineering_judgment",
+      "priority_backlog_id": "P0-BB-003",
+      "source_baseline_entry_id": "phase118_engineering_judgment",
+      "source_prompt_case_id": "EJ118-002",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Engineering Judgment:",
+        "Recommendation:",
+        "Reason:",
+        "Tradeoffs:",
+        "Technical debt:",
+        "Validation:",
+        "Source mutation: false"
+      ],
+      "rejected_markers": [
+        "Source mutation: true"
+      ],
+      "prompt_template": "In {target_root}, identify technical debt and tradeoff in the reveal pricing policy handling before implementation. Read only. Separate debt remediation from feature delivery, explain why it is debt, cite source evidence, include rejected assumptions, validation steps, and confidence. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI126-DM119-001",
+      "name": "UI Delivery Mentorship Git Fixture",
+      "prompt_family": "delivery_and_mentorship",
+      "priority_backlog_id": "P0-BB-004",
+      "source_baseline_entry_id": "phase119_delivery_mentorship",
+      "source_prompt_case_id": "DM119-001",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "expected_workflow": "task.decompose",
+      "required_markers": [
+        "selected_workflow: task.decompose",
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "Delivery sequence:",
+        "Testing strategy:",
+        "Debugging method:",
+        "Definition of done:",
+        "Source mutation: False"
+      ],
+      "rejected_markers": [
+        "Source mutation: True"
+      ],
+      "prompt_template": "In {target_root}, create an end-to-end delivery plan for adding a requirement note to the stealth order lookup answer. Mentor a junior engineer from requirement intake through deployment readiness. Read only. Include testing strategy, debugging method, code quality practices, review feedback, definition of done, and stop conditions. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI126-DM119-002",
+      "name": "UI Delivery Mentorship Non Git Fixture",
+      "prompt_family": "delivery_and_mentorship",
+      "priority_backlog_id": "P0-BB-004",
+      "source_baseline_entry_id": "phase119_delivery_mentorship",
+      "source_prompt_case_id": "DM119-002",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp"
+      ],
+      "expected_workflow": "task.decompose",
+      "required_markers": [
+        "selected_workflow: task.decompose",
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "Delivery sequence:",
+        "Testing strategy:",
+        "Debugging method:",
+        "Deployment readiness:",
+        "Definition of done:",
+        "Source mutation: False"
+      ],
+      "rejected_markers": [
+        "Source mutation: True"
+      ],
+      "prompt_template": "In {target_root}, coach a junior engineer through safely adding CSV export for filtered order search results while preserving the existing JSON export behavior. Read only. Include delivery plan, testing strategy, deployment readiness, rollback, observability, and definition of done. Tracking tag: {tag}"
+    }
+  ]
+}

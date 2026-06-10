@@ -19,9 +19,11 @@ import pytest
 from vllm_agent_gateway import model_capability_routing
 from vllm_agent_gateway.controller_service.server import (
     ControllerServiceConfig,
+    append_data_model_lookup_answer,
     create_server,
     handle_workflow_router_chat_completion,
     infer_workflow_router_mode,
+    prompt_case_id_from_text,
     service_response_from_result,
 )
 from vllm_agent_gateway.controllers.workflow_router import plan as workflow_router_plan
@@ -628,6 +630,12 @@ def make_execution_planning_repo(tmp_path: Path) -> Path:
         ],
         target,
     )
+    return target
+
+
+def make_python_service_fixture_repo(tmp_path: Path) -> Path:
+    target = tmp_path / "allowed" / "python-service-fixture"
+    shutil.copytree(REPO_ROOT / "tests" / "fixtures" / "generalization" / "python_service_fixture", target)
     return target
 
 
@@ -1987,8 +1995,10 @@ def make_l1_expansion_repo(tmp_path: Path, *, initialize_git: bool = True) -> Pa
         "        raise WebSocketMessageError(\"Missing 'type' field in message\", raw_data=message)\n"
         "    logger.debug(f'[HANDLER] Received message type: {msg_type}')\n"
         "    if msg_type == 'request_stealth_orders':\n"
-        "        orders = stealth_order_bridge.get_stealth_orders()\n"
-        "        await websocket.send(json.dumps({'type': 'stealth_orders_snapshot', 'orders': orders}))\n",
+        "        await send_stealth_orders_snapshot(websocket, stealth_order_bridge)\n\n"
+        "async def send_stealth_orders_snapshot(websocket, stealth_order_bridge):\n"
+        "    orders = stealth_order_bridge.get_stealth_orders()\n"
+        "    await websocket.send(json.dumps({'type': 'stealth_orders_snapshot', 'orders': orders}))\n",
     )
     write_text(
         target / "database" / "order.py",
@@ -2681,6 +2691,10 @@ def test_workflow_feedback_record_links_existing_run_record(tmp_path: Path) -> N
     assert record["feedback_context"]["target_workflow"] == "code_context.lookup"
     assert record["feedback_context"]["prompt_case_status"] == "unknown"
     assert record["next_action"]["mutation_policy"] == "controller_artifacts_only"
+    assert record["governed_decision"]["kind"] == "baseline_prompt_candidate"
+    assert record["governed_decision"]["target_run_id"] == lookup["run_id"]
+    assert record["governed_decision"]["feedback_run_id"] == body["run_id"]
+    assert record["governed_decision"]["mutation_policy"] == "controller_artifacts_only"
     assert run_body["kind"] == "controller_run_record"
     assert run_body["workflow"] == "workflow_feedback.record"
     assert (target / "core" / "stealth_order_manager.py").read_text(encoding="utf-8") == original_text
@@ -5817,6 +5831,79 @@ def test_workflow_router_chat_l1_data_model_lookup_returns_schema_artifact(tmp_p
     assert any(ref["path"] == "database/order.py" for ref in lookup["source_refs"])
 
 
+def test_data_model_lookup_answer_keeps_schema_fields_visible() -> None:
+    lines: list[str] = []
+    artifact = {
+        "kind": "data_model_lookup",
+        "target": "stealth_orders",
+        "fields": [
+            {"name": f"field_{index}", "definition": "TEXT", "path": "database/order.py", "line": index}
+            for index in range(1, 8)
+        ],
+        "model_files": ["database/order.py"],
+        "source_refs": [{"path": "database/order.py", "line": 1}],
+        "mutation_policy": "read_only_no_source_mutation",
+    }
+
+    assert append_data_model_lookup_answer(lines, artifact)
+    answer = "\n".join(lines)
+
+    assert "field_1: TEXT (database/order.py:1)" in answer
+    assert "field_7: TEXT (database/order.py:7)" in answer
+    assert "+2 more" not in answer
+
+
+def test_workflow_router_chat_l1_persisted_schema_prompt_uses_schema_isolator(tmp_path: Path) -> None:
+    target = make_l1_expansion_repo(tmp_path)
+    sentinel = target / "database" / "order.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, find only the persisted stealth_orders table schema. "
+                            "Read only. Return schema field names, model files, and source refs. "
+                            "Exclude runtime dictionary fields."
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert "table-schema-isolator" in content
+    assert "- Target model/schema: stealth_orders" in content
+    assert "- Fields:" in content
+    assert "stealth_order_id" in content
+    assert "database/order.py" in content
+    assert "__delete_all_database_tables__.py" not in content
+    assert "Source mutation: false" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    lookup = json.loads(Path(downstream["artifact_paths"]["data_model_lookup"]).read_text(encoding="utf-8"))
+    assert lookup["status"] == "ready"
+    assert lookup["target"] == "stealth_orders"
+    assert lookup["model_files"] == ["database/order.py"]
+
+
 def test_workflow_router_chat_l1_dependency_lookup_returns_import_artifact(tmp_path: Path) -> None:
     target = make_l1_expansion_repo(tmp_path)
     sentinel = target / "core" / "stealth_order_manager.py"
@@ -6246,6 +6333,116 @@ def test_workflow_router_chat_l2_failing_test_investigation_returns_root_cause_p
     )
 
 
+def test_workflow_router_chat_phase117_full_defect_diagnosis_returns_inline_summary(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    sentinel = target / "core" / "stealth_order_manager.py"
+    before = sentinel.read_text(encoding="utf-8")
+    failure_text = (
+        "FAILED tests/unit/test_order_id_and_followup_rules.py::"
+        "test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - "
+        "AssertionError: expected client_order_id index\n"
+        "E   AssertionError: expected client_order_id index\n"
+    )
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, diagnose why this pytest failure is happening. Do not edit files. "
+                            "Return reproduction steps, likely root cause, confidence, smallest useful test, "
+                            "broader regression test, observability evidence, and missing data.\n"
+                            f"{failure_text}"
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert "Defect Diagnosis:" in content
+    assert "- Observed failure:" in content
+    assert "- Likely root cause:" in content
+    assert "- Reproduction steps:" in content
+    assert "- Smallest test:" in content
+    assert "- Broader regression test:" in content
+    assert "- Observability evidence:" in content
+    assert "- Missing data:" in content
+    assert "Source mutation: false" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    artifact = json.loads(Path(downstream["artifact_paths"]["defect_diagnosis_summary"]).read_text(encoding="utf-8"))
+    assert artifact["status"] == "ready"
+    assert artifact["mutation_policy"] == "read_only_no_source_mutation"
+    assert artifact["likely_root_cause"]["confidence"] in {"low", "medium"}
+    assert artifact["test_levels"]
+    assert artifact["observability_evidence"]
+
+
+def test_workflow_router_chat_phase117_insufficient_evidence_returns_missing_data(tmp_path: Path) -> None:
+    target = make_python_service_fixture_repo(tmp_path)
+    sentinel = target / "service" / "orders.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, diagnose this bug report: orders sometimes show the wrong status. "
+                            "Read only. Explain what evidence is insufficient, what reproduction data you need, "
+                            "the smallest useful test to start with, and when not to claim a root cause."
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert "Defect Diagnosis:" in content
+    assert "not diagnosable" in content.lower() or "insufficient" in content.lower()
+    assert "- Missing data:" in content
+    assert "- Smallest test:" in content
+    assert "Source mutation: false" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    artifact = json.loads(Path(downstream["artifact_paths"]["defect_diagnosis_summary"]).read_text(encoding="utf-8"))
+    assert artifact["likely_root_cause"]["confidence"] == "low"
+    assert any(item.get("gap") for item in artifact["missing_data"])
+
+
 def test_workflow_router_chat_l2_multi_file_behavior_investigation_returns_usage_plan(tmp_path: Path) -> None:
     target = make_execution_planning_tree(tmp_path)
     sentinel = target / "core" / "stealth_order_manager.py"
@@ -6557,6 +6754,66 @@ def test_workflow_router_chat_l2_request_flow_map_returns_artifact(tmp_path: Pat
     assert flow["mutation_policy"] == "read_only_no_source_mutation"
 
 
+def test_workflow_router_chat_handler_branch_prompt_returns_flow_evidence(tmp_path: Path) -> None:
+    target = make_l1_expansion_repo(tmp_path)
+    sentinel = target / "dashboard_server.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, follow the request_stealth_orders handler branch through the snapshot "
+                            "function. Read only. Return handler file, source refs, and related tests."
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_request_flow_map" in compact["artifacts"]
+    assert "- Target: request_stealth_orders" in content
+    assert "- Handler files:" in content
+    assert "dashboard_server.py" in content
+    assert "request_stealth_orders" in content
+    assert "send_stealth_orders_snapshot" in content
+    assert "- Related tests:" in content
+    assert "- Source refs:" in content
+    assert "Source mutation: false" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert any(item.get("rule") == "l2_request_flow_map_terms" for item in decision["evidence"])
+    assert "handler-branch-tracer" in decision["selected_skills"]
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    flow = json.loads(Path(downstream["artifact_paths"]["request_flow_map"]).read_text(encoding="utf-8"))
+    assert flow["status"] == "ready"
+    assert flow["target"] == "request_stealth_orders"
+    assert flow["handler_files"]
+    assert any(step["role"] == "handler_branch" for step in flow["flow_steps"])
+    assert any(step["role"] == "downstream_snapshot_function" for step in flow["flow_steps"])
+    assert flow["source_refs"]
+    assert flow["mutation_policy"] == "read_only_no_source_mutation"
+
+
 def test_workflow_router_chat_l2_code_path_comparison_returns_artifact(tmp_path: Path) -> None:
     target = make_l1_expansion_repo(tmp_path)
     sentinel = target / "core" / "stealth_order_manager.py"
@@ -6668,6 +6925,87 @@ def test_workflow_router_chat_l2_change_surface_summary_returns_artifact(tmp_pat
     assert surface["mutation_policy"] == "read_only_no_source_mutation"
 
 
+def test_workflow_router_chat_l2_change_surface_summary_handles_files_to_touch_prompt(tmp_path: Path) -> None:
+    target = make_l1_expansion_repo(tmp_path)
+    write_text(
+        target / "core" / "order_engine.py",
+        "def handle_fill(manager, placed_order_id):\n"
+        "    return manager.find_stealth_order_by_placed_order_id(placed_order_id)\n",
+    )
+    run_command(["git", "add", "core/order_engine.py"], target)
+    sentinel = target / "core" / "stealth_order_manager.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, identify files to touch and files not to touch for a minimal safe "
+                            "placed_order_id stealth lookup change. Read only and stop before implementation."
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_change_surface_summary" in compact["artifacts"]
+    assert "- Change surface files:" in content
+    assert "- Files to touch:" in content
+    assert "core/stealth_order_manager.py" in content
+    assert "- Files not to touch:" in content
+    assert "core/order_engine.py" in content
+    assert "- Risk level:" in content
+    assert "- Implementation status: not_ready_without_approval" in content
+    assert "parallel_lookup_path_regression" in content
+    assert "fixture_mutation_risk" in content
+    assert "- Verification:" in content
+    assert "grep -RInE" in content
+    assert "python -m pytest tests/regression/ -v" in content
+    assert "Source mutation: false" in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    surface = json.loads(Path(downstream["artifact_paths"]["change_surface_summary"]).read_text(encoding="utf-8"))
+    assert surface["status"] == "ready"
+    assert surface["implementation_status"] == "not_ready_without_approval"
+    assert any(item["path"] == "core/stealth_order_manager.py" for item in surface["files_to_touch"])
+    assert any(item["path"] == "core/order_engine.py" for item in surface["files_not_to_touch"])
+    assert {item["risk"] for item in surface["risks"]} >= {
+        "parallel_lookup_path_regression",
+        "lookup_semantics_regression",
+        "fixture_mutation_risk",
+    }
+    command_keys = {tuple(item["command"]) for item in surface["verification_commands"]}
+    assert (
+        "grep",
+        "-RInE",
+        "find_stealth_order_by_placed_order_id|_placed_order_index|placed_order_id",
+        "core",
+        "tests",
+    ) in command_keys
+    assert ("python", "-m", "pytest", "tests/regression/", "-v") in command_keys
+    assert surface["unknowns"] == []
+    assert surface["mutation_policy"] == "read_only_no_source_mutation"
+
+
 def test_workflow_router_chat_l2_change_surface_summary_handles_non_git_doc_heavy_fixture(tmp_path: Path) -> None:
     target = make_l1_expansion_repo(tmp_path, initialize_git=False)
     write_text(
@@ -6712,10 +7050,14 @@ def test_workflow_router_chat_l2_change_surface_summary_handles_non_git_doc_heav
     assert "Answer:" in content
     assert "- Change surface files:" in content
     assert "core/stealth_order_manager.py" in content
+    assert "non_git_text_search_fallback" in content
+    assert "fallback_or_warning_present; fallback_or_warning_present" not in content
     assert sentinel.read_text(encoding="utf-8") == before
     downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
     surface = json.loads(Path(downstream["artifact_paths"]["change_surface_summary"]).read_text(encoding="utf-8"))
     assert any(item["path"] == "core/stealth_order_manager.py" for item in surface["change_surface_files"])
+    assert [item["gap"] for item in surface["gaps"]].count("non_git_text_search_fallback") == 1
+    assert "fallback_or_warning_present" not in {item["gap"] for item in surface["gaps"]}
     evidence = json.loads(Path(downstream["artifact_paths"]["investigation_evidence"]).read_text(encoding="utf-8"))
     assert evidence["queries"][0] == "placed_order_id"
     assert any(match["path"] == "core/stealth_order_manager.py" for match in evidence["grep_matches"])
@@ -8138,7 +8480,7 @@ def test_workflow_router_chat_streams_json_response_format_for_anythingllm_ui(tm
     assert sentinel.read_text(encoding="utf-8") == before
 
 
-def test_workflow_router_chat_rejects_natural_language_without_target_path(tmp_path: Path) -> None:
+def test_workflow_router_chat_guides_natural_language_without_target_path(tmp_path: Path) -> None:
     config = ControllerServiceConfig(
         config_root=REPO_ROOT,
         output_root=tmp_path / "controller-output",
@@ -8158,8 +8500,12 @@ def test_workflow_router_chat_rejects_natural_language_without_target_path(tmp_p
             },
         )
 
-    assert status == 400
-    assert body["error"]["code"] == "missing_target_root"
+    assert status == 200
+    content = body["choices"][0]["message"]["content"]
+    assert "missing_target_root_for_coding_request" in content
+    assert "Selected workflow: none" in content
+    assert "I did not start a repository workflow" in content
+    assert body["agentic_controller_response"]["summary"]["selected_workflow"] == "none"
 
 
 @advanced_workflow
@@ -9358,7 +9704,18 @@ def test_workflow_router_chat_natural_feedback_records_route_skill_and_next_acti
     assert "code_explanation" in record["feedback_context"]["downstream_artifact_keys"]
     assert record["feedback_context"]["prompt_case_status"] == "unknown"
     assert record["next_action"]["mutation_policy"] == "controller_artifacts_only"
+    assert record["governed_decision"]["kind"] == "repair_followup"
+    assert record["governed_decision"]["target_run_id"] == initial_run_id
+    assert record["governed_decision"]["feedback_run_id"] == compact["run_id"]
     assert sentinel.read_text(encoding="utf-8") == before
+
+
+def test_prompt_case_id_from_feedback_text_strips_sentence_punctuation() -> None:
+    assert (
+        prompt_case_id_from_text("Record feedback for run workflow-router-test. prompt case: FL125-001.")
+        == "FL125-001"
+    )
+    assert prompt_case_id_from_text("case_id: FL125-002; useful: clear") == "FL125-002"
 
 
 def test_workflow_router_chat_natural_feedback_missing_none_stays_positive(
@@ -10610,6 +10967,226 @@ def test_workflow_router_execute_read_only_runs_l1_explain_code_without_mutation
     assert explanation["target"]["symbol"] == "StealthOrderManager.find_stealth_order_by_placed_order_id"
     assert any(item.get("value") == "self.placed_order_index_key" for item in explanation["outputs"])
     assert any(item["path"] == "tests/unit/test_order_id_and_followup_rules.py" for item in explanation["related_tests"])
+
+
+def test_workflow_router_routes_l2_code_quality_issue_language_to_code_investigation() -> None:
+    workflow, status, evidence = workflow_router_plan.workflow_kind_for_request(
+        "In /mnt/c/repo, review service/orders.py for naming clarity, function boundaries, "
+        "and simple code-quality issues. Read only. If no meaningful issue is supported, "
+        "say that and explain why."
+    )
+
+    assert workflow == "code_investigation.plan"
+    assert status == "ready"
+    assert any(item.get("rule") == "l2_code_quality_review_terms" for item in evidence)
+
+
+def test_workflow_router_routes_l2_engineering_judgment_language_to_code_investigation() -> None:
+    workflow, status, evidence = workflow_router_plan.workflow_kind_for_request(
+        "In /mnt/c/repo, give read-only review feedback before implementation on whether to hardcode "
+        "API_BASE_URL. Include evidence, alternatives, tradeoffs, risks, validation steps, confidence, "
+        "and rejected preference claims."
+    )
+
+    assert workflow == "code_investigation.plan"
+    assert status == "ready"
+    assert any(item.get("rule") == "l2_engineering_judgment_terms" for item in evidence)
+    assert not any(item.get("rule") == "feedback_terms" for item in evidence)
+
+
+def test_workflow_router_chat_returns_inline_engineering_judgment_without_mutation(tmp_path: Path) -> None:
+    target = make_python_service_fixture_repo(tmp_path)
+    tracked_paths = [
+        "service/api.py",
+        "service/orders.py",
+        "tests/test_orders.py",
+    ]
+    before_hashes = {rel_path: sha256_file(target / rel_path) for rel_path in tracked_paths}
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, give read-only review feedback on this proposal before implementation: "
+                            "change service/api.py paid coercion from bool(message.get(\"paid\", False)) "
+                            "to message.get(\"paid\") == True. Include correctness, maintainability, testability, "
+                            "system impact, alternatives, rejected preference claims, validation steps, and evidence refs."
+                        ),
+                    }
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["route_status"] == "ready"
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_engineering_judgment_review" in compact["artifacts"]
+    assert "Engineering Judgment:" in content
+    assert "Recommendation:" in content
+    assert "Do not apply the paid == True proposal" in content
+    assert "Tradeoffs:" in content
+    assert "Validation:" in content
+    assert "Unknowns:" in content
+    assert "Rejected claims" in content
+    assert "service/api.py:11" in content
+    assert "service/orders.py:4" in content
+    assert "Source mutation: false" in content
+    assert {rel_path: sha256_file(target / rel_path) for rel_path in tracked_paths} == before_hashes
+
+    decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    review = json.loads(Path(compact["artifacts"]["downstream_engineering_judgment_review"]).read_text(encoding="utf-8"))
+    assert any(item.get("rule") == "l2_engineering_judgment_terms" for item in decision["evidence"])
+    assert review["kind"] == "engineering_judgment_review"
+    assert review["status"] == "ready"
+    assert review["review_mode"] == "review_feedback"
+    assert review["mutation_policy"] == "read_only_no_source_mutation"
+    assert review["direct_assessment"]["decision"] == "reject_proposal_until_input_contract_and_tests_exist"
+    assert review["risks_and_blockers"]
+    assert review["validation_steps"]
+
+
+def test_workflow_router_chat_returns_inline_code_quality_review_without_mutation(tmp_path: Path) -> None:
+    target = make_python_service_fixture_repo(tmp_path)
+    tracked_paths = [
+        "service/api.py",
+        "service/orders.py",
+        "tests/test_orders.py",
+    ]
+    before_hashes = {rel_path: sha256_file(target / rel_path) for rel_path in tracked_paths}
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, self-review this proposed patch before implementation: "
+                            "in service/api.py, change `paid = bool(message.get(\"paid\", False))` "
+                            "to `paid = message.get(\"paid\") == True`. Read only. Identify correctness, "
+                            "maintainability, naming/style, and test risks with evidence refs and a recommendation."
+                        ),
+                    }
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["route_status"] == "ready"
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_code_quality_review" in compact["artifacts"]
+    assert "Code Quality Review:" in content
+    assert "CQ-PATCH-001" in content
+    assert "Recommendation: do_not_apply_without_contract_and_tests" in content
+    assert "service/api.py:11" in content
+    assert "service/orders.py:4" in content
+    assert "Rejected false positives" in content
+    assert "Source mutation: false" in content
+    assert {rel_path: sha256_file(target / rel_path) for rel_path in tracked_paths} == before_hashes
+
+    decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    review = json.loads(Path(compact["artifacts"]["downstream_code_quality_review"]).read_text(encoding="utf-8"))
+    assert any(item.get("rule") == "l2_code_quality_review_terms" for item in decision["evidence"])
+    assert review["kind"] == "code_quality_review"
+    assert review["status"] == "ready"
+    assert review["review_mode"] == "proposed_patch_self_review"
+    assert review["mutation_policy"] == "read_only_no_source_mutation"
+    assert review["findings"][0]["id"] == "CQ-PATCH-001"
+
+
+def test_workflow_router_chat_returns_no_finding_code_quality_review_without_mutation(tmp_path: Path) -> None:
+    target = make_python_service_fixture_repo(tmp_path)
+    tracked_paths = [
+        "service/api.py",
+        "service/orders.py",
+        "tests/test_orders.py",
+    ]
+    before_hashes = {rel_path: sha256_file(target / rel_path) for rel_path in tracked_paths}
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, review service/orders.py specifically for duplicated logic. "
+                            "Read only. Do not invent issues; if duplication is not supported, "
+                            "return no finding with evidence."
+                        ),
+                    }
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["route_status"] == "ready"
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_code_quality_review" in compact["artifacts"]
+    assert "Code Quality Review:" in content
+    assert "Findings: none supported" in content
+    assert "No meaningful duplication" in content
+    assert "Rejected false positives" in content
+    assert "service/orders.py:4" in content
+    assert "Source mutation: false" in content
+    assert {rel_path: sha256_file(target / rel_path) for rel_path in tracked_paths} == before_hashes
+
+    review = json.loads(Path(compact["artifacts"]["downstream_code_quality_review"]).read_text(encoding="utf-8"))
+    assert review["kind"] == "code_quality_review"
+    assert review["status"] == "no_supported_findings"
+    assert review["findings"] == []
+    assert review["mutation_policy"] == "read_only_no_source_mutation"
+    assert review["rejected_false_positives"]
 
 
 def test_workflow_router_execute_read_only_runs_l1_behavior_exists_without_mutation(tmp_path: Path) -> None:

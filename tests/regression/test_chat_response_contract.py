@@ -173,6 +173,80 @@ def response_with_code_explanation(tmp_path: Path) -> dict[str, Any]:
     }
 
 
+def response_with_code_quality_review(tmp_path: Path) -> dict[str, Any]:
+    route_decision_path = tmp_path / "route-decision.json"
+    review_path = tmp_path / "code-quality-review.json"
+    write_json(
+        route_decision_path,
+        {
+            "kind": "workflow_route_decision",
+            "selected_workflow": "code_investigation.plan",
+            "evidence": [{"source": "router_rule", "rule": "l2_code_quality_review_terms"}],
+        },
+    )
+    write_json(
+        review_path,
+        {
+            "kind": "code_quality_review",
+            "status": "ready",
+            "target": {"paths": ["core/stealth_order_manager.py"]},
+            "review_mode": "read_only",
+            "recommendation": "Keep the behavior unchanged until the lookup branch is verified by tests.",
+            "findings": [
+                {
+                    "id": "CQ-001",
+                    "severity": "medium",
+                    "category": "duplication",
+                    "title": "placed_order_id lookup has competing branches.",
+                    "evidence_refs": [{"path": "core/stealth_order_manager.py", "line": 120}],
+                    "impact": "Maintainers can update one branch and miss the other.",
+                    "bounded_remediation": "Consolidate the lookup after adding a characterization test.",
+                }
+            ],
+            "checklist": ["Correctness", "Maintainability", "Regression coverage"],
+            "source_refs": [{"path": "core/stealth_order_manager.py", "line": 120}],
+            "mutation_policy": "read_only_no_source_mutation",
+        },
+    )
+    return {
+        "run_id": "workflow-router-code-quality-test",
+        "workflow": "workflow_router.plan",
+        "status": "completed",
+        "summary": {"selected_workflow": "code_investigation.plan", "downstream_status": "completed"},
+        "artifacts": {
+            "route_decision": str(route_decision_path),
+            "downstream_code_quality_review": str(review_path),
+        },
+        "warning_count": 0,
+        "warnings": [],
+        "failure_count": 0,
+        "failures": [],
+    }
+
+
+def response_with_primary_summary_answer() -> dict[str, Any]:
+    return {
+        "run_id": "workflow-router-general-test",
+        "workflow": "workflow_router.plan",
+        "status": "completed",
+        "summary": {
+            "route_status": "general_chat_no_target",
+            "selected_workflow": "none",
+            "answer": (
+                "Hi. For coding workflow help, include an allowed target_root path and the task you want planned "
+                "or investigated."
+            ),
+            "next_action": "Include an allowed target_root path and a concrete coding task.",
+        },
+        "artifacts": {},
+        "warning_count": 0,
+        "warnings": [],
+        "failure_count": 0,
+        "failures": [],
+        "run_lookup": "/v1/controller/runs/workflow-router-general-test",
+    }
+
+
 def test_format_a_contract_renders_result_answer_before_artifacts(tmp_path: Path) -> None:
     markers = required_markers()
     content = assistant_content_for_controller_response(
@@ -199,6 +273,20 @@ def test_format_a_contract_renders_result_answer_before_artifacts(tmp_path: Path
     assert "- Skills: code-explanation-summarizer (code.explanation_summary)" in content
     assert content.index("Result:") < content.index("Skill Selection:") < content.index("Answer:") < content.index("Artifacts:")
     assert content.strip().splitlines()[0] != "Artifacts:"
+
+
+def test_format_a_summary_answer_renders_before_router_boilerplate() -> None:
+    content = assistant_content_for_controller_response(
+        response_with_primary_summary_answer(),
+        ControllerOutputFormat.FORMAT_A,
+    )
+    lines = content.splitlines()
+
+    assert lines[0] == "Answer:"
+    assert lines[1].startswith("Hi. For coding workflow help")
+    assert content.index("Answer:") < content.index("I completed workflow_router.plan.")
+    assert content.index("Answer:") < content.index("Result:")
+    assert "Run record: /v1/controller/runs/workflow-router-general-test" in content
 
 
 def test_format_a_behavior_start_prefers_investigation_plan_over_cli_lookup(tmp_path: Path) -> None:
@@ -290,6 +378,47 @@ def test_json_output_includes_same_chat_contract(tmp_path: Path) -> None:
     assert parsed["chat_contract"]["selection_explanation"]["confidence"] == "medium"
     assert parsed["chat_contract"]["selection_explanation"]["coverage_entry_ids"] == ["L1-002"]
     assert parsed["selection_explanation"]["skills"][0]["route_key"] == "code.explanation_summary"
+    inline_answer = parsed["inline_answer_contract"]
+    assert inline_answer["artifact_kind"] == "code_explanation"
+    assert inline_answer["artifact_key"] == "downstream_code_explanation"
+    assert inline_answer["heading"] == "Answer:"
+    assert "- Summary: Looks up a stealth order by placed order id." in inline_answer["lines"]
+    assert inline_answer["text"].startswith("Answer:\n- Target: find_stealth_order_by_placed_order_id")
+
+
+def test_json_output_includes_primary_summary_answer_contract() -> None:
+    rendered = assistant_content_for_controller_response(
+        response_with_primary_summary_answer(),
+        ControllerOutputFormat.JSON,
+    )
+    parsed = json.loads(rendered)
+
+    assert parsed["chat_contract"]["answer"].startswith("Hi. For coding workflow help")
+    assert parsed["chat_contract"]["selected_workflow"] == "none"
+    assert parsed["primary_answer_contract"] == {
+        "heading": "Answer:",
+        "kind": "primary_summary_answer_contract",
+        "route_status": "general_chat_no_target",
+        "selected_workflow": "none",
+        "source": "summary.answer",
+        "text": parsed["chat_contract"]["answer"],
+    }
+
+
+def test_json_output_inline_answer_contract_matches_format_a_body(tmp_path: Path) -> None:
+    response = response_with_code_quality_review(tmp_path)
+    format_a_content = assistant_content_for_controller_response(response, ControllerOutputFormat.FORMAT_A)
+    json_content = assistant_content_for_controller_response(response, ControllerOutputFormat.JSON)
+    parsed = json.loads(json_content)
+    inline_answer = parsed["inline_answer_contract"]
+
+    assert inline_answer["artifact_kind"] == "code_quality_review"
+    assert inline_answer["artifact_key"] == "downstream_code_quality_review"
+    assert inline_answer["heading"] == "Code Quality Review:"
+    assert inline_answer["source_mutation"] == "false"
+    assert "- Source mutation: false" in inline_answer["lines"]
+    assert "CQ-001 [medium/duplication]" in inline_answer["text"]
+    assert inline_answer["text"] in format_a_content
 
 
 def test_format_a_skill_lifecycle_audit_is_not_artifact_only(tmp_path: Path) -> None:

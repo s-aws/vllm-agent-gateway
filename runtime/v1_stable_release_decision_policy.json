@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "v1_stable_release_decision_policy",
+  "phase": 156,
+  "priority_backlog_id": "P0-BB-020",
+  "goal": "Make the final V1 stable founder-testing release decision from the current evidence chain.",
+  "allowed_decisions": [
+    "release_for_founder_testing",
+    "blocked"
+  ],
+  "required_reports": [
+    {
+      "id": "v1_product_readiness_review",
+      "path": "runtime-state/v1-product-readiness-review/phase155/phase155-v1-product-readiness-review-report.json",
+      "expected_kind": "v1_product_readiness_review_report",
+      "expected_status": "passed",
+      "expected_phase": 155,
+      "expected_recommendation": "go_for_founder_testing"
+    },
+    {
+      "id": "stable_chat_quality_release",
+      "path": "runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json",
+      "expected_kind": "stable_chat_quality_release_report",
+      "expected_status": "passed",
+      "expected_phase": 130,
+      "expected_readiness": "ready_for_founder_testing"
+    },
+    {
+      "id": "release_notes",
+      "path": "runtime-state/release-notes/phase146/phase146-release-notes-report.json",
+      "expected_kind": "release_notes_validation_report",
+      "expected_status": "passed",
+      "expected_phase": 146
+    },
+    {
+      "id": "stable_release_reset_rehearsal",
+      "path": "runtime-state/stable-release-reset-rehearsal/phase153/phase153-live-report.json",
+      "expected_kind": "stable_release_reset_rehearsal_report",
+      "expected_status": "passed",
+      "expected_phase": 153
+    },
+    {
+      "id": "model_swap_smoke_probe",
+      "path": "runtime-state/model-swap-smoke-probe/phase154/phase154-model-swap-smoke-probe-report.json",
+      "expected_kind": "model_swap_smoke_probe_report",
+      "expected_status": "passed",
+      "expected_phase": 154,
+      "expected_decision": "current_model_ready"
+    },
+    {
+      "id": "stable_proof",
+      "path": "runtime/release_proofs/v1-1-release-candidate-stable-proof.json",
+      "expected_kind": "v1_acceptance_report",
+      "expected_status": "passed",
+      "expected_profile": "v1.1-release-candidate"
+    }
+  ],
+  "required_docs": [
+    "README.getting-started.md",
+    "README.release-notes.md",
+    "README.productized-setup.md",
+    "README.stable-handoff.md",
+    "README.stable-release-reset-rehearsal.md",
+    "README.v1-product-readiness-review.md",
+    "README.v1-stable-release-decision.md"
+  ],
+  "release_scope": [
+    "local_founder_testing",
+    "anythingllm_workflow_router_path",
+    "current_localhost_model",
+    "two_frozen_coinbase_fixtures",
+    "format_a_and_json_output",
+    "read_only_l1_l2_and_narrow_draft_workflows"
+  ],
+  "release_limitations": [
+    "not_production_deployment",
+    "not_advanced_broad_refactor_orchestration",
+    "not_every_repository_language_or_coding_task",
+    "not_direct_mutation_of_protected_fixtures",
+    "not_unsupported_output_format_parity",
+    "not_automatic_model_selection"
+  ],
+  "required_final_markers": [
+    "go_for_founder_testing",
+    "ready_for_founder_testing",
+    "current_model_ready",
+    "Qwen3-Coder-30B-A3B-Instruct",
+    "http://127.0.0.1:8500/v1",
+    "runtime/release_proofs/v1-1-release-candidate-stable-proof.json",
+    "No approved incomplete phase remains"
+  ],
+  "rollback_path": "Use the stable handoff and stable reset rehearsal path: stop the gateway/proxies, start them again with start-agent-prompt-proxies.sh, rerun the first-time doctor and Phase 153 stable reset/start/recovery rehearsal, and preserve runtime-state as local-only evidence.",
+  "next_roadmap_batch": "No approved incomplete phase remains after Phase 156. New work requires a founder-approved roadmap batch that continues Priority 0 chat quality or directly supports current skills and tools."
+}

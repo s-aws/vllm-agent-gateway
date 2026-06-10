@@ -12,6 +12,9 @@ Use this handoff only for the current product surface: natural-language L1/L2 re
 - The activation report is a passed `v1_acceptance_report` with profile `v1.1-release-candidate`.
 - First-time testers still use AnythingLLM pointed at `http://127.0.0.1:8500/v1`.
 - The stable smoke command reruns setup, release-channel validation, security policy, one live onboarding prompt, feedback capture, and protected-fixture checks.
+- The latest Phase 170 refresh keeps the release at `release_for_founder_testing`.
+- The latest Phase 161 proposal gate reports `no_new_batch_justified`; the current field-test misses are prompt wording advisories, not new skill/tool implementation work.
+- The Phase 169 proposal pass records six product-gap candidates approved for Phases 171-176; they are not part of the stable tester path until those phases pass.
 
 Stable does not mean every coding-agent task is supported. It means the current documented tester path is ready for external use under the stated boundaries.
 
@@ -55,6 +58,35 @@ STABLE HANDOFF PASS
 ```
 
 The report lists the child setup, release-channel, security, and onboarding reports.
+
+## Field-Test Closeout
+
+Run this after stable smoke when preparing the founder handoff:
+
+```bash
+python3 scripts/validate_stable_release_refresh.py \
+  --policy-path runtime/stable_release_refresh_phase170_policy.json \
+  --run-refresh \
+  --execute-reset-start \
+  --execute-recovery \
+  --output-path runtime-state/stable-release-refresh/phase170/phase170-stable-release-refresh-report.json \
+  --markdown-output-path runtime-state/stable-release-refresh/phase170/phase170-stable-release-refresh-report.md
+python3 scripts/validate_skill_tool_gap_batch_proposal.py \
+  --output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.json \
+  --markdown-output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.md
+```
+
+Expected current decisions:
+
+```text
+ready_for_founder_testing
+release_for_founder_testing
+no_new_batch_justified
+```
+
+The Phase 170 report should also show `source_report_count=17`, `phase169_proposal_count=6`, `phase169_release_blocker_count=0`, and `validation_error_count=0`.
+
+If Phase 161 ever returns `propose_batch_for_founder_approval`, or a later failure-to-roadmap pass produces approved implementation candidates, stop founder handoff expansion and review the proposals before implementing anything.
 
 ## First Tester Prompt
 

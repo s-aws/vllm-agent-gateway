@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "kind": "prompt_tightening_recommendation_policy",
+  "policy_id": "phase128_prompt_tightening_recommendations_v1",
+  "phase": 128,
+  "priority_backlog_id": "P0-BB-013",
+  "description": "Governed recommendation policy for prompt-tightening suggestions. Suggestions are review records only; they do not rewrite prompt catalogs or count as repairs without approval and rerun proof.",
+  "low_confidence_maximum_route_score": 85,
+  "source_inputs": {
+    "baseline_corpus_path": "runtime/baseline_corpus.json",
+    "fresh_drift_report_path": "runtime-state/fresh-local-model-drift/phase127/phase127-fresh-local-model-drift-report.json"
+  },
+  "allowed_trigger_reasons": [
+    "baseline_failure",
+    "low_confidence_pass",
+    "fresh_drift_watch",
+    "fresh_drift_failed"
+  ],
+  "allowed_suggestion_classes": [
+    "evidence_request",
+    "output_contract",
+    "scope_boundary",
+    "safety_boundary",
+    "disambiguation",
+    "verification_request",
+    "prompt_specificity"
+  ],
+  "allowed_decision_statuses": [
+    "pending_review",
+    "accepted",
+    "rejected"
+  ],
+  "acceptance_policy": {
+    "prompt_catalog_rewrite_allowed": false,
+    "accepted_change_requires_approval": true,
+    "accepted_change_requires_target_rerun": true,
+    "accepted_change_requires_holdout_rerun": true,
+    "rejected_change_requires_rationale": true
+  }
+}

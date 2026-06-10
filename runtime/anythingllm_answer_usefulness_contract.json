@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "kind": "priority0_anythingllm_answer_usefulness_contract",
+  "contract_id": "priority0_anythingllm_answer_usefulness_v1",
+  "description": "Acceptance contract for Priority 0 AnythingLLM responses. Stable corpus entries must return useful answer content directly in chat before artifact links.",
+  "minimum_text_chars": 1200,
+  "minimum_line_count": 20,
+  "minimum_pre_artifact_line_count": 16,
+  "minimum_answer_section_chars": 600,
+  "minimum_answer_section_line_count": 6,
+  "maximum_pre_answer_line_count": 70,
+  "artifact_section_marker": "Artifacts:",
+  "required_global_markers": [
+    "I completed workflow_router.plan.",
+    "workflow_router.plan completed",
+    "run_id:",
+    "Result:",
+    "Skill Selection:",
+    "Summary:",
+    "Artifacts:",
+    "Run record:"
+  ],
+  "required_safety_markers": [
+    "Source mutation:"
+  ],
+  "entries": [
+    {
+      "entry_id": "phase116_code_quality",
+      "priority_backlog_id": "P0-BB-001",
+      "required_answer_markers": [
+        "Code Quality Review:",
+        "Source refs:",
+        "Source mutation:"
+      ],
+      "useful_detail_markers": [
+        "Findings:",
+        "Evidence:",
+        "Impact:",
+        "Bounded remediation:",
+        "Checklist:",
+        "Rejected false positives:"
+      ],
+      "minimum_useful_detail_markers": 2
+    },
+    {
+      "entry_id": "phase117_defect_diagnosis",
+      "priority_backlog_id": "P0-BB-002",
+      "accepted_answer_section_markers": [
+        "Defect Diagnosis:",
+        "Answer:"
+      ],
+      "required_answer_markers": [
+        "Source mutation:"
+      ],
+      "useful_detail_markers": [
+        "Observed failure:",
+        "Likely root cause:",
+        "Reproduction steps:",
+        "Smallest test:",
+        "Broader regression test:",
+        "Observability evidence:",
+        "Smallest command:",
+        "Medium command:",
+        "Broad command:",
+        "Rationale:",
+        "Covered risks:"
+      ],
+      "minimum_useful_detail_markers": 4
+    },
+    {
+      "entry_id": "phase118_engineering_judgment",
+      "priority_backlog_id": "P0-BB-003",
+      "required_answer_markers": [
+        "Engineering Judgment:",
+        "Recommendation:",
+        "Reason:",
+        "Source refs:",
+        "Source mutation:"
+      ],
+      "useful_detail_markers": [
+        "Alternatives:",
+        "Tradeoffs:",
+        "Risks/blockers:",
+        "Technical debt:",
+        "Validation:",
+        "Rejected claims:"
+      ],
+      "minimum_useful_detail_markers": 4
+    },
+    {
+      "entry_id": "phase119_delivery_mentorship",
+      "priority_backlog_id": "P0-BB-004",
+      "required_answer_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "Delivery sequence:",
+        "Testing strategy:",
+        "Debugging method:",
+        "Definition of done:",
+        "Stop conditions:",
+        "Source apply policy:",
+        "Source mutation:"
+      ],
+      "useful_detail_markers": [
+        "Risk controls:",
+        "Code quality practices:",
+        "Deployment readiness:",
+        "Mentorship notes:",
+        "Work packages:",
+        "Acceptance criteria:",
+        "Package verification:"
+      ],
+      "minimum_useful_detail_markers": 4
+    }
+  ]
+}

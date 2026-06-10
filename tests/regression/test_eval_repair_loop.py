@@ -412,6 +412,37 @@ def test_eval_repair_loop_allows_current_phase_tightening_after_target_and_holdo
     assert recommendation["holdout_result_status"] == "passed"
 
 
+def test_eval_repair_loop_preserves_current_phase_rerun_command_overrides(tmp_path: Path) -> None:
+    recursive = valid_recursive_report()
+    recursive["rounds"][0]["accepted_findings"] = [  # type: ignore[index]
+        {
+            "id": "F001",
+            "category": "output_contract_miss",
+            "severity": "medium",
+            "summary": "Current output contract fix has rerun proof from the L1 suite.",
+            "evidence_refs": ["visible-response.json"],
+            "owner": "chat_contract",
+            "action": "Tighten current chat output renderer.",
+            "validation_refs": ["python scripts/validate_workflow_router_l1_suite.py --case-id L1-001"],
+            "current_phase_tightening": True,
+            "target_prompt_case_id": "L1-001",
+            "holdout_prompt_case_id": "L1-002",
+            "target_rerun_command": "python scripts/validate_workflow_router_l1_suite.py --case-id L1-001",
+            "holdout_rerun_command": "python scripts/validate_workflow_router_l1_suite.py --case-id L1-002",
+            "target_result_status": "passed",
+            "holdout_result_status": "passed",
+        }
+    ]
+    recursive_path = write_json(tmp_path / "recursive.json", recursive)
+
+    report = run_report(tmp_path, recursive=recursive_path, target="L1-001", holdout="L1-002")
+    recommendation = report["recommendations"][0]  # type: ignore[index]
+
+    assert report["status"] == "passed"
+    assert recommendation["target_rerun_command"] == "python scripts/validate_workflow_router_l1_suite.py --case-id L1-001"
+    assert recommendation["holdout_rerun_command"] == "python scripts/validate_workflow_router_l1_suite.py --case-id L1-002"
+
+
 def test_eval_repair_loop_blocks_holdout_regression(tmp_path: Path) -> None:
     recursive = valid_recursive_report()
     recursive["rounds"][0]["accepted_findings"] = [  # type: ignore[index]

@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "kind": "phase118_engineering_judgment_prompt_cases",
+  "phase": 118,
+  "priority_backlog_id": "P0-BB-003",
+  "description": "Blind-baseline-first prompt cases for Phase 118 tradeoff, technical-debt, risk-communication, review-feedback, and architecture-decision chat quality.",
+  "acceptance_threshold": {
+    "minimum_score": 85,
+    "unresolved_critical_findings_allowed": 0,
+    "unresolved_high_findings_allowed": 0
+  },
+  "cases": [
+    {
+      "case_id": "EJ118-001",
+      "case_type": "approach_tradeoff",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, compare two approaches before implementation: A) keep find_stealth_order_by_placed_order_id as the authoritative lookup and rebuild _placed_order_index on load, or B) scan revealed_orders on every lookup. Read only. Include alternatives considered, rejected reasons, maintainability/testability tradeoffs, risks, validation steps, confidence, and source evidence. Do not edit files.",
+      "holdout": false,
+      "expected_scope": "approach_tradeoff_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "EJ118-002",
+      "case_type": "technical_debt_separation",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, identify technical debt and tradeoff in the reveal pricing policy handling before implementation. Read only. Separate debt remediation from feature delivery, explain why it is debt, cite source evidence, include rejected assumptions, validation steps, and confidence.",
+      "holdout": false,
+      "expected_scope": "technical_debt_ledger_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "EJ118-003",
+      "case_type": "risk_blocker_summary",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, assess risks and blockers for changing the order event stream fail-soft exception handling. Read only. Include confirmed evidence, inferred risks, unknowns, tradeoffs, do-not-proceed conditions, validation steps, confidence, and source refs.",
+      "holdout": false,
+      "expected_scope": "risk_blocker_summary_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "EJ118-004",
+      "case_type": "review_feedback",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, give review feedback on this proposal before implementation: change service/api.py paid coercion from bool(message.get(\"paid\", False)) to message.get(\"paid\") == True. Read only. Include correctness, maintainability, testability, system impact, alternatives, tradeoff, rejected preference claims, validation steps, confidence, and evidence refs.",
+      "holdout": false,
+      "expected_scope": "review_feedback_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "EJ118-005",
+      "case_type": "architecture_decision",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture, explain the architecture decision tradeoff between keeping the orders Repository interface and wiring handlers directly to MemoryRepository. Read only. Use engineering principles, alternatives, rejected reasons, maintainability/testability tradeoffs, risks, validation steps, confidence, and source evidence.",
+      "holdout": false,
+      "expected_scope": "architecture_decision_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "EJ118-006",
+      "case_type": "unsupported_preference_guard",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture, is hardcoding API_BASE_URL simpler than keeping the environment-variable default? Read only. Avoid unsupported preference claims; include evidence, unknowns, tradeoffs, recommendation, validation steps, confidence, and rejected assumptions.",
+      "holdout": false,
+      "expected_scope": "preference_guard_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "EJ118-007",
+      "case_type": "quick_patch_vs_debt",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, assess the tradeoff of a quick patch that removes the empty-order branch from resolve_order_status versus preserving the behavior and documenting any technical debt separately. Read only. Include recommendation, debt items, risks, validation tests, rejected alternatives, source evidence, and confidence.",
+      "holdout": false,
+      "expected_scope": "quick_patch_vs_debt_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "EJ118-008",
+      "case_type": "implementation_decision_reasoning",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain the tradeoff of whether move-plan chain-root handling should rely only on resolve_stealth_chain_root or keep a fallback branch. Read only. Use engineering principles rather than preference, cite evidence, include alternatives, risks, unknowns, validation steps, and confidence.",
+      "holdout": false,
+      "expected_scope": "implementation_decision_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "EJ118-009",
+      "case_type": "holdout_measurement_blocker",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture, should we optimize MemoryRepository locking for performance now? Read only. Include evidence, unknowns, whether to proceed, tradeoffs, validation measurements needed, risk, and confidence.",
+      "holdout": true,
+      "expected_scope": "measurement_blocker_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "EJ118-010",
+      "case_type": "holdout_missing_context",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture, should the CLI add retry and backoff around API_BASE_URL usage? Read only. Identify missing context, unknowns, evidence-backed tradeoffs, do-not-proceed conditions, risks, validation steps, and confidence without inventing runtime requirements.",
+      "holdout": true,
+      "expected_scope": "missing_context_decision_without_apply",
+      "expected_safety": "read_only_no_source_mutation"
+    }
+  ],
+  "baseline_requirements": [
+    "selected_workflow_expectation",
+    "must_have_facts",
+    "evidence_expectations",
+    "safety_boundaries",
+    "output_shape",
+    "scoring_rubric",
+    "likely_failure_modes",
+    "holdout_prompt_categories"
+  ]
+}

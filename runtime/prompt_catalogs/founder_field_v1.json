@@ -335,6 +335,11 @@
       "case_id": "P08",
       "change_history": [
         {
+          "date": "2026-06-10",
+          "summary": "Promoted the refined handler-branch prompt to the request-flow artifact and handler-branch skill expectation after Phase 171 evidence repair.",
+          "version": "1.0.1"
+        },
+        {
           "date": "2026-06-06",
           "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
           "version": "1.0.0"
@@ -362,7 +367,27 @@
       "miss_suggestion": "Ask for handler file, source refs, and related tests.",
       "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find the dashboard handler for request_stealth_orders. Read only. Return the handler file, related source refs, and related tests.",
       "prompt_risk": "Handler prompts can stop at a UI sender unless the handler branch is named.",
+      "refined_expected_artifact_key": "downstream_request_flow_map",
+      "refined_expected_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Answer:",
+        "Target: request_stealth_orders",
+        "Handler files:",
+        "Source refs:",
+        "Related tests:",
+        "dashboard_server.py"
+      ],
+      "refined_expected_rule": "l2_request_flow_map_terms",
+      "refined_expected_skill_id": "handler-branch-tracer",
       "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, follow the request_stealth_orders handler branch through the snapshot function. Read only. Return handler file, source refs, and related tests.",
+      "refined_semantic_markers": [
+        "Target: request_stealth_orders",
+        "Handler files:",
+        "send_stealth_orders_snapshot",
+        "Source refs:",
+        "Source mutation: false",
+        "dashboard_server.py"
+      ],
       "semantic_markers": [
         "Target: request_stealth_orders",
         "Handler files:",
@@ -954,21 +979,29 @@
       "case_id": "P21",
       "change_history": [
         {
+          "date": "2026-06-10",
+          "summary": "Promoted P21 to require the change-surface artifact plus explicit files-to-touch and files-not-to-touch chat markers after Phase 172 repair.",
+          "version": "1.0.1"
+        },
+        {
           "date": "2026-06-06",
           "summary": "Migrated existing founder field prompt case into governed prompt catalog fixture.",
           "version": "1.0.0"
         }
       ],
-      "expected_artifact_key": "",
+      "expected_artifact_key": "downstream_change_surface_summary",
       "expected_markers": [
         "selected_workflow: code_investigation.plan",
         "Answer:",
         "Change surface files:",
+        "Files to touch:",
+        "Files not to touch:",
         "Risk level:",
-        "Implementation status: not_ready_without_approval"
+        "Implementation status: not_ready_without_approval",
+        "Source mutation: false"
       ],
       "expected_rule": "l2_change_surface_summary_terms",
-      "expected_skill_id": "",
+      "expected_skill_id": "change-boundary-summarizer",
       "expected_workflow": "code_investigation.plan",
       "forbidden_markers": [
         "Source mutation: true",
@@ -984,8 +1017,11 @@
       "refined_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify files to touch and files not to touch for a minimal safe placed_order_id stealth lookup change. Read only and stop before implementation.",
       "semantic_markers": [
         "Change surface files:",
+        "Files to touch:",
+        "Files not to touch:",
         "Risk level:",
-        "Implementation status: not_ready_without_approval"
+        "Implementation status: not_ready_without_approval",
+        "Source mutation: false"
       ],
       "tags": [
         "founder-field",

@@ -1,0 +1,395 @@
+{
+  "schema_version": 1,
+  "kind": "phase116_code_quality_blind_baselines",
+  "phase": 116,
+  "priority_backlog_id": "P0-BB-001",
+  "source_prompt_cases": "runtime/phase116_code_quality_prompt_cases.json",
+  "baseline_policy": {
+    "blind_agent_context": "contextless",
+    "local_model_output_seen": false,
+    "source_mutation_allowed": false
+  },
+  "baselines": [
+    {
+      "case_id": "CQ116-001",
+      "ideal_answer_shape": "Read-only bounded review of core/stealth_order_manager.py with at most three findings, each including severity, evidence refs, impact, bounded remediation, and rejected false positives.",
+      "must_have_facts": [
+        "_placed_order_index is initialized and used for O(1) placed-order lookup.",
+        "DB load paths parse revealed_orders without visibly rebuilding _placed_order_index.",
+        "Reveal-event append/index/update logic appears in normal reveal, anchor reprice, and stealth move paths.",
+        "Condition/reveal state resets are manually repeated in several paths."
+      ],
+      "evidence_expectations": [
+        "core/stealth_order_manager.py:235",
+        "core/stealth_order_manager.py:4169",
+        "core/stealth_order_manager.py:1116",
+        "core/stealth_order_manager.py:1591",
+        "core/stealth_order_manager.py:3761",
+        "core/stealth_order_manager.py:3784",
+        "core/stealth_order_manager.py:4789",
+        "core/stealth_order_manager.py:4869",
+        "core/stealth_order_manager.py:1992",
+        "core/stealth_order_manager.py:2073",
+        "core/stealth_order_manager.py:4385",
+        "core/stealth_order_manager.py:4891"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No source mutation.",
+        "No broad refactor.",
+        "No runtime behavior claim without tests."
+      ],
+      "scoring_rubric_100": {
+        "evidence_backed_findings": 30,
+        "restart_index_risk": 20,
+        "duplicated_reveal_event_or_state_handling": 20,
+        "bounded_remediation": 10,
+        "rejected_false_positives": 10,
+        "read_only_scope": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Generic large-file complexity review.",
+        "Misses DB-load index gap.",
+        "Proposes broad lifecycle rewrite.",
+        "No line refs.",
+        "Flags resolve_stealth_chain_root as duplication instead of an anti-duplication guard."
+      ],
+      "prompt_tightening_suggestion": "Inspect _placed_order_index, DB load paths, and reveal-event append/update sites; return at most three findings and at least one rejected false positive."
+    },
+    {
+      "case_id": "CQ116-002",
+      "ideal_answer_shape": "Evidence-backed maintainability review of business/order_event_stream.py that distinguishes real broad-exception or complexity risks from intentional optional-integration tolerance.",
+      "must_have_facts": [
+        "_build_fee_manager_audit_context catches TypeError and retries a no-arg provider, which can mask provider bugs.",
+        "_initialize_table catches any exception and disables the integration.",
+        "publish_event catches any exception and returns False; hook callers generally ignore that return.",
+        "_stealth_lifecycle_hook has multiple side effects and broad catches, some defensible because audit hooks should not crash order flow."
+      ],
+      "evidence_expectations": [
+        "business/order_event_stream.py:49",
+        "business/order_event_stream.py:73",
+        "business/order_event_stream.py:97",
+        "business/order_event_stream.py:139",
+        "business/order_event_stream.py:366",
+        "business/order_event_stream.py:396",
+        "business/order_event_stream.py:404",
+        "business/order_event_stream.py:422",
+        "business/order_event_stream.py:436"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "Do not demand removing all broad catches.",
+        "Do not invent failures beyond maintainability and observability risk."
+      ],
+      "scoring_rubric_100": {
+        "nuanced_broad_exception_analysis": 25,
+        "complexity_or_side_effect_finding": 20,
+        "concrete_line_evidence": 20,
+        "bounded_remediation": 15,
+        "rejected_false_positives": 10,
+        "no_unsupported_claims": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Treats every except Exception as equally bad.",
+        "Misses TypeError masking risk.",
+        "Fails to note optional hook context.",
+        "Recommends exception propagation that could break lifecycle hooks."
+      ],
+      "prompt_tightening_suggestion": "Differentiate intentional fail-soft hook behavior from exception handling that hides actionable defects."
+    },
+    {
+      "case_id": "CQ116-003",
+      "ideal_answer_shape": "Short read-only review of service/orders.py that explicitly returns no supported findings if no meaningful issue is supported.",
+      "must_have_facts": [
+        "resolve_order_status is small, keyword-only, and has clear branches for empty, paid, and awaiting payment.",
+        "build_order_snapshot is small, clearly named, copies items, and has a clean boundary.",
+        "No meaningful duplication, naming, or boundary issue is supported by this file alone."
+      ],
+      "evidence_expectations": [
+        "service/orders.py:4",
+        "service/orders.py:12"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "No invented issue just to satisfy the review prompt.",
+        "No fixture mutation."
+      ],
+      "scoring_rubric_100": {
+        "correct_no_supported_finding": 35,
+        "line_evidence": 25,
+        "names_and_boundaries_assessed": 15,
+        "avoids_speculative_standards_complaints": 15,
+        "read_only_compliance": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Invents a naming problem.",
+        "Over-flags string statuses without repo evidence.",
+        "Recommends unnecessary abstractions for a small fixture."
+      ],
+      "prompt_tightening_suggestion": "Do not force a finding; no supported findings is acceptable if backed by line evidence."
+    },
+    {
+      "case_id": "CQ116-004",
+      "ideal_answer_shape": "Two-file coupling review with likely one low-severity boundary/coercion concern plus rejected false positives.",
+      "must_have_facts": [
+        "api.py imports pure order helpers.",
+        "orders.py does not depend on API or request objects, so there is no circular or bidirectional coupling.",
+        "Supported concern: handle_create_order performs request parsing/coercion and defines paid/item semantics before calling business logic."
+      ],
+      "evidence_expectations": [
+        "service/api.py:3",
+        "service/api.py:6",
+        "service/api.py:10",
+        "service/api.py:11",
+        "service/api.py:12",
+        "service/orders.py:4",
+        "service/orders.py:12"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "Do not flag the one-way import alone as tight coupling.",
+        "No broad service redesign."
+      ],
+      "scoring_rubric_100": {
+        "rejects_overbroad_coupling_claim": 30,
+        "identifies_boundary_or_coercion_risk": 25,
+        "evidence_refs": 20,
+        "bounded_remediation": 15,
+        "safety": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Calls any API-to-service import tight coupling.",
+        "Misses boolean coercion boundary.",
+        "Recommends moving request handling into orders.py."
+      ],
+      "prompt_tightening_suggestion": "Separate tight coupling from boundary validation/coercion; do not treat a one-way call to a pure helper as a finding by itself."
+    },
+    {
+      "case_id": "CQ116-005",
+      "ideal_answer_shape": "Proposed-patch self-review with current-versus-proposed behavior comparison and a clear reject or qualify recommendation.",
+      "must_have_facts": [
+        "Current code uses bool(message.get(\"paid\", False)).",
+        "Proposed message.get(\"paid\") == True is less idiomatic.",
+        "The proposal changes semantics for strings like \"true\" or \"false\" but not for 1 == True.",
+        "resolve_order_status expects paid: bool, so the right fix depends on whether strict boolean input is required."
+      ],
+      "evidence_expectations": [
+        "service/api.py:11",
+        "service/api.py:12",
+        "service/orders.py:4",
+        "service/orders.py:7"
+      ],
+      "safety_boundaries": [
+        "Read-only patch review.",
+        "Do not apply the change.",
+        "Do not recommend without tests."
+      ],
+      "scoring_rubric_100": {
+        "behavior_comparison": 30,
+        "style_and_maintainability_risk": 20,
+        "test_risks_and_cases": 20,
+        "clear_recommendation": 15,
+        "evidence_refs": 10,
+        "read_only_compliance": 5
+      },
+      "likely_local_model_failure_modes": [
+        "Says there is no behavior change.",
+        "Claims == True is strict boolean while missing 1 == True.",
+        "Accepts the patch without clarifying input contract.",
+        "Omits tests for missing, False, True, 1, and string values."
+      ],
+      "prompt_tightening_suggestion": "Explicitly compare current versus proposed behavior for missing, False, True, 1, and 'false', then give an accept/reject recommendation."
+    },
+    {
+      "case_id": "CQ116-006",
+      "ideal_answer_shape": "No-findings duplication review with scope, evidence refs, rejected false positives, and no remediation patch.",
+      "must_have_facts": [
+        "service/orders.py has two small distinct functions.",
+        "resolve_order_status branches once on empty/paid state.",
+        "build_order_snapshot formats a snapshot.",
+        "No duplicated logic is supported."
+      ],
+      "evidence_expectations": [
+        "service/orders.py:4",
+        "service/orders.py:12",
+        "tests/test_orders.py:9",
+        "tests/test_orders.py:13"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "Do not suggest or apply refactors.",
+        "Do not expand into naming or enum review."
+      ],
+      "scoring_rubric_100": {
+        "correct_no_finding": 30,
+        "evidence_refs": 25,
+        "false_positive_discipline": 20,
+        "scope_and_safety": 15,
+        "concise_output": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Invents duplication from repeated status strings.",
+        "Recommends enums despite prompt scope.",
+        "Reviews api.py instead of bounded file."
+      ],
+      "prompt_tightening_suggestion": "Return findings: [] unless repeated control-flow or data-shaping logic is directly evidenced in service/orders.py."
+    },
+    {
+      "case_id": "CQ116-007",
+      "ideal_answer_shape": "Standards findings with severity, evidence, impact, bounded remediation, and rejected assumptions.",
+      "must_have_facts": [
+        "Raw RevealPricingPolicy strings appear in normalization or price resolution despite enum members in core/enums.py.",
+        "Raw default \"configured_limit\" is persisted in create_stealth_order or follow-up creation.",
+        "Raw restart status literals appear in load_all_active_orders_from_db.",
+        "build_stealth_move_plan fallback re-open-codes chain-root resolution after resolve_stealth_chain_root."
+      ],
+      "evidence_expectations": [
+        "core/stealth_order_manager.py:379",
+        "core/stealth_order_manager.py:382",
+        "core/stealth_order_manager.py:439",
+        "core/stealth_order_manager.py:453",
+        "core/stealth_order_manager.py:2905",
+        "core/stealth_order_manager.py:4476",
+        "core/stealth_order_manager.py:4858",
+        "core/stealth_order_manager.py:4891",
+        "core/stealth_order_manager.py:1315",
+        "core/enums.py:43",
+        "core/enums.py:250",
+        "tests/regression/test_flat_hierarchy_stealth_placement.py:73"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "Do not flag serialized dict keys or DB column names as magic strings.",
+        "Do not claim broad rewrite is needed.",
+        "Keep recommendations inside existing enum/helper paths."
+      ],
+      "scoring_rubric_100": {
+        "true_findings": 30,
+        "exact_refs": 25,
+        "impact_and_remediation": 20,
+        "rejected_assumptions": 15,
+        "read_only_scope": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Flags every string literal.",
+        "Misses resolver fallback.",
+        "Ignores existing enums.",
+        "Recommends a parallel abstraction."
+      ],
+      "prompt_tightening_suggestion": "Treat schema keys and log labels as allowed unless they duplicate enum-governed behavior."
+    },
+    {
+      "case_id": "CQ116-008",
+      "ideal_answer_shape": "Self-review checklist, not findings: scope confirmation, evidence refs to inspect, coding standards, tests, risks, and explicit non-goals.",
+      "must_have_facts": [
+        "No literal requirement note or lookup answer appears in inspected Coinbase source.",
+        "Checklist must require locating the actual answer-rendering surface before implementation.",
+        "Lookup evidence should cover _get_stealth_order, _placed_order_index, find_stealth_order_by_placed_order_id, and client-order-id versus exchange-order-id tests."
+      ],
+      "evidence_expectations": [
+        "core/stealth_order_manager.py:235",
+        "core/stealth_order_manager.py:4035",
+        "core/stealth_order_manager.py:4169",
+        "core/stealth_order_manager.py:3783",
+        "tests/unit/test_order_id_and_followup_rules.py:8",
+        "tests/regression/test_order_id_regression.py:59",
+        "tests/integration/test_order_engine_id_workflow.py:41",
+        "core/exceptions.py:164"
+      ],
+      "safety_boundaries": [
+        "Read-only checklist only.",
+        "No source edits.",
+        "No new lookup path.",
+        "Preserve client_order_id semantics and flat hierarchy.",
+        "Do not parse audit notes as a new contract."
+      ],
+      "scoring_rubric_100": {
+        "checklist_completeness": 25,
+        "evidence_refs": 25,
+        "standards_and_tests": 20,
+        "risks_and_non_goals": 15,
+        "avoids_invented_implementation_point": 15
+      },
+      "likely_local_model_failure_modes": [
+        "Pretends it found requirement note.",
+        "Proposes code changes.",
+        "Omits tests.",
+        "Confuses exchange order id with client order id."
+      ],
+      "prompt_tightening_suggestion": "Say explicitly that the implementation point is unknown unless found, and require refs for the lookup surface plus tests."
+    },
+    {
+      "case_id": "CQ116-009",
+      "ideal_answer_shape": "At most three findings, with explicit insufficient evidence where no duplication is supported.",
+      "must_have_facts": [
+        "The non-.github stealth file is identical to the .github copy for this review.",
+        "_get_stealth_order is the canonical stealth-id memory/DB lookup.",
+        "find_stealth_order_by_placed_order_id is the O(1) placement lookup.",
+        "Ordinary callers are not duplication.",
+        "One supported concern is build_stealth_move_plan fallback reimplementing chain-root resolution after the canonical resolver raises."
+      ],
+      "evidence_expectations": [
+        "core/stealth_order_manager.py:147",
+        "core/stealth_order_manager.py:173",
+        "core/stealth_order_manager.py:1315",
+        "core/stealth_order_manager.py:4035",
+        "core/stealth_order_manager.py:4169",
+        "tests/regression/test_flat_hierarchy_stealth_placement.py:73"
+      ],
+      "safety_boundaries": [
+        "Read-only.",
+        "Maximum three findings.",
+        "No broad refactor advice.",
+        "Say evidence is insufficient for additional duplicated lookup findings."
+      ],
+      "scoring_rubric_100": {
+        "bounded_findings": 30,
+        "distinguishes_callers_from_duplicates": 25,
+        "refs": 20,
+        "insufficient_evidence_statement": 15,
+        "safety": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Reports every _get_stealth_order call as duplication.",
+        "Exceeds three findings.",
+        "Drifts into enum or magic-string review."
+      ],
+      "prompt_tightening_suggestion": "Do not count calls to the canonical lookup helper as duplicated logic."
+    },
+    {
+      "case_id": "CQ116-010",
+      "ideal_answer_shape": "Patch self-review with recommendation, before/after behavior, correctness, edge-case, test, and maintainability risks.",
+      "must_have_facts": [
+        "Removing the empty-order branch changes empty paid orders from empty to ready_to_fulfill.",
+        "Removing the branch changes empty unpaid orders to awaiting_payment.",
+        "handle_create_order passes len(items), and missing items defaults to an empty list.",
+        "Existing tests expect a paid empty order to return empty."
+      ],
+      "evidence_expectations": [
+        "service/orders.py:4",
+        "service/api.py:10",
+        "service/api.py:12",
+        "tests/test_orders.py:13"
+      ],
+      "safety_boundaries": [
+        "Read-only patch review.",
+        "Recommend against applying unless product requirements change.",
+        "Do not mutate tests or source."
+      ],
+      "scoring_rubric_100": {
+        "correctness_and_edge_case_analysis": 30,
+        "test_impact": 25,
+        "evidence_refs": 20,
+        "recommendation": 15,
+        "safety_and_conciseness": 10
+      },
+      "likely_local_model_failure_modes": [
+        "Says patch is harmless.",
+        "Only comments on == True style.",
+        "Misses default empty items path.",
+        "Applies or rewrites code."
+      ],
+      "prompt_tightening_suggestion": "Require a before/after truth table for paid x item_count and a final apply/do-not-apply recommendation."
+    }
+  ]
+}

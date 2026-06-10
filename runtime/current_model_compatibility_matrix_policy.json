@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "kind": "current_model_compatibility_matrix_policy",
+  "phase": 150,
+  "priority_backlog_id": "P0-BB-020",
+  "policy_version": "1.0.0",
+  "purpose": "Summarize current localhost model compatibility from existing deterministic evidence without expanding the supported product surface.",
+  "current_model": {
+    "candidate_id": "localhost-8000-phase100-current",
+    "candidate_model_base_url": "http://127.0.0.1:8000/v1",
+    "expected_model_ids": [
+      "Qwen3-Coder-30B-A3B-Instruct"
+    ]
+  },
+  "status_values": [
+    "supported",
+    "conditional",
+    "monitored",
+    "not_governed",
+    "not_approved",
+    "blocked"
+  ],
+  "governed_output_formats": [
+    "format_a",
+    "json"
+  ],
+  "not_governed_output_formats": [
+    "xml",
+    "yaml",
+    "csv",
+    "freeform_custom_schema"
+  ],
+  "required_task_policies": {
+    "read_only_l1": "approved",
+    "draft_only_l1": "approved",
+    "approval_gated_l1": "conditional",
+    "l2_read_only": "approved",
+    "apply_prep": "conditional",
+    "real_apply": "not_approved",
+    "automatic_model_selection": "not_approved"
+  },
+  "source_artifacts": [
+    {
+      "id": "model_capability_profile",
+      "type": "model_profile",
+      "path": "runtime-state/model-capability-profiles/phase100-current-profile.json",
+      "required": true,
+      "expected_kind": "model_capability_profile",
+      "allowed_statuses": [
+        "passed",
+        "warning"
+      ]
+    },
+    {
+      "id": "model_capability_routing_policy",
+      "type": "routing_policy",
+      "path": "runtime/model_capability_routing.json",
+      "required": true,
+      "expected_kind": "model_capability_routing_policy",
+      "allowed_statuses": [
+        null
+      ]
+    },
+    {
+      "id": "prompt_skill_coverage",
+      "type": "prompt_skill_coverage",
+      "path": "runtime/prompt_skill_coverage.json",
+      "required": true,
+      "expected_kind": "prompt_skill_coverage_registry",
+      "allowed_statuses": [
+        null
+      ]
+    },
+    {
+      "id": "founder_test_prompt_pack",
+      "type": "founder_prompt_pack",
+      "path": "runtime-state/founder-test-prompt-pack/phase137/phase137-founder-test-prompt-pack.json",
+      "required": true,
+      "expected_kind": "founder_test_prompt_pack_validation",
+      "allowed_statuses": [
+        "passed"
+      ],
+      "expected_phase": 137
+    },
+    {
+      "id": "fresh_local_model_drift",
+      "type": "fresh_local_model_drift",
+      "path": "runtime-state/fresh-local-model-drift/phase127/phase127-fresh-local-model-drift-report.json",
+      "required": true,
+      "expected_kind": "fresh_local_model_drift_report",
+      "allowed_statuses": [
+        "passed"
+      ],
+      "expected_phase": 127
+    },
+    {
+      "id": "output_format_parity",
+      "type": "output_format_parity",
+      "path": "runtime-state/output-format-parity/phase124-output-format-parity-live.json",
+      "required": true,
+      "expected_kind": "output_format_parity_live_report",
+      "allowed_statuses": [
+        "passed"
+      ]
+    },
+    {
+      "id": "natural_output_format_preference",
+      "type": "natural_output_format_preference",
+      "path": "runtime-state/natural-output-format-preference/phase144/phase144-natural-output-format-preference-live.json",
+      "required": true,
+      "expected_kind": "natural_output_format_preference_live_report",
+      "allowed_statuses": [
+        "passed"
+      ],
+      "expected_phase": 144
+    },
+    {
+      "id": "local_model_regression_watchlist",
+      "type": "watchlist_catalog",
+      "path": "runtime/local_model_regression_watchlist.json",
+      "required": true
+    },
+    {
+      "id": "local_model_regression_watchlist_report",
+      "type": "watchlist_report",
+      "path": "runtime-state/local-model-regression-watchlist/phase139/phase139-local-model-regression-watchlist-report.json",
+      "required": true,
+      "expected_kind": "local_model_regression_watchlist_report",
+      "allowed_statuses": [
+        "passed"
+      ],
+      "expected_phase": 139
+    },
+    {
+      "id": "contextless_audit_scorecard",
+      "type": "contextless_scorecard",
+      "path": "runtime-state/contextless-audit-scorecard/phase149/phase149-contextless-audit-scorecard-report.json",
+      "required": true,
+      "expected_kind": "contextless_audit_scorecard_report",
+      "allowed_statuses": [
+        "passed"
+      ],
+      "expected_phase": 149
+    }
+  ]
+}

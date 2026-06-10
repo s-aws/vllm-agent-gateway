@@ -1,8 +1,10 @@
 # Eval Repair Loop
 
-Eval repair loop reporting turns failed validation artifacts into Phase 104 repair recommendations.
+Eval repair loop reporting turns failed validation artifacts into repair recommendations and, for accepted current-phase fixes, proves the target and holdout reruns passed.
 
-It is read-only. It does not call the model, controller, gateway, AnythingLLM, or target repositories, and it does not mutate prompt catalogs, workflow rules, skill metadata, tool catalogs, or fixtures.
+The advisory report command is read-only. It does not call the model, controller, gateway, AnythingLLM, or target repositories, and it does not mutate prompt catalogs, workflow rules, skill metadata, tool catalogs, or fixtures.
+
+The closed-loop execution gate does call the Bash-hosted workflow-router gateway, AnythingLLM, and setup doctor. It still must not mutate protected fixtures.
 
 ## When To Use It
 
@@ -16,6 +18,14 @@ The report answers:
 - what the smallest likely repair is
 - what command should validate the repair
 - which target prompt and holdout prompt must be rerun for accepted current-phase tightening
+
+The closed-loop gate additionally answers:
+
+- whether a failed target case was captured before repair
+- whether the accepted repair packet is narrow enough to implement
+- whether target and holdout reruns pass through gateway and AnythingLLM
+- whether broad explanations were rejected with evidence
+- whether protected fixtures stayed unchanged during validation
 
 ## Repair Categories
 
@@ -56,6 +66,24 @@ python scripts/report_eval_repair_loop.py \
   --holdout-prompt-case-id P02
 ```
 
+## Closed-Loop Execution Gate
+
+Phase 111 adds an executable gate for accepted current-phase repairs:
+
+```bash
+cd /mnt/c/agentic_agents
+export WSLENV=ANYTHINGLLM_API_KEY/u
+python3 scripts/validate_closed_loop_eval_repair.py \
+  --execute-live \
+  --include-port-health \
+  --timeout-seconds 900 \
+  --output-path runtime-state/eval-repair-loop/phase111-live-closed-loop-final.json
+```
+
+This gate currently proves the Phase 106/107 `L1-001` visible-answer artifact-priority repair with `L1-002` as the holdout. It writes a controlled pre-repair failure record, taxonomy report, advisory repair report, accepted repair packet, deterministic adjudication report, final eval-repair report, and Markdown summary under `runtime-state/eval-repair-loop/`.
+
+Without `--execute-live`, the gate fails closed with `target_result_status=not_run_required` and `holdout_result_status=not_run_required`.
+
 ## Output
 
 Reports are written under:
@@ -83,6 +111,17 @@ Each recommendation includes:
 - `fixture_mutation_guard`
 - `accepted_repair_status`
 
+Closed-loop execution reports include:
+
+- `before_failure_capture`
+- `failure_taxonomy`
+- `advisory_eval_repair`
+- `repair_packet`
+- `execution`
+- `deterministic_adjudication`
+- `final_eval_repair_report`
+- `protected_fixture_mutation`
+
 ## Pass And Fail Rules
 
 A report cannot pass when:
@@ -98,6 +137,8 @@ A report cannot pass when:
 - the recursive score is below the policy threshold
 - protected fixture mutation is detected
 - non-current-phase recommendations are marked actionable instead of advisory
+- the closed-loop gate is run without live target and holdout proof
+- the closed-loop gate cannot prove target, holdout, and required port-health checks passed
 
 ## Safety
 
@@ -110,7 +151,7 @@ Fixture mutation is a hard stop, not a repair suggestion.
 Focused regression:
 
 ```bash
-python -m pytest tests/regression/test_eval_repair_loop.py tests/regression/test_failure_taxonomy.py tests/regression/test_recursive_blind_testing.py -q
+python -m pytest tests/regression/test_eval_repair_loop.py tests/regression/test_eval_repair_execution_gate.py tests/regression/test_failure_taxonomy.py tests/regression/test_recursive_blind_testing.py -q
 ```
 
 All non-agent code changes still require:

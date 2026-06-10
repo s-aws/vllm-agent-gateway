@@ -254,6 +254,99 @@ def feedback_classifications(feedback: dict[str, Any]) -> list[str]:
     return classifications
 
 
+def feedback_text(feedback: dict[str, Any]) -> str:
+    parts: list[str] = []
+    for value in feedback.values():
+        if isinstance(value, str):
+            parts.append(value)
+        elif isinstance(value, list):
+            parts.extend(item for item in value if isinstance(item, str))
+    return "\n".join(parts).lower()
+
+
+def feedback_governance_decision(
+    classifications: list[str],
+    context: dict[str, Any],
+    feedback: dict[str, Any],
+) -> dict[str, Any]:
+    normalized = [item for item in classifications if isinstance(item, str)]
+    text = feedback_text(feedback)
+    prompt_case_id = context.get("prompt_case") if isinstance(context.get("prompt_case"), str) else None
+    target_run_id = context.get("target_run_id") if isinstance(context.get("target_run_id"), str) else None
+    target_workflow = context.get("selected_workflow") or context.get("target_workflow")
+    base = {
+        "kind": "manual_triage_required",
+        "decision_status": "blocked",
+        "gap_class": "none",
+        "target_run_id": target_run_id,
+        "feedback_run_id": None,
+        "target_workflow": target_workflow,
+        "prompt_case_id": prompt_case_id,
+        "mutation_policy": "controller_artifacts_only",
+        "validation_result": {
+            "status": "failed",
+            "reason": "feedback classifications did not map to a governed decision",
+        },
+    }
+    if "unsafe" in normalized:
+        return {
+            **base,
+            "kind": "repair_followup",
+            "decision_status": "accepted",
+            "gap_class": "safety_boundary",
+            "validation_result": {"status": "recorded_pending_eval", "required_gate": "safety_boundary_review"},
+        }
+    if "wrong" in normalized:
+        return {
+            **base,
+            "kind": "repair_followup",
+            "decision_status": "accepted",
+            "gap_class": "model_capability",
+            "validation_result": {"status": "recorded_pending_eval", "required_gate": "eval_repair_loop"},
+        }
+    if "missing" in normalized:
+        if "holdout" in text:
+            return {
+                **base,
+                "kind": "holdout_prompt_candidate",
+                "decision_status": "accepted",
+                "gap_class": "test_coverage",
+                "validation_result": {"status": "recorded_pending_eval", "required_gate": "holdout_prompt_bank"},
+            }
+        return {
+            **base,
+            "kind": "baseline_prompt_candidate",
+            "decision_status": "accepted",
+            "gap_class": "deterministic_formatter",
+            "validation_result": {"status": "recorded_pending_eval", "required_gate": "baseline_corpus"},
+        }
+    if "confusing" in normalized or "noisy" in normalized:
+        return {
+            **base,
+            "kind": "repair_followup",
+            "decision_status": "accepted",
+            "gap_class": "deterministic_formatter",
+            "validation_result": {"status": "recorded_pending_eval", "required_gate": "answer_usefulness"},
+        }
+    if "slow" in normalized:
+        return {
+            **base,
+            "kind": "repair_followup",
+            "decision_status": "accepted",
+            "gap_class": "model_capability",
+            "validation_result": {"status": "recorded_pending_eval", "required_gate": "drift_gate"},
+        }
+    if "useful" in normalized:
+        return {
+            **base,
+            "kind": "rejected_finding",
+            "decision_status": "rejected",
+            "gap_class": "none",
+            "validation_result": {"status": "passed", "reason": "useful-only feedback does not create repair work"},
+        }
+    return base
+
+
 def safe_json_artifact(path_value: Any, output_root: Path) -> dict[str, Any] | None:
     if not isinstance(path_value, str) or not path_value.strip():
         return None
@@ -413,6 +506,8 @@ def invoke_workflow_feedback_record(request: WorkflowFeedbackRecordRequest) -> I
         target_root=target_root,
     )
     next_action = feedback_next_action(classifications, context)
+    governed_decision = feedback_governance_decision(classifications, context, validated["feedback"])
+    governed_decision["feedback_run_id"] = run_id
 
     artifacts: dict[str, str] = {}
     request_artifact = {
@@ -447,6 +542,7 @@ def invoke_workflow_feedback_record(request: WorkflowFeedbackRecordRequest) -> I
         "prompt_case_status": context.get("prompt_case_status"),
         "semantic_status": context.get("semantic_status"),
         "next_action": next_action,
+        "governed_decision": governed_decision,
         "tester_surface": (
             validated["tester"].get("surface") if isinstance(validated["tester"], dict) else None
         ),
@@ -468,6 +564,7 @@ def invoke_workflow_feedback_record(request: WorkflowFeedbackRecordRequest) -> I
         "feedback_context": context,
         "classifications": classifications,
         "next_action": next_action,
+        "governed_decision": governed_decision,
         "summary": summary,
         "warnings": warnings,
         "created_at": utc_now(),

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "kind": "founder_field_round1_policy",
+  "phase": 157,
+  "priority_backlog_id": "P0-BB-021",
+  "goal": "Run the next founder field-test round through AnythingLLM against the current V1 release path.",
+  "existing_runner_script": "scripts/run_founder_field_prompt_eval.py",
+  "min_case_count": 20,
+  "max_case_count": 30,
+  "required_case_ids": [
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "P07",
+    "P08",
+    "P09",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P14",
+    "P15",
+    "P16",
+    "P17",
+    "P18",
+    "P19",
+    "P20",
+    "P21",
+    "P22",
+    "P27",
+    "P28",
+    "P29",
+    "P30",
+    "P31",
+    "P32",
+    "P33",
+    "P34"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_workflows": [
+    "code_context.lookup",
+    "code_investigation.plan",
+    "task.decompose"
+  ],
+  "required_skill_ids": [
+    "handler-branch-tracer",
+    "table-schema-isolator",
+    "runtime-entrypoint-disambiguator",
+    "change-boundary-summarizer"
+  ],
+  "allowed_case_statuses": [
+    "passed",
+    "failed"
+  ],
+  "allowed_quality_classifications": [
+    "pass",
+    "advisory",
+    "blocker"
+  ],
+  "release_limitations": [
+    "not_advanced_broad_refactor_orchestration",
+    "not_direct_mutation_of_protected_fixtures",
+    "not_unsupported_output_format_parity",
+    "not_automatic_model_selection"
+  ]
+}

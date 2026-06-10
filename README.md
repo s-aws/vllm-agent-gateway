@@ -21,11 +21,29 @@ First-time AnythingLLM testers should start here:
 - [README.getting-started.md](README.getting-started.md): minimal setup and validation path for natural workflow testing through AnythingLLM.
 - [README.productized-setup.md](README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
 - [README.external-tester-onboarding.md](README.external-tester-onboarding.md): contextless release-candidate tester path with curated read-only prompts and feedback capture.
+- [README.external-tester-dry-run.md](README.external-tester-dry-run.md): Phase 147 minimum stable external tester dry run through setup, AnythingLLM, onboarding, and feedback.
 - [README.first-time-user-doctor.md](README.first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM config, and frozen fixtures.
 - [README.release-channels.md](README.release-channels.md): dev, release-candidate, and stable channel metadata plus setup validation.
 - [README.stable-handoff.md](README.stable-handoff.md): stable-channel external tester handoff, smoke validation, first prompt, feedback, and rollback.
 - [README.runtime-state.md](README.runtime-state.md): local-only runtime report policy, committed proof metadata, and hygiene validation.
+- [README.stable-release-reset-rehearsal.md](README.stable-release-reset-rehearsal.md): Phase 153 reset/start/recovery rehearsal that preserves source, fixtures, and real runtime-state.
+- [README.release-notes.md](README.release-notes.md): current founder-testing release notes, supported scope, limitations, and proof artifacts.
 - [README.release-adherence.md](README.release-adherence.md): consolidated current-local-model release gate for founder/testing readiness.
+- [README.failure-to-roadmap.md](README.failure-to-roadmap.md): Phase 148 proposal gate for turning failed proof artifacts into unapproved roadmap candidates.
+- [README.contextless-audit-scorecard.md](README.contextless-audit-scorecard.md): Phase 149 deterministic scorecard for contextless audit and blind-baseline evidence packages.
+- [README.current-model-compatibility.md](README.current-model-compatibility.md): Phase 150 matrix for current localhost model support, boundaries, and monitored risks.
+- [README.model-swap-smoke-probe.md](README.model-swap-smoke-probe.md): Phase 154 smoke probe that detects localhost model swaps and decides whether drift gates are required.
+- [README.v1-product-readiness-review.md](README.v1-product-readiness-review.md): Phase 155 go/no-go review for V1 founder-testing readiness.
+- [README.v1-stable-release-decision.md](README.v1-stable-release-decision.md): Phase 156 final release decision, scope, limitations, rollback path, and next roadmap batch.
+- [README.founder-field-round1.md](README.founder-field-round1.md): Phase 157 founder field-test round through AnythingLLM with advisory/blocker routing into feedback intake.
+- [README.founder-field-round2.md](README.founder-field-round2.md): Phase 164 blind-baseline-first founder field round with full response artifacts and route proof.
+- [README.prompt-advisory-closure.md](README.prompt-advisory-closure.md): Phase 165 prompt-advisory closure using refined prompt candidates and holdout proof.
+- [README.generic-chat-vague-prompt-contract.md](README.generic-chat-vague-prompt-contract.md): Phase 166 contract for greetings, vague prompts, missing targets, and approval-bypass refusal.
+- [README.transcript-quality-feedback-intake.md](README.transcript-quality-feedback-intake.md): Phase 158 governed intake for Phase 157 advisory/blocker cases and founder notes.
+- [README.priority0-repair-loop.md](README.priority0-repair-loop.md): Phase 159 repair-loop closure for Phase 158 findings and target-plus-holdout proof requirements.
+- [README.stable-release-refresh.md](README.stable-release-refresh.md): Phase 170 stable proof-floor refresh after the Phase 163-169 chat-quality batch.
+- [README.skill-tool-selection-explainability-e2e.md](README.skill-tool-selection-explainability-e2e.md): Phase 151 live gate proving normal chat explains selected and rejected skills/tools through gateway and AnythingLLM.
+- [README.anythingllm-conversation-state-isolation.md](README.anythingllm-conversation-state-isolation.md): Phase 152 gate proving stale AnythingLLM history does not control the current prompt.
 - [README.semi-well-defined-prompts.md](README.semi-well-defined-prompts.md): Phase 110 natural prompt generalization gate for current local-model chat quality.
 - [README.security-policy.md](README.security-policy.md): release-candidate security policy gate for secrets, roots, fixtures, commands, and onboarding prompts.
 
@@ -103,11 +121,31 @@ Feature docs:
 - [README.getting-started.md](README.getting-started.md): first-time AnythingLLM setup and validation path
 - [README.productized-setup.md](README.productized-setup.md): productized local harness setup and recovery commands
 - [README.external-tester-onboarding.md](README.external-tester-onboarding.md): contextless external tester prompt pack, live validation, and linked feedback capture
+- [README.external-tester-dry-run.md](README.external-tester-dry-run.md): minimum stable external tester dry run and proof artifact
 - [README.first-time-user-doctor.md](README.first-time-user-doctor.md): first-time setup doctor for ports, AnythingLLM, controller roots, and fixtures
 - [README.release-channels.md](README.release-channels.md): release channel manifest, setup validator, stable readiness, and rollback path
 - [README.stable-handoff.md](README.stable-handoff.md): stable-channel smoke validation, first external tester prompt, feedback capture, and rollback
 - [README.runtime-state.md](README.runtime-state.md): local-only runtime reports, committed release proof metadata, and repository hygiene gate
+- [README.stable-release-reset-rehearsal.md](README.stable-release-reset-rehearsal.md): stable reset/start/recovery rehearsal with source, fixture, runtime-state, and stable handoff proof
+- [README.release-notes.md](README.release-notes.md): founder-testing release scope, limitations, validation evidence, and rerun commands
 - [README.release-adherence.md](README.release-adherence.md): one JSON/Markdown gate for current local model release readiness
+- [README.failure-to-roadmap.md](README.failure-to-roadmap.md): failure-to-roadmap proposal gate for failed release proof artifacts
+- [README.contextless-audit-scorecard.md](README.contextless-audit-scorecard.md): contextless audit and blind-baseline evidence scorecard
+- [README.current-model-compatibility.md](README.current-model-compatibility.md): current localhost model compatibility matrix and known boundaries
+- [README.model-swap-smoke-probe.md](README.model-swap-smoke-probe.md): localhost model-swap detector with next-gate decision for drift and portability
+- [README.v1-product-readiness-review.md](README.v1-product-readiness-review.md): V1 product readiness review with supported scope, unsupported scope, blockers, risks, and go/no-go recommendation
+- [README.v1-stable-release-decision.md](README.v1-stable-release-decision.md): final V1 founder-testing release decision with rollback and next-batch status
+- [README.founder-field-round1.md](README.founder-field-round1.md): founder field-test round 1 with AnythingLLM evidence, advisory cases, and Phase 158 routing
+- [README.founder-field-round2.md](README.founder-field-round2.md): founder field-test round 2 with blind baselines, full response artifacts, and route-surface proof
+- [README.prompt-advisory-closure.md](README.prompt-advisory-closure.md): prompt-advisory closure decisions with refined prompt candidate and holdout proof
+- [README.generic-chat-vague-prompt-contract.md](README.generic-chat-vague-prompt-contract.md): generic chat and vague prompt safety/usefulness contract
+- [README.transcript-quality-feedback-intake.md](README.transcript-quality-feedback-intake.md): governed transcript and founder-feedback intake after Phase 157
+- [README.priority0-repair-loop.md](README.priority0-repair-loop.md): Phase 159 no-repair-required or target-plus-holdout repair closure gate
+- [README.stable-release-refresh.md](README.stable-release-refresh.md): Phase 170 refreshed release proof floor and founder-testing decision
+- [README.skill-tool-gap-batch-proposal.md](README.skill-tool-gap-batch-proposal.md): Phase 161 proposal-only gate for evidence-backed deterministic skill/tool batches
+- [README.post-restart-runtime-readiness.md](README.post-restart-runtime-readiness.md): Phase 163 post-restart readiness gate over doctor, health drift, and AnythingLLM greeting/session recovery
+- [README.skill-tool-selection-explainability-e2e.md](README.skill-tool-selection-explainability-e2e.md): live chat-visible selected/rejected skill and tool explanation gate
+- [README.anythingllm-conversation-state-isolation.md](README.anythingllm-conversation-state-isolation.md): stale-history isolation gate for reused AnythingLLM sessions
 - [README.semi-well-defined-prompts.md](README.semi-well-defined-prompts.md): semi-well-defined natural prompt suite with route, semantic, score, fixture, gateway, and AnythingLLM proof
 - [README.security-policy.md](README.security-policy.md): security policy validator for secret exposure, filesystem boundaries, fixture safety, command fragments, and onboarding prompt safety
 - [README.gateway.md](README.gateway.md): gateway, role proxies, ports, setup, and client notes

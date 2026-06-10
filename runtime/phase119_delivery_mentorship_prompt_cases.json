@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "kind": "phase119_delivery_mentorship_prompt_cases",
+  "phase": 119,
+  "priority_backlog_id": "P0-BB-004",
+  "tenet_ids": ["T19", "T20"],
+  "acceptance_threshold": {
+    "minimum_score": 85,
+    "critical_findings_allowed": 0,
+    "high_findings_allowed": 0
+  },
+  "baseline_requirements": [
+    "selected_workflow_expectation",
+    "must_have_topics",
+    "safety_boundaries",
+    "output_shape",
+    "scoring_rubric",
+    "likely_failure_modes",
+    "holdout_prompt_categories"
+  ],
+  "cases": [
+    {
+      "case_id": "DM119-001",
+      "case_type": "feature_delivery",
+      "holdout": false,
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, create an end-to-end delivery plan for adding a requirement note to the stealth order lookup answer. Mentor a junior engineer from requirement intake through deployment readiness. Read only. Include testing strategy, debugging method, code quality practices, review feedback, definition of done, and stop conditions.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "DM119-002",
+      "case_type": "feature_delivery",
+      "holdout": false,
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, coach a junior engineer through safely adding CSV export for filtered order search results while preserving the existing JSON export behavior. Read only. Include delivery plan, testing strategy, deployment readiness, rollback, observability, and definition of done.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "DM119-003",
+      "case_type": "feature_delivery",
+      "holdout": false,
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, mentor a less experienced engineer on adding an archive project behavior that disappears from normal lists but remains restorable by admins. Read only. Include task decomposition, authorization testing, code quality, review feedback, deployment readiness, and stop conditions.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "DM119-004",
+      "case_type": "debugging_method_mentorship",
+      "holdout": false,
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, teach a junior engineer how to debug a staging 500 after a new endpoint passed unit tests. Read only. Include debugging methodology, logs and config checks, testing strategy, code quality practices, release readiness, and definition of done.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "DM119-005",
+      "case_type": "quality_gate_mentorship",
+      "holdout": false,
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture, the team wants to skip regression tests for a medium change because a demo is tomorrow. Coach a junior engineer on the safe delivery decision. Read only. Include quality gates, smaller alternatives, testing strategy, deployment readiness, and stop conditions.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "DM119-006",
+      "case_type": "testing_strategy_mentorship",
+      "holdout": false,
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture, create a delivery plan for adding weekly, monthly, and manual scheduled reports, and mentor a junior engineer through decomposition, tests, observability, rollback, code quality practices, and deployment readiness. Read only.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "DM119-007",
+      "case_type": "quality_gate_mentorship",
+      "holdout": false,
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, coach a junior engineer who duplicated an existing validation flow because it was hard to understand. Read only. Include a delivery plan that preserves one code path, testing strategy, review feedback, technical debt separation, deployment readiness, and stop conditions.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "DM119-008",
+      "case_type": "deployment_readiness",
+      "holdout": false,
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, define a deployment-readiness checklist for an implemented and unit-tested stealth-order lookup change. Mentor a junior engineer on what remains before calling it done. Read only. Include CI, regression, rollback, observability, docs, live verification, and definition of done.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "DM119-009",
+      "case_type": "holdout_retry_safety",
+      "holdout": true,
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture, coach a junior engineer who wants to wrap an entire checkout handler in a retry loop around a flaky payment API call. Read only. Include a safer delivery plan, debugging method, idempotency risk, testing strategy, deployment readiness, and stop conditions.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "DM119-010",
+      "case_type": "holdout_bulk_import",
+      "holdout": true,
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture, propose a safe delivery plan a junior engineer could follow for bulk user import from an uploaded spreadsheet. Read only. Include task decomposition, validation, partial failures, permissions, testing strategy, observability, rollback, and deployment readiness.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "delivery_mentorship",
+      "expected_safety": "read_only_no_source_mutation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "Delivery Mentorship Plan:",
+        "- Delivery sequence:",
+        "- Testing strategy:",
+        "- Debugging method:",
+        "- Code quality practices:",
+        "- Deployment readiness:",
+        "- Mentorship notes:",
+        "- Definition of done:",
+        "- Stop conditions:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    }
+  ],
+  "contextless_audit_packet": {
+    "phase": 119,
+    "tenet_ids": ["T19", "T20"],
+    "score_threshold": 85,
+    "category_floor": 70,
+    "input_refs": [
+      "docs/ACTIONABLE_WORKFLOW_ROADMAP.md#approved-phase-119-end-to-end-delivery-and-mentorship-tenets",
+      "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+      "runtime/phase119_delivery_mentorship_prompt_cases.json",
+      "vllm_agent_gateway/controllers/task_decompose/decompose.py",
+      "vllm_agent_gateway/acceptance/task_decomposition_quality.py",
+      "contextless subagent Chandrasekhar final baseline"
+    ],
+    "audit_dimensions": [
+      {
+        "id": "end_to_end_delivery_sequence",
+        "question": "Does the answer teach a sequence from requirement intake through deployment readiness without claiming to deploy?"
+      },
+      {
+        "id": "mentorship_quality",
+        "question": "Does the answer explain why each step exists without being vague, patronizing, or cheerleading?"
+      },
+      {
+        "id": "testing_and_debugging_method",
+        "question": "Does the answer teach risk-based test selection and evidence-first debugging?"
+      },
+      {
+        "id": "deployment_readiness_boundary",
+        "question": "Does the answer require CI, rollback, observability, docs/live verification, and stop conditions while blocking source apply and deployment?"
+      }
+    ]
+  }
+}

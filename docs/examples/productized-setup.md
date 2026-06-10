@@ -28,7 +28,7 @@ python3 scripts/run_productized_setup.py start --execute \
 This runs the existing `start-agent-prompt-proxies.sh` with:
 
 - `CONTROLLER_ALLOWED_TARGET_ROOTS` including the project root and both frozen fixtures
-- `CONTROLLER_DEFAULT_ROLE_BASE_URL=http://127.0.0.1:8000/v1`
+- `CONTROLLER_DEFAULT_ROLE_BASE_URL=http://127.0.0.1:8300/v1`
 
 ## Validate
 

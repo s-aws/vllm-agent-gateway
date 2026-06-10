@@ -124,6 +124,56 @@ def test_data_model_target_extracts_schema_fields_for_subject() -> None:
     assert data_model_target_from_request(prompt, ["agentic_agents"], "find database schema fields") == "stealth_orders"
 
 
+def test_data_model_target_ignores_persisted_schema_scope_adjective() -> None:
+    prompt = (
+        "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find only the persisted stealth_orders table schema. "
+        "Read only. Return schema field names, model files, and source refs. Exclude runtime dictionary fields."
+    )
+
+    assert data_model_target_from_request(prompt, [], "") == "stealth_orders"
+
+
+def test_table_schema_fields_include_persisted_alter_table_columns(tmp_path: Path) -> None:
+    target = tmp_path / "repo"
+    schema_path = target / "database" / "order.py"
+    schema_path.parent.mkdir(parents=True)
+    schema_path.write_text(
+        "\n".join(
+            [
+                "def create_stealth_orders_table():",
+                "    create_table_query = \"\"\"",
+                "    CREATE TABLE IF NOT EXISTS stealth_orders (",
+                "        stealth_order_id UUID PRIMARY KEY,",
+                "        status VARCHAR(32) NOT NULL",
+                "    );",
+                "    \"\"\"",
+                "    cursor.execute(",
+                "        \"ALTER TABLE stealth_orders ADD COLUMN IF NOT EXISTS anchor_repricing_policy_json JSONB DEFAULT '{}'::jsonb\"",
+                "    )",
+                "    cursor.execute(",
+                "        \"\"\"ALTER TABLE stealth_orders",
+                "           ADD COLUMN IF NOT EXISTS post_fill_retreat_policy_json",
+                "           JSONB DEFAULT '{\"enabled\": false}'::jsonb\"\"\"",
+                "    )",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    fields = table_schema_fields(target, "database/order.py", "stealth_orders")
+
+    assert {field["name"] for field in fields} == {
+        "stealth_order_id",
+        "status",
+        "anchor_repricing_policy_json",
+        "post_fill_retreat_policy_json",
+    }
+    assert any(
+        field["name"] == "anchor_repricing_policy_json" and field["source"] == "sql_alter_add_column"
+        for field in fields
+    )
+
+
 def test_dependency_import_lookup_handles_import_or_depend_on_phrase() -> None:
     prompt = (
         "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, what does core/stealth_order_manager.py "
@@ -216,6 +266,35 @@ def test_change_boundary_prompt_promotes_atomic_snake_case_subject_terms() -> No
         "placed_order_id",
         "placed_order_id_stealth_lookup",
         "placed_order_id stealth lookup",
+    ]
+
+
+def test_files_to_touch_prompt_extracts_change_subject_without_change_surface_phrase() -> None:
+    prompt = (
+        "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify files to touch and files not to touch "
+        "for a minimal safe placed_order_id stealth lookup change. Read only and stop before implementation."
+    )
+
+    assert change_subject_queries_from_request(prompt)[:3] == [
+        "placed_order_id",
+        "placed_order_id_stealth_lookup",
+        "placed_order_id stealth lookup",
+    ]
+    assert extract_queries(prompt)[:3] == [
+        "placed_order_id",
+        "placed_order_id_stealth_lookup",
+        "placed_order_id stealth lookup",
+    ]
+
+    request = CodeInvestigationRequest(user_request=prompt, behavior="placed_order_id")
+    assert query_candidates(request, [])[:7] == [
+        "placed_order_id",
+        "placed_order_id_stealth_lookup",
+        "placed_order_id stealth lookup",
+        "find_stealth_order_by_placed_order_id",
+        "_placed_order_index",
+        "revealed_orders",
+        "placement_client_order_id",
     ]
 
 

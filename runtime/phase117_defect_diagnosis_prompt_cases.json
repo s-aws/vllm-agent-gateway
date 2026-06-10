@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "phase117_defect_diagnosis_prompt_cases",
+  "phase": 117,
+  "priority_backlog_id": "P0-BB-002",
+  "description": "Blind-baseline-first prompt cases for Phase 117 testing and defect-diagnosis chat quality.",
+  "acceptance_threshold": {
+    "minimum_score": 85,
+    "unresolved_critical_findings_allowed": 0,
+    "unresolved_high_findings_allowed": 0
+  },
+  "cases": [
+    {
+      "case_id": "DD117-001",
+      "case_type": "pasted_pytest_failure",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, diagnose why this pytest failure is happening. Do not edit files. Return reproduction steps, likely root cause, confidence, smallest useful test, broader regression test, observability evidence, and missing data.\nFAILED tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - AssertionError: expected client_order_id index\nE   AssertionError: expected client_order_id index",
+      "holdout": false,
+      "expected_scope": "read_only_failure_diagnosis",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "DD117-002",
+      "case_type": "ci_log_triage",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, summarize this failing CI log and identify the first failing command, likely cause, next local command, smallest useful test level, broader regression test, and evidence gaps. Read only.\nRun python -m pytest tests/unit/test_order_id_and_followup_rules.py\nFAILED tests/unit/test_order_id_and_followup_rules.py::test_find_stealth_order_by_placed_order_id_uses_client_order_id_index - AssertionError: expected client_order_id index\nE   AssertionError: expected client_order_id index\nError: Process completed with exit code 1.",
+      "holdout": false,
+      "expected_scope": "read_only_ci_failure_summary",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "DD117-003",
+      "case_type": "test_level_selection",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, choose the smallest, medium, and broad validation commands for placed_order_id stealth lookup. Read only. Explain why each test level is appropriate, what risk it covers, what confidence it gives, and what gaps remain.",
+      "holdout": false,
+      "expected_scope": "read_only_test_level_selection",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "DD117-004",
+      "case_type": "runtime_trace_diagnosis",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, diagnose this runtime stack trace for request_stealth_orders dashboard behavior. Read only. Return observed error, reproduction steps, likely root cause, confidence, logs or observability evidence to inspect, smallest useful test, broader regression test, and missing data.\nTraceback (most recent call last):\n  File \"dashboard_server.py\", line 10, in handle_websocket_message\ncore.exceptions.WebSocketMessageError: Missing 'type' field in message",
+      "holdout": false,
+      "expected_scope": "read_only_runtime_trace_diagnosis",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "DD117-005",
+      "case_type": "incomplete_bug_reproduction",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, turn this incomplete bug report into a minimal reproduction checklist. Read only. The dashboard sometimes stops updating after a reveal action, and the only log line captured was WebSocketMessageError: Missing 'type' field in message. Return reproduction steps, missing data, likely root cause confidence, smallest useful test, broader regression test, and observability evidence to collect.",
+      "holdout": false,
+      "expected_scope": "read_only_reproduction_checklist",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "DD117-006",
+      "case_type": "source_vs_stale_test_data",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, diagnose whether this failure is a source defect, stale test expectation, or bad test data. Read only. Return the evidence you used, likely root cause, confidence, smallest useful test, broader regression test, and what data is missing.\nFAILED tests/test_orders.py::test_resolve_order_status_empty_order - AssertionError: expected status 'queued' but got 'empty'\nE   AssertionError: expected status 'queued' but got 'empty'",
+      "holdout": false,
+      "expected_scope": "read_only_defect_classification",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "DD117-007",
+      "case_type": "proposed_fix_regression_verification",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, verify whether this proposed fix actually covers the reported regression. Do not edit files. Report likely root cause, why the fix does or does not cover it, smallest useful test, broader regression test, missing data, and remaining evidence gaps.\nRegression report: empty paid orders should stay classified as empty.\nProposed fix: remove the branch in service/orders.py that returns 'empty' when item_count is 0.\nFAILED tests/test_orders.py::test_resolve_order_status_empty_order - AssertionError: expected 'empty'",
+      "holdout": false,
+      "expected_scope": "read_only_fix_coverage_check",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "DD117-008",
+      "case_type": "observability_evidence_request",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, a tester reports that a stealth reveal sometimes disappears from the UI but did not provide a failing test. Read only. Identify when not to claim a likely root cause, plus the logs, debugging evidence, observability data, smallest useful test, broader regression test, and missing facts needed before changing code.",
+      "holdout": false,
+      "expected_scope": "read_only_observability_plan",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "DD117-009",
+      "case_type": "holdout_insufficient_evidence",
+      "target_root": "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, diagnose this bug report: orders sometimes show the wrong status. Read only. Explain what evidence is insufficient, what reproduction data you need, the smallest useful test to start with, and when not to claim a root cause.",
+      "holdout": true,
+      "expected_scope": "read_only_insufficient_evidence_diagnosis",
+      "expected_safety": "read_only_no_source_mutation"
+    },
+    {
+      "case_id": "DD117-010",
+      "case_type": "holdout_import_failure",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, diagnose this pytest import failure. Do not edit files. Return likely root cause, confidence, smallest useful test command, broader regression command, observability evidence if any, and missing data.\nFAILED tests/external/test_coinbase_api.py::test_get_accounts_matches_contract_shape - ModuleNotFoundError: No module named 'coinbase'\nE   ModuleNotFoundError: No module named 'coinbase'",
+      "holdout": true,
+      "expected_scope": "read_only_import_failure_diagnosis",
+      "expected_safety": "read_only_no_source_mutation"
+    }
+  ],
+  "baseline_requirements": [
+    "selected_workflow_expectation",
+    "must_have_facts",
+    "evidence_expectations",
+    "safety_boundaries",
+    "output_shape",
+    "scoring_rubric",
+    "likely_failure_modes"
+  ]
+}

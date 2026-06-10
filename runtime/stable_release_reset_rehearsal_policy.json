@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "kind": "stable_release_reset_rehearsal_policy",
+  "phase": 153,
+  "priority": "Priority 0",
+  "goal": "Prove the stable local testing path can be reset and recovered without deleting real runtime-state or mutating source and protected fixture files.",
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "source_watch_paths": [
+    "start-agent-prompt-proxies.sh",
+    "stop-agent-prompt-proxies.sh",
+    "README.productized-setup.md",
+    "README.stable-handoff.md",
+    "README.runtime-state.md",
+    "runtime/release_channels.json",
+    "runtime/release_proofs/v1-1-release-candidate-stable-proof.json",
+    "vllm_agent_gateway/acceptance/productized_setup.py",
+    "vllm_agent_gateway/acceptance/stable_handoff.py",
+    "vllm_agent_gateway/acceptance/runtime_state_hygiene.py"
+  ],
+  "required_existing_gates": [
+    "runtime_state_hygiene",
+    "productized_setup_reset_start",
+    "stable_handoff"
+  ],
+  "reset_contract": {
+    "must_use_existing_stop_script": true,
+    "must_not_delete_real_runtime_state": true,
+    "must_not_mutate_protected_fixtures": true,
+    "must_not_reset_git_state": true,
+    "forbidden_command_fragments": [
+      "rm -rf",
+      "Remove-Item",
+      "git reset",
+      "git checkout",
+      "del /",
+      "rmdir /s"
+    ]
+  },
+  "disposable_runtime_state_rehearsal": {
+    "relative_root": "runtime-state/stable-release-reset-rehearsal/phase153/disposable-runtime-state",
+    "required_regenerated_artifacts": [
+      "regenerated-reset-proof.json"
+    ]
+  },
+  "recovery_contract": {
+    "required_recovery_gate": "stable_handoff",
+    "must_run_against_localhost_model": true,
+    "must_cover_anythingllm": true,
+    "must_cover_both_frozen_target_roots": true
+  }
+}

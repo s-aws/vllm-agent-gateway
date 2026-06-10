@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "kind": "skill_tool_selection_explainability_e2e_policy",
+  "phase": 151,
+  "priority_backlog_id": "P0-BB-020",
+  "policy_version": "1.0.0",
+  "purpose": "Verify that normal chat responses explain selected and rejected skills and tools through the existing workflow-router path without manual skill injection or raw selector internals.",
+  "source_case_catalog_path": "runtime/skill_selection_hardening_cases.json",
+  "case_ids": [
+    "SEL-001",
+    "SEL-002",
+    "SEL-003"
+  ],
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_chat_sections": [
+    "Result:",
+    "Skill Selection:"
+  ],
+  "required_result_markers": [
+    "- Selected workflow:",
+    "- Selected skills:",
+    "- Selected tools:"
+  ],
+  "required_selection_markers": [
+    "- Why:",
+    "- Route rules:",
+    "- Confidence:",
+    "- Coverage entries:",
+    "- Skills:",
+    "- Tools:",
+    "- Rejected candidates:",
+    "- Grounded in:"
+  ],
+  "required_grounding_markers": [
+    "route_decision.selected_skills",
+    "route_decision.selected_tools",
+    "route_decision.selection_audit",
+    "registry_snapshot.skills"
+  ],
+  "minimum_rejected_candidate_count": 1,
+  "required_selection_policy": {
+    "metadata_only": true,
+    "manual_skill_injection_required": false,
+    "low_confidence_fails_closed": true,
+    "minimum_confidence": "medium"
+  },
+  "forbidden_raw_internal_markers": [
+    "\"selection_audit\"",
+    "\"workflow_candidates\"",
+    "\"skill_candidates\"",
+    "\"tool_candidates\"",
+    "\"controller_request_preview\"",
+    "{\n",
+    "candidate_count\":"
+  ],
+  "artifact_requirements": [
+    "route_decision",
+    "registry_snapshot"
+  ],
+  "non_mutation_required": true,
+  "notes": [
+    "This gate verifies the user-visible chat output. It must not perform a second independent skill or tool selection.",
+    "JSON output is covered by output-format parity gates. Phase 151 validates default FormatA chat because that is the founder testing path."
+  ]
+}

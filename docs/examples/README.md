@@ -5,12 +5,39 @@ Examples are grouped by feature so the root README can stay small.
 - [Getting Started With AnythingLLM](../../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup](productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
 - [External Tester Onboarding](external-tester-onboarding.md): release-candidate first-test prompts, live AnythingLLM validation, and linked feedback capture.
+- [External Tester Dry Run](external-tester-dry-run.md): minimum stable external tester dry run through setup, AnythingLLM, onboarding, feedback, and fixture proof.
 - [First-Time User Doctor](first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM, and fixtures.
 - [Release Channels](release-channels.md): dev, release-candidate, stable readiness, setup doctor, and acceptance gate examples.
 - [Stable Handoff](stable-handoff.md): stable-channel validation, handoff smoke, first tester prompt, feedback, and rollback.
 - [Runtime State](runtime-state.md): local-only runtime reports, git hygiene commands, and stable proof metadata validation.
+- [Stable Release Reset Rehearsal](stable-release-reset-rehearsal.md): dry and live reset/start/recovery rehearsal commands with preservation proof.
 - [Release Adherence](release-adherence.md): consolidated current-local-model gate, blocker classifications, and report review.
+- [Failure-To-Roadmap](failure-to-roadmap.md): convert failed proof artifacts into unapproved roadmap proposals without automatic implementation.
+- [Contextless Audit Scorecard](contextless-audit-scorecard.md): consolidate contextless audit and blind-baseline evidence into deterministic source and dimension scores.
+- [Current-Model Compatibility](current-model-compatibility.md): summarize current localhost model support, known boundaries, and monitored failure modes.
+- [Model Swap Smoke Probe](model-swap-smoke-probe.md): detect localhost model swaps and decide whether drift and portability gates are required.
+- [V1 Product Readiness Review](v1-product-readiness-review.md): generate the V1 founder-testing readiness go/no-go report.
+- [V1 Stable Release Decision](v1-stable-release-decision.md): generate the final V1 founder-testing release decision with rollback and next-batch status.
+- [Founder Field Round 1](founder-field-round1.md): run the Phase 157 AnythingLLM field round and inspect pass, advisory, and blocker cases.
+- [Founder Field Round 2](founder-field-round2.md): run the Phase 164 blind-baseline-first AnythingLLM field round and inspect full response evidence.
+- [Prompt Advisory Closure](prompt-advisory-closure.md): run the Phase 165 refined prompt and holdout closure gate for Phase 158 advisories.
+- [Generic Chat And Vague Prompt Contract](generic-chat-vague-prompt-contract.md): run the Phase 166 direct, gateway, and AnythingLLM gate for greetings, vague prompts, missing targets, and approval-bypass refusal.
+- [Transcript Quality Feedback Intake](transcript-quality-feedback-intake.md): classify Phase 157 advisory/blocker cases and founder notes into governed accepted/rejected findings.
+- [Priority 0 Repair Loop](priority0-repair-loop.md): close Phase 158 findings as monitoring-only, repaired with target/holdout proof, or blocked with next action.
+- [Stable Release Refresh](stable-release-refresh.md): rerun the stable proof floor and confirm the founder-testing release decision remains current.
+- [Skill/Tool Gap Batch Proposal](skill-tool-gap-batch-proposal.md): decide whether the Phase 157-160 evidence proves a bounded deterministic skill/tool batch.
+- [Post-Restart Runtime Readiness](post-restart-runtime-readiness.md): prove the restarted local model, gateways, controller, role proxies, AnythingLLM target, and greeting/session path are ready.
+- [Skill/Tool Selection Explainability E2E](skill-tool-selection-explainability-e2e.md): prove normal chat shows selected workflow, selected skills/tools, rejected candidate counts, and grounding.
+- [AnythingLLM Conversation State Isolation](anythingllm-conversation-state-isolation.md): prove reused AnythingLLM sessions do not leak stale routing or output-format intent into the current prompt.
 - [Semi-Well-Defined Prompts](semi-well-defined-prompts.md): Phase 110 natural prompt generalization gate through gateway and AnythingLLM.
+- [Baseline Corpus Governance](baseline-corpus.md): Priority 0 blind-baseline corpus validation, stale-proof checks, and failure review workflow.
+- [AnythingLLM Answer Usefulness](anythingllm-answer-usefulness.md): validate that governed AnythingLLM responses contain useful answer sections before artifact links.
+- [Holdout Prompt Bank](holdout-prompt-bank.md): validate stable prompt-family holdout IDs, route captures, comparison pass/fail status, and mutation proof.
+- [Priority 0 Gap Taxonomy](priority0-gap-taxonomy.md): classify stable corpus comparison misses into taxonomy categories, gap classes, and bounded repair actions.
+- [Output Format Parity](output-format-parity.md): compare default chat and JSON output across stable Priority 0 gateway and AnythingLLM responses.
+- [Natural Output Format Preference](natural-output-format-preference.md): prove natural FormatA and JSON requests through gateway and AnythingLLM without explicit selector fields.
+- [Founder Feedback Loop](founder-feedback-loop.md): convert natural feedback records into governed baseline, holdout, repair, or rejected-finding decisions.
+- [Engineering Tenet Coverage](engineering-tenets.md): Phase 112 tenet matrix validation and review workflow.
 - [Security Policy](security-policy.md): release-candidate secret, root, fixture, command, and onboarding prompt safety gate examples.
 - [Gateway](gateway.md): startup, shutdown, budget overrides, client URLs, and role ports.
 - [Controller Service](controller-service.md): explicit documenter workflow requests, end-to-end service runner, allowlisted targets, harness adapter, and run lookup.
@@ -32,10 +59,27 @@ Examples are grouped by feature so the root README can stay small.
 - [Run Observability](observability.md): recent workflow-run dashboard with route, model, approval, downstream, artifact, failure, mutation, and timing markers.
 - [Run Artifact Diff](run-artifact-diff.md): compare V1, founder-field, and model-portability run reports.
 - [Failure Taxonomy](failure-taxonomy.md): classify existing validation reports into stable failure categories and next actions.
-- [Eval Repair Loop](eval-repair-loop.md): convert taxonomy and recursive blind-testing findings into repair recommendations and holdout checks.
+- [Eval Repair Loop](eval-repair-loop.md): convert taxonomy and recursive blind-testing findings into repair recommendations, then prove accepted repairs with target/holdout reruns.
 - [Advanced Refactor Readiness](advanced-refactor-readiness.md): generate and inspect the Phase 105 readiness gate for approval-gated disposable-copy pilots.
 - [Bounded Recursive Testing](bounded-recursive-testing.md): no-context recursive evaluator policy, report shape, scoring, and Phase 92 usage.
 - [AnythingLLM UI E2E](anythingllm-ui-e2e.md): browser-rendered Desktop UI validation through `/stream-chat`, screenshots, and fixture mutation proof.
+- [Fresh Local-Model Drift](fresh-local-model-drift.md): live bounded drift gate for stable Priority 0 prompt families through gateway and AnythingLLM.
+- [Prompt Tightening Recommendations](prompt-tightening-recommendations.md): recommendation-gate command, candidate inspection, and acceptance-proof rules.
+- [Skill/Tool Coverage Gap](skill-tool-coverage-gap.md): source-input refresh, current no-gap proof, and required proposal fields for future gaps.
+- [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.
+- [Stable Chat Quality Release](stable-chat-quality-release.md): consolidated release-readiness command, blocker review, and ready-state shape.
+- [AnythingLLM Founder Smoke](anythingllm-founder-smoke.md): curated four-prompt smoke suite through the real AnythingLLM workspace.
+- [Founder Smoke Feedback](founder-smoke-feedback.md): classify smoke-suite misses into governed next actions.
+- [Chat Quality Release Snapshot](chat-quality-release-snapshot.md): release-candidate proof manifest with hashes and summaries.
+- [Founder Test Prompt Pack](founder-test-prompt-pack.md): validate the expanded read-only founder prompt pack.
+- [Chat Transcript Quality](chat-transcript-quality.md): classify founder smoke chat transcripts as pass, advisory, or blocker.
+- [Local Model Regression Watchlist](local-model-regression-watchlist.md): validate per-case local-model regression risks and repair ownership.
+- [Founder Feedback Triage Dashboard](founder-feedback-triage-dashboard.md): build the compact feedback state dashboard with closures, roadmap refs, and next actions.
+- [Release Notes](release-notes.md): validate release notes and known limitations against current proof artifacts.
+- [AnythingLLM Session Recovery](anythingllm-session-recovery.md): validate greeting and same-session normal chat through AnythingLLM.
+- [Gateway And AnythingLLM Health Drift](gateway-anythingllm-health-drift.md): diagnose port reachability, gateway target drift, response-body timeouts, and AnythingLLM auth failures.
+- [Baseline Corpus Promotion Rules](baseline-corpus-promotion-rules.md): validate fail-closed promotion readiness before stable corpus mutation.
+- [Skill/Tool Gap Proposal Intake](skill-tool-gap-proposal-intake.md): validate approval-gated deterministic skill/tool proposals before implementation.
 - [Model Portability](model-portability.md): live candidate-model gate and existing acceptance-report classification.
 - [Model Capability Profiles](model-capability-profiles.md): profile generation from portability reports and runtime task-policy review.
 - [Prompt Catalogs](prompt-catalogs.md): founder field catalog validation, prompt matrix validation, and case-change workflow.

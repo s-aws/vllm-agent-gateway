@@ -163,6 +163,33 @@ def test_founder_field_prompt_refinements_cover_known_ambiguity_cases() -> None:
     assert "change boundary" in module.PROMPT_REFINEMENTS["P34"]["refined_prompt"]
 
 
+def test_founder_field_prompt_runner_can_select_refined_prompt_variant() -> None:
+    module = load_runner_module()
+    case = next(item for item in module.FIELD_PROMPTS if item.case_id == "P01")
+
+    class Args:
+        use_refined_prompts = True
+
+    assert module.prompt_for_case(Args(), case) == module.PROMPT_REFINEMENTS["P01"]["refined_prompt"]
+
+
+def test_founder_field_prompt_runner_uses_refined_expectations_when_requested() -> None:
+    module = load_runner_module()
+    case = next(item for item in module.FIELD_PROMPTS if item.case_id == "P08")
+
+    class Args:
+        use_refined_prompts = True
+
+    evaluation_case = module.evaluation_case_for_prompt(Args(), case)
+
+    assert case.expected_rule == "l1_endpoint_route_lookup_terms"
+    assert evaluation_case.expected_rule == "l2_request_flow_map_terms"
+    assert evaluation_case.expected_skill_id == "handler-branch-tracer"
+    assert evaluation_case.expected_artifact_key == "downstream_request_flow_map"
+    assert "Source refs:" in evaluation_case.expected_markers
+    assert "send_stealth_orders_snapshot" in evaluation_case.semantic_markers
+
+
 def test_founder_field_prompt_matrix_catalog_routes_without_conflicts() -> None:
     module = load_matrix_module()
 

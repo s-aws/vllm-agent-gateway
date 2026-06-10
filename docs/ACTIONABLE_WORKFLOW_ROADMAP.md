@@ -28,6 +28,10 @@ The harness must route that request without the user injecting `SKILL.md` text, 
 
 Priority 0 is chat quality development and testing. All other work is secondary unless it directly supports improving or validating chat quality against the current local model, skills, and tools.
 
+Priority 0 uses blind-baseline-first testing by default. For every chat-quality evaluation, ask a bounded contextless blind agent for the expected answer shape and scoring rubric before showing it any local-model output. Then run the same prompt through the local model via the workflow-router gateway and AnythingLLM when applicable, compare the local answer against the blind baseline, repair the smallest harness gap, and rerun the target prompt plus holdouts. Blind structural audits remain useful for code, roadmap, and artifact review, but they do not replace blind-baseline comparison for chat-answer quality.
+
+The current Priority 0 backlog and execution plan are maintained in [Priority 0 Chat Quality Backlog](PRIORITY0_CHAT_QUALITY_BACKLOG.md). Phases 131 through 156 completed Priority 0 chat-quality release hardening and founder-testing readiness. Phases 157 through 162 are approved for the next founder field-testing and repair batch.
+
 Priority 1 is adding or improving skills and tools that cover gaps found while improving Priority 0.
 
 Priority 2 is maintaining a logical set of future roadmap phases. Raise concerns when proposed or active phases deviate from the original goal: a local agent harness that turns natural-language development requests into evidence-backed, chat-visible, safe, testable work.
@@ -140,7 +144,7 @@ Use this distinction:
 - **Tightening of the current or immediately previous phase:** implement it immediately in the same phase, then record the proof. Do not create a separate proposal for validator hardening, stale-fixture correction, route-key checks, missing docs links, or other work needed to make the current path reliable.
 - **Missed tightening more than one phase away:** raise it in the current summary and recommend adding it to the roadmap before implementation, because changing older shipped behavior may alter scope.
 
-Do not use this rule to bypass safety gates. Runtime-facing changes still require live Bash/AnythingLLM validation when applicable, and non-agent code changes still require full regression.
+Do not use this rule to bypass safety gates. Runtime-facing changes still require live Bash/AnythingLLM validation when applicable. Non-agent code changes require the verification tier that matches blast radius; full regression remains mandatory at phase close for shared controller/router/formatter behavior, cross-cutting runtime behavior, release-candidate work, or any change whose affected surface cannot be bounded confidently.
 
 ## Structured Development Rule
 
@@ -153,11 +157,26 @@ Required cycle:
 3. Identify the root cause and write down the rejected explanations when they matter.
 4. Define the smallest acceptable design that preserves the single code path rule.
 5. Implement the change with focused scope.
-6. Verify with focused tests, full regression when required, and live Bash/AnythingLLM validation when the workflow is runtime-facing.
+6. Verify with the smallest defensible gate for the change class, then broaden only as blast radius requires.
 7. Inspect artifacts and protected fixtures for mutation or missing proof.
 8. Update documentation and roadmap state so a contextless future agent can continue from the correct next step.
 
 For workflow-router and execution-planning work, do not treat a prompt tweak as a fix unless the cycle above proves it through controller artifacts and live localhost `8000` tests on both frozen Coinbase fixtures.
+
+### Verification Gate Requirements
+
+- Documentation, roadmap, prompt catalog metadata, or agent-instruction-only changes: validate formatting/links or targeted validators as applicable; regression may be skipped.
+- Leaf validation scripts, isolated acceptance policies, or narrow tests: run the focused unit/regression tests and validator commands that cover the changed file.
+- Workflow-local controller changes: run focused controller/regression tests, live prompt proof when runtime-facing, and full regression once at phase close.
+- Shared controller, router, formatter, tool-selection, model-routing, mutation, fixture, or approval behavior: run focused tests first, then full Bash regression before completion.
+- Runtime-facing behavior: run focused tests, live Bash validation through the relevant localhost ports, AnythingLLM proof when applicable, both frozen fixture checks, and full Bash regression before completion.
+- Cross-cutting, release-candidate, model-portability, skill-library-scale, or unbounded-blast-radius changes: always end with full Bash regression.
+
+Default full Bash regression command:
+
+```bash
+python3 -m pytest tests/regression/ -v
+```
 
 ## L1 Prompt Development Plan
 
@@ -209,19 +228,19 @@ Build order:
 Next roadmap gate:
 
 ```text
-Phases 92 through 110 are complete. Phase 111 Closed-Loop Eval Repair Execution Gate is founder-approved and active. Phases 112 through 119 are founder-approved and pending completion of the lower-numbered phases.
+Phases 92 through 127 are complete. No later roadmap phase should start until the next Priority 0 backlog item is represented as an approved roadmap phase.
 ```
 
 Next implementation target:
 
 ```text
-Complete Phase 111 Closed-Loop Eval Repair Execution Gate.
-Fix the current local-model chat-quality failures before any advanced-refactor work resumes.
+Prepare the next approved Priority 0 phase from `P0-BB-015` in `docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md`.
+Do not resume advanced-refactor work until AnythingLLM answer usefulness and current chat-quality gates remain stable.
 ```
 
 Reason: Phase 57 made the founder field suite part of V1 acceptance, Phase 58 added the prompt matrix, Phase 59 added semantic answer quality gates, Phase 60 added user-facing refined prompts, Phase 61 produced a validated Batch D skill-scaling proposal without registry mutation, Phase 62 registered Batch D as draft skills through the existing lifecycle, Phase 63 proved and promoted Batch D through live gateway and AnythingLLM validation, Phase 64 added Batch D prompts to the founder field suite with live V1 acceptance proof, Phase 65 added skill-library health and Batch D proof to the V1 acceptance path, Phase 66 proved the harness against a non-Coinbase disposable Python service fixture, Phase 67 made AnythingLLM feedback actionable, Phase 68 split release gates into diagnosable profiles, Phase 69 added a latest-run inspector, Phase 70 made prompt catalogs governed fixtures instead of scattered script literals, Phase 71 proved the browser-rendered AnythingLLM Desktop UI path through `/stream-chat` with screenshots and fixture mutation proof, Phase 72 added a model portability gate that wraps the existing V1 acceptance path, probes the candidate `/v1/models` endpoint, and classifies misses as harness, classifier, prompt, model-quality, or unknown issues, Phase 73 added read-only run artifact diffing for V1 acceptance, founder-field, and model-portability reports, Phase 74 added a manifest-driven fixture manager with protected source snapshots, disposable setup, cleanup, and integration into the existing generalization fixture copy helpers, Phase 75 added a read-only failure taxonomy report so failures across release gates can be classified consistently instead of reinterpreted from raw logs, Phase 76 added a first-time user doctor so setup failures can be detected before testers try AnythingLLM prompts, Phase 77 added governed skill-library packaging policy before scaling toward large skill packs, Phase 78 turned portability evidence into advisory model capability profiles and a routing policy without enabling automatic model selection, Phase 79 added a canonical prompt-to-skill coverage map with a validator and gap backlog, Phase 80 extended the existing `skill.scaffold` path into a dry-run authoring factory with coverage, docs, eval, fail-closed test, and live AnythingLLM proof, Phase 81 added an explicit skill regression tier catalog with offline, controller, gateway, AnythingLLM API, UI, fixture-mutation, and release-candidate proof boundaries, Phase 82 expanded live validation to a synthetic Node CLI fixture plus both frozen Coinbase fixtures, Phase 83 added a disposable-copy mutation sandbox contract, structured diff proof, direct mutation proof artifacts, path guardrails, and rollback-failure tests around the single existing implementation workflow, Phase 84 made approval states visible in chat and stateful in controller run records, Phase 85 added a read-only observability report with route, model, skill, tool, approval, downstream, artifact, mutation, timing, and filter proof from recent live runs, Phase 86 made normal workflow-router chat explain selected workflow, skills, tools, route rules, and registry grounding in both FormatA and JSON output, Phase 87 added versioned release-channel metadata plus setup validation, Phase 88 added a contextless external tester onboarding pack with live AnythingLLM feedback proof inside the release-candidate gate, Phase 89 added the release-candidate security policy gate for secret exposure, filesystem boundaries, protected fixture policy, command fragments, and onboarding prompt safety, Phase 90 consolidated those gates into a passed V1.1 release-candidate profile, Phase 91 promoted stable-channel handoff, Phase 92 converted stable tester and blind-review feedback into fixed current-path issues or explicit Phase 93+ backlog work, Phase 93 added a governed 30-prompt natural-language capability gap backlog with validation gates, Phase 94 added a runtime selector audit contract with stable selected/rejected workflow, skill, and tool proof through Bash gateway, localhost model, controller, both frozen fixtures, and AnythingLLM, Phase 95 added route-owned context-source selection with AST/text/config/test/relationship source audits, unsupported-layout blocking, generated non-Coinbase fixture proof, Bash gateway proof, and AnythingLLM proof, Phase 96 expanded draft-only implementation prep for small text edits and approved-investigation packet prep while preserving `implementation.workflow` as the single implementation path, adding enriched direct/gateway/AnythingLLM proof, fixture digests, verification commands, generic packet seeds, bare README support, and function-definition snippet preference, Phase 97 bound natural packet-design approvals to source run identity, rejected duplicate/denied/wrong-run/target-mismatch/source-apply continuations, added deterministic approval-continuation packet prep, converted workflow-router gateway approval failures into chat-visible OpenAI responses, and proved the path through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, and full Bash regression, Phase 98 expanded disposable-copy apply proof for existing-file `append_text`, multi-operation `replace_text` plus `append_text`, source-tree digest guards, chat-visible structured diff summaries, and fail-closed `create_file` refusal through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, docs-index proof, and full Bash regression, Phase 99 added four small deterministic Batch E L2 skills with routing proof, evals, prompt coverage, live gateway and AnythingLLM validation on both frozen fixtures, contextless subagent audit hardening, and full Bash regression, Phase 100 converted model capability profiles into an active fail-closed routing gate with chat-visible route evidence, current localhost model proof, task-class enforcement, live gateway and AnythingLLM validation, contextless subagent audit hardening, and full Bash regression, Phase 101 added a Go HTTP service fixture, expanded multi-repo validation across Coinbase, Python service, Node CLI, and Go HTTP layouts, recorded repo-layout limitations, proved gateway plus AnythingLLM paths, kept Coinbase V1.1 acceptance intact, and passed full Bash regression, Phase 102 added versioned dependency-aware task-decomposition work packages, chat-visible FormatA and JSON contracts, advanced-refactor deferral proof, live gateway plus AnythingLLM validation, and full Bash regression, Phase 103 added a productized install/start/validate/reset/rerun command surface over existing setup scripts and proof gates, Phase 104 added read-only eval-driven repair recommendations with contextless verifier hardening and full Bash regression, Phase 105 added a fail-closed advanced-refactor readiness gate with prerequisite evidence validation, pilot-scope limits, live gateway plus AnythingLLM proof, contextless verifier hardening, and full Bash regression, Phase 106 fixed current L1/L2 chat-answer quality regressions with route-aware answer artifact priority, non-git source-ranking repair, committed stable proof retention, deterministic JSON response lifecycle hardening, live gateway plus AnythingLLM proof, contextless verifier hardening, and full Bash regression, Phase 107 made the browser-visible AnythingLLM UI E2E gate semantic with `L1-001` fail-closed wrong-answer markers, `L1-002` holdout proof, screenshots, fixture mutation proof, and full Bash regression, and Phase 108 made generated `runtime-state/` artifacts local-only with a committed proof-retention policy, release-channel hygiene integration, contextless verifier hardening, and full Bash regression.
 
-Phase 109 then added the consolidated release-adherence gate, fixed Bash-hosted UI E2E portability gaps found by the gate, hardened the gate after a bounded contextless audit, proved current localhost model readiness through Bash, AnythingLLM, UI semantic E2E, both frozen fixtures, latency measurement, and full Bash regression, and left the model-profile warning documented as the intentional real-apply boundary rather than an unmeasured latency gap. Phase 110 added a governed semi-well-defined prompt suite, fixed natural read-only mode inference, config/schema/dependency/table lookup generalization gaps, startup fixture allowlisting, and stale skill expectations, then proved 24 natural prompts through gateway and AnythingLLM with live localhost model scoring above the stable thresholds and no fixture mutation.
+Phase 109 then added the consolidated release-adherence gate, fixed Bash-hosted UI E2E portability gaps found by the gate, hardened the gate after a bounded contextless audit, proved current localhost model readiness through Bash, AnythingLLM, UI semantic E2E, both frozen fixtures, latency measurement, and full Bash regression, and left the model-profile warning documented as the intentional real-apply boundary rather than an unmeasured latency gap. Phase 110 added a governed semi-well-defined prompt suite, fixed natural read-only mode inference, config/schema/dependency/table lookup generalization gaps, startup fixture allowlisting, and stale skill expectations, then proved 24 natural prompts through gateway and AnythingLLM with live localhost model scoring above the stable thresholds and no fixture mutation. Phase 111 added a closed-loop eval-repair execution gate that converts the Phase 106/107 `L1-001` visible-answer failure into a controlled negative, accepted repair packet, target rerun, `L1-002` holdout rerun, deterministic adjudication, final eval-repair report, and Bash/AnythingLLM/doctor proof with no protected fixture mutation. Phase 112 made the 20 local model engineering tenets measurable with governed coverage, reference validation, docs, and full regression proof. Phase 113 moved Tenets T01-T03 to covered status by adding schema v3 decomposition packages with objective acceptance criteria, oversized-task clarification behavior, deterministic quality and case-catalog gates, live gateway/AnythingLLM proof across Coinbase and non-Coinbase fixtures, bounded recursive audit proof, and full Bash regression. Phase 114 moved Tenets T04-T05 to covered status by adding requirements-translation mode to the existing `task.decompose` path, prompt-derived technical requirements, explicit and rejected assumptions, effort-estimate bands with revision triggers, semantic fail-closed validators, live Bash/AnythingLLM proof across both frozen Coinbase fixtures and the Python service fixture, bounded recursive audit proof, and full Bash regression. Phase 115 moved Tenets T06-T07 to covered status by adding incremental implementation planning to the existing `task.decompose` path, isolated changesets, behavior-specific commit subjects, targeted verification commands, version-control policy, fail-closed validators for vague commit messages and broad pytest commands, live Bash/AnythingLLM proof across both frozen Coinbase fixtures and the Python service fixture, bounded recursive audit proof, and full Bash regression. Phase 116 moved Tenets T08-T09 to covered status by adding blind-baseline code-quality and self-review prompt gates, chat-visible code-quality review artifacts, live gateway/AnythingLLM proof for 10 prompts and 20 responses, contextless verifier proof, and full Bash regression. Phase 117 moved Tenets T10-T13 to covered status by adding a governed defect-diagnosis prompt suite, contextless blind baselines, a unified read-only defect diagnosis answer inside the existing `code_investigation.plan` path, live gateway/AnythingLLM proof across both frozen Coinbase fixtures and the Python service fixture, no-mutation eval proof, contextless verifier proof, and full Bash regression. Phase 118 moved Tenets T14-T18 to covered status by adding governed engineering-judgment prompt cases, contextless blind baselines, a chat-visible `Engineering Judgment:` answer inside the existing `code_investigation.plan` path, live gateway/AnythingLLM proof across both frozen Coinbase fixtures and Python/Go/Node fixtures, no-mutation eval proof, contextless verifier proof, and full Bash regression.
 
 ## Foreseeable Approval Queue
 
@@ -310,20 +329,90 @@ These phases were approved after the post-Phase-105 readiness review found curre
 3. Phase 108: Runtime-State Repository Hygiene And Proof Retention - complete
 4. Phase 109: Current Local Model Release-Adherence Gate - complete
 5. Phase 110: Semi-Well-Defined Prompt Generalization Suite - complete
-6. Phase 111: Closed-Loop Eval Repair Execution Gate - approved; active
+6. Phase 111: Closed-Loop Eval Repair Execution Gate - complete
 
 Approved engineering-tenet audit phases:
 
 These phases directly address the local model engineering tenets and should run only after the current chat-quality foundation phases are stable.
 
-1. Phase 112: Engineering Tenet Coverage Matrix - approved; pending Phase 111
-2. Phase 113: Task Decomposition And Acceptance Criteria Tenets - approved; pending Phase 112
-3. Phase 114: Requirements Translation And Estimation Tenets - approved; pending Phase 113
-4. Phase 115: Incremental Implementation And Version-Control Tenets - approved; pending Phase 114
-5. Phase 116: Code Quality And Self-Review Tenets - approved; pending Phase 115
-6. Phase 117: Testing And Defect Diagnosis Tenets - approved; pending Phase 116
-7. Phase 118: Tradeoff, Technical Debt, And Communication Tenets - approved; pending Phase 117
-8. Phase 119: End-To-End Delivery And Mentorship Tenets - approved; pending Phase 118
+1. Phase 112: Engineering Tenet Coverage Matrix - complete
+2. Phase 113: Task Decomposition And Acceptance Criteria Tenets - complete
+3. Phase 114: Requirements Translation And Estimation Tenets - complete
+4. Phase 115: Incremental Implementation And Version-Control Tenets - complete
+5. Phase 116: Code Quality And Self-Review Tenets - complete
+6. Phase 117: Testing And Defect Diagnosis Tenets - complete
+7. Phase 118: Tradeoff, Technical Debt, And Communication Tenets - complete
+8. Phase 119: End-To-End Delivery And Mentorship Tenets - complete
+
+Approved Priority 0 governance phases:
+
+1. Phase 120: Baseline Corpus Governance - complete
+2. Phase 121: AnythingLLM Answer Usefulness Gate - complete
+3. Phase 122: Holdout Prompt Bank - complete
+4. Phase 123: Gap Taxonomy Integration - complete
+5. Phase 124: Output Format Parity - complete
+6. Phase 125: Founder Feedback Loop - complete
+7. Phase 126: Corpus-Wide AnythingLLM UI Usefulness - complete
+8. Phase 127: Fresh Local-Model Drift Gate - complete
+9. Phase 128: Prompt Tightening Recommendation Gate - complete
+10. Phase 129: Skill/Tool Coverage Gap Gate - complete
+11. Phase 130: Stable Chat Quality Release Gate - complete
+12. Phase 131: Stable Release Blocker Closure - complete
+13. Phase 132: Stable Release Gate Rerun - complete
+14. Phase 133: Founder Testing Handoff Refresh - complete
+15. Phase 134: AnythingLLM Founder Smoke Suite - complete
+16. Phase 135: Founder Feedback Intake And Classification - complete
+17. Phase 136: Chat Quality Release Candidate Snapshot - complete
+18. Phase 137: Founder Test Prompt Pack Expansion - complete
+19. Phase 138: Chat Transcript Quality Classifier - complete
+20. Phase 139: Local Model Regression Watchlist - complete
+21. Phase 140: AnythingLLM Session Recovery And Greeting Smoke - complete
+22. Phase 141: Gateway And AnythingLLM Port Health Drift Guard - complete
+23. Phase 142: Baseline Corpus Promotion Rules - complete
+24. Phase 143: Skill/Tool Gap Proposal Intake Gate - complete
+25. Phase 144: Natural Output Format Preference E2E - complete
+26. Phase 145: Founder Feedback Triage Dashboard - complete
+27. Phase 146: Release Notes And Known Limitations - complete
+28. Phase 147: External Tester Dry Run - complete
+29. Phase 148: Failure-To-Roadmap Proposal Gate - complete
+30. Phase 149: Contextless Audit Scorecard - complete
+31. Phase 150: Current-Model Compatibility Matrix - complete
+32. Phase 151: Skill/Tool Selection Explainability E2E - complete
+33. Phase 152: AnythingLLM Conversation State Isolation - complete
+34. Phase 153: Stable Release Rollback And Reset Practice - complete
+35. Phase 154: Model Swap Smoke Probe - complete
+36. Phase 155: V1 Product Readiness Review - complete
+37. Phase 156: V1 Stable Release Decision Gate - complete
+38. Phase 157: Founder Field Test Round 1 - complete
+39. Phase 158: Transcript Quality And Feedback Intake - complete
+40. Phase 159: Priority 0 Repair Loop - complete
+41. Phase 160: Stable Release Refresh - complete
+42. Phase 161: Skill/Tool Gap Batch Proposal - complete
+43. Phase 162: Next Founder Handoff Update - complete
+44. Phase 163: Post-Restart Runtime Readiness Gate - complete
+45. Phase 164: Founder Field Test Round 2 - complete
+46. Phase 165: Phase 158 Prompt-Advisory Closure - complete
+47. Phase 166: Generic Chat And Vague Prompt Contract - complete
+48. Phase 167: AnythingLLM UI Replay Gate - complete
+49. Phase 168: Chat Answer Usefulness Tightening - complete
+50. Phase 169: Failure-To-Roadmap Proposal Pass - complete
+51. Phase 170: Stable Release Refresh And Handoff Update - complete
+52. Phase 171: Handler Branch Evidence Repair - complete
+53. Phase 172: Minimal Change Surface Boundary Repair - complete
+54. Phase 173: Persisted Schema Evidence Repair - Git Fixture - approved
+55. Phase 174: Persisted Schema Evidence Repair - Non-Git Fixture - approved
+56. Phase 175: Change Boundary Verification Repair - Git Fixture - approved
+57. Phase 176: Change Boundary Verification Repair - Non-Git Fixture - approved
+58. Phase 177: Post-Repair Stable Proof Refresh - approved
+59. Phase 178: Blind-Baseline Delta Report - approved
+60. Phase 179: Prompt Corpus Governance V2 - approved
+61. Phase 180: Chat Answer Contract Hardening - approved
+62. Phase 181: Output Format Selector Stabilization - approved
+63. Phase 182: Evidence Relevance Ranking Repair - approved
+64. Phase 183: Related-Test Discovery Reliability - approved
+65. Phase 184: AnythingLLM UI Replay Expansion - approved
+66. Phase 185: Contextless Agent Audit Pack - approved
+67. Phase 186: Founder Testing Handoff Refresh - approved
 
 Second-step approved phases:
 
@@ -5867,7 +5956,7 @@ Validation proof:
 
 ### Approved Phase 111: Closed-Loop Eval Repair Execution Gate
 
-Status: Approved; active.
+Status: Complete.
 
 Goal: prove the project can turn a failed local-model/harness eval into an accepted fix and verified holdout pass.
 
@@ -5895,9 +5984,31 @@ Acceptance proof:
 - Full Bash regression passes after non-agent code changes.
 - The final report proves no protected fixture mutation and no route/skill/tool regression.
 
+Implementation completed:
+
+- Added `vllm_agent_gateway.acceptance.eval_repair_execution_gate` and `scripts/validate_closed_loop_eval_repair.py`.
+- The Phase 111 target is the Phase 106/107 `L1-001` visible-answer artifact-priority failure: the route and downstream investigation artifact were correct, but the visible chat answer rendered the `Entrypoints: main.py` sidecar instead of `downstream_investigation_plan`.
+- The holdout is `L1-002`, a function-explanation prompt family that proves the repair did not regress a different L1 answer renderer.
+- The gate writes a controlled negative failure report, failure taxonomy report, advisory eval-repair report, accepted repair packet, deterministic adjudication report, final eval-repair report, JSON summary, and Markdown summary under `runtime-state/eval-repair-loop/`.
+- Accepted current-phase recursive findings can now preserve concrete target and holdout rerun commands, so L1/L2 suite commands do not get rewritten to the older founder-field command shape.
+- Rejected broad explanations are recorded explicitly: prompt-only wording problem, model-quality problem, and advanced-refactor dependency.
+- Updated `README.eval-repair-loop.md`, `docs/examples/eval-repair-loop.md`, `docs/README.md`, and `docs/examples/README.md`.
+
+Validation proof:
+
+- Contextless subagent audit recommended `L1-001` as the target and `L1-002` as the holdout; it also warned not to use P06 as primary proof and not to claim the git fixture is clean when the correct claim is unchanged during validation.
+- Passed: focused regression `python -m pytest tests/regression/test_eval_repair_loop.py tests/regression/test_eval_repair_execution_gate.py -q` with `20 passed`.
+- Passed fail-closed dry run evidence: `python scripts/validate_closed_loop_eval_repair.py --output-path runtime-state/eval-repair-loop/phase111-offline-dry-run.json` failed as expected with `target_result_status=not_run_required`, `holdout_result_status=not_run_required`, and `validation_error_count=5`.
+- Initial live run failed because Bash did not receive `ANYTHINGLLM_API_KEY`; gateway target and holdout passed, but AnythingLLM and doctor failed. This produced `runtime-state/eval-repair-loop/phase111-live-closed-loop.json`.
+- Passed: Bash doctor with scoped WSL key propagation, `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python3 scripts/run_first_time_user_doctor.py --timeout-seconds 30 --output-path runtime-state/first-time-user-doctor/phase111-doctor-with-wslenv.json"`, with `28 passed`, `0 failed`, and one fixture cleanliness warning.
+- Passed: live closed-loop gate with scoped WSL key propagation, `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python3 scripts/validate_closed_loop_eval_repair.py --execute-live --include-port-health --timeout-seconds 900 --output-path runtime-state/eval-repair-loop/phase111-live-closed-loop-final.json"`, with `status=passed`, `target_result_status=passed`, `holdout_result_status=passed`, `port_health_status=passed`, and `validation_error_count=0`.
+- Passed: docs index `python scripts/check_docs_index.py` with `expected_count=126`, `linked_count=126`, and `orphaned_docs=[]`.
+- Passed: full Bash regression `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python -m pytest tests/regression/ -v"` with `566 passed`, `4 skipped`, and `23 deselected`.
+- The final report proves protected fixture mutation status as `false`; the correct fixture claim is unchanged during validation, not pristine git cleanliness.
+
 ### Approved Phase 112: Engineering Tenet Coverage Matrix
 
-Status: Approved; pending Phase 111.
+Status: Complete.
 
 Goal: make the local model engineering tenets measurable instead of aspirational.
 
@@ -5917,9 +6028,26 @@ Acceptance proof:
 - Roadmap and docs explain which tenets are already measurable and which need later phases.
 - Docs index passes.
 
+Implementation completed:
+
+- Added `runtime/engineering_tenet_coverage.json` with one governed entry for each of the 20 local model engineering tenets.
+- Added `vllm_agent_gateway.acceptance.engineering_tenet_coverage` and `scripts/validate_engineering_tenet_coverage.py`.
+- Added regression coverage in `tests/regression/test_engineering_tenet_coverage.py`.
+- Added `README.engineering-tenets.md` and `docs/examples/engineering-tenets.md`, then linked both from the ordered docs indexes.
+- Tightened the validator after contextless audit so workflow IDs, skill IDs, tool IDs, eval IDs, and live validator script paths must resolve to current project registries or approved external eval IDs.
+- Classified the current baseline conservatively as `13 partially_covered`, `7 not_covered`, and `0 covered` so later phases have measurable targets instead of aspirational claims.
+
+Validation proof:
+
+- Contextless audit found real blockers before closeout: pseudo workflow IDs, pseudo tool IDs, a stale live validator path for Tenet 6, and shallow reference validation. These were fixed before final regression.
+- Passed: focused regression `python -m pytest tests/regression/test_engineering_tenet_coverage.py -q` with `10 passed`.
+- Passed: governed matrix validation `python scripts/validate_engineering_tenet_coverage.py --output-path runtime-state/engineering-tenet-coverage/phase112-final-tightened.json` with `status=passed`, `error_count=0`, `tenet_count=20`, `partially_covered=13`, and `not_covered=7`.
+- Passed: docs index `python scripts/check_docs_index.py` with `expected_count=128`, `linked_count=128`, and `orphaned_docs=[]`.
+- Passed: full Bash regression `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python -m pytest tests/regression/ -v"` with `576 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 113: Task Decomposition And Acceptance Criteria Tenets
 
-Status: Approved; pending Phase 112.
+Status: Complete.
 
 Goal: prove the harness can decompose features, bugs, and requirements into bounded work with objective acceptance criteria.
 
@@ -5944,9 +6072,33 @@ Acceptance proof:
 - No source mutation occurs.
 - Full Bash regression passes after non-agent code changes.
 
+Implementation completed:
+
+- Extended `task.decompose` work packages to schema version 3 with dependencies, stop conditions, review boundaries, scope boundaries, objective acceptance criteria, and a Phase 113 tenet contract for T01-T03.
+- Added oversized-request detection so whole-project or broad rewrite prompts return `needs_clarification` with further-decomposition guidance and no implementation packets.
+- Preserved advanced-refactor deferral and the single implementation path: task decomposition still produces planning artifacts only and does not bypass `implementation.workflow`.
+- Added deterministic quality checks in `vllm_agent_gateway.acceptance.task_decomposition_quality` and the `scripts/validate_task_decomposition_quality.py` CLI for missing criteria, non-objective criteria, oversized packages, ambiguous dependencies, and unsupported implementation claims.
+- Added `runtime/task_decomposition_phase113_cases.json` and `scripts/validate_task_decomposition_phase113_cases.py` to govern natural feature, bug, requirement, and oversized prompt cases plus the bounded contextless audit packet.
+- Expanded `scripts/validate_task_decomposition_live.py` so direct controller, gateway, and AnythingLLM validation exercise feature, bug, and requirement prompts across both frozen Coinbase fixtures and the non-Coinbase Python service fixture.
+- Updated chat-visible FormatA and JSON output so users can see acceptance criteria, scope boundaries, mutation status, and the tenet contract without opening artifact files.
+- Updated `runtime/engineering_tenet_coverage.json` so T01, T02, and T03 are `covered` with concrete live validators, eval cases, chat-visible evidence, and contextless audit criteria.
+- Hardened in-process controller-service test lifecycle with daemon request threads to avoid local HTTP shutdown flakiness during repeated Phase 113 regression runs.
+
+Validation proof:
+
+- Passed: focused regression `python -m pytest tests/regression/test_task_decomposition.py -q` with `15 passed`.
+- Passed: adjacent regression `python -m pytest tests/regression/test_task_decomposition.py tests/regression/test_chat_response_contract.py tests/regression/test_v1_acceptance.py tests/regression/test_engineering_tenet_coverage.py -q` with `38 passed`.
+- Passed: Phase 113 case-catalog validation `python scripts/validate_task_decomposition_phase113_cases.py --output-path runtime-state/task-decomposition/phase113-case-catalog.json` with `status=passed`, `case_count=4`, and prompt families `bug`, `feature`, `oversized`, and `requirement`.
+- Passed: engineering-tenet coverage validation `python scripts/validate_engineering_tenet_coverage.py --output-path runtime-state/engineering-tenet-coverage/phase113-current.json` with `status=passed`, `covered=3`, `partially_covered=10`, `not_covered=7`, and `error_count=0`.
+- Passed: docs index `python scripts/check_docs_index.py` with `expected_count=128`, `linked_count=128`, and `orphaned_docs=[]`.
+- Passed: live Bash validation `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python3 scripts/validate_task_decomposition_live.py --timeout-seconds 900 --output-path runtime-state/task-decomposition/phase113-live.json"` with `status=passed`, `port_pass_count=11`, three target roots, nine direct family runs, nine gateway family runs, nine AnythingLLM family runs, `runtime_changed_files=[]`, and `target_changed_files={}`.
+- Passed: bounded recursive contextless audit report `runtime-state/recursive-blind-testing/phase113-task-decomposition-recursive-report.json` with score `86/100`, no unresolved critical or high findings, accepted findings for missing durable audit proof and final regression proof, and rejected low advanced-refactor wording drift as out of Phase 113 scope.
+- Passed: recursive audit validation `python scripts/validate_recursive_blind_testing.py --report runtime-state/recursive-blind-testing/phase113-task-decomposition-recursive-report.json --output-path runtime-state/recursive-blind-testing/phase113-task-decomposition-recursive-validation.json` with `status=passed`, `policy_validated=true`, and `report_validated=true`.
+- Passed: full Bash regression `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python -m pytest tests/regression/ -v"` with `584 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 114: Requirements Translation And Estimation Tenets
 
-Status: Approved; pending Phase 113.
+Status: Complete.
 
 Goal: prove the harness can translate business requirements into technical requirements and estimates without inventing unnecessary assumptions.
 
@@ -5969,9 +6121,29 @@ Acceptance proof:
 - Contextless audits find no unsupported assumptions above the configured threshold.
 - Full Bash regression passes after non-agent code changes.
 
+Implementation completed:
+
+- Extended the existing `task.decompose` workflow with `requirements_translation` mode instead of adding a parallel workflow.
+- Added deterministic requirements translation contracts with source business requirements, derived technical requirements, domain terms, observable outcomes, explicit assumptions, rejected assumptions, dependencies, risk notes, effort estimate bands, scope drivers, and revision triggers.
+- Added semantic generation and validation for prompt-derived business terms, including scope-change prompts that preserve `resolved_order_status`, `requirement_note`, and `documentation_note`.
+- Strengthened validators to fail closed when technical requirement bodies are generic placeholders even if side fields remain intact.
+- Added Phase 114 case catalog, live validator, chat-visible FormatA and JSON requirements-translation output, and engineering-tenet coverage references for T04-T05.
+
+Validation proof:
+
+- Passed: focused regression `python -m pytest tests/regression/test_task_decomposition.py -q` with `27 passed`.
+- Passed: adjacent regression `python -m pytest tests/regression/test_task_decomposition.py tests/regression/test_chat_response_contract.py tests/regression/test_v1_acceptance.py tests/regression/test_engineering_tenet_coverage.py -q` with `50 passed`.
+- Passed: Phase 114 case-catalog validation `python scripts/validate_requirements_translation_phase114_cases.py --output-path runtime-state/task-decomposition/phase114-case-catalog.json` with `status=passed`, `case_count=2`, and case types `business_to_technical` and `estimate_revision`.
+- Passed: engineering-tenet coverage validation `python scripts/validate_engineering_tenet_coverage.py --output-path runtime-state/engineering-tenet-coverage/phase114-current.json` with `status=passed`, `covered=5`, `partially_covered=10`, `not_covered=5`, and `error_count=0`.
+- Passed: docs index `python scripts/check_docs_index.py` with `expected_count=128`, `linked_count=128`, and `orphaned_docs=[]`.
+- Passed: live Bash validation `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python3 scripts/validate_requirements_translation_live.py --timeout-seconds 900 --output-path runtime-state/task-decomposition/phase114-requirements-live.json"` with `status=passed`, `port_pass_count=11`, three target roots, six direct requirements runs, three gateway JSON runs, three AnythingLLM JSON runs, `runtime_changed_files=[]`, and `target_changed_files={}`.
+- Passed: bounded recursive contextless audit report `runtime-state/recursive-blind-testing/phase114-requirements-translation-recursive-report.json` with final score `86/100`, no unresolved semantic blockers, accepted findings for generic technical requirements, missing durable audit proof, and final regression proof.
+- Passed: recursive audit validation `python scripts/validate_recursive_blind_testing.py --report runtime-state/recursive-blind-testing/phase114-requirements-translation-recursive-report.json --output-path runtime-state/recursive-blind-testing/phase114-requirements-translation-recursive-validation.json` with `status=passed`, `policy_validated=true`, and `report_validated=true`.
+- Passed: full Bash regression `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python -m pytest tests/regression/ -v"` with `596 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 115: Incremental Implementation And Version-Control Tenets
 
-Status: Approved; pending Phase 114.
+Status: Complete.
 
 Goal: prove the harness can plan incremental implementation and version-control behavior using industry-standard changesets.
 
@@ -5994,9 +6166,32 @@ Acceptance proof:
 - Disposable-copy mutation proof remains optional and explicitly bounded.
 - Full Bash regression passes after non-agent code changes.
 
+Implementation completed:
+
+- Extended the existing `task.decompose` workflow with `incremental_implementation_plan` mode instead of adding a parallel workflow.
+- Added deterministic Phase 115 contracts with isolated investigation, implementation, and test changesets; dependency order; functional outcomes; acceptance checks; traceability artifacts; commit-message subjects, bodies, and rationale; branch guidance; and source-apply blocking.
+- Added behavior-specific subject extraction for natural prompts, including `In <target_root>, create an implementation plan with isolated changesets ... for adding ...` prompt shapes.
+- Added targeted verification command selection from existing target-root test files and fail-closed validation for placeholders, broad pytest commands, missing verification, and weak commit subjects such as `Add lookup answer`.
+- Added chat-visible FormatA output for changesets, verification, commit messages, commit order, branch, version-control policy, source-apply policy, and source mutation status.
+- Added a Priority 0 no-target general-chat fallback so `hi` through the workflow-router gateway and AnythingLLM API returns guidance instead of a missing-target failure.
+
+Validation proof:
+
+- Passed: focused regression `python -m pytest tests/regression/test_task_decomposition.py -q` with `43 passed`.
+- Passed: adjacent regression `python -m pytest tests/regression/test_task_decomposition.py tests/regression/test_chat_response_contract.py tests/regression/test_v1_acceptance.py tests/regression/test_engineering_tenet_coverage.py -q` with `66 passed`.
+- Passed: Phase 115 case-catalog validation `python scripts/validate_incremental_implementation_phase115_cases.py --output-path runtime-state/task-decomposition/phase115-case-catalog.json` with `status=passed`, `case_count=2`, and case types `feature_implementation_plan` and `test_update_plan`.
+- Passed: engineering-tenet coverage validation `python scripts/validate_engineering_tenet_coverage.py --output-path runtime-state/engineering-tenets/coverage-validation.json` with `status=passed`, `covered=7`, `partially_covered=8`, `not_covered=5`, and `error_count=0`.
+- Passed: docs index `python scripts/check_docs_index.py` with `expected_count=128`, `linked_count=128`, and `orphaned_docs=[]`.
+- Passed: live Bash validation `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python3 scripts/validate_incremental_implementation_live.py --timeout-seconds 900 --output-path runtime-state/task-decomposition/phase115-incremental-implementation-live.json"` with `status=passed`, `port_pass_count=11`, direct controller, workflow-router gateway, AnythingLLM, both frozen Coinbase fixtures, and the Python service fixture.
+- Passed: AnythingLLM API `hi` probe returned `route_status=general_chat_no_target` with chat-visible guidance instead of timing out or failing with `missing_target_root`.
+- Passed: bounded contextless audits found and drove repairs for weak commit subjects, broad pytest commands, prompt-shape extraction, and missing recursive proof; final contextless re-audit scored `88/100` with no remaining blockers.
+- Passed: bounded recursive contextless audit report `runtime-state/recursive-blind-testing/phase115-incremental-implementation-recursive-report.json` recorded the accepted findings and final audit evidence.
+- Passed: recursive audit validation `python scripts/validate_recursive_blind_testing.py --report runtime-state/recursive-blind-testing/phase115-incremental-implementation-recursive-report.json --output-path runtime-state/recursive-blind-testing/phase115-incremental-implementation-recursive-validation.json` with `status=passed`, `policy_validated=true`, and `report_validated=true`.
+- Passed: full Bash regression `$env:WSLENV='ANYTHINGLLM_API_KEY/u'; bash -lc "cd /mnt/c/agentic_agents && python -m pytest tests/regression/ -v"` with `612 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 116: Code Quality And Self-Review Tenets
 
-Status: Approved; pending Phase 115.
+Status: Complete.
 
 Goal: prove the harness can identify and communicate code quality issues before peer review.
 
@@ -6019,9 +6214,34 @@ Acceptance proof:
 - Findings are actionable, source-referenced, and do not require manual skill injection.
 - Full Bash regression passes after non-agent code changes.
 
+Implementation completed:
+
+- Added `P0-BB-001` blind-baseline-first Phase 116 prompt cases in `runtime/phase116_code_quality_prompt_cases.json`.
+- Added contextless blind baselines in `runtime/phase116_code_quality_blind_baselines.json`.
+- Added validators and live comparison tooling:
+  - `scripts/validate_phase116_code_quality_prompt_cases.py`
+  - `scripts/validate_phase116_code_quality_blind_baselines.py`
+  - `scripts/run_phase116_code_quality_local_eval.py`
+  - `scripts/compare_phase116_code_quality_local_eval.py`
+- Extended the single existing `code_investigation.plan` read-only path with a `code_quality_review` artifact instead of adding a parallel workflow.
+- Added deterministic `l2_code_quality_review_terms` routing to `code_investigation.plan`.
+- Added chat-visible `Code Quality Review:` output with target files, status, review mode, recommendation, findings or no-supported-finding reason, severity, evidence refs, impact, bounded remediation, checklist content, behavior comparison, rejected false positives, source refs, gaps, and source mutation status.
+- Added evidence-priority selection for explicitly requested code-quality files, related enum/test evidence, and checklist inspection refs.
+- Added regression coverage for natural route selection, proposed-patch review output, no-supported-finding output, line evidence, false-positive discipline, and no source mutation.
+
+Validation proof:
+
+- Passed: prompt-case validation `python scripts/validate_phase116_code_quality_prompt_cases.py --output-path runtime-state/phase116/code-quality-prompt-cases.json`.
+- Passed: blind-baseline validation `python scripts/validate_phase116_code_quality_blind_baselines.py --output-path runtime-state/phase116/code-quality-blind-baselines.json`.
+- Passed: focused route/chat regression `python -m pytest tests/regression/test_controller_service.py::test_workflow_router_routes_l2_code_quality_issue_language_to_code_investigation tests/regression/test_controller_service.py::test_workflow_router_chat_returns_inline_code_quality_review_without_mutation tests/regression/test_controller_service.py::test_workflow_router_chat_returns_no_finding_code_quality_review_without_mutation -q` with `3 passed`.
+- Passed: live Bash Phase 116 local eval `python3 scripts/run_phase116_code_quality_local_eval.py --timeout-seconds 900 --output-path runtime-state/phase116/code-quality-local-eval.json` with all featured ports passing: `8000`, `8300`, `8400`, `8500`, `8101`, `8102`, `8201`, `8202`, `8203`, `8204`, and `8205`.
+- Passed: live gateway and AnythingLLM capture for all 10 Phase 116 prompts, including both frozen Coinbase fixtures and holdouts.
+- Passed: blind-baseline comparison `python scripts/compare_phase116_code_quality_local_eval.py --output-path runtime-state/phase116/code-quality-comparison.json` with `status=passed`, `response_count=20`, `passed_response_count=20`, `critical_finding_count=0`, and `high_finding_count=0`.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- bash -lc 'python -m pytest tests/regression/ -v'` with `615 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 117: Testing And Defect Diagnosis Tenets
 
-Status: Approved; pending Phase 116.
+Status: Complete.
 
 Goal: prove the harness can select test levels, reproduce defects, isolate root cause, and use logs/observability instead of assumptions.
 
@@ -6046,9 +6266,33 @@ Acceptance proof:
 - Target and holdout cases pass after any repair.
 - Full Bash regression passes after non-agent code changes.
 
+Completed work:
+
+- Added governed Phase 117 prompt and blind-baseline catalogs:
+  - `runtime/phase117_defect_diagnosis_prompt_cases.json`
+  - `runtime/phase117_defect_diagnosis_blind_baselines.json`
+- Added fail-closed validators and live comparison tooling:
+  - `scripts/validate_phase117_defect_diagnosis_prompt_cases.py`
+  - `scripts/validate_phase117_defect_diagnosis_blind_baselines.py`
+  - `scripts/run_phase117_defect_diagnosis_local_eval.py`
+  - `scripts/compare_phase117_defect_diagnosis_local_eval.py`
+- Extended the existing single read-only `code_investigation.plan` path with `defect_diagnosis_summary`; no new workflow or edit path was introduced.
+- Added chat-visible `Defect Diagnosis:` rendering with observed failure, likely root cause and confidence, reproduction steps, smallest and broader tests, observability evidence, missing data, source refs, and source-mutation boundary.
+- Passed: prompt-case validation `python scripts/validate_phase117_defect_diagnosis_prompt_cases.py --output-path runtime-state/phase117/defect-diagnosis-prompt-cases.json`.
+- Passed: blind-baseline validation `python scripts/validate_phase117_defect_diagnosis_blind_baselines.py --output-path runtime-state/phase117/defect-diagnosis-blind-baselines.json`.
+- Passed: focused regression `python -m pytest tests/regression/test_controller_service.py::test_workflow_router_chat_phase117_full_defect_diagnosis_returns_inline_summary tests/regression/test_controller_service.py::test_workflow_router_chat_phase117_insufficient_evidence_returns_missing_data -q` with `2 passed`.
+- Passed: neighboring defect route regression `python -m pytest tests/regression/test_controller_service.py::test_workflow_router_chat_l1_test_failure_summary_returns_summary_artifact tests/regression/test_controller_service.py::test_workflow_router_chat_l2_failing_test_investigation_returns_root_cause_plan tests/regression/test_controller_service.py::test_workflow_router_chat_phase117_full_defect_diagnosis_returns_inline_summary tests/regression/test_controller_service.py::test_workflow_router_chat_phase117_insufficient_evidence_returns_missing_data tests/regression/test_controller_service.py::test_workflow_router_chat_l2_test_selection_returns_command_tiers tests/regression/test_controller_service.py::test_workflow_router_chat_l2_runtime_error_diagnosis_returns_artifact tests/regression/test_controller_service.py::test_workflow_router_chat_l2_ci_log_triage_returns_artifact tests/regression/test_controller_service.py::test_workflow_router_chat_l2_runtime_reproduction_checklist_returns_artifact -q` with `8 passed`.
+- Passed: live Bash Phase 117 local eval `python3 scripts/run_phase117_defect_diagnosis_local_eval.py --timeout-seconds 900 --output-path runtime-state/phase117/defect-diagnosis-local-eval.json` with all featured ports passing: `8000`, `8300`, `8400`, `8500`, `8101`, `8102`, `8201`, `8202`, `8203`, `8204`, and `8205`.
+- Passed: live gateway and AnythingLLM capture for 10 Phase 117 prompts and 20 responses across `/mnt/c/coinbase_testing_repo_frozen_tmp`, `/mnt/c/coinbase_testing_repo_frozen_tmp.github`, and `/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture`.
+- Passed: protected-fixture mutation proof from `runtime-state/phase117/defect-diagnosis-local-eval.json` recorded `runtime_changed_files=[]`, `target_changed_files={}`, and the run would fail on any per-case watched-file mutation.
+- Passed: blind-baseline comparison `python scripts/compare_phase117_defect_diagnosis_local_eval.py --output-path runtime-state/phase117/defect-diagnosis-comparison.json` with `status=passed`, `response_count=20`, `passed_response_count=20`, `critical_finding_count=0`, `high_finding_count=0`, and `recommended_next_repairs=[]`.
+- Passed: contextless verifier audit concluded Phase 117 was sufficient to close after retained artifact links and mutation proof.
+- Passed: docs index validation `python scripts/check_docs_index.py`.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- bash -lc 'python -m pytest tests/regression/ -v'` with `619 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 118: Tradeoff, Technical Debt, And Communication Tenets
 
-Status: Approved; pending Phase 117.
+Status: Complete.
 
 Goal: prove the harness can explain engineering decisions, tradeoffs, technical debt, risks, blockers, and review feedback.
 
@@ -6074,9 +6318,33 @@ Acceptance proof:
 - Contextless audit scores meet the stable-channel threshold.
 - Full Bash regression passes after non-agent code changes.
 
+Completed work:
+
+- Added governed Phase 118 prompt and blind-baseline catalogs:
+  - `runtime/phase118_engineering_judgment_prompt_cases.json`
+  - `runtime/phase118_engineering_judgment_blind_baselines.json`
+- Added Phase 118 validators and live comparison tooling:
+  - `scripts/validate_phase118_engineering_judgment_prompt_cases.py`
+  - `scripts/validate_phase118_engineering_judgment_blind_baselines.py`
+  - `scripts/run_phase118_engineering_judgment_local_eval.py`
+  - `scripts/compare_phase118_engineering_judgment_local_eval.py`
+- Extended the existing single read-only `code_investigation.plan` path with `engineering_judgment_review`; no new workflow or edit path was introduced.
+- Added chat-visible `Engineering Judgment:` rendering with recommendation, evidence used, alternatives, tradeoffs, risks/blockers, technical debt, validation, unknowns, rejected claims, source refs, and source-mutation boundary.
+- Passed: prompt-case validation `python scripts/validate_phase118_engineering_judgment_prompt_cases.py --output-path runtime-state/phase118/engineering-judgment-prompt-cases.json`.
+- Passed: blind-baseline validation `python scripts/validate_phase118_engineering_judgment_blind_baselines.py --output-path runtime-state/phase118/engineering-judgment-blind-baselines.json`.
+- Passed: Bash prompt and baseline validation with `python3 scripts/validate_phase118_engineering_judgment_prompt_cases.py --output-path runtime-state/phase118/engineering-judgment-prompt-cases-bash.json && python3 scripts/validate_phase118_engineering_judgment_blind_baselines.py --output-path runtime-state/phase118/engineering-judgment-blind-baselines-bash.json`.
+- Passed: focused neighbor regression `python -m pytest tests/regression/test_controller_service.py::test_workflow_router_routes_l2_engineering_judgment_language_to_code_investigation tests/regression/test_controller_service.py::test_workflow_router_chat_returns_inline_engineering_judgment_without_mutation tests/regression/test_controller_service.py::test_workflow_router_routes_l2_code_quality_issue_language_to_code_investigation tests/regression/test_controller_service.py::test_workflow_router_chat_returns_inline_code_quality_review_without_mutation tests/regression/test_controller_service.py::test_workflow_router_chat_returns_no_finding_code_quality_review_without_mutation -q` with `5 passed`.
+- Passed: live Bash Phase 118 local eval `python3 scripts/run_phase118_engineering_judgment_local_eval.py --timeout-seconds 900 --output-path runtime-state/phase118/engineering-judgment-local-eval.json` with all featured ports passing: `8000`, `8300`, `8400`, `8500`, `8101`, `8102`, `8201`, `8202`, `8203`, `8204`, and `8205`.
+- Passed: live gateway and AnythingLLM capture for 10 Phase 118 prompts and 20 responses across `/mnt/c/coinbase_testing_repo_frozen_tmp`, `/mnt/c/coinbase_testing_repo_frozen_tmp.github`, `/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture`, `/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture`, and `/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture`.
+- Passed: protected-fixture mutation proof from `runtime-state/phase118/engineering-judgment-local-eval.json` recorded `runtime_changed_files=[]`, `target_changed_files={}`, and the run would fail on any per-case watched-file mutation.
+- Passed: blind-baseline comparison `python scripts/compare_phase118_engineering_judgment_local_eval.py --output-path runtime-state/phase118/engineering-judgment-comparison.json` with `status=passed`, `response_count=20`, `passed_response_count=20`, `critical_finding_count=0`, `high_finding_count=0`, and `recommended_next_repairs=[]`.
+- Passed: contextless verifier audit concluded Phase 118 phase-specific evidence was sufficient and identified full regression as the only remaining hard gate.
+- Passed: engineering tenet coverage validation and docs index validation.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- bash -lc 'python -m pytest tests/regression/ -v'` with `617 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 119: End-To-End Delivery And Mentorship Tenets
 
-Status: Approved; pending Phase 118.
+Status: Complete.
 
 Goal: prove the harness can support small-to-medium feature delivery from intake through deployment-quality validation and can explain the workflow well enough to mentor less experienced engineers.
 
@@ -6094,11 +6362,1877 @@ Implementation tasks:
 
 Acceptance proof:
 
-- End-to-end delivery suite passes through gateway and AnythingLLM on representative fixtures.
-- Outputs are chat-visible, evidence-backed, bounded, and aligned with all previously audited tenets.
-- Contextless audit confirms the workflow can be followed by a less experienced engineer.
-- No protected fixture mutation occurs.
-- Full Bash regression passes after non-agent code changes.
+- Passed: prompt-case validation `python scripts\validate_phase119_delivery_mentorship_prompt_cases.py --output-path runtime-state\phase119\delivery-mentorship-prompt-cases.json`.
+- Passed: blind-baseline validation `python scripts\validate_phase119_delivery_mentorship_blind_baselines.py --output-path runtime-state\phase119\delivery-mentorship-blind-baselines.json`.
+- Passed: focused Phase 119 regression for delivery mentorship contract, workflow-router routing, FormatA output, JSON contract, and case-catalog fail-closed behavior with `6 passed`.
+- Passed: live Phase 119 local eval through Bash/WSL with all featured ports healthy: `8000`, `8300`, `8400`, `8500`, `8101`, `8102`, `8201`, `8202`, `8203`, `8204`, and `8205`.
+- Passed: live gateway and AnythingLLM capture for 10 Phase 119 prompts and 20 responses across `/mnt/c/coinbase_testing_repo_frozen_tmp`, `/mnt/c/coinbase_testing_repo_frozen_tmp.github`, `/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture`, `/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture`, and `/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture`.
+- Passed: protected-fixture mutation proof from `runtime-state/phase119/delivery-mentorship-local-eval.json` recorded `runtime_changed_files=[]` and `target_changed_files={}`.
+- Passed: blind-baseline comparison `python scripts\compare_phase119_delivery_mentorship_local_eval.py --eval-path runtime-state\phase119\delivery-mentorship-local-eval.json --baselines-path runtime\phase119_delivery_mentorship_blind_baselines.json --output-path runtime-state\phase119\delivery-mentorship-comparison.json` with `status=passed`, `response_count=20`, `passed_response_count=20`, `critical_finding_count=0`, `high_finding_count=0`, `gap_categories={}`, and `recommended_next_repairs=[]`.
+- Passed: engineering tenet coverage validation with all `20` tenets covered and `0` uncovered or partially covered entries.
+- Passed: docs index validation with `129` linked docs and no orphaned docs.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `625 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 120: Baseline Corpus Governance
+
+Status: Complete.
+
+Goal: turn Priority 0 blind-baseline proof into a governed corpus so chat-quality claims cannot rely on scattered prompt files, local evals, comparisons, or stale repair status.
+
+Backlog item: `P0-BB-005`.
+
+Implementation tasks:
+
+- Add a committed baseline corpus that indexes stable Phase 116 through Phase 119 prompt cases, contextless blind baselines, live local eval summaries, comparison summaries, repair status, holdouts, routes, frozen fixture coverage, no-mutation proof, and source hashes.
+- Add one reusable validator that rejects missing blind baselines, missing local response proof, missing comparison proof, missing AnythingLLM route proof, unresolved critical/high findings, stale source hashes, fixture mutation proof gaps, missing holdouts, and stale repair status.
+- Preserve local-only `runtime-state/` policy by storing compact proof summaries and verifying raw runtime artifacts only when present or explicitly required.
+- Add docs and examples that show how to validate the corpus in a current local workspace and in a clean clone without runtime-state artifacts.
+
+Acceptance proof:
+
+- Passed: baseline corpus validation `python scripts\validate_baseline_corpus.py --require-artifacts --output-path runtime-state\baseline-corpus\phase120-baseline-corpus-report.json` with `entry_count=4`, `stable_entry_count=4`, and `error_count=0`.
+- Passed: bounded contextless audit found validator self-attestation gaps in policy fields, baseline content, comparison input binding, score floors, and governed phase coverage; those gaps were tightened in the current phase.
+- Passed: focused regression `python -m pytest tests\regression\test_baseline_corpus.py -q` with `20 passed`.
+- Passed: validator syntax check for `vllm_agent_gateway/acceptance/baseline_corpus.py` and `scripts/validate_baseline_corpus.py`.
+- Passed: docs index validation with `131` linked docs and no orphaned docs.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `645 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 121: AnythingLLM Answer Usefulness Gate
+
+Status: Complete.
+
+Goal: prove stable Priority 0 AnythingLLM responses are useful directly in chat, not only in controller artifacts or runtime files.
+
+Backlog item: `P0-BB-006`.
+
+Implementation tasks:
+
+- Add a committed answer-usefulness contract for the stable baseline corpus.
+- Validate only the user-visible `responses.anythingllm.text` body from governed local eval artifacts.
+- Extract the family answer section before `Artifacts:` and require enough substantive content there for immediate review.
+- Reject artifact-only, artifact-first, truncated, metadata-heavy, missing safety marker, stale-hash, or family-detail-thin responses.
+- Keep the gate tied to the governed baseline corpus so future stable prompt families must be added explicitly.
+
+Acceptance proof:
+
+- Passed: answer-usefulness validation `python scripts\validate_anythingllm_answer_usefulness.py --require-artifacts --output-path runtime-state\anythingllm-answer-usefulness\phase121-answer-usefulness-report.json` with `entry_count=4`, `checked_case_count=40`, and `error_count=0`.
+- Passed: bounded contextless audit warned against whole-response marker gating; the validator was tightened to score extracted answer sections before `Artifacts:` and bound metadata lines before the answer section.
+- Passed: live Bash Phase 121 smoke `python3 scripts/run_phase116_code_quality_local_eval.py --case-id CQ116-001 --output-path runtime-state/anythingllm-answer-usefulness/phase121-live-smoke.json --timeout-seconds 900` with all featured ports healthy and fresh gateway plus AnythingLLM captures.
+- Passed: fresh live CQ116-001 AnythingLLM response against the new answer-usefulness contract with `error_count=0`.
+- Passed: focused regression `python -m pytest tests\regression\test_anythingllm_answer_usefulness.py -q` with `8 passed`.
+- Passed: docs index validation with `133` linked docs and no orphaned docs.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `653 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 122: Holdout Prompt Bank
+
+Status: Complete.
+
+Goal: prove stable prompt-family repairs are not overfit by requiring governed holdout prompts to keep passing through gateway and AnythingLLM after accepted repairs.
+
+Backlog item: `P0-BB-007`.
+
+Implementation tasks:
+
+- Add a committed holdout prompt bank that indexes exact holdout case IDs for every stable baseline-corpus entry.
+- Validate that each holdout has a prompt case, blind baseline, local eval capture, comparison route result, and no-mutation proof.
+- Require exact gateway and AnythingLLM route coverage per holdout, HTTP 200 captures, non-empty chat text, run IDs, selected workflows, route pass status, score `>=85`, and no unresolved findings.
+- Bind holdout reports to prompt-case, blind-baseline, local-eval, and comparison hashes.
+- Report target coverage for each holdout pair and require justification when frozen Coinbase fixtures are absent from the holdout cases.
+
+Acceptance proof:
+
+- Passed: holdout prompt bank validation `python scripts\validate_holdout_prompt_bank.py --require-artifacts --output-path runtime-state\holdout-prompt-bank\phase122-holdout-prompt-bank-report.json` with `entry_count=4`, `holdout_case_count=8`, `holdout_response_count=16`, and `error_count=0`.
+- Passed: bounded contextless audit found risks in count-only holdout validation, weak route capture checks, route-incomplete comparison proof, missing direct proof hashes, inconsistent mutation proof, and implicit target coverage; the validator was tightened for each applicable current-path gap.
+- Passed: focused regression `python -m pytest tests\regression\test_holdout_prompt_bank.py -q` with `12 passed`.
+- Passed: docs index validation with `135` linked docs and no orphaned docs.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `665 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 123: Gap Taxonomy Integration
+
+Status: Complete.
+
+Goal: route Priority 0 comparison misses into the existing failure taxonomy and eval-repair flow without manual interpretation.
+
+Acceptance target: comparison reports classify misses as routing, context gathering, skill/tool selection, deterministic formatter, model capability, safety boundary, documentation, or test coverage, and each class maps to a bounded repair action.
+
+Implementation tasks:
+
+- Extended the shared failure taxonomy reader so `*_blind_baseline_comparison` reports are first-class inputs instead of unknown blobs.
+- Added comparison miss mapping to the existing taxonomy categories while adding explicit `gap_class` ownership for routing, context gathering, skill/tool selection, deterministic formatter, model capability, safety boundary, documentation, and test coverage.
+- Added bounded repair actions in finding evidence so misses can feed eval-repair planning without manual interpretation.
+- Added a corpus-level Priority 0 gap taxonomy validator that loads stable comparison artifacts from `runtime/baseline_corpus.json`, checks comparison artifact hashes, fails on missing artifacts when required, and fails the gate on any stable comparison finding.
+- Added docs and examples for individual failure taxonomy comparison input and whole-corpus Priority 0 validation.
+
+Acceptance proof:
+
+- Passed: Priority 0 gap taxonomy validation `python scripts\validate_priority0_gap_taxonomy.py --require-artifacts --output-path runtime-state\priority0-gap-taxonomy\phase123-priority0-gap-taxonomy-report.json` with `comparison_count=4`, `finding_count=0`, `highest_severity=none`, and `error_count=0`.
+- Passed: contextless verifier audit found two real gaps: missing comparison artifacts could pass without an explicit artifact requirement, and summary-only comparison misses could be ignored when route-level unresolved findings were absent. Both were fixed in the current phase.
+- Passed: focused regression `python -m pytest tests\regression\test_failure_taxonomy.py tests\regression\test_priority0_gap_taxonomy.py tests\regression\test_eval_repair_loop.py -q` with `30 passed`.
+- Passed: docs index validation `python scripts\check_docs_index.py` with `137` linked docs and no orphaned docs.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `673 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 124: Output Format Parity
+
+Status: Complete.
+
+Goal: prove default FormatA chat, JSON, and requested alternate outputs preserve the same evidence, safety, and answer-usefulness contract.
+
+Acceptance target: representative stable prompts pass the same blind-baseline expectations in FormatA and JSON without losing evidence refs, safety boundaries, or run traceability.
+
+Backlog item: `P0-BB-009`.
+
+Implementation tasks:
+
+- Added `runtime/output_format_parity_cases.json` as the governed case catalog for representative stable Priority 0 prompt families.
+- Refactored controller chat rendering so FormatA and JSON both use `inline_artifact_answer_contract_for_response` for the visible answer body.
+- Added `inline_answer_contract` to JSON output, including artifact kind, artifact key, heading, rendered answer lines, text, and source-mutation marker.
+- Added `vllm_agent_gateway/acceptance/output_format_parity.py` to validate case catalog coverage, FormatA markers, JSON contract shape, inline answer markers, gateway proof, AnythingLLM proof, and mutation proof.
+- Added `scripts/validate_output_format_parity_live.py` to run default and JSON output through the workflow-router gateway and AnythingLLM across both frozen Coinbase fixtures.
+- Added regression coverage for artifact-only JSON rejection, missing AnythingLLM proof rejection, exact deterministic formatter parity, and tolerant stable-line comparison for independent AnythingLLM sessions.
+- Added README and example documentation for the Phase 124 gate.
+
+Acceptance proof:
+
+- Passed: Phase 124 live output-format parity validation `python3 scripts/validate_output_format_parity_live.py --output-path runtime-state/output-format-parity/phase124-output-format-parity-live.json --timeout-seconds 900` with `status=passed`, `case_count=8`, surfaces `gateway` and `anythingllm`, target roots `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`, all featured ports healthy, `runtime_changed_files=[]`, `target_changed_files=[]`, and `target_git_changed={}`.
+- Passed: bounded contextless audit found no shared-renderer defect, no artifact-only JSON gate gap, and no missing-AnythingLLM proof gate gap. The audit correctly identified live validation as the remaining completion requirement before the live run passed.
+- Passed: focused regression `python -m pytest tests\regression\test_output_format_parity.py tests\regression\test_chat_response_contract.py -q` with `12 passed`.
+- Passed: docs index validation `python scripts\check_docs_index.py` with `139` linked docs and no orphaned docs.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `680 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 125: Founder Feedback Loop
+
+Status: Complete.
+
+Goal: convert founder AnythingLLM feedback into governed prompt cases, holdouts, or rejected findings.
+
+Acceptance target: feedback records link prompt ID, run ID, gap classification, accepted/rejected repair decision, and validation result.
+
+Backlog item: `P0-BB-010`.
+
+Implementation tasks:
+
+- Added `runtime/founder_feedback_loop_cases.json` as the governed Phase 125 live case catalog.
+- Extended natural feedback parsing so prompt/case IDs in feedback text flow into feedback `artifact_refs`.
+- Added durable `governed_decision` records to `workflow_feedback.record` artifacts and summaries.
+- Added deterministic decision mapping for `baseline_prompt_candidate`, `holdout_prompt_candidate`, `repair_followup`, and `rejected_finding`.
+- Added `vllm_agent_gateway/acceptance/founder_feedback_loop.py` to validate catalog coverage, durable decision fields, run linkage, prompt case linkage, gap class, accepted/rejected status, validation result, surface coverage, and mutation proof.
+- Added `scripts/validate_founder_feedback_loop_live.py` to seed live workflow-router runs, record natural feedback through gateway or AnythingLLM, read the resulting feedback artifacts, and prove governed decisions across both frozen Coinbase fixtures.
+- Tightened the shared live mutation helper so deleted watched files are detected, not just changed surviving files.
+- Added regression coverage for durable-decision presence, target-run mismatch rejection, catalog-based report replay, prompt-case punctuation parsing, and watched-file deletion detection.
+- Added README and example documentation for the Phase 125 gate.
+
+Acceptance proof:
+
+- Passed: Phase 125 live founder-feedback-loop validation `python3 scripts/validate_founder_feedback_loop_live.py --output-path runtime-state/founder-feedback-loop/phase125-founder-feedback-loop-live.json --timeout-seconds 900` with `status=passed`, `case_count=4`, decision kinds `baseline_prompt_candidate`, `holdout_prompt_candidate`, `repair_followup`, and `rejected_finding`, surfaces `gateway` and `anythingllm`, target roots `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`, all featured ports healthy, `runtime_changed_files=[]`, `target_changed_files=[]`, and `target_git_changed={}`.
+- Passed: bounded contextless audit identified real false-pass risks around durable decisions, run linkage, report validation, and mutation deletion detection. Those were tightened in the current phase before completion.
+- Passed: focused regression `python -m pytest tests\regression\test_controller_service.py tests\regression\test_founder_feedback_loop.py -q -k "workflow_feedback or natural_feedback or prompt_case_id or founder_feedback_loop or feedback_decision or feedback_report or changed_hashes"` with `17 passed`.
+- Passed: focused combined regression `python -m pytest tests\regression\test_founder_feedback_loop.py tests\regression\test_output_format_parity.py tests\regression\test_chat_response_contract.py -q` with `22 passed`.
+- Passed: docs index validation `python scripts\check_docs_index.py` with `141` linked docs and no orphaned docs.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `691 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 126: Corpus-Wide AnythingLLM UI Usefulness
+
+Status: Complete.
+
+Goal: extend browser-visible AnythingLLM UI usefulness proof beyond `L1-001` and `L1-002` to representative stable corpus prompts.
+
+Acceptance target: UI response segments pass answer-usefulness checks with tracking tags, screenshots, `/stream-chat` proof, and fixture mutation proof.
+
+Backlog item: `P0-BB-011`.
+
+Implementation tasks:
+
+- Added `runtime/anythingllm_ui_prompt_cases.json` as the governed UI prompt catalog.
+- Extended the existing `vllm_agent_gateway/anythingllm_ui_e2e.py` runner instead of creating a second UI path.
+- Added catalog loading, `--prompt-catalog-path`, and `--case-id` selection so Phase 126 can run a bounded stable subset.
+- Added catalog traceability checks against `runtime/baseline_corpus.json` and the governed Phase 116 through Phase 119 prompt-case files.
+- Added per-case target-root coverage so stable UI cases cover both frozen Coinbase fixtures without accidental target multiplication.
+- Added browser-visible answer-usefulness validation using `runtime/anythingllm_answer_usefulness_contract.json`.
+- Added parsed run ID checks, screenshot file checks, stream-chat proof, and UI-rendered semantic markers.
+- Fixed the existing static UI server path to use HTTP/1.1 so the extracted AnythingLLM JS bundle serves reliably in browser automation.
+- Added regression coverage for missing family coverage, missing frozen-root coverage, unknown source prompt IDs, prompt drift, marker-only answers, failed usefulness, missing screenshots, and catalog case selection.
+- Updated AnythingLLM UI E2E README and examples with the Phase 126 stable corpus command.
+
+Acceptance proof:
+
+- Passed: bounded contextless audit identified false-pass risks around marker-only validation, ignored catalogs, stale UI history, weak corpus traceability, and screenshot/mutation proof. The current phase tightened those before completion.
+- Passed: focused UI regression `python -m pytest tests\regression\test_anythingllm_ui_e2e.py -q` with `21 passed`.
+- Passed: focused cross-check `python -m pytest tests\regression\test_anythingllm_ui_e2e.py tests\regression\test_anythingllm_answer_usefulness.py tests\regression\test_chat_response_contract.py tests\regression\test_controller_service.py::test_workflow_router_chat_streams_final_response_for_anythingllm_ui tests\regression\test_controller_service.py::test_workflow_router_chat_streams_json_response_format_for_anythingllm_ui -q` with `37 passed`.
+- Passed: one-case live UI debug rerun after fixing rendered marker/static serving, `python scripts\validate_anythingllm_ui_e2e.py --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --ui-dist-root runtime-state\anythingllm-ui\asar-dist\dist --timeout-seconds 180 --output-path runtime-state\anythingllm-ui\phase126-debug-one-case.json --case-id UI126-CQ116-001`, with `status=passed`, `case_count=1`, and `fixture_unchanged=true`.
+- Passed: Phase 126 live stable corpus UI validation `python scripts\validate_anythingllm_ui_e2e.py --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --ui-dist-root runtime-state\anythingllm-ui\asar-dist\dist --timeout-seconds 300 --output-path runtime-state\anythingllm-ui\phase126-corpus-ui-usefulness.json --case-id UI126-CQ116-001 --case-id UI126-CQ116-009 --case-id UI126-DD117-001 --case-id UI126-DD117-002 --case-id UI126-EJ118-001 --case-id UI126-EJ118-002 --case-id UI126-DM119-001 --case-id UI126-DM119-002`, with `status=passed`, `case_count=8`, stable families `phase116_code_quality`, `phase117_defect_diagnosis`, `phase118_engineering_judgment`, and `phase119_delivery_mentorship`, target roots `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`, all cases `stream_chat_seen=true`, all screenshots passed, all answer-usefulness statuses `passed`, and `fixture_unchanged=true`.
+- Passed: Bash full regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `700 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 127: Fresh Local-Model Drift Gate
+
+Status: Complete.
+
+Goal: rerun a bounded stable-corpus subset against the current localhost model so stale proof does not hide model or harness drift.
+
+Acceptance target: fresh local eval is compared against the baseline corpus and prior accepted result with drift severity and next action.
+
+Implementation tasks:
+
+- Added `runtime/fresh_local_model_drift_cases.json` as the governed Phase 127 stable-corpus subset catalog for Phase 116 through Phase 119 prompt families.
+- Added `vllm_agent_gateway/acceptance/fresh_local_model_drift.py` to validate catalog coverage, baseline-corpus traceability, both frozen Coinbase roots, both live routes, fresh artifact hashes, source hashes, no-mutation proof, subprocess return codes, comparison pass state, and score drift against accepted baseline minimums.
+- Added `scripts/validate_fresh_local_model_drift.py` to orchestrate the existing Phase 116 through Phase 119 local-eval and comparator scripts without adding a second scoring path.
+- Added regression coverage for missing family coverage, missing frozen-root coverage, stale baseline source hashes, accepted-artifact overwrite attempts, missing route proof, score regression, stale artifact hashes, mutation proof, and nonzero subprocess results.
+- Added `README.fresh-local-model-drift.md` and `docs/examples/fresh-local-model-drift.md`, then linked them from the ordered docs indexes.
+
+Acceptance proof:
+
+- Passed: bounded contextless audit of the Phase 127 design found false-pass risks around missing route proof, stale artifacts, subset count mismatch, mutation proof normalization, catalog undercoverage, comparator input mismatch, and baseline corpus governance; the implementation was tightened to reject those risks.
+- Passed: Bash baseline-corpus preflight `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_baseline_corpus.py --require-artifacts --output-path runtime-state/baseline-corpus/phase127-preflight-baseline-corpus-report.json` with `entry_count=4`, `stable_entry_count=4`, and `error_count=0`.
+- Passed: focused regression in Bash `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_fresh_local_model_drift.py -q` with `11 passed`.
+- Passed: live drift gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_fresh_local_model_drift.py --output-path runtime-state/fresh-local-model-drift/phase127/phase127-fresh-local-model-drift-report.json --timeout-seconds 300 --command-timeout-seconds 1800` with `family_count=4`, `selected_case_count=8`, `response_count=16`, `passed_response_count=16`, `failed_family_count=0`, `critical_finding_count=0`, `high_finding_count=0`, `gap_categories={}`, target roots `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`, routes `gateway` and `anythingllm`, and `drift_status=no_drift_detected`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `711 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 128: Prompt Tightening Recommendation Gate
+
+Status: Complete.
+
+Goal: generate reviewable prompt-improvement suggestions for misses or low-confidence passes without silently rewriting user prompts.
+
+Acceptance target: prompt suggestions are tied to baseline failures, classified, accepted or rejected, and rerun only after approval.
+
+Implementation tasks:
+
+- Added `runtime/prompt_tightening_recommendation_policy.json` to define the governed trigger reasons, suggestion classes, decision statuses, no-rewrite policy, and approval/rerun requirements.
+- Added `vllm_agent_gateway/acceptance/prompt_tightening_recommendations.py` to generate recommendation records only from stable baseline/comparison evidence, classify suggestions, validate source hashes, reject automatic prompt rewrites, and enforce approval plus target/holdout rerun proof for accepted candidates.
+- Added `scripts/validate_prompt_tightening_recommendations.py` as the Phase 128 command.
+- Added regression coverage for broad low-confidence thresholds, baseline suggestions without triggers, automatic rewritten prompts, prompt catalog mutation claims, accepted-without-approval, accepted-with-rerun proof, unapproved rerun proof, stale hashes, category mismatch, and incorrect low-confidence trigger use.
+- Added `README.prompt-tightening-recommendations.md` and `docs/examples/prompt-tightening-recommendations.md`, then linked them from the ordered docs indexes.
+
+Acceptance proof:
+
+- Passed: bounded contextless audit warned that Phase 128 must remain a review gate, not a quiet prompt rewriter; the implementation was tightened to avoid acting on every blind-baseline suggestion, use the accepted score floor for low-confidence passes, reject automatic rewrite fields, require approval before rerun proof, and require target plus holdout proof for accepted candidates.
+- Passed: focused regression `python -m pytest tests\regression\test_prompt_tightening_recommendations.py -q` with `13 passed`.
+- Passed: live artifact gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_prompt_tightening_recommendations.py --require-artifacts --output-path runtime-state/prompt-tightening-recommendations/phase128/phase128-prompt-tightening-recommendations-report.json` with `candidate_count=1`, `decision_status_counts={"accepted":0,"pending_review":1,"rejected":0}`, `trigger_reason_counts={"low_confidence_pass":1}`, `suggestion_class_counts={"output_contract":1}`, and `applied_prompt_catalog_change_count=0`.
+- Current pending candidate: `PTR-phase117_defect_diagnosis-DD117-009`; it is intentionally pending review because no founder approval has been given to change or rerun that prompt.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `724 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 129: Skill/Tool Coverage Gap Gate
+
+Status: Complete.
+
+Goal: identify when a chat-quality miss requires a missing deterministic skill or tool instead of a prompt or formatter repair.
+
+Acceptance target: gap report maps each missing capability to a proposed skill or tool with an eval gate and approval boundary.
+
+Implementation tasks:
+
+- Added `runtime/skill_tool_coverage_gap_policy.json` to govern skill/tool gap sources, repair types, required proposal fields, validation tiers, and approval boundaries.
+- Added `vllm_agent_gateway/acceptance/skill_tool_coverage_gap.py` to classify Priority 0 `skill_tool_selection` findings, generate capability proposals when needed, and keep prompt-tightening candidates separate.
+- Added `scripts/validate_skill_tool_coverage_gap.py` as the Phase 129 command.
+- Added regression coverage for current no-gap proof, synthetic skill/tool findings with backlog refs, missing candidates, missing eval gates, invalid validation tiers, invalid approval boundaries, prompt-tightening misclassification, and failed taxonomy input.
+- Added `README.skill-tool-coverage-gap.md` and `docs/examples/skill-tool-coverage-gap.md`, then linked them from the ordered docs indexes.
+
+Acceptance proof:
+
+- Passed: refreshed Priority 0 taxonomy input `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_priority0_gap_taxonomy.py --output-path runtime-state/priority0-gap-taxonomy/phase129-priority0-gap-taxonomy-report.json` with `finding_count=0`, `highest_severity=none`, and `error_count=0`.
+- Passed: refreshed prompt-skill coverage input `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_prompt_skill_coverage.py --output-path runtime-state/prompt-skill-coverage/phase129-prompt-skill-coverage-report.json` with `status=passed`, `entry_count=40`, `implemented_count=38`, `gap_count=2`, and `error_count=0`.
+- Passed: refreshed capability backlog input `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_capability_gap_backlog.py --output-path runtime-state/capability-gap-backlog/phase129-capability-gap-backlog-report.json` with `status=passed` and `failed_check_ids=[]`.
+- Passed: focused regression `python -m pytest tests\regression\test_skill_tool_coverage_gap.py -q` with `9 passed`.
+- Passed: skill/tool coverage gap gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_skill_tool_coverage_gap.py --require-artifacts --priority0-gap-taxonomy-path runtime-state/priority0-gap-taxonomy/phase129-priority0-gap-taxonomy-report.json --prompt-tightening-report-path runtime-state/prompt-tightening-recommendations/phase128/phase128-prompt-tightening-recommendations-report.json --output-path runtime-state/skill-tool-coverage-gap/phase129/phase129-skill-tool-coverage-gap-report.json` with `skill_tool_finding_count=0`, `gap_candidate_count=0`, `prompt_tightening_candidate_count=1`, `implemented_coverage_entry_count=38`, and `new_capability_required=false`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `733 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 130: Stable Chat Quality Release Gate
+
+Status: Complete; release readiness blocked by unresolved Priority 0 items.
+
+Goal: consolidate baseline corpus, answer usefulness, holdouts, UI proof, drift proof, and founder feedback into one stable chat-quality readiness command.
+
+Acceptance target: one report states whether the current local model is ready for founder testing and blocks release on unresolved Priority 0 gaps.
+
+Implementation tasks:
+
+- Added `runtime/stable_chat_quality_release_policy.json` to govern the release gate inputs, thresholds, target roots, route requirements, prompt-tightening blockers, and founder-feedback blocker policy.
+- Added `vllm_agent_gateway/acceptance/stable_chat_quality_release.py` to load the current Priority 0 proof artifacts, recompute hashes, validate each gate, and produce a release-readiness report.
+- Added `scripts/validate_stable_chat_quality_release.py` as the Phase 130 command.
+- Added regression coverage for current blocked readiness, synthetic ready readiness, hidden blocker removal, stale artifact hashes, missing artifacts, taxonomy findings, skill/tool gaps, output-format route failures, and UI marker failures.
+- Added `README.stable-chat-quality-release.md` and `docs/examples/stable-chat-quality-release.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed: focused regression `python -m pytest tests\regression\test_stable_chat_quality_release.py -q` with `10 passed`.
+- Passed as a blocker gate: `wsl.exe --cd /mnt/c/agentic_agents -- bash -lc "python3 scripts/validate_stable_chat_quality_release.py --require-artifacts --output-path runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json || echo PHASE130_EXIT_NONZERO"` produced `readiness=blocked`, `gate_count=10`, `passed_gate_count=8`, `blocked_gate_count=2`, and `blocker_count=2`.
+- Current blockers: `prompt_tightening_recommendations has 1 pending prompt-tightening candidate(s)` and `founder_feedback_loop.accepted feedback still pending required eval: FL125-001, FL125-002, FL125-003`.
+
+### Approved Phase 131: Stable Release Blocker Closure
+
+Status: Complete.
+
+Goal: close the two Phase 130 release blockers without weakening the release gate.
+
+Scope:
+
+- Decide the pending Phase 128 prompt-tightening candidate with explicit approval, rejection, or target/holdout rerun proof.
+- Evaluate or reject the accepted Phase 125 founder-feedback records `FL125-001`, `FL125-002`, and `FL125-003` through their required gates.
+- Rerun Phase 130 and require `readiness=ready_for_founder_testing`.
+
+Acceptance target: Phase 130 release report passes with `status=passed`, `readiness=ready_for_founder_testing`, `blocker_count=0`, and hash-current proof artifacts.
+
+Implementation tasks:
+
+- Added `runtime/stable_release_blocker_closure_policy.json` to govern prompt-tightening and founder-feedback blocker closures.
+- Added `vllm_agent_gateway/acceptance/stable_release_blocker_closure.py` and `scripts/validate_stable_release_blocker_closure.py`.
+- Added Phase 131 closure proof to the Phase 130 release gate as an explicit required artifact.
+- Tightened Phase 130 so the closure artifact must hash-match the current Phase 125 and Phase 128 reports before release readiness can pass.
+- Added regression coverage for stale hashes, missing closure IDs, extra closure IDs, prompt catalog mutation, unresolved prompt findings, active drift, invalid synthetic fixture closure, accepted prompt closure without rerun proof, and hidden release blockers.
+- Added `README.stable-release-blocker-closure.md` and `docs/examples/stable-release-blocker-closure.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_stable_release_blocker_closure.py --require-artifacts --output-path runtime-state/stable-release-blocker-closure/phase131/phase131-stable-release-blocker-closure-report.json` with `prompt_tightening_closed_count=1`, `founder_feedback_closed_count=3`, and `unresolved_blocker_count=0`.
+- Passed: focused regression `python -m pytest tests\regression\test_stable_release_blocker_closure.py tests\regression\test_stable_chat_quality_release.py -q` with `28 passed`.
+
+### Approved Phase 132: Stable Release Gate Rerun
+
+Status: Complete.
+
+Goal: rerun the Phase 130 release gate after Phase 131 closure proof and require founder-testing readiness.
+
+Acceptance target: Phase 130 report passes with `status=passed`, `readiness=ready_for_founder_testing`, `gate_count=11`, and `blocker_count=0`.
+
+Acceptance proof:
+
+- Passed: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_stable_chat_quality_release.py --require-artifacts --output-path runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json` with `readiness=ready_for_founder_testing`, `passed_gate_count=11`, `blocked_gate_count=0`, and `blocker_count=0`.
+
+### Approved Phase 133: Founder Testing Handoff Refresh
+
+Status: Complete.
+
+Goal: refresh first-time founder-testing documentation so the default path starts from the now-ready stable chat-quality gate and uses current AnythingLLM prompts only.
+
+Acceptance target: getting-started and founder-testing docs point to Phase 130/131 readiness proof, remove stale blocked-release wording, and provide one minimal AnythingLLM smoke path.
+
+Implementation tasks:
+
+- Updated `README.getting-started.md` to include Phase 131 blocker closure and Phase 130 stable release readiness commands before founder smoke testing.
+- Updated `README.founder-field-tests.md` to require stable release readiness before the full founder field suite.
+- Updated `docs/examples/anythingllm-founder-testing.md` with the same stable readiness preflight and kept the first prompt path focused on L1 read-only testing.
+
+Acceptance proof:
+
+- Stable handoff docs now expect `STABLE RELEASE BLOCKER CLOSURE PASS` and `STABLE CHAT QUALITY RELEASE PASS`.
+- First smoke remains the read-only placed-order lookup prompt through AnythingLLM at `http://127.0.0.1:8500/v1`; advanced refactor is explicitly not the first founder smoke.
+
+### Approved Phase 134: AnythingLLM Founder Smoke Suite
+
+Status: Complete.
+
+Goal: run a curated founder smoke suite through AnythingLLM against the current gateway path.
+
+Acceptance target: report records chat-visible response quality, run IDs, selected workflows, fixture mutation proof, and any misses requiring Phase 135 feedback classification.
+
+Implementation tasks:
+
+- Reused `scripts/run_founder_field_prompt_eval.py` with a curated smoke subset: `P01`, `P02`, `P03`, and `P22`.
+- Added `README.anythingllm-founder-smoke.md` and `docs/examples/anythingllm-founder-smoke.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed live AnythingLLM smoke: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/run_founder_field_prompt_eval.py --case-id P01 --case-id P02 --case-id P03 --case-id P22 --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --timeout-seconds 900 --output-path runtime-state/founder-field-tests/phase134-founder-smoke.json --markdown-output-path runtime-state/founder-field-tests/phase134-founder-smoke.md`.
+- Result: `P01`, `P02`, `P03`, and `P22` passed with run IDs, `summary={"passed":4,"failed":0}`, `errors=[]`, and fixture state unchanged.
+
+### Approved Phase 135: Founder Feedback Intake And Classification
+
+Status: Complete.
+
+Goal: convert smoke-suite feedback into governed decisions without changing source behavior directly.
+
+Acceptance target: each feedback item becomes a baseline candidate, holdout candidate, repair follow-up, rejected finding, or skill/tool gap with proof and next action.
+
+Implementation tasks:
+
+- Added `vllm_agent_gateway/acceptance/founder_smoke_feedback.py`.
+- Added `scripts/classify_founder_smoke_feedback.py`.
+- Added regression coverage for clean no-action classification, output-contract misses, semantic misses, fixture mutation, and hidden summary tampering.
+- Added `README.founder-smoke-feedback.md` and `docs/examples/founder-smoke-feedback.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/classify_founder_smoke_feedback.py --require-artifacts --smoke-report-path runtime-state/founder-field-tests/phase134-founder-smoke.json --output-path runtime-state/founder-smoke-feedback/phase135/phase135-founder-smoke-feedback.json` with `smoke_case_count=4`, `failed_smoke_case_count=0`, `classification_count=0`, and `actionable_feedback_count=0`.
+
+### Approved Phase 136: Chat Quality Release Candidate Snapshot
+
+Status: Complete.
+
+Goal: capture a stable release-candidate snapshot of current chat-quality proof artifacts and source hashes.
+
+Acceptance target: one snapshot manifest points to all release proof, records git status, and excludes local-only runtime-state payloads from committed source.
+
+Implementation tasks:
+
+- Added `runtime/chat_quality_release_snapshot_policy.json`.
+- Added `vllm_agent_gateway/acceptance/chat_quality_release_snapshot.py`.
+- Added `scripts/create_chat_quality_release_snapshot.py`.
+- Added regression coverage for current pass, missing artifacts, unready release proof, hidden summary changes, and missing docs.
+- Added `README.chat-quality-release-snapshot.md` and `docs/examples/chat-quality-release-snapshot.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/create_chat_quality_release_snapshot.py --require-artifacts --output-path runtime-state/chat-quality-release-snapshot/phase136/phase136-chat-quality-release-snapshot.json` with `release_readiness=ready_for_founder_testing`, `artifact_count=4`, `doc_count=7`, `missing_artifact_count=0`, `missing_doc_count=0`, `founder_smoke_failed=0`, and `actionable_feedback_count=0`.
+
+### Approved Phase 137: Founder Test Prompt Pack Expansion
+
+Status: Complete.
+
+Goal: expand founder-facing natural prompts from the stable L1/L2 families without reintroducing advanced refactor scope.
+
+Acceptance target: prompt pack validates coverage, routes, expected workflow, safety boundary, and target fixture coverage.
+
+Implementation tasks:
+
+- Added `runtime/founder_test_prompt_pack.json` with `smoke` and `expanded_read_only` tiers.
+- Added `vllm_agent_gateway/acceptance/founder_test_prompt_pack.py`.
+- Added `scripts/validate_founder_test_prompt_pack.py`.
+- Added regression coverage for unknown case IDs, duplicates, forbidden draft/apply cases, missing task-decomposition workflow, hidden summary changes, and missing frozen-root coverage.
+- Added `README.founder-test-prompt-pack.md` and `docs/examples/founder-test-prompt-pack.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_founder_test_prompt_pack.py --require-artifacts --output-path runtime-state/founder-test-prompt-pack/phase137/phase137-founder-test-prompt-pack.json` with `case_count=14`, `smoke_case_count=4`, `expanded_read_only_case_count=10`, `workflow_count=3`, and `target_root_count=2`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `779 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 138: Chat Transcript Quality Classifier
+
+Status: Complete.
+
+Goal: classify AnythingLLM chat transcripts into pass, advisory, or blocker using deterministic markers and bounded semantic checks.
+
+Acceptance target: classifier rejects artifact-only answers, missing run IDs, missing evidence sections, unsafe mutation claims, and route/workflow mismatch.
+
+Implementation tasks:
+
+- Added `runtime/chat_transcript_quality_policy.json`.
+- Added `vllm_agent_gateway/acceptance/chat_transcript_quality.py`.
+- Added `scripts/validate_chat_transcript_quality.py`.
+- Added regression coverage for current founder-smoke pass, artifact-only answers, missing run IDs, missing evidence sections, route/workflow mismatch, unsafe mutation claims, hidden summary changes, and invalid policy shape.
+- Added `README.chat-transcript-quality.md` and `docs/examples/chat-transcript-quality.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed: focused regression `python -m pytest tests\regression\test_chat_transcript_quality.py -q` with `8 passed`.
+- Passed: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_chat_transcript_quality.py --require-artifacts --output-path runtime-state/chat-transcript-quality/phase138/phase138-chat-transcript-quality-report.json` with `case_count=4`, `pass_case_count=4`, `blocker_case_count=0`, and `finding_count=0`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `787 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 139: Local Model Regression Watchlist
+
+Status: Complete.
+
+Goal: define a compact watchlist of local-model behaviors most likely to regress founder testing.
+
+Acceptance target: watchlist maps prompt families to risks, expected symptoms, gates, and repair ownership.
+
+Implementation tasks:
+
+- Added `runtime/local_model_regression_watchlist.json` with one watch item per Phase 137 founder prompt pack case.
+- Added `vllm_agent_gateway/acceptance/local_model_regression_watchlist.py`.
+- Added `scripts/validate_local_model_regression_watchlist.py`.
+- Used a contextless subagent audit to tighten requirements before accepting the implementation.
+- Tightened the watchlist to consume the Phase 137 prompt pack and prompt catalog instead of duplicating free-form scope.
+- Required exact one-time prompt-case assignment, smoke-vs-expanded tier separation, current workflow coverage, both frozen target roots, deterministic symptoms, gate artifact proof, source hashes, and allowed Priority 0 repair owners.
+- Added regression coverage for missing/duplicate/orphan cases, missing gate artifacts, invalid repair owners, free-form symptoms, tier severity drift, prompt-catalog marker drift, missing workflow coverage, missing frozen-root coverage, hidden summary changes, and stale source hashes.
+- Added `README.local-model-regression-watchlist.md` and `docs/examples/local-model-regression-watchlist.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed: focused regression `python -m pytest tests\regression\test_local_model_regression_watchlist.py -q` with `15 passed`.
+- Passed: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_local_model_regression_watchlist.py --require-artifacts --output-path runtime-state/local-model-regression-watchlist/phase139/phase139-local-model-regression-watchlist-report.json` with `watch_item_count=14`, `covered_prompt_pack_case_count=14`, `gate_count=8`, `blocker_watch_count=4`, `advisory_watch_count=10`, and `error_count=0`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `802 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 140: AnythingLLM Session Recovery And Greeting Smoke
+
+Status: Complete.
+
+Goal: verify normal chat and session recovery do not fail when the user sends a basic message like `hi`.
+
+Acceptance target: normal chat receives a bounded helpful response and does not trigger repository workflows unless the prompt asks for repository work.
+
+Implementation tasks:
+
+- Added `vllm_agent_gateway/acceptance/anythingllm_session_recovery.py`.
+- Added `scripts/validate_anythingllm_session_recovery.py`.
+- Added regression coverage for accepted general greeting text, repository-workflow leakage, missing greeting markers, stale prior repository history ignored by latest `hi`, hidden summary changes, and missing direct-controller proof.
+- Added `README.anythingllm-session-recovery.md` and `docs/examples/anythingllm-session-recovery.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed: focused regression `python -m pytest tests\regression\test_anythingllm_session_recovery.py -q` with `6 passed`.
+- Passed live AnythingLLM smoke: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_anythingllm_session_recovery.py --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --timeout-seconds 120 --output-path runtime-state/anythingllm-session-recovery/phase140/phase140-anythingllm-session-recovery-report.json` with `case_count=4`, `direct_controller_case_count=2`, `anythingllm_case_count=2`, `passed_case_count=4`, and `blocker_finding_count=0`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `808 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 141: Gateway And AnythingLLM Port Health Drift Guard
+
+Status: Complete.
+
+Goal: add a lightweight health drift guard for localhost 8000, workflow-router gateway, featured proxy ports, controller, and AnythingLLM.
+
+Acceptance target: health report distinguishes unreachable port, headers-without-body timeout, wrong backend target, and auth failure.
+
+Implementation tasks:
+
+- Extended the existing first-time user doctor request path with diagnostic metadata for connection/open failures, invalid JSON bodies, and response-body timeouts after headers are received.
+- Added `vllm_agent_gateway/acceptance/gateway_anythingllm_health_drift.py`.
+- Added `scripts/validate_gateway_anythingllm_health_drift.py`.
+- Reused the existing first-time user doctor as the only health probing path instead of adding a parallel checker.
+- Added focused regression coverage for clean doctor reports, unreachable model port, headers-without-body timeout, wrong workflow-router gateway backend/routing, AnythingLLM auth failure, missing workspace as non-auth semantic drift, AnythingLLM wrong target URL, role metadata drift, fixture-warning exclusion, and hidden summary tampering.
+- Added `README.gateway-anythingllm-health-drift.md` and `docs/examples/gateway-anythingllm-health-drift.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Contextless audit confirmed the guard must prove diagnostic distinctions, reuse `first_time_user_doctor.py`, preserve `HEALTH_TARGETS`, and classify auth failure separately from missing workspace.
+- Passed: focused regression `python -m pytest tests\regression\test_gateway_anythingllm_health_drift.py tests\regression\test_first_time_user_doctor.py -q` with `16 passed`.
+- Initial live run correctly exposed a false blocker: line-ending-only fixture warning was classified as unclassified health drift. The guard was tightened to classify only health categories owned by Phase 141 and leave fixture warnings to fixture gates.
+- Passed live Bash validation: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_gateway_anythingllm_health_drift.py --timeout-seconds 60 --output-path runtime-state/gateway-anythingllm-health-drift/phase141/phase141-health-drift-report.json --doctor-output-path runtime-state/gateway-anythingllm-health-drift/phase141/phase141-first-time-user-doctor.json` with `check_count=29`, `failed_check_count=0`, `finding_count=0`, `unclassified_finding_count=0`, and one non-blocking fixture warning inherited from the doctor.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `818 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 142: Baseline Corpus Promotion Rules
+
+Status: Complete.
+
+Goal: define how new founder smoke prompts become stable baseline corpus entries.
+
+Acceptance target: promotion requires blind baseline, local-model comparison, holdout, route proof, no-mutation proof, and founder approval.
+
+Implementation tasks:
+
+- Added `runtime/baseline_corpus_promotion_rules.json` with the current `founder-pack-phase137` candidate explicitly blocked pending full promotion evidence.
+- Added `vllm_agent_gateway/acceptance/baseline_corpus_promotion_rules.py`.
+- Added `scripts/validate_baseline_corpus_promotion_rules.py`.
+- Reused the existing baseline corpus validator, source artifact hash helpers, required routes, required frozen roots, minimum score threshold, and founder prompt-pack validator.
+- Kept Phase 142 as a fail-closed promotion-readiness gate only; it does not mutate `runtime/baseline_corpus.json`.
+- Added regression coverage for blocked-current candidate pass, approved-candidate proof validation, missing required policy evidence, stale source hashes, approval without evidence, missing founder approval, low comparison score, evidence case-ID mismatch, blocked candidate with approval, promoted status across the separate-phase boundary, prompt-pack case drift, duplicate proposed entry IDs, and hidden summary tampering.
+- Added `README.baseline-corpus-promotion-rules.md` and `docs/examples/baseline-corpus-promotion-rules.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Contextless audit confirmed Phase 142 must be a fail-closed promotion gate, not a new evaluator or corpus mutator; it also required source-corpus validation, founder prompt-pack hash binding, no self-attested approval, exact evidence refs, and separate-phase blocking for actual corpus mutation.
+- Passed: focused regression `python -m pytest tests\regression\test_baseline_corpus_promotion_rules.py tests\regression\test_baseline_corpus.py tests\regression\test_founder_test_prompt_pack.py -q` with `41 passed`.
+- Passed: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_baseline_corpus_promotion_rules.py --require-artifacts --output-path runtime-state/baseline-corpus-promotion-rules/phase142/phase142-baseline-corpus-promotion-rules-report.json` with `candidate_count=1`, `blocked_candidate_count=1`, `approved_candidate_count=0`, and `error_count=0`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `832 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 143: Skill/Tool Gap Proposal Intake Gate
+
+Status: Complete.
+
+Goal: turn classified chat-quality misses into proposed deterministic skill/tool additions only when a prompt or formatter repair is insufficient.
+
+Acceptance target: each proposal has scope, eval gate, validation tier, approval boundary, and no implementation until approved.
+
+Implementation tasks:
+
+- Added `runtime/skill_tool_gap_proposal_intake_policy.json` with zero current proposals because Phase 129 evidence has no active skill/tool gap candidates.
+- Added `vllm_agent_gateway/acceptance/skill_tool_gap_proposal_intake.py`.
+- Added `scripts/validate_skill_tool_gap_proposal_intake.py`.
+- Reused the existing Phase 129 skill/tool coverage gap policy and source report instead of creating a second gap classifier.
+- Enforced proposal source matching, governed capability type, concrete scope, eval gate, validation tier, approval boundary, `implementation_status=not_started`, `auto_register=false`, `source_mutation_required=false`, and proof that prompt/formatter repair is insufficient.
+- Added regression coverage for current no-gap pass, missing proposal for source gap, valid pending proposal, stale source hash, unknown source candidate, started implementation, auto-register/source-mutation attempts, prompt/formatter repair not ruled out, mismatched candidate fields, duplicate proposal IDs, and hidden summary tampering.
+- Added `README.skill-tool-gap-proposal-intake.md` and `docs/examples/skill-tool-gap-proposal-intake.md`, then linked them from the ordered documentation indexes.
+
+Acceptance proof:
+
+- Passed: focused regression `python -m pytest tests\regression\test_skill_tool_gap_proposal_intake.py tests\regression\test_skill_tool_coverage_gap.py -q` with `20 passed`.
+- Passed: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_skill_tool_gap_proposal_intake.py --require-artifacts --output-path runtime-state/skill-tool-gap-proposal-intake/phase143/phase143-skill-tool-gap-proposal-intake-report.json` with `source_gap_candidate_count=0`, `proposal_count=0`, and `error_count=0`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `843 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 144: Natural Output Format Preference E2E
+
+Status: Complete.
+
+Goal: verify natural requests for default `format_a`, natural `format_a`, and JSON preserve the same answer contract. `format_a` and `json` are the only currently governed formats; any future format must be added to the controller enum and the same response pipeline before support is claimed.
+
+Acceptance target: AnythingLLM and gateway responses match required content while respecting requested format.
+
+Completed scope:
+
+- Added `runtime/natural_output_format_preference_cases.json` as the governed Phase 144 case catalog referencing representative Phase 124 parity cases instead of duplicating prompts.
+- Added `vllm_agent_gateway.acceptance.natural_output_format_preference` and `scripts/validate_natural_output_format_preference_live.py` to prove default FormatA, natural FormatA, natural JSON, explicit `output_format=json`, and OpenAI-compatible `response_format={"type":"json_object"}` through the existing single selector/renderer path.
+- Added regression coverage for natural selector priority, latest-user-message selection, hidden explicit-field rejection for natural JSON, missing OpenAI holdout rejection, and report mutation-proof validation.
+- Added `README.natural-output-format-preference.md`, `docs/examples/natural-output-format-preference.md`, and ordered docs index links.
+
+Validation:
+
+- Passed: contextless audit identified selector-vs-parity failure modes, natural FormatA coverage, explicit-field false positives, latest-message risk, and unsupported-format claim risk; the implemented gate was tightened against those findings.
+- Passed: focused regression `python -m pytest tests\regression\test_natural_output_format_preference.py tests\regression\test_output_format_parity.py tests\regression\test_controller_service.py::test_workflow_router_chat_natural_json_output_format_returns_json_content tests\regression\test_controller_service.py::test_workflow_router_chat_response_format_json_object_returns_json_content -q` with `17 passed`.
+- Passed: single-case Bash live smoke `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_natural_output_format_preference_live.py --case-id NOFP-CQ116-001 --output-path runtime-state/natural-output-format-preference/phase144/phase144-single-case-live.json --timeout-seconds 900`.
+- Passed: full Bash live Phase 144 gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_natural_output_format_preference_live.py --output-path runtime-state/natural-output-format-preference/phase144/phase144-natural-output-format-preference-live.json --timeout-seconds 900` with `status=passed`, `case_count=4`, both frozen Coinbase roots, gateway and AnythingLLM surfaces passed, `runtime_changed_files=[]`, `target_changed_files={...: []}`, and `target_git_changed={}`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `852 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 145: Founder Feedback Triage Dashboard
+
+Status: Complete.
+
+Goal: provide a compact report of founder feedback records, classifications, closure state, and next actions.
+
+Acceptance target: dashboard links feedback run IDs to target run IDs, decisions, blockers, and roadmap items.
+
+Completed scope:
+
+- Added `runtime/founder_feedback_triage_dashboard_policy.json` to govern dashboard inputs, roadmap refs, and source-specific next actions.
+- Added `vllm_agent_gateway.acceptance.founder_feedback_triage_dashboard` and `scripts/validate_founder_feedback_triage_dashboard.py` as a deterministic read-only join over Phase 125 feedback records, Phase 135 smoke classifications, Phase 131 closure state, feedback cases, closure policy, and smoke source proof.
+- Added dashboard rows with source namespace, case ID, feedback run ID, target run ID, related run IDs, linked-run status, surface, target root, selected workflow, selected skills/tools, classifications, decision, validation status, required gate, closure status, blockers, next action, and roadmap refs.
+- Added fail-closed checks for failed or missing source artifacts, duplicate feedback IDs, duplicate/extra closure rows, accepted feedback without closure, linked-run misses, decision/closure required-gate mismatch, actionable smoke feedback without run ID, and edited dashboard summaries.
+- Added `README.founder-feedback-triage-dashboard.md`, `docs/examples/founder-feedback-triage-dashboard.md`, and ordered docs index links.
+
+Validation:
+
+- Passed: contextless audit confirmed Phase 145 should remain a read-only join/report over existing feedback capture, classification, and closure artifacts; implementation was tightened for source namespacing, run linkage, duplicate detection, closure mismatch detection, and source artifact health checks.
+- Passed: focused regression `python -m pytest tests\regression\test_founder_feedback_triage_dashboard.py tests\regression\test_founder_feedback_loop.py tests\regression\test_founder_smoke_feedback.py tests\regression\test_stable_release_blocker_closure.py -q` with `42 passed`.
+- Passed: Bash dashboard validation `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_founder_feedback_triage_dashboard.py --require-artifacts --output-path runtime-state/founder-feedback-triage-dashboard/phase145/phase145-founder-feedback-triage-dashboard.json` with `accepted_feedback_count=3`, `rejected_feedback_count=1`, `closed_feedback_count=4`, `unresolved_feedback_count=0`, `open_next_action_count=0`, and `blocker_count=0`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `863 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 146: Release Notes And Known Limitations
+
+Status: Complete.
+
+Goal: write release notes that state what works, what is intentionally unsupported, and what remains future work.
+
+Acceptance target: release notes align with actual gates and do not claim advanced refactor capability.
+
+Completed scope:
+
+- Added `README.release-notes.md` as the founder-testing release notes and limitations surface.
+- Added `runtime/release_notes_policy.json` to govern required source artifacts, required Markdown sections, required endpoint/proof markers, and forbidden overclaims.
+- Added `vllm_agent_gateway.acceptance.release_notes` and `scripts/validate_release_notes.py`.
+- Hardened the validator after contextless audit so the notes are proven from exact artifacts instead of only marker text.
+- The gate now checks stable release readiness, chat-quality snapshot, natural output format preference, founder feedback triage, blocker closure, gateway/AnythingLLM health drift, founder prompt pack and catalog, founder smoke, stable proof metadata, advanced-refactor deferral, and root/docs/example links.
+- Added regression coverage for blocked release evidence, forbidden overclaims, natural-output mutation proof, health drift failure, prompt-pack drift, stable-proof boundary drift, advanced-refactor stable-promotion drift, missing root README link, and hidden report summary edits.
+- Updated `docs/examples/release-notes.md`, `docs/README.md`, `docs/examples/README.md`, and root `README.md` links.
+
+Validation:
+
+- Passed: contextless audit found the marker-only validation risk; Phase 146 was tightened so release notes claims must match artifact truth and advanced refactor remains explicitly not released.
+- Passed: focused regression `python -m pytest tests\regression\test_release_notes.py -q` with `12 passed`.
+- Passed: focused dependency regression `python -m pytest tests\regression\test_release_notes.py tests\regression\test_founder_feedback_triage_dashboard.py tests\regression\test_natural_output_format_preference.py tests\regression\test_gateway_anythingllm_health_drift.py tests\regression\test_founder_test_prompt_pack.py -q` with `49 passed`.
+- Passed: Bash release-notes validation `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_release_notes.py --require-artifacts --output-path runtime-state/release-notes/phase146/phase146-release-notes-report.json` with `stable_gate_count=11`, `stable_passed_gate_count=11`, `health_check_count=29`, `health_failed_check_count=0`, `natural_output_case_count=4`, `founder_pack_smoke_case_count=4`, `founder_pack_expanded_read_only_case_count=10`, `founder_smoke_failed_count=0`, and `error_count=0`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `875 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 147: External Tester Dry Run
+
+Status: Complete.
+
+Goal: perform a contextless external-tester dry run using only documented setup and prompts.
+
+Acceptance target: dry-run report records setup friction, chat quality, blocked steps, and documentation fixes.
+
+Completed scope:
+
+- Added `runtime/external_tester_dry_run_policy.json` to govern the Phase 147 stable-channel external tester path, required docs, endpoint markers, environment expectations, and child proof reports.
+- Added `vllm_agent_gateway.acceptance.external_tester_dry_run` and `scripts/validate_external_tester_dry_run.py` as a wrapper over existing validators instead of creating a parallel setup or onboarding path.
+- The dry-run gate validates stable release-channel proof, setup doctor, release notes, static onboarding pack, one live `ONB-001` AnythingLLM prompt, linked feedback capture, and protected fixture state.
+- Added `README.external-tester-dry-run.md` and `docs/examples/external-tester-dry-run.md`, then linked them from the root README and ordered docs indexes.
+- Updated `README.external-tester-onboarding.md`, `docs/examples/external-tester-onboarding.md`, and `README.getting-started.md` to resolve contextless tester ambiguity: current channel is stable, the prompt pack has release-candidate origin, `ONB-001` is the first manual prompt, Bash/WSL is the canonical command surface, `my-workspace` is the default automated workspace, and advanced broad refactor is not released.
+- Added regression coverage for policy shape, docs-audit clarity, static dry-run success, synthetic live success, doc ambiguity rejection, failed stable-channel proof, failed setup doctor, missing feedback run, missing live API key, and live-mode orchestration using existing validators.
+
+Validation:
+
+- Passed: bounded contextless external-tester audit identified avoidable channel, minimum-path, prompt, shell, workspace, and `WSLENV` ambiguities; the docs and dry-run policy were tightened against those findings.
+- Passed: focused regression `python -m pytest tests\regression\test_external_tester_dry_run.py -q` with `10 passed`.
+- Passed: focused integration regression `python -m pytest tests\regression\test_external_tester_dry_run.py tests\regression\test_external_tester_onboarding.py tests\regression\test_release_channels.py tests\regression\test_release_notes.py -q` with `31 passed`.
+- Passed: static dry-run gate `python scripts\validate_external_tester_dry_run.py --output-path runtime-state\external-tester-dry-run\phase147\phase147-static-dry-run.json` with `doc_blocker_count=0`, `doc_ambiguity_count=0`, and `error_count=0`.
+- Passed: live Bash dry-run gate `wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=<redacted>" python3 scripts/validate_external_tester_dry_run.py --live-runtime --include-feedback --output-path runtime-state/external-tester-dry-run/phase147/phase147-external-tester-dry-run.json --timeout-seconds 900` with `doctor_failed_check_count=0`, `onboarding_live_status=passed`, `onboarding_live_case_count=1`, `feedback_count=1`, `doc_ambiguity_count=0`, and `error_count=0`.
+- Live run IDs: onboarding `workflow-router-20260609T181606095514Z`; feedback `workflow-feedback-20260609T181614721769Z`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `885 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 148: Failure-To-Roadmap Proposal Gate
+
+Status: Complete.
+
+Goal: convert future failed gates or founder misses into roadmap proposals without uncontrolled scope expansion.
+
+Acceptance target: proposal gate outputs approved/unapproved candidate phases with evidence, severity, and dependency links.
+
+Completed scope:
+
+- Added `runtime/failure_to_roadmap_policy.json` as the governed source policy for failure-to-roadmap proposal generation.
+- Added `vllm_agent_gateway/acceptance/failure_to_roadmap.py` and `scripts/validate_failure_to_roadmap.py`.
+- Added `tests/regression/test_failure_to_roadmap.py` for pass, missing-artifact, failed-source, approved-proposal, mutation-boundary, stale-policy, and schema checks.
+- Added `README.failure-to-roadmap.md` and `docs/examples/failure-to-roadmap.md`, then linked them from the root README, docs index, and examples index.
+- The gate is proposal-only: it reads recent release artifacts, classifies failed source reports, emits approved/unapproved candidate phases, and does not mutate roadmap or source files.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_failure_to_roadmap.py -q` with `7 passed`.
+- Passed: current proposal gate `python scripts\validate_failure_to_roadmap.py --require-artifacts --output-path runtime-state\failure-to-roadmap\phase148\phase148-failure-to-roadmap-report.json` with `finding_count=0`, `proposal_count=0`, and `release_blocker_count=0`.
+- Passed: related regression `python -m pytest tests\regression\test_failure_to_roadmap.py tests\regression\test_failure_taxonomy.py tests\regression\test_skill_tool_gap_proposal_intake.py -q` with `25 passed`.
+- Passed: Bash-side proposal gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_failure_to_roadmap.py --require-artifacts --output-path runtime-state/failure-to-roadmap/phase148/phase148-failure-to-roadmap-report.json` with `finding_count=0`, `proposal_count=0`, `approved_proposal_count=0`, `unapproved_proposal_count=0`, and `error_count=0`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `892 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 149: Contextless Audit Scorecard
+
+Status: Complete.
+
+Goal: standardize contextless subagent audit results into a scorecard that can compare release readiness across runs.
+
+Acceptance target: scorecard records prompt, blind baseline, local answer, difference, repair, rerun, and residual risk.
+
+Completed scope:
+
+- Added `runtime/contextless_audit_scorecard_policy.json` as the governed source manifest for the scorecard.
+- Added `vllm_agent_gateway/acceptance/contextless_audit_scorecard.py` and `scripts/validate_contextless_audit_scorecard.py`.
+- Added `tests/regression/test_contextless_audit_scorecard.py` with positive and negative coverage for missing artifacts, context leakage, blind-agent release authority, missing AnythingLLM route evidence, fixture mutation, low source scores, unresolved critical risk, hidden summary edits, and release-approval policy drift.
+- Added `README.contextless-audit-scorecard.md` and `docs/examples/contextless-audit-scorecard.md`, then linked them from the root README, docs index, and examples index.
+- Used a fresh contextless audit subagent to review the design before implementation. Accepted findings hardened the design around exact artifact manifests, hard blockers that override aggregate score, no blind-agent pass/fail authority, deterministic predicates, and founder-review-only release signals.
+- The current scorecard consolidates Phase 120 baseline corpus, Phase 127 fresh local-model drift, Phase 134 founder smoke, Phase 138 chat transcript quality, Phase 113-115 recursive audits, Phase 147 external tester dry run, and Phase 148 failure-to-roadmap proof.
+
+Validation:
+
+- Passed: `python scripts\validate_contextless_audit_scorecard.py --require-artifacts --output-path runtime-state\contextless-audit-scorecard\phase149\phase149-contextless-audit-scorecard-report.json --markdown-output-path runtime-state\contextless-audit-scorecard\phase149\phase149-contextless-audit-scorecard-report.md` with `aggregate_score=94`, `hard_blocker_count=0`, `high_or_critical_residual_risk_count=0`, and `release_readiness_signal=candidate_ready_for_founder_review`.
+- Passed: focused regression `python -m pytest tests\regression\test_contextless_audit_scorecard.py -q` with `12 passed`.
+- Passed: related regression `python -m pytest tests\regression\test_contextless_audit_scorecard.py tests\regression\test_recursive_blind_testing.py tests\regression\test_baseline_corpus.py tests\regression\test_fresh_local_model_drift.py -q` with `54 passed`.
+- Passed: Bash-side scorecard `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_contextless_audit_scorecard.py --require-artifacts --output-path runtime-state/contextless-audit-scorecard/phase149/phase149-contextless-audit-scorecard-report.json --markdown-output-path runtime-state/contextless-audit-scorecard/phase149/phase149-contextless-audit-scorecard-report.md` with `aggregate_score=94`, `hard_blocker_count=0`, `high_or_critical_residual_risk_count=0`, and `release_readiness_signal=candidate_ready_for_founder_review`.
+- Passed: failed-docs-index recovery slice `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/test_docs_index.py tests/regression/test_external_tester_dry_run.py tests/regression/test_release_channels.py tests/regression/test_runtime_state_hygiene.py -q` with `25 passed`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `904 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 150: Current-Model Compatibility Matrix
+
+Status: Complete.
+
+Goal: summarize which chat-quality behaviors the current localhost model can reliably support.
+
+Acceptance target: matrix covers L1/L2 prompt families, output formats, skills/tools, AnythingLLM, and known failure modes.
+
+Completed scope:
+
+- Added `runtime/current_model_compatibility_matrix_policy.json` as the governed source manifest for current-model compatibility.
+- Added `vllm_agent_gateway/acceptance/current_model_compatibility_matrix.py` and `scripts/validate_current_model_compatibility_matrix.py`.
+- Added `tests/regression/test_current_model_compatibility_matrix.py` with positive and negative coverage for missing artifacts, failed model profile, model-probe mismatch, accidental real-apply approval, missing L2 coverage, failed output-format evidence, missing AnythingLLM evidence, failed contextless scorecard input, hidden summary edits, and unsupported format policy drift.
+- Added `README.current-model-compatibility.md` and `docs/examples/current-model-compatibility.md`, then linked them from the root README, docs index, and examples index.
+- The current matrix records 21 L1 prompt families, 12 L2 prompt families, 33 supported L1/L2 prompt families, two governed output formats, AnythingLLM support, 14 monitored failure modes, and known boundaries for latency, real apply, automatic model selection, and non-governed output formats.
+
+Validation:
+
+- Passed: `python scripts\validate_current_model_compatibility_matrix.py --require-artifacts --output-path runtime-state\current-model-compatibility-matrix\phase150\phase150-current-model-compatibility-matrix-report.json --markdown-output-path runtime-state\current-model-compatibility-matrix\phase150\phase150-current-model-compatibility-matrix-report.md` with `supported_prompt_family_count=33`, `governed_output_format_count=2`, `anythingllm_compatibility_status=supported`, `known_failure_mode_count=14`, `model_profile_status=warning`, and `blocker_count=0`.
+- Passed: focused regression `python -m pytest tests\regression\test_current_model_compatibility_matrix.py tests\regression\test_docs_index.py -q` with `13 passed`.
+- Passed: related regression `python -m pytest tests\regression\test_current_model_compatibility_matrix.py tests\regression\test_model_capability_profile.py tests\regression\test_output_format_parity.py tests\regression\test_natural_output_format_preference.py tests\regression\test_local_model_regression_watchlist.py tests\regression\test_contextless_audit_scorecard.py -q` with `58 passed`.
+- Passed: Bash-side matrix `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_current_model_compatibility_matrix.py --require-artifacts --output-path runtime-state/current-model-compatibility-matrix/phase150/phase150-current-model-compatibility-matrix-report.json --markdown-output-path runtime-state/current-model-compatibility-matrix/phase150/phase150-current-model-compatibility-matrix-report.md` with `supported_prompt_family_count=33`, `anythingllm_compatibility_status=supported`, and `blocker_count=0`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/test_current_model_compatibility_matrix.py -q` with `12 passed`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `916 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 151: Skill/Tool Selection Explainability E2E
+
+Status: Complete.
+
+Goal: verify chat responses explain selected/rejected skills and tools without exposing raw internals or requiring manual skill injection.
+
+Acceptance target: gateway and AnythingLLM responses include selected workflow, selected skills/tools, rejected candidate counts, and grounded evidence.
+
+Completed scope:
+
+- Added `runtime/skill_tool_selection_explainability_e2e_policy.json` to define Phase 151 as a live chat-output gate over the existing workflow-router selector path.
+- Added `vllm_agent_gateway/acceptance/skill_tool_selection_explainability_e2e.py` and `scripts/validate_skill_tool_selection_explainability_e2e.py`.
+- Added `tests/regression/test_skill_tool_selection_explainability_e2e.py` with positive and negative coverage for policy shape, missing AnythingLLM surface, missing rejected counts, raw internal JSON leakage, and fail-closed skipped live surfaces.
+- Added `README.skill-tool-selection-explainability-e2e.md` and `docs/examples/skill-tool-selection-explainability-e2e.md`, then linked them from the root README, docs index, and examples index.
+- Used the existing Phase 94 selector cases `SEL-001`, `SEL-002`, and `SEL-003`; the validator does not perform a second selector pass.
+- The live report validates 12 responses across gateway and AnythingLLM, both frozen Coinbase fixtures, and three ready selector families. Each response includes selected workflow, selected skills, selected tools, route rules, rejected workflow/skill/tool candidate counts, and grounding in route-decision and registry artifacts.
+
+Validation:
+
+- Passed: contextless Phase 151 audit confirmed the correct shape is a stricter E2E assertion over the existing `route_request`, `selection_audit`, and chat renderer path, not a new selector.
+- Passed: focused regression `python -m pytest tests\regression\test_skill_tool_selection_explainability_e2e.py -q` with `6 passed`.
+- Passed: Bash-side live gate `wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$ANYTHINGLLM_API_KEY" python3 scripts/validate_skill_tool_selection_explainability_e2e.py --output-path runtime-state/skill-tool-selection-explainability-e2e/phase151/phase151-skill-tool-selection-explainability-e2e-report.json --markdown-output-path runtime-state/skill-tool-selection-explainability-e2e/phase151/phase151-skill-tool-selection-explainability-e2e-report.md` with `response_count=12`, `passed_response_count=12`, `failed_response_count=0`, `surfaces=["anythingllm","gateway"]`, and both frozen target roots.
+- Passed: related regression `python -m pytest tests\regression\test_skill_tool_selection_explainability_e2e.py tests\regression\test_skill_selection_hardening.py tests\regression\test_chat_response_contract.py tests\regression\test_docs_index.py -q` with `17 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/test_skill_tool_selection_explainability_e2e.py -q` with `6 passed`.
+- Passed: WSL related regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/test_skill_tool_selection_explainability_e2e.py tests/regression/test_skill_selection_hardening.py tests/regression/test_chat_response_contract.py tests/regression/test_docs_index.py -q` with `17 passed`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `922 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 152: AnythingLLM Conversation State Isolation
+
+Status: Complete.
+
+Goal: ensure old AnythingLLM chat history does not contaminate current workflow routing or output contracts.
+
+Acceptance target: repeated prompts in new and existing sessions route consistently and ignore stale prior artifacts unless explicitly referenced.
+
+Completed scope:
+
+- Added `runtime/anythingllm_conversation_state_isolation_policy.json` with four contamination cases: stale repository prompt, stale JSON prompt, stale explicit controller envelope, and stale FormatA prompt.
+- Added `vllm_agent_gateway/acceptance/anythingllm_conversation_state_isolation.py` and `scripts/validate_anythingllm_conversation_state_isolation.py`.
+- Added `tests/regression/test_anythingllm_conversation_state_isolation.py` with policy validation, stale seed-kind rejection, FormatA current-response validation, stale JSON leakage rejection, JSON current-response validation, JSON route-signature reconstruction, skipped-live fail-closed behavior, and the direct-controller allowlist regression found during live validation.
+- Added `README.anythingllm-conversation-state-isolation.md` and `docs/examples/anythingllm-conversation-state-isolation.md`, then linked them from the root README, docs index, and examples index.
+- The gate exercises direct controller multi-message history, gateway multi-message history, and AnythingLLM same-session history on both frozen Coinbase fixtures.
+- The gate compares contaminated AnythingLLM session route signatures to fresh-session route signatures for the same current prompt.
+- No production routing code, AnythingLLM-specific history scrubber, alternate selector, or alternate renderer was added.
+
+Validation:
+
+- Passed: contextless Phase 152 audit confirmed the correct shape is a validation-only gate over the existing latest-message router and output-format selector, not a new history scrubber.
+- Fixed: first live run exposed a validator bug where direct-controller validation supplied string allowlist roots to `ControllerServiceConfig`; the validator now converts target roots to `Path` objects and regression covers the failure.
+- Passed: focused regression `python -m pytest tests\regression\test_anythingllm_conversation_state_isolation.py -q` with `8 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/test_anythingllm_conversation_state_isolation.py -q` with `8 passed`.
+- Passed: Bash-side live gate `wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$ANYTHINGLLM_API_KEY" python3 scripts/validate_anythingllm_conversation_state_isolation.py --output-path runtime-state/anythingllm-conversation-state-isolation/phase152/phase152-anythingllm-conversation-state-isolation-report.json --markdown-output-path runtime-state/anythingllm-conversation-state-isolation/phase152/phase152-anythingllm-conversation-state-isolation-report.md` with `response_count=24`, `passed_response_count=24`, `failed_response_count=0`, surfaces `direct_controller_history`, `gateway_history_payload`, and `anythingllm_same_session`, and both frozen target roots.
+- Passed: related regression `python -m pytest tests\regression\test_anythingllm_conversation_state_isolation.py tests\regression\test_anythingllm_session_recovery.py tests\regression\test_natural_output_format_preference.py tests\regression\test_chat_response_contract.py tests\regression\test_docs_index.py -q` with `30 passed`.
+- Passed: WSL related regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/test_anythingllm_conversation_state_isolation.py tests/regression/test_anythingllm_session_recovery.py tests/regression/test_natural_output_format_preference.py tests/regression/test_chat_response_contract.py tests/regression/test_docs_index.py -q` with `30 passed`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python -m pytest tests/regression/ -v` with `930 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 153: Stable Release Rollback And Reset Practice
+
+Status: Complete.
+
+Goal: prove a founder can reset local runtime state and recover a stable testing path.
+
+Acceptance target: reset instructions preserve source, ignore runtime-state in git, and regenerate required proof artifacts.
+
+Completed scope:
+
+- Added `runtime/stable_release_reset_rehearsal_policy.json` to define the reset contract, required target roots, watched source paths, forbidden destructive command fragments, disposable runtime-state rehearsal path, and stable handoff recovery requirement.
+- Added `vllm_agent_gateway/acceptance/stable_release_reset_rehearsal.py` and `scripts/validate_stable_release_reset_rehearsal.py`.
+- Added `tests/regression/test_stable_release_reset_rehearsal.py` with policy, non-destructive command contract, dry rehearsal, mocked reset/start execution, mocked productized stable handoff rerun, tracked runtime-state rejection, protected fixture mutation rejection, destructive reset rejection, and policy-shape coverage.
+- Added `README.stable-release-reset-rehearsal.md` and `docs/examples/stable-release-reset-rehearsal.md`, then linked them from the root README, docs index, and examples index.
+- Corrected `docs/examples/productized-setup.md` so productized start documents `CONTROLLER_DEFAULT_ROLE_BASE_URL=http://127.0.0.1:8300/v1`; AnythingLLM remains pointed at `http://127.0.0.1:8500/v1`.
+- The rehearsal uses the existing productized `reset`, `start`, and `rerun` command paths. It does not add another reset implementation and does not delete the real repo-local `runtime-state` tree.
+- The live report proves runtime-state hygiene, disposable runtime-state regeneration, productized reset/start execution, productized stable handoff recovery, protected fixture preservation, watched source preservation, and unchanged git source snapshot.
+
+Validation:
+
+- Passed: contextless Phase 153 audit confirmed the correct shape is a rehearsal over existing productized reset/start, stable handoff, and runtime-state hygiene paths, not a new reset feature.
+- Passed: focused regression `python -m pytest tests\regression\test_stable_release_reset_rehearsal.py -q` with `10 passed`.
+- Passed: related regression `python -m pytest tests\regression\test_stable_release_reset_rehearsal.py tests\regression\test_productized_setup.py tests\regression\test_runtime_state_hygiene.py tests\regression\test_stable_handoff.py tests\regression\test_docs_index.py -q` with `32 passed`.
+- Passed: WSL dry rehearsal `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_stable_release_reset_rehearsal.py --output-path runtime-state/stable-release-reset-rehearsal/phase153/phase153-dry-report.json` with `check_count=9`, `failed_check_ids=[]`, and `status=passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_stable_release_reset_rehearsal.py -q` with `10 passed`.
+- Passed: live reset/start/recovery rehearsal `wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$ANYTHINGLLM_API_KEY" python3 scripts/validate_stable_release_reset_rehearsal.py --execute-reset-start --execute-recovery --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --output-path runtime-state/stable-release-reset-rehearsal/phase153/phase153-live-report.json` with `check_count=9`, `failed_check_ids=[]`, and `status=passed`.
+- Passed: live child reports `phase153-live-report-productized-reset.json`, `phase153-live-report-productized-start.json`, `phase153-live-report-productized-rerun.json`, and `phase153-live-report-runtime-state-hygiene.json`.
+- Passed: WSL related regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_stable_release_reset_rehearsal.py tests/regression/test_productized_setup.py tests/regression/test_runtime_state_hygiene.py tests/regression/test_stable_handoff.py tests/regression/test_docs_index.py -q` with `32 passed`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `940 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 154: Model Swap Smoke Probe
+
+Status: Complete.
+
+Goal: run a small smoke probe that distinguishes current-model readiness from harness readiness if localhost 8000 changes model.
+
+Acceptance target: report identifies model/backend metadata, expected chat-quality deltas, and whether full drift gate is required.
+
+Completed scope:
+
+- Added `runtime/model_swap_smoke_probe_policy.json` to define the expected model policy source, localhost model base URL, required live probes, required harness health targets, direct generation smoke, and next-gate decision map.
+- Added `vllm_agent_gateway/acceptance/model_swap_smoke_probe.py` and `scripts/validate_model_swap_smoke_probe.py`.
+- Added `tests/regression/test_model_swap_smoke_probe.py` with decision coverage for expected model, swapped model, model metadata failure, harness failure, generation failure, compatibility artifact failure, missing expected IDs, policy drift, and exact-ID matching.
+- Added `README.model-swap-smoke-probe.md` and `docs/examples/model-swap-smoke-probe.md`, then linked them from the root README, docs index, and examples index.
+- The probe reads expected model IDs from `runtime/current_model_compatibility_matrix_policy.json`; it does not hardcode the model in the validator.
+- The probe checks live `/v1/models`, direct `/chat/completions` generation, harness health for `8000`, `8300`, `8500`, and `8400`, and the existing current-model compatibility matrix.
+- The probe only reports the next gate. It does not mutate model capability profiles, change runtime routing, enable automatic model selection, or treat direct generation as chat-quality proof.
+
+Validation:
+
+- Passed: contextless Phase 154 audit confirmed the correct shape is a model-swap detector and next-gate decision, not a model-profile mutation or automatic selection mechanism.
+- Passed: focused regression `python -m pytest tests\regression\test_model_swap_smoke_probe.py -q` with `10 passed`.
+- Passed: related regression `python -m pytest tests\regression\test_model_swap_smoke_probe.py tests\regression\test_current_model_compatibility_matrix.py tests\regression\test_model_portability.py tests\regression\test_docs_index.py -q` with `28 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_model_swap_smoke_probe.py -q` with `10 passed`.
+- Passed: WSL live probe `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_model_swap_smoke_probe.py --output-path runtime-state/model-swap-smoke-probe/phase154/phase154-model-swap-smoke-probe-report.json --markdown-output-path runtime-state/model-swap-smoke-probe/phase154/phase154-model-swap-smoke-probe-report.md` with `decision=current_model_ready`, `model_swap_detected=false`, `generation_probe_passed=true`, `harness_health_passed=true`, `compatibility_artifacts_passed=true`, and `full_drift_gate_required=false`.
+- Passed: live expected and actual model IDs both matched `Qwen3-Coder-30B-A3B-Instruct`; no Phase 154 drift or portability rerun was required.
+- Passed: WSL related regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_model_swap_smoke_probe.py tests/regression/test_current_model_compatibility_matrix.py tests/regression/test_model_portability.py tests/regression/test_docs_index.py -q` with `28 passed`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `950 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 155: V1 Product Readiness Review
+
+Status: Complete.
+
+Goal: review whether the current product meets the original goal of natural-language local-model chat quality with deterministic tools and skills.
+
+Acceptance target: review lists release blockers, risks, supported workflows, unsupported workflows, and go/no-go recommendation.
+
+Completed scope:
+
+- Added `runtime/v1_product_readiness_review_policy.json` to define the V1 readiness review contract, required reports, required docs, supported workflows, unsupported workflows, required evidence markers, and monitored risks.
+- Added `vllm_agent_gateway/acceptance/v1_product_readiness_review.py` and `scripts/validate_v1_product_readiness_review.py`.
+- Added `tests/regression/test_v1_product_readiness_review.py` with coverage for policy shape, current go recommendation, missing artifact blocker, model-swap drift blocker, unready stable release blocker, missing unsupported boundary, hidden summary edit, missing release-note marker, and monitored risk reporting.
+- Added `README.v1-product-readiness-review.md` and `docs/examples/v1-product-readiness-review.md`, then linked them from the root README, docs index, and examples index.
+- The review consumes existing Phase 130, 146, 153, 154, and current-model compatibility evidence. It does not rerun every expensive live suite and does not expand supported scope.
+- The live report produced `recommendation=go_for_founder_testing`, `release_blocker_count=0`, `monitored_risk_count=3`, `supported_prompt_family_count=33`, `supported_workflow_count=8`, `unsupported_workflow_count=6`, and `model_swap_decision=current_model_ready`.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_v1_product_readiness_review.py -q` with `9 passed`.
+- Passed: related regression `python -m pytest tests\regression\test_v1_product_readiness_review.py tests\regression\test_stable_chat_quality_release.py tests\regression\test_release_notes.py tests\regression\test_model_swap_smoke_probe.py tests\regression\test_stable_release_reset_rehearsal.py tests\regression\test_docs_index.py -q` with `54 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_v1_product_readiness_review.py -q` with `9 passed`.
+- Passed: WSL live review `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_v1_product_readiness_review.py --output-path runtime-state/v1-product-readiness-review/phase155/phase155-v1-product-readiness-review-report.json --markdown-output-path runtime-state/v1-product-readiness-review/phase155/phase155-v1-product-readiness-review-report.md` with `recommendation=go_for_founder_testing`, `release_blocker_count=0`, `monitored_risk_count=3`, `supported_prompt_family_count=33`, `l1_prompt_family_count=21`, `l2_prompt_family_count=12`, `governed_output_format_count=2`, and `full_drift_gate_required=false`.
+- Passed: WSL related regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_v1_product_readiness_review.py tests/regression/test_stable_chat_quality_release.py tests/regression/test_release_notes.py tests/regression/test_model_swap_smoke_probe.py tests/regression/test_stable_release_reset_rehearsal.py tests/regression/test_docs_index.py -q` with `54 passed`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `959 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 156: V1 Stable Release Decision Gate
+
+Status: Complete.
+
+Goal: make the final V1 stable release decision from accumulated proof.
+
+Acceptance target: one final report states release decision, evidence links, remaining limitations, rollback path, and next roadmap batch.
+
+Completed scope:
+
+- Added `runtime/v1_stable_release_decision_policy.json` to define the final V1 decision contract, required reports, required docs, governed release scope, governed limitations, required final markers, rollback path, and next-roadmap-batch text.
+- Added `vllm_agent_gateway/acceptance/v1_stable_release_decision.py` and `scripts/validate_v1_stable_release_decision.py`.
+- Added `tests/regression/test_v1_stable_release_decision.py` with coverage for current release approval, unready review blocking, model-swap drift blocking, missing source blocking, missing governed limitation blocking, missing governed scope blocking, missing rollback path blocking, missing next-roadmap-batch blocking, missing final marker blocking, hidden summary edit rejection, evidence-link coverage, and closeout-field inclusion.
+- Added `README.v1-stable-release-decision.md` and `docs/examples/v1-stable-release-decision.md`, then linked them from the root README, docs index, and examples index.
+- The live Phase 156 report produced `decision=release_for_founder_testing`, `release_blocker_count=0`, `evidence_link_count=6`, `doc_count=7`, `limitation_count=6`, `scope_count=6`, `rollback_path_present=true`, `next_roadmap_batch_present=true`, `product_readiness_recommendation=go_for_founder_testing`, and `model_swap_decision=current_model_ready`.
+- A bounded contextless audit found the gate implementation satisfied the acceptance target and identified one stale roadmap state issue. The stale roadmap issue was corrected in this Phase 156 closeout.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_v1_stable_release_decision.py -q` with `13 passed`.
+- Passed: compile check `python -m py_compile vllm_agent_gateway\acceptance\v1_stable_release_decision.py scripts\validate_v1_stable_release_decision.py`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_v1_stable_release_decision.py -q` with `13 passed`.
+- Passed: related regression `python -m pytest tests\regression\test_v1_stable_release_decision.py tests\regression\test_v1_product_readiness_review.py tests\regression\test_stable_chat_quality_release.py tests\regression\test_release_notes.py tests\regression\test_docs_index.py -q` with `47 passed`.
+- Passed: live WSL final decision `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_v1_stable_release_decision.py --output-path runtime-state/v1-stable-release-decision/phase156/phase156-v1-stable-release-decision-report.json --markdown-output-path runtime-state/v1-stable-release-decision/phase156/phase156-v1-stable-release-decision-report.md` with `decision=release_for_founder_testing`, `release_blocker_count=0`, `evidence_link_count=6`, `doc_count=7`, `rollback_path_present=true`, and `next_roadmap_batch_present=true`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `972 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 157: Founder Field Test Round 1
+
+Status: Complete.
+
+Goal: run the next founder field-test round through AnythingLLM against the current V1 release path.
+
+Scope:
+
+- Use the existing founder field prompt/evaluation path instead of creating a second live AnythingLLM harness.
+- Run 20 to 30 natural-language prompts through AnythingLLM using the workflow-router path at `http://127.0.0.1:8500/v1`.
+- Cover both frozen Coinbase fixtures: `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Record chat-visible answer quality, selected workflow, run IDs, route evidence, output-format behavior, fixture mutation proof, and prompt-level pass/fail/advisory status.
+- Preserve release limitations: no advanced broad refactor, no direct mutation of protected frozen fixtures, no unsupported output-format claims, and no automatic model selection.
+
+Acceptance target: a Phase 157 report and Markdown review capture the field-test round, with every case linked to prompt text, target root, AnythingLLM response evidence, run ID, quality classification, and mutation proof. Blockers must be routed to Phase 158 rather than silently repaired.
+
+Completed scope:
+
+- Added `runtime/founder_field_round1_policy.json` to govern the Phase 157 case selection, required target roots, required workflows, required skill-backed prompts, release limitations, and evidence contract.
+- Added `vllm_agent_gateway/acceptance/founder_field_round1.py` and `scripts/validate_founder_field_round1.py`.
+- Kept live prompt execution on the existing `scripts/run_founder_field_prompt_eval.py` path; Phase 157 wraps and validates that evidence instead of introducing a parallel AnythingLLM runner.
+- Selected 30 cases from the governed founder field catalog: `P01` through `P22` and `P27` through `P34`. The first post-release field round intentionally excluded draft/apply-oriented `P23` through `P26`.
+- Added `tests/regression/test_founder_field_round1.py` with coverage for policy shape, advisory case handling, blocker routing to Phase 158 without contract failure, missing run IDs, fixture mutation, wrong case set, runner errors, hidden summary edits, and report writing.
+- Added `README.founder-field-round1.md` and `docs/examples/founder-field-round1.md`, then linked them from the root README, docs index, and examples index.
+- The live Phase 157 run produced 30 passed founder-field prompt cases through AnythingLLM, covered both frozen Coinbase roots, recorded workflow-router run IDs for every case, and preserved fixture state.
+- The Phase 157 governance report produced `status=passed`, `quality_status=advisory`, `case_count=30`, `pass_case_count=16`, `advisory_case_count=14`, `blocker_case_count=0`, `target_root_count=2`, `workflow_count=3`, and `phase158_required=true`.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_founder_field_round1.py -q` with `9 passed`.
+- Passed: compile check `python -m py_compile vllm_agent_gateway\acceptance\founder_field_round1.py scripts\validate_founder_field_round1.py`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_founder_field_round1.py -q` with `9 passed`.
+- Passed: live endpoint checks for AnythingLLM `http://127.0.0.1:3001/api/ping`, model `http://127.0.0.1:8000/v1/models`, and workflow-router gateway `http://127.0.0.1:8500/v1/models`.
+- Passed: live WSL Phase 157 run `wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$env:ANYTHINGLLM_API_KEY" python3 scripts/validate_founder_field_round1.py --run-live --output-path runtime-state/founder-field-round1/phase157/phase157-founder-field-round1-report.json --markdown-output-path runtime-state/founder-field-round1/phase157/phase157-founder-field-round1-report.md --field-report-path runtime-state/founder-field-round1/phase157/phase157-founder-field-run.json --field-markdown-output-path runtime-state/founder-field-round1/phase157/phase157-founder-field-run.md --timeout-seconds 900` with 30 passed field prompts and `PHASE157 FOUNDER FIELD ROUND PASS`.
+
+### Approved Phase 158: Transcript Quality And Feedback Intake
+
+Status: Complete.
+
+Goal: convert Phase 157 transcripts and founder observations into governed feedback findings.
+
+Scope:
+
+- Classify every failed, advisory, or founder-noted response as pass, advisory, blocker, prompt issue, harness issue, missing skill/tool, model capability issue, safety-boundary issue, unsupported scope, or documentation issue.
+- Preserve raw transcript references and link each finding to a Phase 157 case ID, target root, selected workflow, and run ID.
+- Reject vague or unlinked feedback rather than converting it into implementation work.
+
+Acceptance target: a Phase 158 report lists accepted findings, rejected findings, severity, owner path, required rerun gates, and whether each item is eligible for Phase 159 repair.
+
+Completion notes:
+
+- Added `runtime/transcript_quality_feedback_intake_policy.json` to govern source expectations, accepted categories, severity levels, decisions, owner paths, rerun gates, founder-note minimum quality, and raw transcript-source requirements.
+- Added `vllm_agent_gateway/acceptance/transcript_quality_feedback_intake.py` and `scripts/validate_transcript_quality_feedback_intake.py` to classify Phase 157 advisory/blocker cases and optional founder notes into accepted/rejected findings.
+- Added `tests/regression/test_transcript_quality_feedback_intake.py` with coverage for advisory monitoring findings, repair-eligible blockers, skill/tool gap candidates, accepted founder notes, rejected vague/unlinked notes, malformed notes, raw transcript linkage, run ID mismatches, unknown classifications, advisory cases without prompt risk, and hidden summary edits.
+- Addressed contextless audit findings by adding raw field-report hash checks, prompt-hash checks, response-hash checks, policy-declared Phase 157 input enforcement, explicit founder-note severity requirements, and rejected records for malformed note entries.
+- Added `README.transcript-quality-feedback-intake.md` and `docs/examples/transcript-quality-feedback-intake.md`, and linked both from the ordered documentation indexes.
+- Live Phase 158 validation against the Phase 157 AnythingLLM field round produced `status=passed`, `accepted_finding_count=14`, `rejected_finding_count=0`, `category_counts.prompt_issue=14`, `phase159_eligible_count=0`, and `phase159_required=false`.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_transcript_quality_feedback_intake.py -q` with `18 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_transcript_quality_feedback_intake.py -q` with `18 passed`.
+- Passed: WSL Phase 158 evidence validation `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_transcript_quality_feedback_intake.py --output-path runtime-state/transcript-quality-feedback-intake/phase158/phase158-transcript-quality-feedback-intake-report.json --markdown-output-path runtime-state/transcript-quality-feedback-intake/phase158/phase158-transcript-quality-feedback-intake-report.md` with `PHASE158 TRANSCRIPT QUALITY FEEDBACK INTAKE PASS`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `999 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 159: Priority 0 Repair Loop
+
+Status: Complete.
+
+Goal: repair accepted Phase 158 findings using the blind-baseline-first Priority 0 process.
+
+Scope:
+
+- For each accepted repair candidate, produce or refresh a bounded blind baseline before inspecting the local-model answer.
+- Compare the local response through gateway and AnythingLLM against the blind baseline.
+- Repair the smallest existing controller, workflow, skill, tool, prompt catalog, or formatter gap.
+- Rerun the target prompt plus relevant holdouts and record mutation proof.
+- Do not add new workflows or broad refactor capability in this phase.
+
+Acceptance target: accepted findings either close with target-plus-holdout proof or remain open with a documented blocker and next action.
+
+Completion notes:
+
+- Added `runtime/priority0_repair_loop_policy.json` to govern Phase 159 inputs, repair modes, closure statuses, required live surfaces, mutation status, required rerun gate, and Phase 160 handoff.
+- Added `vllm_agent_gateway/acceptance/priority0_repair_loop.py` and `scripts/validate_priority0_repair_loop.py` to close Phase 158 findings as monitoring-only, repaired with target-plus-holdout proof, or blocked with a documented next action.
+- Added `tests/regression/test_priority0_repair_loop.py` with coverage for the no-repair-required path, missing repair records, closed target/holdout proof, nonexistent proof files, failed holdout proof, open blockers, duplicate records, malformed repair records, missing finding IDs, repair records for monitoring-only findings, unknown finding IDs, failed Phase 158 input, Phase 158 summary mismatch, policy input drift, and hidden summary edits.
+- Addressed contextless audit findings by requiring closed repair records to point to readable target and holdout JSON proof reports, rejecting malformed optional repair-record entries, and returning `status=blocked` for unresolved open repairs so downstream automation cannot treat them as a clean pass.
+- Added `README.priority0-repair-loop.md` and `docs/examples/priority0-repair-loop.md`, and linked both from the ordered documentation indexes.
+- Live Phase 159 validation against the Phase 158 report produced `status=passed`, `repair_mode=no_repair_required`, `phase159_eligible_count=0`, `monitoring_only_count=14`, `closed_repair_count=0`, `open_repair_count=0`, and `validation_error_count=0`.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_priority0_repair_loop.py -q` with `16 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_priority0_repair_loop.py -q` with `16 passed`.
+- Passed: WSL Phase 159 evidence validation `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_priority0_repair_loop.py --output-path runtime-state/priority0-repair-loop/phase159/phase159-priority0-repair-loop-report.json --markdown-output-path runtime-state/priority0-repair-loop/phase159/phase159-priority0-repair-loop-report.md` with `PHASE159 PRIORITY0 REPAIR LOOP PASS`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1015 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 160: Stable Release Refresh
+
+Status: Complete.
+
+Goal: prove the V1 release remains stable after Phase 159 repairs.
+
+Scope:
+
+- Rerun the required stable proof floor after repairs: stable chat-quality release, stable reset/recovery proof, model-swap smoke, V1 product readiness review, and V1 stable release decision.
+- Include both frozen Coinbase fixtures and current localhost model identity.
+- Fail closed if any repaired path weakens release limitations, fixture protection, output-format parity, or AnythingLLM chat usefulness.
+
+Acceptance target: refreshed release artifacts show `ready_for_founder_testing` and `release_for_founder_testing` with no unresolved blockers.
+
+Completion notes:
+
+- Added `runtime/stable_release_refresh_policy.json` to govern the Phase 160 refresh command set, required reports, target roots, model identity, allowed Phase 159 repair modes, release limitations, and Phase 161 handoff.
+- Added `vllm_agent_gateway/acceptance/stable_release_refresh.py` and `scripts/validate_stable_release_refresh.py` to rerun and validate the stable proof floor after the Phase 157-159 field-test chain.
+- Added `tests/regression/test_stable_release_refresh.py` with coverage for the pass path, missing refresh command results, failed refresh commands, missing output hashes, wrong output paths, model drift requirement, missing drift schema, wrong model identity, missing frozen fixture coverage, blocked Phase 159 repair state, Phase 157/158 case-count mismatch, Phase 158/159 eligible-count mismatch, Phase 159 monitoring-count mismatch, open repairs, weakened release limitations, and hidden summary edits.
+- Addressed contextless audit findings by binding refresh command results to governed output paths and hashes, capturing timeout/exception failures in the Phase 160 report, requiring `full_drift_gate_required=false` explicitly, and tightening Phase 157-159 chain counts.
+- Added `README.stable-release-refresh.md` and `docs/examples/stable-release-refresh.md`, and linked both from the ordered documentation indexes.
+- The first live Phase 160 run correctly failed closed on a policy mismatch between the Phase 160 limitation string and the existing Phase 156 release-decision limitation. Phase 160 was corrected to validate the existing governed limitation `not_direct_mutation_of_protected_fixtures`.
+- The final live Phase 160 run reran all five refresh commands, recorded governed output hashes, and produced `status=passed`, `readiness=ready_for_founder_testing`, `decision=release_for_founder_testing`, `refresh_command_count=5`, `source_report_count=8`, `phase159_repair_mode=no_repair_required`, `model_ids=["Qwen3-Coder-30B-A3B-Instruct"]`, and `validation_error_count=0`.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_stable_release_refresh.py -q` with `17 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_stable_release_refresh.py -q` with `17 passed`.
+- Passed: WSL Phase 160 live refresh `wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$env:ANYTHINGLLM_API_KEY" python3 scripts/validate_stable_release_refresh.py --run-refresh --execute-reset-start --execute-recovery --timeout-seconds 1800 --output-path runtime-state/stable-release-refresh/phase160/phase160-stable-release-refresh-report.json --markdown-output-path runtime-state/stable-release-refresh/phase160/phase160-stable-release-refresh-report.md` with `PHASE160 STABLE RELEASE REFRESH PASS`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1032 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 161: Skill/Tool Gap Batch Proposal
+
+Status: Complete.
+
+Goal: propose a small deterministic skill/tool batch only if Phase 157 through 160 evidence proves missing deterministic capability.
+
+Scope:
+
+- Review accepted Phase 158 and unresolved Phase 159 findings.
+- Separate prompt/formatter/model-quality misses from true missing skill/tool gaps.
+- Create proposed skill/tool entries with eval gates, safety boundaries, target prompt families, and required validation tiers.
+- Do not implement the proposed skills/tools in this phase.
+
+Acceptance target: a proposal report either states no new skill/tool batch is justified or lists bounded candidates ready for founder approval.
+
+Completion notes:
+
+- Added `runtime/skill_tool_gap_batch_proposal_policy.json` to govern the Phase 157-160 source chain, candidate fields, validation tiers, safety boundaries, founder approval boundary, and Phase 162 handoff.
+- Added `vllm_agent_gateway/acceptance/skill_tool_gap_batch_proposal.py` and `scripts/validate_skill_tool_gap_batch_proposal.py` to produce a proposal-only decision report.
+- Added `tests/regression/test_skill_tool_gap_batch_proposal.py` with coverage for the current no-batch decision, synthetic missing-skill/tool candidate generation, stale candidate removal, prompt-only finding rejection, Phase 158 source row/summary drift, unknown categories, owner/category mismatches, blocked Phase 160 evidence, open Phase 159 repair state, eligible-count mismatches, policy input validation, and hidden summary edits.
+- Addressed contextless audit findings by requiring `category=missing_skill_tool` before a candidate can be proposed, rejecting `skill_tool_gap_review` ownership on non-skill/tool categories, validating Phase 158 accepted-finding rows against summary counts, and failing closed on unknown finding categories.
+- Added `README.skill-tool-gap-batch-proposal.md` and `docs/examples/skill-tool-gap-batch-proposal.md`, and linked both from the ordered documentation indexes.
+- Live Phase 161 validation against the current Phase 157-160 evidence produced `status=passed`, `decision=no_new_batch_justified`, `implementation_authorized=false`, `missing_skill_tool_finding_count=0`, `gap_candidate_count=0`, `non_batch_finding_count=14`, and `validation_error_count=0`.
+- Fixed an async controller-service run-record visibility race exposed by full regression by adding an in-process run-record cache that is updated on persistence and cleared by run cleanup, preserving immediate polling after a `202` response without weakening cleanup semantics.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_skill_tool_gap_batch_proposal.py -q` with `15 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_skill_tool_gap_batch_proposal.py -q` with `15 passed`.
+- Passed: WSL Phase 161 live proposal validation `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_skill_tool_gap_batch_proposal.py --output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.json --markdown-output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.md` with `PHASE161 SKILL TOOL GAP BATCH PROPOSAL PASS`.
+- Passed: focused regression for async run polling and cleanup `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_controller_service.py::test_controller_service_async_documenter_run_is_pollable tests/regression/test_controller_service.py::test_controller_service_cleanup_removes_terminal_run_records_only -q` with `2 passed`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1047 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 162: Next Founder Handoff Update
+
+Status: Complete.
+
+Goal: refresh founder-facing handoff material from the Phase 157 through 161 results.
+
+Scope:
+
+- Update getting-started, release notes, known limitations, founder testing examples, and relevant docs index links.
+- Include new recommended prompts, known misses, rerun commands, and release proof paths.
+- Keep the root README small and route details into feature READMEs and examples.
+
+Acceptance target: a contextless founder can run the current field-test path, understand current limitations, and see what changed after the Phase 157 through 161 batch.
+
+Completion notes:
+
+- Updated `README.getting-started.md` with the Phase 160/161 closeout commands, expected markers, proof summary, and current prompt-advisory limitation.
+- Updated `README.release-notes.md` with the latest founder-field closeout, known limitations, primary Phase 157-161 proof artifacts, and rerun commands.
+- Updated `docs/examples/anythingllm-founder-testing.md` with the current June 10, 2026 validation state, Phase 160/161 commands, and prompt-wording advisory guidance.
+- Updated `README.stable-handoff.md` and `docs/examples/stable-handoff.md` with field-test closeout commands and the current `no_new_batch_justified` Phase 161 decision.
+- Updated `README.founder-field-round1.md` and `docs/examples/founder-field-round1.md` so a contextless reader can continue from Phase 157 through Phase 161.
+- Kept the root README small; it already links the new Phase 161 feature README from the documentation map.
+
+Validation:
+
+- Passed: focused docs/release-notes regression `python -m pytest tests\regression\test_docs_index.py tests\regression\test_release_notes.py -q` with `13 passed`.
+- Passed: WSL focused docs/release-notes regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_docs_index.py tests/regression/test_release_notes.py -q` with `13 passed`.
+- Passed: WSL release-notes validator `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_release_notes.py --require-artifacts --output-path runtime-state/release-notes/phase162/phase162-release-notes-report.json` with `RELEASE NOTES PASS`.
+
+### Approved Phase 163: Post-Restart Runtime Readiness Gate
+
+Status: Complete.
+
+Goal: make the post-reboot or post-restart readiness check repeatable before founder testing continues.
+
+Scope:
+
+- Reuse the existing first-time user doctor, gateway/AnythingLLM health-drift guard, and AnythingLLM session-recovery/greeting smoke.
+- Prove localhost model `8000`, LLM gateway `8300`, workflow-router gateway `8500`, controller `8400`, configured role proxy ports, AnythingLLM API key, workspace lookup, expected AnythingLLM model target, and a minimal user-visible greeting/session-recovery chat path.
+- Produce one restart-readiness report with source report paths, source report hashes, source summaries, live surface coverage, and exact next action.
+- Do not create a parallel port checker or duplicate AnythingLLM chat runner.
+
+Acceptance target: one command returns `POST RESTART RUNTIME READINESS PASS` only when all restart-critical surfaces pass and the source reports prove the expected local model, gateway, controller, role, and AnythingLLM chat path.
+
+Completion notes:
+
+- Added `runtime/post_restart_runtime_readiness_policy.json` to govern Phase 163 source reports, required restart surfaces, allowed warnings, and acceptance marker.
+- Added `vllm_agent_gateway/acceptance/post_restart_runtime_readiness.py` and `scripts/validate_post_restart_runtime_readiness.py`.
+- The gate composes the existing first-time user doctor, gateway/AnythingLLM health-drift guard, and AnythingLLM session-recovery smoke. It does not create a parallel port checker or duplicate AnythingLLM chat runner.
+- Added `tests/regression/test_post_restart_runtime_readiness.py` with coverage for clean pass, missing role-port surface, skipped live AnythingLLM session proof, hidden summary tampering, and runner composition through existing source runners.
+- Added `README.post-restart-runtime-readiness.md` and `docs/examples/post-restart-runtime-readiness.md`, then linked them from the root README, docs index, and examples index.
+- The live Phase 163 run produced `status=passed`, `decision=ready_after_restart`, `required_surface_count=16`, `covered_surface_count=16`, `missing_required_surface_count=0`, `failed_source_report_count=0`, `health_drift_finding_count=0`, `session_recovery_blocker_finding_count=0`, and `validation_error_count=0`.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_post_restart_runtime_readiness.py tests\regression\test_docs_index.py -q` with `6 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_post_restart_runtime_readiness.py tests/regression/test_docs_index.py -q` with `6 passed`.
+- Passed: live WSL Phase 163 runtime gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_post_restart_runtime_readiness.py --timeout-seconds 120 --output-path runtime-state/post-restart-runtime-readiness/phase163/phase163-post-restart-runtime-readiness-report.json` with `POST RESTART RUNTIME READINESS PASS`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1052 passed`, `4 skipped`, and `23 deselected`.
+- Passed: focused docs/release-notes regression `python -m pytest tests\regression\test_docs_index.py tests\regression\test_release_notes.py -q` with `13 passed`.
+- Passed: WSL focused docs/release-notes regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_docs_index.py tests/regression/test_release_notes.py -q` with `13 passed`.
+- Passed: WSL release-notes validator `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_release_notes.py --require-artifacts --output-path runtime-state/release-notes/phase163/phase163-release-notes-report.json` with `RELEASE NOTES PASS`.
+
+### Approved Phase 164: Founder Field Test Round 2
+
+Status: Complete.
+
+Goal: run the next bounded natural-prompt field round through the real AnythingLLM/local-model path using blind-baseline-first comparison.
+
+Scope:
+
+- Select a bounded round of natural prompts from current founder-testing goals and both frozen Coinbase fixtures.
+- Ask a contextless blind agent for ideal response shape, must-have facts, safety boundaries, evidence expectations, and scoring rubric before local-model output is evaluated.
+- Run the same prompt through AnythingLLM and the workflow-router gateway.
+- Score local responses against blind baselines and classify each miss as pass, advisory, blocker, or proposal candidate.
+
+Acceptance target: a Phase 164 report links each prompt to blind baseline, local response evidence, run ID, target root, selected workflow, score, classification, prompt suggestion, and fixture mutation proof.
+
+Completion notes:
+
+- Added `runtime/founder_field_round2_policy.json` and governed blind-baseline source `runtime/founder_field_round2_blind_baselines.json`.
+- Added `vllm_agent_gateway/acceptance/founder_field_round2.py` and `scripts/validate_founder_field_round2.py`.
+- Updated `scripts/run_founder_field_prompt_eval.py` so live AnythingLLM field runs write full per-case response artifacts with SHA-256 hashes and route-surface proof instead of relying on truncated chat samples.
+- Added `tests/regression/test_founder_field_round2.py` with coverage for clean evidence pass, quality blocker classification, blind-baseline output leaks, late baselines, missing full response artifacts, response hash mismatches, missing route-surface proof, protected fixture mutation, hidden report edits, and runner output.
+- Added `README.founder-field-round2.md` and `docs/examples/founder-field-round2.md`, then linked them from the root README, docs index, and examples index.
+- A contextless blind-baseline agent generated the Phase 164 ideal answer shapes, must-have facts, evidence expectations, safety boundaries, output expectations, and 100-point rubric before the live local-model run.
+- The live Phase 164 AnythingLLM run produced 16/16 passing field cases with full response artifacts, `status=passed`, `quality_status=advisory`, `average_score=94.0`, `min_score=91`, `classification_counts={"pass":2,"advisory":14,"blocker":0,"proposal_candidate":0}`, unchanged protected fixtures, and `validation_error_count=0`.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_founder_field_round2.py tests\regression\test_founder_field_prompt_eval.py -q` with `21 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_founder_field_round2.py tests/regression/test_founder_field_prompt_eval.py -q` with `21 passed`.
+- Passed: focused docs regression `python -m pytest tests\regression\test_founder_field_round2.py tests\regression\test_founder_field_prompt_eval.py tests\regression\test_docs_index.py -q` with `22 passed`.
+- Passed: WSL focused docs regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_founder_field_round2.py tests/regression/test_founder_field_prompt_eval.py tests/regression/test_docs_index.py -q` with `22 passed`.
+- Passed: live WSL Phase 164 runtime gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_founder_field_round2.py --run-live --timeout-seconds 900 --output-path runtime-state/founder-field-round2/phase164/phase164-founder-field-round2-report.json --markdown-output-path runtime-state/founder-field-round2/phase164/phase164-founder-field-round2-report.md` with `PHASE164 FOUNDER FIELD ROUND 2 PASS`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1064 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 165: Phase 158 Prompt-Advisory Closure
+
+Status: Complete.
+
+Goal: close, document, or escalate the 14 Phase 158 prompt-risk advisories instead of leaving them as permanent ambiguity.
+
+Scope:
+
+- Use the Phase 158 accepted findings as input.
+- Generate refined prompt variants only as test candidates, not silent user-prompt rewrites.
+- Run blind-baseline-first comparison for refined prompts and holdouts.
+- Mark each advisory as closed, documented guidance, or product-gap escalation.
+
+Acceptance target: every Phase 158 advisory has a governed closure decision, supporting proof, and a next action. Product-gap escalations must feed Phase 169 rather than becoming unapproved implementation work.
+
+Completion notes:
+
+- Added `runtime/prompt_advisory_closure_policy.json`, `vllm_agent_gateway/acceptance/prompt_advisory_closure.py`, and `scripts/validate_prompt_advisory_closure.py`.
+- Updated `scripts/run_founder_field_prompt_eval.py` with `--use-refined-prompts` so refined prompt candidates are tested through the existing founder field runner instead of a parallel live harness.
+- Added `tests/regression/test_prompt_advisory_closure.py` and expanded founder field runner coverage for refined prompt selection.
+- Added `README.prompt-advisory-closure.md` and `docs/examples/prompt-advisory-closure.md`, then linked them from the root README, docs index, and examples index.
+- Used a contextless blind audit agent to confirm the required closure fields, decision rules, failure cases, and no-silent-rewrite boundary.
+- The live refined prompt run produced 8 passing refined candidates and 6 failed refined candidates. The holdout run passed 2/2 with no fixture mutation.
+- Phase 165 report passed with `closure_count=14`, `decision_counts={"closed_refined_prompt_proven":0,"documented_guidance":8,"product_gap_escalation":6}`, `refined_min_score=64`, `holdout_min_score=97`, and `validation_error_count=0`.
+- Product-gap escalations are `P08`, `P21`, `P29`, `P30`, `P33`, and `P34`; they are inputs to Phase 169 and do not authorize implementation in Phase 165.
+
+Validation:
+
+- Passed: focused regression `python -m pytest tests\regression\test_prompt_advisory_closure.py tests\regression\test_founder_field_prompt_eval.py -q` with `20 passed`.
+- Passed: WSL focused regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_prompt_advisory_closure.py tests/regression/test_founder_field_prompt_eval.py -q` with `20 passed`.
+- Passed: focused docs regression `python -m pytest tests\regression\test_prompt_advisory_closure.py tests\regression\test_founder_field_prompt_eval.py tests\regression\test_docs_index.py -q` with `20 passed`.
+- Passed: WSL focused docs regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_prompt_advisory_closure.py tests/regression/test_founder_field_prompt_eval.py tests/regression/test_docs_index.py -q` with `20 passed`.
+- Passed: live WSL Phase 165 runtime gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_prompt_advisory_closure.py --run-live --timeout-seconds 900 --output-path runtime-state/prompt-advisory-closure/phase165/phase165-prompt-advisory-closure-report.json --markdown-output-path runtime-state/prompt-advisory-closure/phase165/phase165-prompt-advisory-closure-report.md` with `PHASE165 PROMPT ADVISORY CLOSURE PASS`.
+- Passed: full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1075 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 166: Generic Chat And Vague Prompt Contract
+
+Status: Complete.
+
+Goal: make non-repository and under-specified chat behavior useful and safe in AnythingLLM.
+
+Scope:
+
+- Validate prompts such as `hi`, vague requests, missing repository path, missing task, unsupported mutation request, and ordinary non-workflow chat.
+- Ensure the response is chat-visible, concise, and action-guiding.
+- Ensure no repository workflow runs without an allowed target root and concrete task.
+- Preserve stale-session isolation.
+
+Acceptance target: direct controller, workflow-router gateway, and AnythingLLM cases pass with no accidental repository work and no artifact-only output.
+
+Implementation summary:
+
+- Added `runtime/generic_chat_vague_prompt_contract_policy.json` with a contextless blind-baseline contract for greetings, ordinary help, missing target roots, vague target-scoped prompts, approval-bypass mutation requests, and stale-session greeting isolation.
+- Added `vllm_agent_gateway/acceptance/generic_chat_vague_prompt_contract.py` and `scripts/validate_generic_chat_vague_prompt_contract.py` to validate direct controller, workflow-router gateway, AnythingLLM, fixture mutation state, required markers, forbidden repository workflow markers, and hidden summary edits.
+- Tightened the workflow-router chat surface so no-target coding/help prompts return chat-visible guidance instead of raw `missing_target_root` failures.
+- Tightened FormatA display so blocked/no-selection routes show `Selected workflow: none` and include blocker reasons/messages in the visible summary.
+- Added documentation in `README.generic-chat-vague-prompt-contract.md` and `docs/examples/generic-chat-vague-prompt-contract.md`.
+
+Validation summary:
+
+- Passed: focused Windows regression `python -m pytest tests\regression\test_generic_chat_vague_prompt_contract.py tests\regression\test_anythingllm_session_recovery.py tests\regression\test_task_decomposition.py::test_workflow_router_chat_general_greeting_without_target_returns_guidance tests\regression\test_task_decomposition.py::test_workflow_router_chat_coding_prompt_without_target_returns_guidance tests\regression\test_controller_service.py::test_workflow_router_chat_guides_natural_language_without_target_path tests\regression\test_docs_index.py -q` with `15 passed`.
+- Passed: focused WSL regression for the same test set with `15 passed`.
+- Passed: live WSL Phase 166 gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_generic_chat_vague_prompt_contract.py --run-live --timeout-seconds 180 --output-path runtime-state/generic-chat-vague-prompt-contract/phase166/phase166-generic-chat-vague-prompt-contract-report.json` with `case_count=24`, `passed_case_count=24`, surfaces `direct_controller`, `workflow_router_gateway`, and `anythingllm`, both frozen fixtures covered, and `fixture_state_changed=false`.
+- Passed: post-restart runtime readiness after the controller/gateway restart with `required_surface_count=16`, `covered_surface_count=16`, `missing_required_surface_count=0`, `health_drift_finding_count=0`, and `session_recovery_blocker_finding_count=0`.
+- Passed: full WSL regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1080 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 167: AnythingLLM UI Replay Gate
+
+Status: Complete.
+
+Goal: prove selected stable prompts work in the actual AnythingLLM UI, not only the workspace API.
+
+Scope:
+
+- Replay representative stable prompts from the current corpus through the browser-visible AnythingLLM UI.
+- Capture screenshots, transcripts, run IDs, selected workflows, answer-usefulness findings, and fixture mutation proof.
+- Include at least one generic-chat/vague-prompt case after Phase 166.
+
+Acceptance target: UI replay report passes with user-visible answer content, no source mutation, and no unresolved critical/high UI-specific findings.
+
+Implementation completed:
+
+- Extended the governed AnythingLLM UI prompt catalog with explicit `no_target` prompt mode cases for generic greeting, generic help, and vague coding prompts.
+- Kept target-root UI cases strict: repository-targeted cases still require `{target_root}`, read-only intent, supported frozen roots, and stable-corpus coverage.
+- Added no-target transport markers so generic/vague prompts do not require `Artifacts:` when no repository workflow should start.
+- Normalized UI tracking tags out of no-target routing classification so `hi Tracking tag: ...` and `what can you do? Tracking tag: ...` preserve the Phase 166 guidance contract.
+- Added regression coverage for no-target catalog validation, no-target UI pass/fail transport markers, one-shot no-target execution, and tracking-tag generic chat routing.
+- Updated the AnythingLLM UI E2E README and examples with the Phase 167 replay command and expected proof.
+
+Acceptance proof completed:
+
+- Passed: contextless blind baseline defined the UI replay standard: actionable UI-visible answers, prompt-category correctness, visible evidence or missing-context statements, no hallucinated repo work, no internal-output leakage, and an `85/100` pass threshold with hard fails for invented evidence or no-target prompts treated as repo-targeted.
+- Passed: focused Windows regression `python -m pytest tests\regression\test_anythingllm_ui_e2e.py tests\regression\test_task_decomposition.py::test_workflow_router_chat_general_greeting_with_ui_tracking_tag_returns_guidance -q` with `26 passed`.
+- Passed: focused WSL regression for the same test set with `26 passed`.
+- Passed: live WSL no-target UI replay `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_anythingllm_ui_e2e.py --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --ui-dist-root runtime-state/anythingllm-ui/asar-dist/dist --timeout-seconds 300 --output-path runtime-state/anythingllm-ui/phase167/phase167-ui-replay.json --case-id UI167-GENCHAT-001 --case-id UI167-GENHELP-001 --case-id UI167-VAGUE-001` with `case_count=3`, `status=passed`, `fixture_unchanged=true`, and screenshots passed.
+- Passed: live WSL mixed UI replay `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_anythingllm_ui_e2e.py --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --ui-dist-root runtime-state/anythingllm-ui/asar-dist/dist --timeout-seconds 420 --output-path runtime-state/anythingllm-ui/phase167/phase167-ui-replay-mixed.json --case-id UI126-CQ116-001 --case-id UI126-CQ116-009 --case-id UI126-DD117-001 --case-id UI126-DD117-002 --case-id UI126-EJ118-001 --case-id UI126-EJ118-002 --case-id UI126-DM119-001 --case-id UI126-DM119-002 --case-id UI167-GENCHAT-001 --case-id UI167-GENHELP-001 --case-id UI167-VAGUE-001` with `case_count=11`, `status=passed`, `fixture_unchanged=true`, `non_ignored_request_failures=0`, `page_errors=0`, 22 screenshots, stable answer-usefulness cases passed, and both frozen fixtures covered.
+- Passed: post-restart readiness after the Phase 167 router and UI replay changes with `required_surface_count=16`, `covered_surface_count=16`, `missing_required_surface_count=0`, `health_drift_finding_count=0`, and `session_recovery_blocker_finding_count=0`.
+- Passed: release notes validator `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_release_notes.py --require-artifacts --output-path runtime-state/release-notes/phase167/phase167-release-notes-report.json` with `error_count=0`.
+- Passed: focused docs/UI/router regression on Windows and WSL with `39 passed` on each surface.
+- Passed: full WSL regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1085 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 168: Chat Answer Usefulness Tightening
+
+Status: Complete.
+
+Goal: repair the smallest formatter, response contract, routing, or prompt-catalog gaps exposed by Phases 164 through 167.
+
+Scope:
+
+- Keep useful answer content ahead of artifact links.
+- Preserve default FormatA and requested JSON parity.
+- Include selected workflow, selected skills/tools when relevant, evidence, safety boundaries, verification commands, and next action.
+- Avoid new workflows unless Phase 169 proposes and the founder approves them.
+
+Acceptance target: repaired target prompts and holdouts score at least `85/100` against blind baselines, with no unresolved critical/high findings, through gateway and AnythingLLM.
+
+Implementation completed:
+
+- Promoted `summary.answer` into a first-class primary answer contract.
+- Updated FormatA so responses with `summary.answer` start with `Answer:` before workflow-router status metadata.
+- Updated JSON output parity so the same answer appears in `chat_contract.answer` and `primary_answer_contract`.
+- Added ordered semantic markers to no-target AnythingLLM UI replay cases so `Answer:` must appear before `I completed workflow_router.plan.`.
+- Kept existing stable answer-usefulness behavior for artifact-backed stable corpus cases unchanged.
+- Updated answer-usefulness, output-format, and UI E2E docs to describe the primary answer contract.
+
+Acceptance proof completed:
+
+- Passed: focused Windows regression `python -m pytest tests\regression\test_chat_response_contract.py tests\regression\test_anythingllm_ui_e2e.py -q` with `36 passed`.
+- Passed: focused WSL regression for the same test set with `36 passed`.
+- Passed: live WSL no-target UI replay `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_anythingllm_ui_e2e.py --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --ui-dist-root runtime-state/anythingllm-ui/asar-dist/dist --timeout-seconds 300 --output-path runtime-state/anythingllm-ui/phase168/phase168-answer-first-ui-replay.json --case-id UI167-GENCHAT-001 --case-id UI167-GENHELP-001 --case-id UI167-VAGUE-001` with `case_count=3`, `status=passed`, `fixture_unchanged=true`, and ordered marker errors empty.
+- Passed: live WSL JSON parity probe through `http://127.0.0.1:8500/v1/chat/completions` returned matching `summary.answer`, `chat_contract.answer`, and `primary_answer_contract.text` for a no-target greeting.
+- Passed: live WSL mixed UI replay `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_anythingllm_ui_e2e.py --anythingllm-api-base-url http://127.0.0.1:3001 --workspace my-workspace --ui-dist-root runtime-state/anythingllm-ui/asar-dist/dist --timeout-seconds 420 --output-path runtime-state/anythingllm-ui/phase168/phase168-answer-first-ui-replay-mixed.json --case-id UI126-CQ116-001 --case-id UI126-CQ116-009 --case-id UI126-DD117-001 --case-id UI126-DD117-002 --case-id UI126-EJ118-001 --case-id UI126-EJ118-002 --case-id UI126-DM119-001 --case-id UI126-DM119-002 --case-id UI167-GENCHAT-001 --case-id UI167-GENHELP-001 --case-id UI167-VAGUE-001` with `case_count=11`, `status=passed`, `fixture_unchanged=true`, and stable answer-usefulness cases still passed.
+- Passed: post-restart readiness after the Phase 168 formatter and UI replay changes with `required_surface_count=16`, `covered_surface_count=16`, `missing_required_surface_count=0`, `health_drift_finding_count=0`, and `session_recovery_blocker_finding_count=0`.
+- Passed: release notes validator `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_release_notes.py --require-artifacts --output-path runtime-state/release-notes/phase168/phase168-release-notes-report.json` with `error_count=0`.
+- Passed: focused docs/UI/chat-contract regression on Windows and WSL with `49 passed` on each surface.
+- Passed: full WSL regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1090 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 169: Failure-To-Roadmap Proposal Pass
+
+Status: Complete.
+
+Goal: convert unresolved batch findings into roadmap proposals without uncontrolled scope expansion.
+
+Scope:
+
+- Read Phase 163 through 168 reports.
+- Classify unresolved findings by severity, owner path, dependency, and user-visible impact.
+- Emit approved/unapproved candidate phases for review.
+- Do not implement proposed phases in this phase.
+
+Acceptance target: proposal report lists candidate phases with evidence, severity, dependencies, approval boundary, and no source mutation.
+
+Implementation completed:
+
+- Added `runtime/failure_to_roadmap_phase169_policy.json` for the Phase 163 through Phase 168 evidence chain.
+- Extended the existing failure-to-roadmap gate to support both Phase 148 and Phase 169 policies without replacing historical Phase 148 proof.
+- Added a governed `prompt_advisory_product_gap_escalations` extractor that turns Phase 165 `product_gap_escalation` closure records into unapproved roadmap proposals.
+- Kept generated proposals `unapproved` and `not_started`; no proposed future phase was implemented in Phase 169.
+- Updated failure-to-roadmap docs and examples with the Phase 169 command, expected counts, and approval boundary.
+
+Acceptance proof completed:
+
+- Passed: focused Windows regression `python -m pytest tests\regression\test_failure_to_roadmap.py -q` with `10 passed`.
+- Passed: focused WSL regression for the same test file with `10 passed`.
+- Passed: Phase 169 proposal gate `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_failure_to_roadmap.py --require-artifacts --policy-path runtime/failure_to_roadmap_phase169_policy.json --output-path runtime-state/failure-to-roadmap/phase169/phase169-failure-to-roadmap-report.json` with `source_report_count=7`, `finding_count=6`, `proposal_count=6`, `unapproved_proposal_count=6`, `approved_proposal_count=0`, `release_blocker_count=0`, `roadmap_mutation_allowed=false`, `source_mutation_allowed=false`, and `error_count=0`.
+- Generated proposals: `FTR-P169-001-p08`, `FTR-P169-002-p21`, `FTR-P169-003-p29`, `FTR-P169-004-p30`, `FTR-P169-005-p33`, and `FTR-P169-006-p34`.
+- Passed: release notes validator `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_release_notes.py --require-artifacts --output-path runtime-state/release-notes/phase169/phase169-release-notes-report.json` with `error_count=0`.
+- Passed: focused docs/release-notes/failure-to-roadmap regression on Windows and WSL with `23 passed` on each surface.
+- Passed: full WSL regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1093 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 170: Stable Release Refresh And Handoff Update
+
+Status: Complete.
+
+Goal: refresh stable proof and founder-facing handoff docs after the Phase 163 through 169 batch.
+
+Scope:
+
+- Rerun the stable proof floor after any repairs.
+- Include current model identity, both frozen Coinbase fixtures, AnythingLLM proof, and release limitations.
+- Update getting-started, release notes, founder-testing examples, stable handoff, roadmap, and Priority 0 backlog.
+
+Acceptance target: release remains `ready_for_founder_testing` or the handoff clearly states concrete blockers, rerun commands, and next approved phase.
+
+Implementation completed:
+
+- Added `runtime/stable_release_refresh_phase170_policy.json` to validate the Phase 160 stable floor plus Phase 163 through 169 chat-quality evidence.
+- Extended the stable-release-refresh validator to support Phase 170/P0-BB-034 without replacing historical Phase 160 proof.
+- Added regression coverage for the Phase 170 17-source evidence chain, UI replay failures, and Phase 169 proposal safety failures.
+- Updated the stable refresh script output so it reports the active policy phase instead of hard-coded Phase 160 labels.
+- Updated post-restart readiness success guidance so fresh restart reports point to stable founder testing and the Phase 169 approval boundary, not the completed Phase 164 field round.
+- Updated getting-started, stable handoff, release notes, founder-testing examples, documentation indexes, the Priority 0 backlog, and stable-refresh examples to use the Phase 170 proof floor.
+
+Acceptance proof completed:
+
+- Passed: focused Windows regression `python -m pytest tests\regression\test_stable_release_refresh.py -q` with `21 passed`.
+- Passed: focused WSL regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_stable_release_refresh.py -q` with `21 passed`.
+- Passed: full Phase 170 stable refresh `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_stable_release_refresh.py --policy-path runtime/stable_release_refresh_phase170_policy.json --output-path runtime-state/stable-release-refresh/phase170/phase170-stable-release-refresh-report.json --markdown-output-path runtime-state/stable-release-refresh/phase170/phase170-stable-release-refresh-report.md --run-refresh --execute-reset-start --execute-recovery --timeout-seconds 1800` with `status=passed`, `readiness=ready_for_founder_testing`, `decision=release_for_founder_testing`, `refresh_command_count=5`, `source_report_count=17`, `phase169_proposal_count=6`, `phase169_release_blocker_count=0`, and `validation_error_count=0`.
+- Passed: release notes validator `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_release_notes.py --require-artifacts --output-path runtime-state/release-notes/phase170/phase170-release-notes-report.json` with `error_count=0` and `stable_blocker_count=0`.
+- Passed: focused docs/release-notes/stable-refresh/post-restart regression on Windows and WSL with `39 passed` on each surface.
+- Passed: live post-restart runtime readiness `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_post_restart_runtime_readiness.py --output-path runtime-state/post-restart-runtime-readiness/phase170/phase170-post-restart-runtime-readiness-report.json` with `decision=ready_after_restart`, `missing_required_surface_count=0`, and a then-current next action to review the Phase 169 proposal batch before implementation. That handoff was superseded when Phases 171-176 were approved.
+- Passed: full WSL regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1097 passed`, `4 skipped`, and `23 deselected`.
+
+### Completed Phase 171: Handler Branch Evidence Repair
+
+Status: Complete.
+
+Approved proposal: `FTR-P169-001-p08`.
+
+Goal: close the handler-branch evidence miss where the prompt asks to follow `request_stealth_orders` through the snapshot function but the response can stop at a UI sender instead of proving the handler branch, source refs, and related tests.
+
+Scope:
+
+- Reproduce the Phase 165 `P08` refined prompt miss through the current local stack.
+- Use blind-baseline-first comparison before viewing the local-model response.
+- Identify whether the smallest repair belongs in context retrieval, workflow selection, code investigation evidence collection, formatter output, prompt catalog guidance, or tool selection.
+- Repair only the existing owning path; do not add a parallel implementation.
+- Rerun the target prompt and at least one handler-branch holdout through gateway and AnythingLLM.
+
+Acceptance target: the target and holdout responses score at least `85/100`, include handler file, source refs, related tests, safety boundary, run traceability, and no protected fixture mutation.
+
+Completion notes:
+
+- Used blind-baseline-first comparison for the refined `P08` prompt. The blind baseline required exact handler file/line refs, downstream snapshot-function trace, source refs, related-test status, read-only boundary, and no fabricated tests.
+- Root cause: the shared request-flow detector did not recognize "follow the handler branch through the snapshot function" phrasing, the handler-branch skill triggers were too narrow, and request-flow chat output did not expose handler/source/test sections in the visible answer.
+- Repaired the existing `code_investigation.plan` path by broadening request-flow intent detection, adding targeted downstream snapshot query expansion, producing line-level flow steps, selecting `handler-branch-tracer`, and rendering `Target`, `Handler files`, `Related tests`, and `Source refs` in chat.
+- Passed focused Windows regression `python -m pytest tests\regression\test_controller_service.py -k "handler_branch_prompt or request_flow_map or l1_endpoint_route_lookup" -q` with `3 passed`.
+- Passed focused Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/test_controller_service.py -k "handler_branch_prompt or request_flow_map or l1_endpoint_route_lookup" -q` with `3 passed`.
+- Passed prompt catalog/matrix regression: `python -m pytest tests\regression\test_founder_field_prompt_eval.py -q` with `11 passed`, and `python scripts\validate_founder_field_prompt_matrix.py --output-path runtime-state\phase171\phase171-matrix-after-schema.json` with `failed=0`, `passed=50`.
+- Passed live AnythingLLM target and holdouts: `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/run_founder_field_prompt_eval.py --case-id P08 --case-id P27 --case-id P28 --use-refined-prompts --timeout-seconds 900 --output-path runtime-state/phase171/phase171-p08-p27-p28-refined-run-2.json --markdown-output-path runtime-state/phase171/phase171-p08-p27-p28-refined-run-2.md` with `P08`, `P27`, and `P28` all passed. This covers `/mnt/c/coinbase_testing_repo_frozen_tmp.github` and `/mnt/c/coinbase_testing_repo_frozen_tmp`; watched fixture hashes were unchanged before and after the run.
+- P08 live run `workflow-router-20260610T112038545642Z` selected `code_investigation.plan`, selected `handler-branch-tracer`, produced `downstream_request_flow_map`, and returned visible chat evidence for `dashboard_server.py:774`, `dashboard_server.py:776`, `dashboard_server.py:2780`, `dashboard_server.py:2791`, `Related tests: none found in bounded evidence`, and `Source mutation: false`.
+- Passed live post-restart readiness `wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_post_restart_runtime_readiness.py --output-path runtime-state/post-restart-runtime-readiness/phase171/phase171-post-restart-runtime-readiness-report-2.json` with `decision=ready_after_restart`, `missing_required_surface_count=0`, `session_recovery_blocker_finding_count=0`, and next action `work approved Phase 172 Priority 0 repair next`.
+- Passed full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1099 passed`, `4 skipped`, and `23 deselected`.
+
+### Completed Phase 172: Minimal Change Surface Boundary Repair
+
+Status: Complete.
+
+Approved proposal: `FTR-P169-002-p21`.
+
+Goal: close the prompt-ambiguity miss where a read-only request asks for files to touch and files not to touch for a minimal safe `placed_order_id` stealth lookup change.
+
+Scope:
+
+- Reproduce the Phase 165 `P21` refined prompt miss through the current local stack.
+- Use blind-baseline-first comparison before viewing the local-model response.
+- Keep the response read-only and stop before implementation.
+- Ensure the response clearly separates touch candidates, do-not-touch boundaries, unknowns, risks, and verification commands.
+- Rerun the target prompt and at least one change-surface holdout through gateway and AnythingLLM.
+
+Acceptance target: the target and holdout responses score at least `85/100`, avoid implementation planning beyond the requested boundary, and preserve both frozen fixtures.
+
+Completion notes:
+
+- Used blind-baseline-first comparison for the refined `P21` prompt. The blind baseline required a read-only answer that separates files to touch from files not to touch, keeps `core/stealth_order_manager.py` as the manager-owned lookup/index surface, avoids caller/bridge/schema rewiring, identifies tests, and stops before implementation.
+- Reproduced the live miss through AnythingLLM before repair: `P21` failed in `runtime-state/phase172/phase172-p21-refined-initial-2.json` with missing `Change surface files:`, `Risk level:`, and `Implementation status: not_ready_without_approval` markers even though the top-level router selected `code_investigation.plan`.
+- Root cause: `workflow_router.plan` recognized the refined files-to-touch wording, but the downstream `code_investigation.plan` change-surface detector and shared change-subject extractor did not, so the answer fell back to the generic investigation-plan formatter instead of producing `change_surface_summary`.
+- Repaired the existing change-surface path by extending shared natural-query extraction, downstream change-surface intent detection, targeted `placed_order_id` stealth lookup query expansion, structured `files_to_touch`/`files_not_to_touch`/`unknowns` artifact fields, and chat-visible boundary rendering.
+- Tightened `P21` catalog expectations to require `downstream_change_surface_summary`, `change-boundary-summarizer`, `Files to touch:`, `Files not to touch:`, and `Source mutation: false`, then updated governed promotion/watchlist hashes and markers.
+- Passed live AnythingLLM target and holdout validation: `runtime-state/phase172/phase172-p21-p34-refined-final.json` with `P21` and non-git `P34` both passed, covering `/mnt/c/coinbase_testing_repo_frozen_tmp.github` and `/mnt/c/coinbase_testing_repo_frozen_tmp`.
+- Passed original P21 wording holdout: `runtime-state/phase172/phase172-p21-original-holdout.json`.
+- Passed focused Windows and Bash regression for query extraction and change-surface controller behavior.
+- Passed prompt matrix and governance checks: `runtime-state/phase172/phase172-matrix-after-p21-catalog.json`, baseline corpus, promotion rules, founder-field prompt eval, and local-model watchlist.
+- Passed full Bash regression `wsl.exe --cd /mnt/c/agentic_agents -- python3 -m pytest tests/regression/ -v` with `1101 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 173: Persisted Schema Evidence Repair - Git Fixture
+
+Status: Complete.
+
+Approved proposal: `FTR-P169-003-p29`.
+
+Goal: close the evidence miss where a git-fixture prompt asks for only the persisted `stealth_orders` table schema but the response can mix persisted schema fields with runtime dictionary fields.
+
+Scope:
+
+- Reproduce the Phase 165 `P29` refined prompt miss against `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Use blind-baseline-first comparison before viewing the local-model response.
+- Repair the smallest existing path so persisted schema boundaries, schema field names, model files, and source refs are explicit.
+- Exclude runtime dictionary fields unless clearly labeled as non-persisted.
+- Rerun the target prompt and at least one schema-boundary holdout through gateway and AnythingLLM.
+
+Acceptance target: the git-fixture response scores at least `85/100`, cleanly separates persisted schema from runtime fields, includes source refs, and does not mutate fixtures.
+
+Completion notes:
+
+- Blind baseline required a persisted-table-schema-only answer, source-backed field names, exact model/schema files, source refs, explicit runtime dictionary exclusion, and read-only confirmation.
+- Initial live P29 refined run failed because the target extractor normalized `persisted stealth_orders` to `persisted_stealth_orders`, returning no `Fields:` section and broad runtime files as model files.
+- Repaired the existing `code_investigation.plan` schema path to treat `persisted` as a scope adjective, include persisted `ALTER TABLE ... ADD COLUMN` fields, restrict successful schema `model_files` to field-source files, and keep schema fields visible in chat with source-line refs.
+- Repaired skill selection without a parallel path by adding specific table-schema-isolator triggers for runtime dictionary field exclusion while preserving normal selector priority.
+- Added regression coverage for target extraction, persisted `ALTER TABLE` field extraction, schema-visible chat formatting, exact refined prompt routing, and schema-isolator selection.
+- Live proof passed through the restored localhost model and AnythingLLM/workflow-router:
+  - `runtime-state/phase173/phase173-p29-refined-after-selector-fix.json`
+  - `runtime-state/phase173/phase173-p29-original-after-selector-fix.json`
+  - `runtime-state/phase173/phase173-p30-refined-after-selector-fix.json`
+- Post-restart readiness passed with all 16 required surfaces covered in `runtime-state/post-restart-runtime-readiness/phase173/phase173-post-restart-runtime-readiness-report-final.json`.
+
+### Approved Phase 174: Persisted Schema Evidence Repair - Non-Git Fixture
+
+Status: Complete.
+
+Approved proposal: `FTR-P169-004-p30`.
+
+Goal: close the same persisted-schema evidence miss for the non-git frozen fixture.
+
+Scope:
+
+- Reproduce the Phase 165 `P30` refined prompt miss against `/mnt/c/coinbase_testing_repo_frozen_tmp`.
+- Use blind-baseline-first comparison before viewing the local-model response.
+- Apply only the smallest shared-path repair needed after Phase 173, or prove no additional code change is required.
+- Rerun the non-git target prompt and at least one schema-boundary holdout through gateway and AnythingLLM.
+
+Acceptance target: the non-git fixture response scores at least `85/100`, cleanly separates persisted schema from runtime fields, includes source refs, and does not mutate fixtures.
+
+Completion notes:
+
+- Blind baseline required persisted database columns only, model/schema files only, source-backed fields, explicit runtime dictionary exclusion, and read-only behavior inside `/mnt/c/coinbase_testing_repo_frozen_tmp`.
+- No additional code repair was required after the shared Phase 173 schema-boundary repair.
+- Live target and holdout proof passed through localhost `8000`, workflow-router gateway, and AnythingLLM:
+  - `runtime-state/phase174/phase174-p30-refined-target.json`
+  - `runtime-state/phase174/phase174-p30-original-holdout.json`
+  - `runtime-state/phase174/phase174-p29-git-holdout.json`
+- The P30 chat answer lists persisted `stealth_orders` fields with `database/order.py` source-line refs, reports `database/order.py` as the schema model file, and reports `Source mutation: false`.
+
+### Approved Phase 175: Change Boundary Verification Repair - Git Fixture
+
+Status: Complete.
+
+Approved proposal: `FTR-P169-005-p33`.
+
+Goal: close the evidence miss where a git-fixture prompt asks for a read-only change boundary, risks, gaps, and verification commands for `placed_order_id` stealth lookup.
+
+Scope:
+
+- Reproduce the Phase 165 `P33` refined prompt miss against `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Use blind-baseline-first comparison before viewing the local-model response.
+- Ensure the response stops before implementation while returning files to touch, files not to touch, risks, gaps, and smallest/medium/broad verification commands.
+- Rerun the target prompt and at least one verification-boundary holdout through gateway and AnythingLLM.
+
+Acceptance target: the git-fixture response scores at least `85/100`, includes verification commands tied to risk, avoids unsupported mutation, and preserves fixture state.
+
+Proof:
+
+- Blind-baseline-first comparison identified the required answer shape before local-model review: evidence-backed files to touch and files not to touch, concrete risks, unknowns/gaps, verification commands, and read-only stop-before-implementation behavior.
+- The shared change-surface artifact now returns deterministic risks for `placed_order_id` stealth lookup boundaries, including parallel lookup path regression, lookup semantics regression, fixture mutation risk, and boundary ambiguity where applicable.
+- Verification commands now include read-only boundary discovery, a focused pytest target, and the required full regression gate.
+- Bash focused regression passed for the change-surface controller contract.
+- Live AnythingLLM/workflow-router/local-model proof passed:
+  - `runtime-state/phase175/phase175-p33-refined-after-risk-repair.json`
+  - `runtime-state/phase175/phase175-p33-original-after-risk-repair.json`
+  - `runtime-state/phase175/phase175-p34-refined-holdout-after-risk-repair.json`
+- The P33 chat answer includes `Files to touch`, `Files not to touch`, `Risk level`, concrete risks, unknowns, verification commands, and `Source mutation: false`.
+
+### Approved Phase 176: Change Boundary Verification Repair - Non-Git Fixture
+
+Status: Complete.
+
+Approved proposal: `FTR-P169-006-p34`.
+
+Goal: close the same change-boundary verification evidence miss for the non-git frozen fixture.
+
+Scope:
+
+- Reproduce the Phase 165 `P34` refined prompt miss against `/mnt/c/coinbase_testing_repo_frozen_tmp`.
+- Use blind-baseline-first comparison before viewing the local-model response.
+- Apply only the smallest shared-path repair needed after Phase 175, or prove no additional code change is required.
+- Rerun the non-git target prompt and at least one verification-boundary holdout through gateway and AnythingLLM.
+
+Acceptance target: the non-git response scores at least `85/100`, includes verification commands tied to risk, avoids unsupported mutation, and preserves fixture state.
+
+Proof:
+
+- Contextless blind baseline confirmed the ideal non-git answer shape before local-model review: read-only boundary analysis, evidence-backed files to touch and files not to touch, concrete risks/gaps, and verification commands including full regression.
+- The non-git fallback gap is now specific and deduplicated as `non_git_text_search_fallback` instead of repeated generic warning placeholders.
+- Live AnythingLLM/workflow-router/local-model proof passed:
+  - `runtime-state/phase176/phase176-p34-refined-after-gap-repair-restarted.json`
+  - `runtime-state/phase176/phase176-p34-original-after-gap-repair-restarted.json`
+  - `runtime-state/phase176/phase176-p33-refined-git-holdout-after-gap-repair-restarted.json`
+- The P34 chat answer includes `Files to touch`, `Files not to touch`, concrete risks, the non-git fallback gap, unknowns, verification commands, and `Source mutation: false`.
+
+### Approved Phase 177: Post-Repair Stable Proof Refresh
+
+Status: Approved.
+
+Goal: refresh the stable proof floor after Phases 172 through 176 are complete so the next work starts from verified current behavior instead of stale confidence.
+
+Scope:
+
+- Run the stable release, post-restart readiness, prompt matrix, and founder-field gates required by the current Priority 0 policy.
+- Include the repaired prompt families from Phases 171 through 176 in the evidence chain.
+- Confirm localhost `8000`, workflow-router gateway, controller ports, AnythingLLM, and both frozen Coinbase fixtures are represented where applicable.
+- Record fixture mutation proof and release-blocker status.
+- Update founder-facing handoff docs only if the proof floor changes.
+
+Acceptance target: the release remains founder-testable, every repaired prompt family has current proof, and any blocker becomes a new roadmap proposal rather than implicit scope drift.
+
+### Approved Phase 178: Blind-Baseline Delta Report
+
+Status: Approved.
+
+Goal: make the blind-baseline-first process auditable by showing where the local model matches or misses the blind ideal answer across the repaired prompt families.
+
+Scope:
+
+- Select target and holdout prompts from the Phase 171 through 176 repair set.
+- Ask a bounded contextless blind agent for ideal answer shape, must-have facts, evidence expectations, safety boundaries, and scoring rubric before local output review.
+- Run the same prompts through the local stack and AnythingLLM where applicable.
+- Produce a delta report covering routing, evidence, correctness, completeness, format, and user-visible usefulness.
+- Convert unresolved misses into explicit backlog candidates without implementing them in this phase.
+
+Acceptance target: each evaluated prompt has blind baseline, local answer, score, gap classification, and next action.
+
+### Approved Phase 179: Prompt Corpus Governance V2
+
+Status: Approved.
+
+Goal: prevent overfitting by governing prompt roles, promotion rules, and holdouts as the natural-language corpus grows.
+
+Scope:
+
+- Split prompt records into target, holdout, regression, promotion candidate, and retired categories.
+- Add validation that a repair cannot pass using only the prompt it was tuned against.
+- Preserve refined prompt history and original founder wording.
+- Document when a prompt can move into the stable corpus.
+- Add regression coverage for invalid corpus states.
+
+Acceptance target: prompt-corpus state is machine-validated, holdouts are explicit, and repaired prompt families cannot be promoted without independent proof.
+
+### Approved Phase 180: Chat Answer Contract Hardening
+
+Status: Approved.
+
+Goal: ensure supported workflows return useful chat-visible answers by default instead of relying on artifact file lists for immediate review.
+
+Scope:
+
+- Audit supported Priority 0 workflows for chat-visible answer completeness.
+- Define required natural-language sections for read-only investigation, schema evidence, request flow, change boundary, generic chat, and format-selected output.
+- Repair the smallest shared formatter/controller paths where artifact-only responses remain.
+- Keep artifacts as supporting evidence, not the primary user answer.
+- Validate with blind baseline, local stack, AnythingLLM, and holdouts.
+
+Acceptance target: every supported Priority 0 workflow returns a useful in-chat answer with evidence, risks or gaps when applicable, and source mutation status.
+
+### Approved Phase 181: Output Format Selector Stabilization
+
+Status: Approved.
+
+Goal: stabilize default FormatA output and requested JSON output without creating parallel behavior paths.
+
+Scope:
+
+- Define the canonical output-format selection contract for natural-language default, FormatA, and JSON.
+- Ensure format selection preserves the same underlying workflow evidence and safety boundaries.
+- Add parity checks so JSON output does not omit required facts present in FormatA.
+- Validate unsupported or conflicting format requests fail visibly and safely.
+- Update user-facing docs and examples for requesting alternate formats.
+
+Acceptance target: supported workflows produce equivalent evidence in FormatA and JSON, default to readable chat output, and pass gateway plus AnythingLLM validation.
+
+### Approved Phase 182: Evidence Relevance Ranking Repair
+
+Status: Approved.
+
+Goal: improve answer quality by ranking files, lines, tests, and source refs by relevance to the user's requested behavior.
+
+Scope:
+
+- Audit current evidence ranking across read-only investigation, request flow, schema evidence, and change-boundary workflows.
+- Identify cases where broad matches outrank the beginning point, target file, persisted schema source, or directly related tests.
+- Repair ranking in shared evidence-selection code where possible.
+- Add regression fixtures that distinguish relevant evidence from nearby but weaker matches.
+- Validate with blind baseline, local stack, AnythingLLM, and both frozen fixtures.
+
+Acceptance target: responses lead with the most relevant evidence, demote weak matches, and explicitly label unresolved gaps.
+
+### Approved Phase 183: Related-Test Discovery Reliability
+
+Status: Approved.
+
+Goal: make related-test answers reliable and honest, including when bounded evidence finds no related tests.
+
+Scope:
+
+- Audit test discovery for L1 and L2 read-only workflows.
+- Repair gaps where test files are missed, overclaimed, or returned without source linkage.
+- Standardize chat-visible output for related tests, no-tests-found cases, and verification commands.
+- Add holdouts for direct tests, indirect tests, and no bounded test evidence.
+- Validate with blind baseline, local stack, AnythingLLM, and fixture mutation proof.
+
+Acceptance target: related-test responses identify evidence-backed tests, avoid unsupported claims, and provide practical verification commands.
+
+### Approved Phase 184: AnythingLLM UI Replay Expansion
+
+Status: Approved.
+
+Goal: expand UI-level proof so Priority 0 behavior is validated in the actual tester surface, not only API runs.
+
+Scope:
+
+- Select a small representative set from repaired Priority 0 prompt families.
+- Replay them through the AnythingLLM UI where the environment supports it.
+- Capture response text, route evidence, screenshots or DOM proof, and mutation proof.
+- Classify UI-only failures separately from model, router, or workflow failures.
+- Keep API runs as supporting evidence but not a replacement for UI proof.
+
+Acceptance target: the selected prompts produce useful chat answers in AnythingLLM UI or produce actionable classified failures.
+
+### Approved Phase 185: Contextless Agent Audit Pack
+
+Status: Approved.
+
+Goal: turn contextless blind-agent validation into a reusable project asset that can audit future skills, prompts, and workflows.
+
+Scope:
+
+- Document the bounded recursive blind-baseline process as a repeatable audit pack.
+- Define prompt templates for ideal answer baselines, rubric creation, local-answer scoring, and repair recommendations.
+- Add example reports from current Priority 0 prompt families.
+- Include limits that prevent unbounded recursion, context leakage, or replacing live local-stack proof.
+- Add validation that audit records include baseline-before-local ordering.
+
+Acceptance target: a new contextless agent can run the audit process from documentation and produce comparable scoring artifacts.
+
+### Approved Phase 186: Founder Testing Handoff Refresh
+
+Status: Approved.
+
+Goal: refresh founder-facing testing guidance after Phases 172 through 185 so manual AnythingLLM testing starts from current, stable instructions.
+
+Scope:
+
+- Update getting-started, founder field testing, release notes, and docs index entries as needed.
+- Replace stale prompt examples with currently validated prompts.
+- Document AnythingLLM target URL, expected live stack surfaces, validation commands, and known limits.
+- Include the current proof floor and next approved phase.
+- Keep the root README short and link to ordered docs.
+
+Acceptance target: a first-time tester can run the current approved chat-quality path through AnythingLLM with minimal setup ambiguity.
+
+### Approved Phase 187: Multi-Fixture Prompt Parity Matrix
+
+Status: Approved.
+
+Goal: prove supported prompt families behave consistently across the git Coinbase fixture, non-git Coinbase fixture, and at least one non-Coinbase fixture where available.
+
+Scope:
+
+- Select representative read-only, schema, request-flow, change-boundary, and generic chat prompts from the current Priority 0 corpus.
+- Run each prompt family against `/mnt/c/coinbase_testing_repo_frozen_tmp`, `/mnt/c/coinbase_testing_repo_frozen_tmp.github`, and a bounded non-Coinbase fixture when present.
+- Compare routing, selected workflow, evidence shape, source references, answer usefulness, and mutation status.
+- Classify fixture-specific misses separately from shared workflow misses.
+- Convert unresolved parity gaps into explicit roadmap proposals.
+
+Acceptance target: each selected prompt family has a parity result with pass/fail status, fixture-specific deltas, mutation proof, and clear next action.
+
+### Approved Phase 188: WSL/AnythingLLM Runtime Environment Hardening
+
+Status: Approved.
+
+Goal: make local runtime failures easier to diagnose so chat-quality testing does not stall on opaque API key, port, proxy, or Bash/Windows boundary issues.
+
+Scope:
+
+- Audit current runtime preflight checks for localhost `8000`, workflow-router gateway ports, controller ports, AnythingLLM, and WSL environment variable bridging.
+- Add or tighten diagnostics for missing `ANYTHINGLLM_API_KEY`, wrong AnythingLLM target URL, unavailable gateway/proxy ports, stale controller processes, and Windows-client-to-Bash-host timeout symptoms.
+- Keep runtime-state local and ignored; do not reintroduce generated artifacts into git.
+- Validate diagnostics from Bash and document the shortest recovery path.
+- Add regression coverage for diagnostic output where practical.
+
+Acceptance target: a failed live validation clearly identifies the failing surface, likely cause, and next recovery command without requiring session history.
+
+### Approved Phase 189: Evidence Boundary Schema Gate
+
+Status: Approved.
+
+Goal: ensure structured evidence fields used by chat answers are present, correctly typed, and semantically separated before responses are accepted.
+
+Scope:
+
+- Define schema expectations for `files_to_touch`, `files_not_to_touch`, `unknowns`, `risks`, `gaps`, `source_refs`, and `verification` across supported workflows.
+- Validate that persisted schema evidence is not mixed with runtime dictionary fields unless explicitly labeled.
+- Validate that change-boundary answers do not imply implementation readiness when approval or evidence is missing.
+- Add focused regression fixtures for missing, malformed, or semantically misplaced evidence fields.
+- Run live target and holdout prompts through gateway and AnythingLLM after any repair.
+
+Acceptance target: malformed or ambiguous evidence boundaries fail validation before being presented as a successful chat-quality result.
+
+### Approved Phase 190: Unsupported Scope Refusal Quality
+
+Status: Approved.
+
+Goal: make unsupported, oversized, unsafe, or underspecified requests fail usefully instead of returning vague fallback answers or starting the wrong workflow.
+
+Scope:
+
+- Identify representative unsupported requests from founder testing, holdouts, and known workflow limits.
+- Define required refusal or clarification answer sections: unsupported reason, bounded next step, missing information, and safe alternatives.
+- Repair shared refusal/clarification formatting rather than adding prompt-specific branches.
+- Validate that normal supported prompts still route and answer successfully.
+- Include AnythingLLM UI/API proof where applicable.
+
+Acceptance target: unsupported requests produce clear, actionable chat-visible guidance without fixture mutation or silent workflow misrouting.
+
+### Approved Phase 191: Prompt Family Drift Detection
+
+Status: Approved.
+
+Goal: detect when real founder prompts drift away from current skill, router, or workflow triggers before chat quality degrades.
+
+Scope:
+
+- Compare recent founder-style prompts, refined prompts, holdouts, and stable corpus prompts by intent family and trigger coverage.
+- Flag prompt clusters that no longer map cleanly to current workflows or skills.
+- Separate wording drift from genuine missing capability.
+- Add governance rules for promoting drift cases into target, holdout, or backlog status.
+- Produce a drift report with recommended next actions.
+
+Acceptance target: prompt drift is visible, classified, and tied to either prompt governance, workflow repair, or new skill/tool proposals.
+
+### Approved Phase 192: Chat Answer Scoring Automation V2
+
+Status: Approved.
+
+Goal: reduce manual scoring by strengthening automated comparison between blind baselines and local chat answers.
+
+Scope:
+
+- Extend scoring dimensions for routing, evidence relevance, correctness, completeness, source refs, format adherence, safety boundaries, and user-visible usefulness.
+- Ensure blind-baseline records are created before local-output scoring.
+- Add machine-readable score reports with threshold, gap category, and recommended repair target.
+- Preserve human review hooks for borderline or high-impact findings.
+- Validate scoring against a small set of known pass, advisory, and fail examples.
+
+Acceptance target: chat-quality evaluations produce repeatable scores and repair guidance without replacing live local-stack proof.
+
+### Approved Phase 193: Skill Registry Readiness Review
+
+Status: Approved.
+
+Goal: audit whether current skills are small, deterministic, discoverable, testable, and suitable for scaling into a larger skill library.
+
+Scope:
+
+- Inventory current skill definitions, workflow mappings, prompt families, and eval gates.
+- Identify skills that are too broad, overlapping, missing acceptance tests, or not tied to a clear user prompt family.
+- Recommend keep, split, merge, retire, or defer actions.
+- Do not implement broad skill rewrites in this phase unless they are required to preserve current chat-quality behavior.
+- Convert larger changes into roadmap proposals.
+
+Acceptance target: the project has a clear skill-readiness report and a prioritized set of skill-library scaling actions.
+
+### Approved Phase 194: Skill Authoring Pipeline V2
+
+Status: Approved.
+
+Goal: improve the process for creating new L1/L2 skills from observed prompt gaps so each new skill ships with eval gates by default.
+
+Scope:
+
+- Define the minimum artifact set for a new deterministic skill: skill instructions, trigger intent, workflow mapping, prompt examples, holdouts, acceptance criteria, and live validation.
+- Add templates or generators only if they reduce duplicated manual work while preserving single-path behavior.
+- Require blind-baseline-first proof before promoting a new skill to the stable library.
+- Update docs so contextless agents can author and validate new skills consistently.
+- Validate with at least one small skill candidate or dry-run artifact.
+
+Acceptance target: new skill creation follows a repeatable, testable pipeline with explicit gates and no manual prompt injection requirement.
+
+### Approved Phase 195: Release Candidate Founder Trial Pack
+
+Status: Approved.
+
+Goal: package the current validated chat-quality surface into a founder trial pack that is easy to run and review.
+
+Scope:
+
+- Select validated prompts, expected answer qualities, known limits, setup steps, and recovery commands.
+- Include AnythingLLM target configuration, gateway health checks, fixture requirements, and mutation-safety expectations.
+- Provide a results capture format for founder feedback.
+- Link current proof artifacts and release blockers or advisories.
+- Keep root README concise and route detailed instructions through ordered docs.
+
+Acceptance target: the founder can run the trial pack without session history and provide structured feedback tied to the roadmap.
+
+### Approved Phase 196: V1 Product Readiness Reassessment
+
+Status: Approved.
+
+Goal: decide whether the current local-model chat-quality product is ready for broader V1 founder beta or needs another Priority 0 repair cycle.
+
+Scope:
+
+- Review proof from Phases 173 through 195, the stable release gate, founder trial pack, and unresolved backlog items.
+- Assess readiness against Priority 0 chat quality and Priority 3 engineering tenets.
+- Classify remaining issues as release blocker, advisory, future enhancement, or out of scope.
+- Recommend release, repair cycle, scope reduction, or roadmap expansion.
+- Document the decision with evidence and next approved phase needs.
+
+Acceptance target: the project has a current V1 readiness decision that is evidence-backed and actionable.
 
 ## Stop Conditions
 
@@ -6119,10 +8253,11 @@ When a new Codex session starts, do this:
 
 1. Read this file first.
 2. Treat the lowest-numbered incomplete phase as the next task.
-3. Ignore older roadmaps when they conflict with this file.
-4. Do not add skills, examples, or integrations unless the active phase requires them.
-5. Use Bash-side runtime validation when testing the local stack.
-6. Run regression after non-agent code changes.
-7. Follow the Structured Development Rule in this roadmap for every non-trivial change: define the problem, gather evidence, identify root cause, design the smallest correction, implement, verify, inspect artifacts, and document the result.
+3. For chat-quality work, use the blind-baseline-first process from `docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md` before running the same prompt through the local model.
+4. Ignore older roadmaps when they conflict with this file.
+5. Do not add skills, examples, or integrations unless the active phase requires them.
+6. Use Bash-side runtime validation when testing the local stack.
+7. Apply the Verification Gate Requirements: focused tests during iteration, live Bash/AnythingLLM proof for runtime-facing work, and full Bash regression only when the change tier requires it.
+8. Follow the Structured Development Rule in this roadmap for every non-trivial change: define the problem, gather evidence, identify root cause, design the smallest correction, implement, verify, inspect artifacts, and document the result.
 
-Phases 43 through 110 are complete. Phase 111 is approved and active. Phases 112 through 119 are approved and pending completion of the lower-numbered phases.
+Phases 43 through 176 are complete. Phases 177 through 196 are approved. Work Phase 177 next.

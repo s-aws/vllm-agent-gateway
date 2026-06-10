@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "founder_feedback_triage_dashboard_policy",
+  "phase": 145,
+  "priority_backlog_id": "P0-BB-020",
+  "inputs": {
+    "founder_feedback_loop_report": "runtime-state/founder-feedback-loop/phase125-founder-feedback-loop-live.json",
+    "founder_feedback_loop_cases": "runtime/founder_feedback_loop_cases.json",
+    "founder_smoke_feedback_report": "runtime-state/founder-smoke-feedback/phase135/phase135-founder-smoke-feedback.json",
+    "founder_smoke_report": "runtime-state/founder-field-tests/phase134-founder-smoke.json",
+    "stable_release_blocker_closure_report": "runtime-state/stable-release-blocker-closure/phase131/phase131-stable-release-blocker-closure-report.json",
+    "stable_release_blocker_closure_policy": "runtime/stable_release_blocker_closure_policy.json"
+  },
+  "roadmap_refs": {
+    "feedback_loop": {
+      "phase": 125,
+      "backlog_id": "P0-BB-010",
+      "description": "Governed founder feedback records and decisions."
+    },
+    "blocker_closure": {
+      "phase": 131,
+      "backlog_id": "P0-BB-016",
+      "description": "Closure state for accepted synthetic feedback blockers."
+    },
+    "founder_smoke_feedback": {
+      "phase": 135,
+      "backlog_id": "P0-BB-019",
+      "description": "Founder smoke-suite feedback classification."
+    },
+    "release_candidate_hardening": {
+      "phase": 145,
+      "backlog_id": "P0-BB-020",
+      "description": "Current triage dashboard phase."
+    }
+  },
+  "decision_next_actions": {
+    "baseline_prompt_candidate": "Evaluate through baseline corpus promotion before any stable corpus mutation.",
+    "baseline_candidate": "Evaluate through baseline corpus promotion before any stable corpus mutation.",
+    "holdout_prompt_candidate": "Evaluate through holdout prompt bank before any holdout catalog mutation.",
+    "holdout_candidate": "Evaluate through holdout prompt bank before any holdout catalog mutation.",
+    "repair_followup": "Route through eval repair loop before accepting a repair.",
+    "rejected_finding": "No work item; retain traceability only.",
+    "skill_tool_gap": "Route through skill/tool gap proposal intake before implementation."
+  }
+}

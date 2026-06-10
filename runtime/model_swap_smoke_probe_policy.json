@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "kind": "model_swap_smoke_probe_policy",
+  "phase": 154,
+  "priority": "Priority 0",
+  "goal": "Detect whether localhost:8000 is still the expected current model and decide whether chat-quality drift gates must run before release decisions.",
+  "current_model_policy_path": "runtime/current_model_compatibility_matrix_policy.json",
+  "candidate_model_base_url": "http://127.0.0.1:8000/v1",
+  "exact_model_id_match_required_for_no_drift": true,
+  "required_live_probes": [
+    "model_metadata",
+    "model_generation",
+    "harness_health"
+  ],
+  "required_existing_artifact_gates": [
+    "current_model_compatibility_matrix"
+  ],
+  "required_health_targets": [
+    "model",
+    "llm_gateway",
+    "workflow_router_gateway",
+    "controller"
+  ],
+  "generation_probe": {
+    "prompt": "Reply with SMOKE_OK.",
+    "required_non_empty_content": true,
+    "max_tokens": 16
+  },
+  "next_gate_by_decision": {
+    "current_model_ready": "none",
+    "model_swap_requires_drift": "scripts/validate_fresh_local_model_drift.py and scripts/validate_model_portability.py",
+    "fix_model_backend": "fix localhost:8000 before judging chat quality",
+    "fix_harness": "restart gateway/controller/proxies before judging model quality",
+    "fix_model_generation": "fix localhost:8000 generation before judging chat quality",
+    "refresh_current_model_evidence": "refresh current-model compatibility artifacts before release decision"
+  },
+  "must_not": [
+    "mutate model capability profile",
+    "change runtime routing",
+    "enable automatic model selection",
+    "promote a swapped model without drift proof"
+  ]
+}

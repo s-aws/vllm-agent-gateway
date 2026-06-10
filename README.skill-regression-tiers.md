@@ -38,6 +38,6 @@ Then inspect `runtime/skill_regression_tiers.json`:
 - mutation harness, controlled apply, fixture manager, tool execution: `fixture-mutation`
 - release, cross-cutting runtime, router policy, model portability, skill scale: `release-candidate`
 
-Code changes still require full regression before being considered done. The tiers define the extra skill-specific proof expected for each change class.
+Code changes require the verification tier that matches the change blast radius. Use focused tests during iteration; full regression is mandatory for release-candidate, cross-cutting runtime, shared controller/router/formatter, skill-library-scale, model-portability, or otherwise unbounded changes. Workflow-local controller changes should run full regression once at phase close.
 
 Examples: [docs/examples/skill-regression-tiers.md](docs/examples/skill-regression-tiers.md).

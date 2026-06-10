@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "kind": "task_decomposition_phase113_case_catalog",
+  "catalog_id": "task_decomposition_phase113_cases",
+  "version": "0.1.0",
+  "description": "Phase 113 natural prompt cases and contextless audit packet for task decomposition and objective acceptance criteria.",
+  "owner": "agentic_agents",
+  "cases": [
+    {
+      "case_id": "TD113-FEATURE-001",
+      "prompt_family": "feature",
+      "fixture_id": "coinbase-frozen-git",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, break down this task into independently reviewable steps with dependencies and acceptance criteria: add a focused unit test for placed_order_id stealth lookup after checking related tests.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_decomposition_status": "ready",
+      "expected_prompt_family": "feature_or_small_change",
+      "expected_markers": [
+        "Task Decomposition:",
+        "- Work-package schema: 3",
+        "- Work packages:",
+        "- Acceptance criteria:",
+        "- Dependencies:",
+        "- Approval gates:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "TD113-BUG-001",
+      "prompt_family": "bug",
+      "fixture_id": "python-service-generalization",
+      "target_root": "tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In tests/fixtures/generalization/python_service_fixture, break down this task into independently reviewable steps with dependencies and acceptance criteria: fix a failing test around resolve_order_status returning empty for zero-item orders.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_decomposition_status": "ready",
+      "expected_prompt_family": "failing_test_remediation",
+      "expected_markers": [
+        "Task Decomposition:",
+        "- Work-package schema: 3",
+        "- Work packages:",
+        "- Acceptance criteria:",
+        "- Dependencies:",
+        "- Approval gates:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "TD113-REQ-001",
+      "prompt_family": "requirement",
+      "fixture_id": "python-service-generalization",
+      "target_root": "tests/fixtures/generalization/python_service_fixture",
+      "prompt": "In tests/fixtures/generalization/python_service_fixture, break down the task into independently reviewable steps with dependencies and acceptance criteria: add a requirement note for the create-order response to document the resolved order status without changing files yet.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_decomposition_status": "ready",
+      "expected_prompt_family": "feature_or_small_change",
+      "expected_markers": [
+        "Task Decomposition:",
+        "- Work-package schema: 3",
+        "- Work packages:",
+        "- Acceptance criteria:",
+        "- Dependencies:",
+        "- Approval gates:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "TD113-OVERSIZED-001",
+      "prompt_family": "oversized",
+      "fixture_id": "coinbase-frozen-git",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, break down this task into independently reviewable steps with dependencies and acceptance criteria: rewrite the whole project so every module has better architecture.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_decomposition_status": "needs_clarification",
+      "expected_prompt_family": "oversized",
+      "expected_markers": [
+        "oversized_task",
+        "ask_blocking_question",
+        "Source mutation: False"
+      ]
+    }
+  ],
+  "contextless_audit_packet": {
+    "kind": "task_decomposition_contextless_audit_packet",
+    "phase": 113,
+    "tenet_ids": [
+      "T01",
+      "T02",
+      "T03"
+    ],
+    "score_threshold": 85,
+    "category_floor": 70,
+    "input_refs": [
+      "docs/ACTIONABLE_WORKFLOW_ROADMAP.md#approved-phase-113-task-decomposition-and-acceptance-criteria-tenets",
+      "README.task-decomposition.md",
+      "runtime/task_decomposition_phase113_cases.json",
+      "vllm_agent_gateway/controllers/task_decompose/decompose.py",
+      "vllm_agent_gateway/acceptance/task_decomposition_quality.py",
+      "scripts/validate_task_decomposition_live.py",
+      "runtime-state/task-decomposition/phase113-live.json"
+    ],
+    "audit_dimensions": [
+      {
+        "id": "independent_work_packages",
+        "question": "Can each ready work package be completed, tested, and reviewed independently within a short development cycle?"
+      },
+      {
+        "id": "oversized_or_ambiguous_handling",
+        "question": "Do oversized or ambiguous prompts stop for clarification or further decomposition instead of creating implementation plans?"
+      },
+      {
+        "id": "objective_acceptance_criteria",
+        "question": "Does each executable package define pass/fail acceptance criteria tied to observable evidence?"
+      },
+      {
+        "id": "approval_and_mutation_boundary",
+        "question": "Does the plan keep source mutation blocked behind separate approval and avoid implementation claims?"
+      }
+    ]
+  }
+}

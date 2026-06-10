@@ -31,6 +31,8 @@ from vllm_agent_gateway.controllers.code_context.lookup import (
 from vllm_agent_gateway.controllers.code_investigation.plan import (
     CodeInvestigationError,
     CodeInvestigationRequest,
+    is_engineering_judgment_request,
+    is_request_flow_map_request as is_code_investigation_request_flow_map_request,
     invoke_code_investigation,
 )
 from vllm_agent_gateway.controllers.documenter.orchestrator import DEFAULT_MODEL
@@ -52,6 +54,9 @@ from vllm_agent_gateway.controllers.skill_batch.propose import (
 from vllm_agent_gateway.controllers.task_decompose.decompose import (
     TaskDecompositionError,
     TaskDecompositionRequest,
+    is_delivery_mentorship_request,
+    is_incremental_implementation_plan_request,
+    is_requirements_translation_request,
     invoke_task_decomposition,
 )
 from vllm_agent_gateway.implementation.workflow import (
@@ -519,6 +524,8 @@ def model_route_observation(
             "For read-only L2 multi-file behavior investigation prompts, select code_investigation.plan because it returns beginning point, participating files, bounded usage evidence, related tests, risks, and verification.",
             "For read-only L2 dependency impact prompts, select code_investigation.plan because it returns impacted files, bounded callers/usages, related tests, risk level, and validation commands.",
             "For read-only L2 test-selection prompts, select code_investigation.plan because it returns validation command tiers, rationale, covered risks, confidence, and gaps.",
+            "For read-only code-quality review, patch self-review, duplication, complexity, coupling, naming, magic-string, or enum-usage prompts, select code_investigation.plan because it returns a code_quality_review artifact.",
+            "For read-only tradeoff, technical-debt, proceed/blocker decision, review-feedback, or architecture-decision prompts, select code_investigation.plan because it returns an engineering_judgment_review artifact.",
             "For callers, usages, imports, importers, references, or relationship lookups, select code_context.lookup.",
             "For draft-only 'fix a simple failing test' prompts, select execution_planning.plan because it can create a draft fix packet through implementation.workflow.",
             "For draft-only 'add or update a small unit test' prompts, select execution_planning.plan because it can create a draft packet through implementation.workflow.",
@@ -1227,16 +1234,7 @@ def is_l2_runtime_error_diagnosis_request(text: str) -> bool:
 
 
 def is_l2_request_flow_map_request(text: str) -> bool:
-    if any(term in text for term in ("fix failing", "fix this test", "fix test", "update test", "apply", "mutate", "refactor")):
-        return False
-    flow_terms = ("request flow", "data flow", "message flow", "map the request", "map request", "flow steps")
-    output_terms = ("flow steps", "participating files", "risks", "gaps", "verification")
-    read_only_terms = ("read only", "read-only", "do not edit", "do not mutate", "no source changes")
-    return (
-        any(term in text for term in flow_terms)
-        and any(term in text for term in output_terms)
-        and any(term in text for term in read_only_terms)
-    )
+    return is_code_investigation_request_flow_map_request(text)
 
 
 def is_l2_code_path_comparison_request(text: str) -> bool:
@@ -1263,9 +1261,66 @@ def is_l2_change_surface_summary_request(text: str) -> bool:
         "files needing review",
         "files to touch",
         "files not to touch",
+        "minimal files and tests",
     )
-    stop_terms = ("stop before implementation", "before implementation", "read only", "read-only")
+    stop_terms = ("stop before implementation", "before implementation", "read only", "read-only", "do not implement")
     return any(term in text for term in surface_terms) and any(term in text for term in stop_terms)
+
+
+def is_l2_code_quality_review_request(text: str) -> bool:
+    if any(term in text for term in ("apply the patch", "apply this patch", "mutate files", "edit files now")):
+        return False
+    review_terms = (
+        "review ",
+        "self-review",
+        "self review",
+        "code quality",
+        "code-quality",
+        "proposed patch",
+        "patch before implementation",
+        "maintainability",
+        "duplicated logic",
+        "duplication",
+        "complexity",
+        "broad exception",
+        "tight coupling",
+        "naming clarity",
+        "function boundaries",
+        "magic strings",
+        "enum usage",
+        "single-code-path",
+        "single code path",
+    )
+    output_terms = (
+        "issue",
+        "issues",
+        "meaningful issue",
+        "finding",
+        "findings",
+        "severity",
+        "evidence",
+        "supported",
+        "impact",
+        "bounded remediation",
+        "recommendation",
+        "explain why",
+        "rejected false positives",
+        "false positives",
+        "checklist",
+        "correctness",
+        "maintainability",
+        "test risks",
+    )
+    read_only_terms = ("read only", "read-only", "before implementation", "do not change", "do not mutate")
+    return (
+        any(term in text for term in review_terms)
+        and any(term in text for term in output_terms)
+        and any(term in text for term in read_only_terms)
+    )
+
+
+def is_l2_engineering_judgment_request(text: str) -> bool:
+    return is_engineering_judgment_request(text)
 
 
 def is_l1_simple_failing_test_fix_request(text: str) -> bool:
@@ -1639,6 +1694,12 @@ def is_task_decomposition_request(text: str) -> bool:
         term in text for term in ("dependencies", "approval gates", "verification strategy", "work package")
     ):
         return True
+    if is_requirements_translation_request(text):
+        return True
+    if is_incremental_implementation_plan_request(text):
+        return True
+    if is_delivery_mentorship_request(text):
+        return True
     return False
 
 
@@ -1667,9 +1728,15 @@ def workflow_kind_for_request(user_request: str) -> tuple[str | None, str, list[
     if is_task_decomposition_request(text):
         evidence.append({"source": "router_rule", "rule": "task_decomposition_terms"})
         return "task.decompose", "ready", evidence
+    if is_l2_engineering_judgment_request(text):
+        evidence.append({"source": "router_rule", "rule": "l2_engineering_judgment_terms"})
+        return "code_investigation.plan", "ready", evidence
     if "feedback" in text or "too noisy" in text or "too slow" in text or "what was useful" in text:
         evidence.append({"source": "router_rule", "rule": "feedback_terms"})
         return "workflow_feedback.record", "ready", evidence
+    if is_l2_code_quality_review_request(text):
+        evidence.append({"source": "router_rule", "rule": "l2_code_quality_review_terms"})
+        return "code_investigation.plan", "ready", evidence
     if is_l1_simple_failing_test_fix_request(text):
         evidence.append({"source": "router_rule", "rule": "l1_simple_failing_test_fix_terms"})
         return "execution_planning.plan", "ready", evidence

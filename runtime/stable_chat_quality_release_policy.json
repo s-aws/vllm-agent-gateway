@@ -1,0 +1,84 @@
+{
+  "accepted_prompt_tightening_blocks_release": true,
+  "accepted_founder_feedback_pending_eval_blocks_release": true,
+  "allowed_readiness_statuses": [
+    "ready_for_founder_testing",
+    "blocked"
+  ],
+  "kind": "stable_chat_quality_release_policy",
+  "minimum_answer_usefulness_case_count": 40,
+  "minimum_founder_feedback_case_count": 4,
+  "minimum_fresh_drift_response_count": 16,
+  "minimum_holdout_response_count": 16,
+  "minimum_output_format_case_count": 8,
+  "minimum_skill_coverage_entry_count": 38,
+  "phase": 130,
+  "priority_backlog_id": "P0-BB-015",
+  "prompt_tightening_pending_review_blocks_release": true,
+  "required_gates": [
+    {
+      "id": "baseline_corpus",
+      "kind": "priority0_baseline_corpus",
+      "path": "runtime/baseline_corpus.json"
+    },
+    {
+      "id": "anythingllm_answer_usefulness",
+      "kind": "anythingllm_answer_usefulness_report",
+      "path": "runtime-state/anythingllm-answer-usefulness/phase121-answer-usefulness-report.json"
+    },
+    {
+      "id": "holdout_prompt_bank",
+      "kind": "holdout_prompt_bank_report",
+      "path": "runtime-state/holdout-prompt-bank/phase122-holdout-prompt-bank-report.json"
+    },
+    {
+      "id": "priority0_gap_taxonomy",
+      "kind": "priority0_gap_taxonomy_report",
+      "path": "runtime-state/priority0-gap-taxonomy/phase129-priority0-gap-taxonomy-report.json"
+    },
+    {
+      "id": "output_format_parity",
+      "kind": "output_format_parity_live_report",
+      "path": "runtime-state/output-format-parity/phase124-output-format-parity-live.json"
+    },
+    {
+      "id": "founder_feedback_loop",
+      "kind": "founder_feedback_loop_live_report",
+      "path": "runtime-state/founder-feedback-loop/phase125-founder-feedback-loop-live.json"
+    },
+    {
+      "id": "anythingllm_ui_e2e",
+      "kind": "anythingllm_ui_e2e_report",
+      "path": "runtime-state/anythingllm-ui/phase126-corpus-ui-usefulness.json"
+    },
+    {
+      "id": "fresh_local_model_drift",
+      "kind": "fresh_local_model_drift_report",
+      "path": "runtime-state/fresh-local-model-drift/phase127/phase127-fresh-local-model-drift-report.json"
+    },
+    {
+      "id": "prompt_tightening_recommendations",
+      "kind": "prompt_tightening_recommendation_report",
+      "path": "runtime-state/prompt-tightening-recommendations/phase128/phase128-prompt-tightening-recommendations-report.json"
+    },
+    {
+      "id": "skill_tool_coverage_gap",
+      "kind": "skill_tool_coverage_gap_report",
+      "path": "runtime-state/skill-tool-coverage-gap/phase129/phase129-skill-tool-coverage-gap-report.json"
+    },
+    {
+      "id": "stable_release_blocker_closure",
+      "kind": "stable_release_blocker_closure_report",
+      "path": "runtime-state/stable-release-blocker-closure/phase131/phase131-stable-release-blocker-closure-report.json"
+    }
+  ],
+  "required_routes": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "schema_version": 1
+}

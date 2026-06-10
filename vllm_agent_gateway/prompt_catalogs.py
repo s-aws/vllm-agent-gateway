@@ -35,6 +35,11 @@ class PromptCatalogCase:
     prompt_risk: str = ""
     expected_skill_id: str = ""
     expected_artifact_key: str = ""
+    refined_expected_rule: str = ""
+    refined_expected_markers: tuple[str, ...] = ()
+    refined_semantic_markers: tuple[str, ...] = ()
+    refined_expected_skill_id: str = ""
+    refined_expected_artifact_key: str = ""
 
 
 class PromptCatalogError(RuntimeError):
@@ -61,6 +66,16 @@ def _require_string_list(value: dict[str, Any], key: str, problems: list[str]) -
     raw = value.get(key)
     if not isinstance(raw, list) or not raw or not all(isinstance(item, str) and item for item in raw):
         problems.append(f"{key} must be a non-empty string list")
+        return ()
+    return tuple(raw)
+
+
+def _optional_string_list(value: dict[str, Any], key: str, problems: list[str]) -> tuple[str, ...]:
+    raw = value.get(key, [])
+    if raw in (None, ""):
+        return ()
+    if not isinstance(raw, list) or not all(isinstance(item, str) and item for item in raw):
+        problems.append(f"{key} must be a string list")
         return ()
     return tuple(raw)
 
@@ -138,15 +153,34 @@ def validate_prompt_catalog(catalog: dict[str, Any]) -> list[str]:
             "miss_suggestion",
         ):
             _require_string(raw_case, key, case_problems)
-        for key in ("expected_skill_id", "expected_artifact_key", "refined_prompt", "prompt_risk"):
+        for key in (
+            "expected_skill_id",
+            "expected_artifact_key",
+            "refined_prompt",
+            "prompt_risk",
+            "refined_expected_rule",
+            "refined_expected_skill_id",
+            "refined_expected_artifact_key",
+        ):
             _optional_string(raw_case, key, case_problems)
         for key in ("expected_markers", "semantic_markers", "forbidden_markers", "tags"):
             _require_string_list(raw_case, key, case_problems)
+        for key in ("refined_expected_markers", "refined_semantic_markers"):
+            _optional_string_list(raw_case, key, case_problems)
         _require_history(raw_case, "change_history", case_problems)
         if raw_case.get("refined_prompt") and not raw_case.get("prompt_risk"):
             case_problems.append("prompt_risk is required when refined_prompt is present")
         if raw_case.get("prompt_risk") and not raw_case.get("refined_prompt"):
             case_problems.append("refined_prompt is required when prompt_risk is present")
+        refined_expectation_keys = (
+            "refined_expected_rule",
+            "refined_expected_markers",
+            "refined_semantic_markers",
+            "refined_expected_skill_id",
+            "refined_expected_artifact_key",
+        )
+        if any(raw_case.get(key) for key in refined_expectation_keys) and not raw_case.get("refined_prompt"):
+            case_problems.append("refined_prompt is required when refined expected fields are present")
         for problem in case_problems:
             problems.append(f"{prefix}: {problem}")
     return problems
@@ -175,6 +209,11 @@ def prompt_cases_from_catalog(catalog: dict[str, Any]) -> tuple[PromptCatalogCas
                 prompt_risk=raw_case.get("prompt_risk", ""),
                 expected_skill_id=raw_case.get("expected_skill_id", ""),
                 expected_artifact_key=raw_case.get("expected_artifact_key", ""),
+                refined_expected_rule=raw_case.get("refined_expected_rule", ""),
+                refined_expected_markers=tuple(raw_case.get("refined_expected_markers") or ()),
+                refined_semantic_markers=tuple(raw_case.get("refined_semantic_markers") or ()),
+                refined_expected_skill_id=raw_case.get("refined_expected_skill_id", ""),
+                refined_expected_artifact_key=raw_case.get("refined_expected_artifact_key", ""),
             )
         )
     return tuple(cases)

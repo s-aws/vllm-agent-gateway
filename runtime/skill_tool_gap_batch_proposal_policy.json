@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "kind": "skill_tool_gap_batch_proposal_policy",
+  "phase": 161,
+  "priority_backlog_id": "P0-BB-025",
+  "description": "Governed Phase 161 policy for deciding whether the Phase 157-160 founder field-test chain proves a missing deterministic skill or tool batch.",
+  "inputs": {
+    "phase157_report": "runtime-state/founder-field-round1/phase157/phase157-founder-field-round1-report.json",
+    "phase158_report": "runtime-state/transcript-quality-feedback-intake/phase158/phase158-transcript-quality-feedback-intake-report.json",
+    "phase159_report": "runtime-state/priority0-repair-loop/phase159/phase159-priority0-repair-loop-report.json",
+    "phase160_report": "runtime-state/stable-release-refresh/phase160/phase160-stable-release-refresh-report.json"
+  },
+  "expected_sources": [
+    {
+      "id": "phase157_report",
+      "kind": "founder_field_round1_report",
+      "phase": 157,
+      "status": "passed",
+      "priority_backlog_id": "P0-BB-021"
+    },
+    {
+      "id": "phase158_report",
+      "kind": "transcript_quality_feedback_intake_report",
+      "phase": 158,
+      "status": "passed",
+      "priority_backlog_id": "P0-BB-022"
+    },
+    {
+      "id": "phase159_report",
+      "kind": "priority0_repair_loop_report",
+      "phase": 159,
+      "status": "passed",
+      "priority_backlog_id": "P0-BB-023"
+    },
+    {
+      "id": "phase160_report",
+      "kind": "stable_release_refresh_report",
+      "phase": 160,
+      "status": "passed",
+      "priority_backlog_id": "P0-BB-024"
+    }
+  ],
+  "skill_tool_gap_categories": [
+    "missing_skill_tool"
+  ],
+  "non_batch_categories": [
+    "prompt_issue",
+    "harness_issue",
+    "model_capability",
+    "safety_boundary",
+    "unsupported_scope",
+    "documentation_issue"
+  ],
+  "candidate_policy": {
+    "allowed_capability_types": [
+      "skill",
+      "tool",
+      "skill_and_tool"
+    ],
+    "required_candidate_fields": [
+      "candidate_id",
+      "source_finding_id",
+      "capability_type",
+      "capability_id",
+      "proposal_summary",
+      "eval_gate",
+      "approval_boundary",
+      "implementation_status"
+    ],
+    "allowed_validation_tiers": [
+      "offline",
+      "controller",
+      "gateway_anythingllm",
+      "gateway_anythingllm_fixture_mutation",
+      "ui_release_candidate"
+    ],
+    "required_validation_tiers": [
+      "controller",
+      "gateway_anythingllm",
+      "gateway_anythingllm_fixture_mutation"
+    ],
+    "required_safety_boundaries": [
+      "proposal_only",
+      "founder_approval_required_before_implementation",
+      "no_source_mutation",
+      "no_auto_registration",
+      "target_plus_holdout_eval_required",
+      "anythingllm_chat_quality_required"
+    ],
+    "approval_boundary": "founder_approval_required",
+    "implementation_status": "not_started",
+    "source_mutation_required": false,
+    "auto_register": false
+  },
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "allowed_phase159_repair_modes": [
+    "no_repair_required",
+    "repairs_closed"
+  ],
+  "required_phase160_readiness": "ready_for_founder_testing",
+  "required_phase160_decision": "release_for_founder_testing",
+  "decisions": {
+    "no_batch": "no_new_batch_justified",
+    "proposal": "propose_batch_for_founder_approval",
+    "blocked": "blocked"
+  },
+  "implementation_authorized": false,
+  "next_phase": 162
+}

@@ -1,0 +1,38 @@
+{
+  "artifact_section_marker": "Artifacts:",
+  "description": "Phase 138 deterministic classifier for AnythingLLM chat transcript quality.",
+  "evidence_marker_groups": [
+    {
+      "group": "grounding",
+      "markers": [
+        "Grounded in:",
+        "Evidence:",
+        "Source refs:"
+      ]
+    }
+  ],
+  "kind": "priority0_chat_transcript_quality_policy",
+  "minimum_non_empty_lines": 8,
+  "minimum_pre_artifact_non_empty_lines": 5,
+  "minimum_transcript_chars": 300,
+  "phase": 138,
+  "priority_backlog_id": "P0-BB-020",
+  "required_markers": [
+    "Result:",
+    "Skill Selection:"
+  ],
+  "schema_version": 1,
+  "unsafe_mutation_markers": [
+    "source_changed: True",
+    "source_changed: true",
+    "Source mutation: true",
+    "source mutation: true",
+    "modified source file",
+    "applied patch",
+    "wrote changes"
+  ],
+  "workflow_marker_templates": [
+    "Selected workflow: {expected_workflow}",
+    "selected_workflow: {expected_workflow}"
+  ]
+}

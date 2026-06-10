@@ -4,6 +4,46 @@ These recipes are for hands-on founder/testing runs through AnythingLLM after th
 
 First-time testers should start with [Getting Started With AnythingLLM](../../README.getting-started.md). This file is the deeper recipe and validation history.
 
+Before hands-on founder testing, confirm stable readiness:
+
+```bash
+cd /mnt/c/agentic_agents
+python3 scripts/validate_stable_release_blocker_closure.py \
+  --require-artifacts \
+  --output-path runtime-state/stable-release-blocker-closure/phase131/phase131-stable-release-blocker-closure-report.json
+python3 scripts/validate_stable_chat_quality_release.py \
+  --require-artifacts \
+  --output-path runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json
+```
+
+Expected marker:
+
+```text
+STABLE CHAT QUALITY RELEASE PASS
+```
+
+For the current founder-testing handoff, also refresh the Phase 170 stable floor and the Phase 161 skill/tool batch decision:
+
+```bash
+python3 scripts/validate_stable_release_refresh.py \
+  --policy-path runtime/stable_release_refresh_phase170_policy.json \
+  --run-refresh \
+  --execute-reset-start \
+  --execute-recovery \
+  --output-path runtime-state/stable-release-refresh/phase170/phase170-stable-release-refresh-report.json \
+  --markdown-output-path runtime-state/stable-release-refresh/phase170/phase170-stable-release-refresh-report.md
+python3 scripts/validate_skill_tool_gap_batch_proposal.py \
+  --output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.json \
+  --markdown-output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.md
+```
+
+Expected current result:
+
+```text
+PHASE170 STABLE RELEASE REFRESH PASS
+PHASE161 SKILL TOOL GAP BATCH PROPOSAL PASS
+```
+
 For natural workflow-router testing, AnythingLLM should point at:
 
 ```text
@@ -23,6 +63,17 @@ Do not point the workspace at `8400`; that is the controller service, not an Ope
 AnythingLLM can run `workflow_router.plan` from natural-language messages when configured to `8500/v1`. It can also run controller workflows through explicit `agentic_controller_request` envelopes when configured to `8300/v1`.
 
 The product path is the natural workflow-router route. The older prompt-injected skill smoke remains here only as a support check for local-model instruction following; it is not evidence that the harness product is usable.
+
+Latest field-test closeout:
+
+- Phase 157 passed 30 founder prompts across both frozen fixtures.
+- Phase 158 classified 14 findings as `prompt_issue` monitoring items.
+- Phase 159 required no repairs.
+- Phase 170 keeps the release decision at `release_for_founder_testing` after the Phase 163-169 chat-quality batch.
+- Phase 161 found no evidence-backed deterministic skill/tool batch to implement.
+- Phase 169 recorded six product-gap proposals approved for Phases 171-176; they are not part of the stable tester path until those phases pass.
+
+Known current miss class: prompt wording can still matter. If a prompt asks for a handler, schema, entrypoint, or change surface too broadly, use the refined wording from the Phase 158 report before treating it as a product defect.
 
 ## Preflight
 
@@ -412,7 +463,15 @@ Expected response markers:
 
 ## Last Validation
 
-Latest local validation on June 4, 2026:
+Latest local validation on June 10, 2026:
+
+- Phase 157 founder field round passed with `case_count=30`, `pass_case_count=16`, `advisory_case_count=14`, and `blocker_case_count=0`.
+- Phase 158 feedback intake passed with `accepted_finding_count=14`, `phase159_eligible_count=0`, and all findings classified as `prompt_issue`.
+- Phase 159 repair loop passed with `repair_mode=no_repair_required`.
+- Phase 170 stable release refresh passed with `readiness=ready_for_founder_testing`, `decision=release_for_founder_testing`, `source_report_count=17`, `phase169_proposal_count=6`, and `phase169_release_blocker_count=0`.
+- Phase 161 skill/tool gap batch proposal passed with `decision=no_new_batch_justified`, `gap_candidate_count=0`, and `implementation_authorized=false`.
+
+Earlier validation on June 4, 2026:
 
 - quick `codegraph-context-lookup` AnythingLLM skill smoke passed for `/mnt/c/coinbase_testing_repo_frozen_tmp`
 - quick `codegraph-context-lookup` AnythingLLM skill smoke passed for `/mnt/c/coinbase_testing_repo_frozen_tmp.github`

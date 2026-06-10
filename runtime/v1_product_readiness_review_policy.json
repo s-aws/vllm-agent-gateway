@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "kind": "v1_product_readiness_review_policy",
+  "phase": 155,
+  "priority_backlog_id": "P0-BB-020",
+  "goal": "Decide whether the current V1 local-model harness is ready for founder testing against the original natural-language chat-quality goal.",
+  "allowed_recommendations": [
+    "go_for_founder_testing",
+    "no_go"
+  ],
+  "required_reports": [
+    {
+      "id": "stable_chat_quality_release",
+      "path": "runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json",
+      "expected_kind": "stable_chat_quality_release_report",
+      "expected_status": "passed",
+      "expected_readiness": "ready_for_founder_testing",
+      "expected_phase": 130
+    },
+    {
+      "id": "release_notes",
+      "path": "runtime-state/release-notes/phase146/phase146-release-notes-report.json",
+      "expected_kind": "release_notes_validation_report",
+      "expected_status": "passed",
+      "expected_phase": 146
+    },
+    {
+      "id": "stable_release_reset_rehearsal",
+      "path": "runtime-state/stable-release-reset-rehearsal/phase153/phase153-live-report.json",
+      "expected_kind": "stable_release_reset_rehearsal_report",
+      "expected_status": "passed",
+      "expected_phase": 153
+    },
+    {
+      "id": "model_swap_smoke_probe",
+      "path": "runtime-state/model-swap-smoke-probe/phase154/phase154-model-swap-smoke-probe-report.json",
+      "expected_kind": "model_swap_smoke_probe_report",
+      "expected_status": "passed",
+      "expected_phase": 154,
+      "expected_decision": "current_model_ready"
+    },
+    {
+      "id": "current_model_compatibility",
+      "path": "runtime-state/model-swap-smoke-probe/phase154/phase154-model-swap-smoke-probe-report-current-model-compatibility.json",
+      "expected_kind": "current_model_compatibility_matrix_report",
+      "expected_status": "passed",
+      "expected_phase": 150
+    }
+  ],
+  "required_docs": [
+    "README.getting-started.md",
+    "README.release-notes.md",
+    "README.stable-release-reset-rehearsal.md",
+    "README.model-swap-smoke-probe.md",
+    "README.current-model-compatibility.md"
+  ],
+  "supported_workflows": [
+    "natural_language_workflow_routing_through_anythingllm",
+    "read_only_l1_l2_chat_answers",
+    "format_a_and_json_output",
+    "task_decomposition",
+    "draft_only_implementation_planning",
+    "approval_gated_disposable_copy_apply_proof",
+    "founder_feedback_capture_and_triage",
+    "setup_health_reset_and_model_swap_validation"
+  ],
+  "unsupported_workflows": [
+    "advanced_broad_refactor_orchestration",
+    "production_deployment",
+    "support_for_every_repository_language_or_coding_task",
+    "direct_mutation_of_protected_frozen_fixtures",
+    "unsupported_output_format_parity",
+    "automatic_model_selection"
+  ],
+  "required_evidence_markers": [
+    "AnythingLLM",
+    "http://127.0.0.1:8500/v1",
+    "format_a",
+    "json",
+    "runtime-state/",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "monitored_risks": [
+    {
+      "id": "latency_not_release_blocking",
+      "severity": "medium",
+      "source": "current_model_compatibility",
+      "condition": "model_profile_status_warning",
+      "statement": "Latency remains monitored because the active model profile records it as warning or unknown."
+    },
+    {
+      "id": "fixture_scope_limited",
+      "severity": "medium",
+      "source": "release_notes",
+      "condition": "always",
+      "statement": "Validation is centered on two frozen Coinbase fixtures and does not prove every repository."
+    },
+    {
+      "id": "advanced_refactor_deferred",
+      "severity": "high",
+      "source": "release_notes",
+      "condition": "always",
+      "statement": "Advanced broad refactor orchestration remains explicitly outside the V1 release."
+    }
+  ]
+}

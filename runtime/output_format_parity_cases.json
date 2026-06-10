@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "kind": "output_format_parity_cases",
+  "priority_backlog_id": "P0-BB-009",
+  "description": "Representative stable Priority 0 prompts used to prove default FormatA and JSON preserve the same chat-visible answer contract.",
+  "cases": [
+    {
+      "case_id": "CQ116-001",
+      "source_cases_path": "runtime/phase116_code_quality_prompt_cases.json",
+      "prompt_family": "code_quality_and_self_review",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_heading": "Code Quality Review:",
+      "expected_artifact_kind": "code_quality_review",
+      "expected_artifact_keys": ["downstream_code_quality_review", "code_quality_review"],
+      "required_text_markers": ["Code Quality Review:", "Source mutation: false", "Artifacts:"],
+      "required_json_markers": ["Code Quality Review:", "Source mutation: false"]
+    },
+    {
+      "case_id": "CQ116-009",
+      "source_cases_path": "runtime/phase116_code_quality_prompt_cases.json",
+      "prompt_family": "code_quality_and_self_review",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_heading": "Code Quality Review:",
+      "expected_artifact_kind": "code_quality_review",
+      "expected_artifact_keys": ["downstream_code_quality_review", "code_quality_review"],
+      "required_text_markers": ["Code Quality Review:", "Source mutation: false", "Artifacts:"],
+      "required_json_markers": ["Code Quality Review:", "Source mutation: false"]
+    },
+    {
+      "case_id": "DD117-001",
+      "source_cases_path": "runtime/phase117_defect_diagnosis_prompt_cases.json",
+      "prompt_family": "testing_and_defect_diagnosis",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_heading": "Defect Diagnosis:",
+      "expected_artifact_kind": "defect_diagnosis_summary",
+      "expected_artifact_keys": ["downstream_defect_diagnosis_summary", "defect_diagnosis_summary"],
+      "required_text_markers": ["Defect Diagnosis:", "Source mutation: false", "Artifacts:"],
+      "required_json_markers": ["Defect Diagnosis:", "Source mutation: false"]
+    },
+    {
+      "case_id": "DD117-010",
+      "source_cases_path": "runtime/phase117_defect_diagnosis_prompt_cases.json",
+      "prompt_family": "testing_and_defect_diagnosis",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_heading": "Defect Diagnosis:",
+      "expected_artifact_kind": "defect_diagnosis_summary",
+      "expected_artifact_keys": ["downstream_defect_diagnosis_summary", "defect_diagnosis_summary"],
+      "required_text_markers": ["Defect Diagnosis:", "Source mutation: false", "Artifacts:"],
+      "required_json_markers": ["Defect Diagnosis:", "Source mutation: false"]
+    },
+    {
+      "case_id": "EJ118-001",
+      "source_cases_path": "runtime/phase118_engineering_judgment_prompt_cases.json",
+      "prompt_family": "tradeoffs_debt_and_engineering_judgment",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_heading": "Engineering Judgment:",
+      "expected_artifact_kind": "engineering_judgment_review",
+      "expected_artifact_keys": ["downstream_engineering_judgment_review", "engineering_judgment_review"],
+      "required_text_markers": ["Engineering Judgment:", "Source mutation: false", "Artifacts:"],
+      "required_json_markers": ["Engineering Judgment:", "Source mutation: false"]
+    },
+    {
+      "case_id": "EJ118-002",
+      "source_cases_path": "runtime/phase118_engineering_judgment_prompt_cases.json",
+      "prompt_family": "tradeoffs_debt_and_engineering_judgment",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_heading": "Engineering Judgment:",
+      "expected_artifact_kind": "engineering_judgment_review",
+      "expected_artifact_keys": ["downstream_engineering_judgment_review", "engineering_judgment_review"],
+      "required_text_markers": ["Engineering Judgment:", "Source mutation: false", "Artifacts:"],
+      "required_json_markers": ["Engineering Judgment:", "Source mutation: false"]
+    },
+    {
+      "case_id": "DM119-001",
+      "source_cases_path": "runtime/phase119_delivery_mentorship_prompt_cases.json",
+      "prompt_family": "delivery_and_mentorship",
+      "expected_selected_workflow": "task.decompose",
+      "expected_heading": "Task Decomposition:",
+      "expected_artifact_kind": "task_decomposition",
+      "expected_artifact_keys": ["task_decomposition", "downstream_task_decomposition"],
+      "required_text_markers": ["Task Decomposition:", "Delivery Mentorship Plan:", "Source mutation: False", "Artifacts:"],
+      "required_json_markers": ["Task Decomposition:", "Delivery Mentorship Plan:", "Source mutation: False"]
+    },
+    {
+      "case_id": "DM119-002",
+      "source_cases_path": "runtime/phase119_delivery_mentorship_prompt_cases.json",
+      "prompt_family": "delivery_and_mentorship",
+      "expected_selected_workflow": "task.decompose",
+      "expected_heading": "Task Decomposition:",
+      "expected_artifact_kind": "task_decomposition",
+      "expected_artifact_keys": ["task_decomposition", "downstream_task_decomposition"],
+      "required_text_markers": ["Task Decomposition:", "Delivery Mentorship Plan:", "Source mutation: False", "Artifacts:"],
+      "required_json_markers": ["Task Decomposition:", "Delivery Mentorship Plan:", "Source mutation: False"]
+    }
+  ]
+}

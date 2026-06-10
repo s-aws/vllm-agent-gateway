@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "kind": "skill_tool_coverage_gap_policy",
+  "policy_id": "phase129_skill_tool_coverage_gap_v1",
+  "phase": 129,
+  "priority_backlog_id": "P0-BB-014",
+  "description": "Governed classification policy for deciding when Priority 0 chat-quality misses require a deterministic skill or tool gap instead of prompt, formatter, routing, context, or model-quality repair.",
+  "skill_tool_gap_class": "skill_tool_selection",
+  "allowed_gap_sources": [
+    "priority0_gap_taxonomy",
+    "prompt_tightening_recommendations"
+  ],
+  "allowed_repair_types": [
+    "add_skill",
+    "improve_skill",
+    "add_tool",
+    "improve_tool",
+    "skill_tool_selection_rule"
+  ],
+  "required_proposal_fields": [
+    "capability_type",
+    "capability_id",
+    "proposal_summary",
+    "eval_gate",
+    "validation_tier",
+    "approval_boundary"
+  ],
+  "allowed_validation_tiers": [
+    "offline",
+    "controller",
+    "gateway_anythingllm",
+    "gateway_anythingllm_fixture_mutation",
+    "ui_release_candidate"
+  ],
+  "approval_boundary_values": [
+    "roadmap_approval_required",
+    "founder_approval_required"
+  ]
+}

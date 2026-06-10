@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "kind": "natural_output_format_preference_cases",
+  "priority_backlog_id": "P0-BB-020",
+  "description": "Representative Priority 0 prompts used to prove natural output-format preferences through gateway and AnythingLLM.",
+  "source_output_format_parity_cases_path": "runtime/output_format_parity_cases.json",
+  "required_gateway_preferences": [
+    "default_format_a",
+    "natural_format_a",
+    "natural_json",
+    "explicit_output_format_json",
+    "openai_response_format_json"
+  ],
+  "required_anythingllm_preferences": [
+    "default_format_a",
+    "natural_format_a",
+    "natural_json"
+  ],
+  "cases": [
+    {
+      "case_id": "NOFP-CQ116-001",
+      "source_case_id": "CQ116-001",
+      "natural_json_instruction": "Return JSON."
+    },
+    {
+      "case_id": "NOFP-DD117-010",
+      "source_case_id": "DD117-010",
+      "natural_json_instruction": "Respond with JSON."
+    },
+    {
+      "case_id": "NOFP-EJ118-001",
+      "source_case_id": "EJ118-001",
+      "natural_json_instruction": "Output as JSON."
+    },
+    {
+      "case_id": "NOFP-DM119-002",
+      "source_case_id": "DM119-002",
+      "natural_json_instruction": "Return valid JSON."
+    }
+  ]
+}

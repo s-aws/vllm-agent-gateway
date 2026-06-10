@@ -1,0 +1,37 @@
+{
+  "kind": "chat_quality_release_snapshot_policy",
+  "phase": 136,
+  "priority_backlog_id": "P0-BB-020",
+  "required_artifacts": [
+    {
+      "id": "stable_chat_quality_release",
+      "kind": "stable_chat_quality_release_report",
+      "path": "runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json"
+    },
+    {
+      "id": "stable_release_blocker_closure",
+      "kind": "stable_release_blocker_closure_report",
+      "path": "runtime-state/stable-release-blocker-closure/phase131/phase131-stable-release-blocker-closure-report.json"
+    },
+    {
+      "id": "anythingllm_founder_smoke",
+      "kind": "founder_field_prompt_evaluation",
+      "path": "runtime-state/founder-field-tests/phase134-founder-smoke.json"
+    },
+    {
+      "id": "founder_smoke_feedback",
+      "kind": "founder_smoke_feedback_classification",
+      "path": "runtime-state/founder-smoke-feedback/phase135/phase135-founder-smoke-feedback.json"
+    }
+  ],
+  "required_docs": [
+    "README.getting-started.md",
+    "README.stable-chat-quality-release.md",
+    "README.stable-release-blocker-closure.md",
+    "README.anythingllm-founder-smoke.md",
+    "README.founder-smoke-feedback.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md"
+  ],
+  "schema_version": 1
+}

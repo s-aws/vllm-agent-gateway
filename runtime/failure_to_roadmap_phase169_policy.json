@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "kind": "failure_to_roadmap_policy",
+  "phase": 169,
+  "priority_backlog_id": "P0-BB-033",
+  "source_reports": [
+    {
+      "id": "phase163_post_restart_runtime_readiness",
+      "path": "runtime-state/post-restart-runtime-readiness/phase163/phase163-post-restart-runtime-readiness-report.json",
+      "required": true,
+      "expected_status": "passed",
+      "finding_extractors": [
+        "failed_status"
+      ]
+    },
+    {
+      "id": "phase164_founder_field_round2",
+      "path": "runtime-state/founder-field-round2/phase164/phase164-founder-field-round2-report.json",
+      "required": true,
+      "expected_status": "passed",
+      "finding_extractors": [
+        "failed_status"
+      ]
+    },
+    {
+      "id": "phase165_prompt_advisory_closure",
+      "path": "runtime-state/prompt-advisory-closure/phase165/phase165-prompt-advisory-closure-report.json",
+      "required": true,
+      "expected_status": "passed",
+      "finding_extractors": [
+        "failed_status",
+        "prompt_advisory_product_gap_escalations"
+      ]
+    },
+    {
+      "id": "phase166_generic_chat_vague_prompt_contract",
+      "path": "runtime-state/generic-chat-vague-prompt-contract/phase166/phase166-generic-chat-vague-prompt-contract-report.json",
+      "required": true,
+      "expected_status": "passed",
+      "finding_extractors": [
+        "failed_status"
+      ]
+    },
+    {
+      "id": "phase167_anythingllm_ui_replay",
+      "path": "runtime-state/anythingllm-ui/phase167/phase167-ui-replay-mixed.json",
+      "required": true,
+      "expected_status": "passed",
+      "finding_extractors": [
+        "failed_status"
+      ]
+    },
+    {
+      "id": "phase168_answer_first_ui_replay",
+      "path": "runtime-state/anythingllm-ui/phase168/phase168-answer-first-ui-replay-mixed.json",
+      "required": true,
+      "expected_status": "passed",
+      "finding_extractors": [
+        "failed_status"
+      ]
+    },
+    {
+      "id": "phase168_post_restart_runtime_readiness",
+      "path": "runtime-state/post-restart-runtime-readiness/phase168/phase168-post-restart-runtime-readiness-report.json",
+      "required": true,
+      "expected_status": "passed",
+      "finding_extractors": [
+        "failed_status"
+      ]
+    }
+  ],
+  "proposal_policy": {
+    "default_approval_status": "unapproved",
+    "approved_proposal_ids": [],
+    "implementation_status": "not_started",
+    "allowed_approval_statuses": [
+      "unapproved",
+      "approved_by_founder"
+    ],
+    "release_blocker_severities": [
+      "critical",
+      "high"
+    ],
+    "roadmap_mutation_allowed": false,
+    "source_mutation_allowed": false,
+    "required_proposal_fields": [
+      "proposal_id",
+      "approval_status",
+      "implementation_status",
+      "severity",
+      "category",
+      "source_report_id",
+      "source_path",
+      "evidence",
+      "candidate_phase_title",
+      "goal",
+      "implementation_tasks",
+      "acceptance_proof",
+      "dependencies",
+      "recommended_roadmap_position"
+    ]
+  }
+}

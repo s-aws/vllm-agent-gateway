@@ -594,7 +594,7 @@ python scripts/validate_phase50_skill_batch_live.py --skip-anythingllm
 python scripts/validate_skill_natural_lifecycle_live.py --skip-anythingllm
 ```
 
-Full regression remains required after code changes:
+Full regression remains required for release-candidate, cross-cutting runtime, shared controller/router/formatter, skill-library-scale, model-portability, or otherwise unbounded changes. For narrower changes, use the applicable verification tier and focused tests during iteration:
 
 ```bash
 pytest tests/regression/ -v

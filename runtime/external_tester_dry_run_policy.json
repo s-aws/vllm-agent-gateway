@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "external_tester_dry_run_policy",
+  "phase": 147,
+  "priority_backlog_id": "P0-BB-020",
+  "channel_under_test": "stable",
+  "onboarding_case_id": "ONB-001",
+  "required_docs_followed": [
+    "README.md",
+    "README.getting-started.md",
+    "README.external-tester-onboarding.md",
+    "docs/examples/external-tester-onboarding.md",
+    "README.release-notes.md"
+  ],
+  "required_doc_markers": {
+    "README.md": [
+      "README.getting-started.md",
+      "README.external-tester-onboarding.md",
+      "README.release-notes.md"
+    ],
+    "README.getting-started.md": [
+      "Minimum External Tester Dry Run",
+      "README.external-tester-onboarding.md",
+      "http://127.0.0.1:8500/v1"
+    ],
+    "README.external-tester-onboarding.md": [
+      "Minimum External Tester Dry Run",
+      "Current stable external tester path",
+      "release-candidate origin",
+      "ONB-001",
+      "http://127.0.0.1:8500/v1",
+      "ANYTHINGLLM_API_KEY",
+      "my-workspace",
+      "Advanced broad refactor orchestration is not released"
+    ],
+    "docs/examples/external-tester-onboarding.md": [
+      "Minimum External Tester Dry Run",
+      "ONB-001",
+      "http://127.0.0.1:8500/v1",
+      "ANYTHINGLLM_API_KEY"
+    ],
+    "README.release-notes.md": [
+      "ready_for_founder_testing",
+      "Advanced broad refactor orchestration is not released",
+      "http://127.0.0.1:8500/v1"
+    ]
+  },
+  "forbidden_doc_markers": [
+    "Use the broad refactor prompt as the first external tester prompt",
+    "AnythingLLM should point at http://127.0.0.1:8300/v1 for workflow routing",
+    "Advanced broad refactor orchestration is released"
+  ],
+  "expected_environment": {
+    "anythingllm_api_base_url": "http://127.0.0.1:3001",
+    "workflow_router_gateway_base_url": "http://127.0.0.1:8500/v1",
+    "controller_base_url": "http://127.0.0.1:8400",
+    "model_base_url": "http://127.0.0.1:8000/v1",
+    "llm_gateway_base_url": "http://127.0.0.1:8300/v1",
+    "workspace": "my-workspace",
+    "api_key_env": "ANYTHINGLLM_API_KEY"
+  },
+  "required_child_reports": [
+    "release_channels",
+    "first_time_user_doctor",
+    "release_notes",
+    "external_onboarding_static",
+    "external_onboarding_live"
+  ]
+}

@@ -58,6 +58,7 @@ def change_subject_queries_from_request(user_request: str, *, limit: int = 4) ->
     candidates: list[str] = []
     patterns = (
         r"(?:change surface|change boundary|minimal safe change surface).*?\bfor\s+(.+?)(?:[.?!]|$)",
+        r"(?:files to touch|files not to touch).*?\bfor\s+(?:a\s+|an\s+|the\s+)?(?:minimal safe\s+)?(.+?)(?:\s+change\b|[.?!]|$)",
         r"\bfor\s+changing\s+(.+?)(?:[.?!]|$)",
         r"\bfor\s+(.+?\bbehavior)\b",
     )

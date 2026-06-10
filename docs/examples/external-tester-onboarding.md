@@ -1,5 +1,26 @@
 # External Tester Onboarding Examples
 
+## Minimum External Tester Dry Run
+
+This is the first external tester command for the current stable path. Run it from Bash/WSL:
+
+```bash
+cd /mnt/c/agentic_agents
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/validate_external_tester_dry_run.py \
+  --live-runtime \
+  --include-feedback \
+  --output-path runtime-state/external-tester-dry-run/phase147/phase147-external-tester-dry-run.json
+```
+
+Expected result:
+
+```text
+EXTERNAL TESTER DRY RUN PASS
+```
+
+The gate validates `ONB-001` through AnythingLLM at `http://127.0.0.1:8500/v1`, uses `ANYTHINGLLM_API_KEY`, records linked feedback, and checks protected fixture state.
+
 ## Validate The Prompt Pack
 
 ```bash

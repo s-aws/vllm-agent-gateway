@@ -1,0 +1,1 @@
+{"kind": "model_swap_smoke_probe_report", "phase": 154, "status": "passed", "decision": {"decision": "current_model_ready", "actual_model_ids": ["Qwen3-Coder-30B-A3B-Instruct"], "full_drift_gate_required": false}, "summary": {"decision": "current_model_ready"}, "errors": []}

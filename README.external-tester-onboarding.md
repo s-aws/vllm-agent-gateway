@@ -1,8 +1,31 @@
 # External Tester Onboarding
 
-This is the contextless tester path for the current release-candidate channel.
+This is the contextless tester path for the Current stable external tester path.
 
 It is intentionally smaller than the founder field suite. It uses a curated set of read-only L1 prompts so a tester can prove the harness works through AnythingLLM before trying broader workflows.
+
+The prompt pack has release-candidate origin because it was first introduced during release-candidate validation. For the current founder-testing release, validate it through the `stable` channel and the Phase 147 dry-run gate.
+
+## Minimum External Tester Dry Run
+
+Run this from Bash/WSL after the local model, gateway, controller, role proxies, and AnythingLLM are already running:
+
+```bash
+cd /mnt/c/agentic_agents
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/validate_external_tester_dry_run.py \
+  --live-runtime \
+  --include-feedback \
+  --output-path runtime-state/external-tester-dry-run/phase147/phase147-external-tester-dry-run.json
+```
+
+Expected marker:
+
+```text
+EXTERNAL TESTER DRY RUN PASS
+```
+
+This wrapper validates the stable release channel, setup doctor, release notes, static onboarding pack, one live `ONB-001` prompt through AnythingLLM, linked feedback capture, and protected fixture state.
 
 ## Source Of Truth
 
@@ -26,7 +49,7 @@ runtime-state/external-tester-onboarding/
 
 ## What It Proves
 
-- The onboarding prompt pack is valid and tied to the `release-candidate` channel.
+- The onboarding prompt pack is valid and tied to its `release-candidate` origin while the current dry run validates the stable tester path.
 - First-test prompts are read-only and do not include deferred advanced refactor or mutation paths.
 - Expected output markers and artifact keys are documented before testing.
 - Feedback templates exist for confusion, routing misses, answer-quality misses, and setup failures.
@@ -48,6 +71,8 @@ AnythingLLM must point at:
 ```text
 http://127.0.0.1:8500/v1
 ```
+
+The default AnythingLLM workspace used by automated validation is `my-workspace`. `WSLENV` is only needed if you want to pass Windows environment variables into WSL automatically; the command above reads `ANYTHINGLLM_API_KEY` directly from the Windows user environment.
 
 ## Static Onboarding Validation
 
@@ -88,7 +113,7 @@ The full V1 release-candidate command also runs this live onboarding check as su
 
 ## First Manual Prompt
 
-Use this first in a fresh AnythingLLM thread:
+Use `ONB-001` first in a fresh AnythingLLM thread:
 
 ```text
 In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests.
@@ -144,6 +169,8 @@ Expected feedback markers:
 - `linked_run_found`
 
 ## Boundary
+
+Advanced broad refactor orchestration is not released.
 
 Do not use broad refactor, approval continuation, disposable-copy apply, or mutation-capable prompts in first-test onboarding. Those remain later-stage validation paths.
 

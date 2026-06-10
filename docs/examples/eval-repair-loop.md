@@ -1,6 +1,8 @@
 # Eval Repair Loop Examples
 
-These examples generate Phase 104 repair recommendations from existing artifacts. They do not contact localhost services.
+These examples generate repair recommendations from existing artifacts and, when explicitly requested, run the Phase 111 closed-loop target/holdout validation through localhost services.
+
+The advisory examples do not contact localhost services. The closed-loop example does.
 
 ## From A Failed Founder Field Run
 
@@ -45,6 +47,41 @@ python3 scripts/report_eval_repair_loop.py \
 
 Recursive reports can contribute accepted findings and blind findings, but the repair loop still applies hard stops for unresolved critical/high findings, low scores, round exhaustion, fixture mutation, and holdout regression.
 
+## Closed-Loop Target And Holdout Proof
+
+Use this when a current-phase repair has already been accepted and needs executable proof instead of advisory status:
+
+```bash
+cd /mnt/c/agentic_agents
+export WSLENV=ANYTHINGLLM_API_KEY/u
+python3 scripts/validate_closed_loop_eval_repair.py \
+  --execute-live \
+  --include-port-health \
+  --timeout-seconds 900 \
+  --output-path runtime-state/eval-repair-loop/phase111-live-closed-loop-final.json
+```
+
+Expected markers:
+
+```text
+CLOSED LOOP EVAL REPAIR REPORT ...
+CLOSED LOOP EVAL REPAIR SUMMARY ...
+CLOSED LOOP EVAL REPAIR PASS
+```
+
+The current Phase 111 target is `L1-001`; the holdout is `L1-002`. The gate runs both through the workflow-router gateway and AnythingLLM on `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+
+If Bash cannot see `ANYTHINGLLM_API_KEY`, the target and holdout may pass gateway but fail AnythingLLM. Set `WSLENV=ANYTHINGLLM_API_KEY/u` in the Windows environment or for the current command invocation.
+
+To prove the gate fails closed without live validation:
+
+```bash
+python3 scripts/validate_closed_loop_eval_repair.py \
+  --output-path runtime-state/eval-repair-loop/phase111-offline-dry-run.json
+```
+
+Expected result: failed status with `target_result_status=not_run_required` and `holdout_result_status=not_run_required`.
+
 ## Expected JSON Fields
 
 ```text
@@ -65,6 +102,21 @@ recommendations[].holdout_result_status=passed|failed|regressed|not_run_advisory
 blocking_errors=[...]
 validation_errors=[...]
 markdown_report_path=...
+```
+
+Closed-loop execution reports use:
+
+```text
+kind=closed_loop_eval_repair_execution_report
+status=passed|failed
+before_failure_capture.status=failed_controlled_negative
+repair_packet.accepted_repair_status=accepted_current_phase
+execution.target_result_status=passed|failed|not_run_required
+execution.holdout_result_status=passed|failed|not_run_required
+deterministic_adjudication.status=accepted|partial
+protected_fixture_mutation=false
+final_eval_repair_report.status=passed|failed
+validation_errors=[...]
 ```
 
 ## Review Order

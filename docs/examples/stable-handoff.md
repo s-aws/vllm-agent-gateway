@@ -40,6 +40,29 @@ STABLE HANDOFF PASS
 
 The smoke can still report a warning for the git-enabled frozen fixture when Bash sees Windows/WSL line-ending dirtiness. Continue only when watched hashes are unchanged and protected fixture state is not changed.
 
+## Refresh Field-Test Closeout
+
+```bash
+python3 scripts/validate_stable_release_refresh.py \
+  --run-refresh \
+  --execute-reset-start \
+  --execute-recovery \
+  --output-path runtime-state/stable-release-refresh/phase160/phase160-stable-release-refresh-report.json \
+  --markdown-output-path runtime-state/stable-release-refresh/phase160/phase160-stable-release-refresh-report.md
+python3 scripts/validate_skill_tool_gap_batch_proposal.py \
+  --output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.json \
+  --markdown-output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.md
+```
+
+Expected current result:
+
+```text
+PHASE160 STABLE RELEASE REFRESH PASS
+PHASE161 SKILL TOOL GAP BATCH PROPOSAL PASS
+```
+
+The current Phase 161 decision is `no_new_batch_justified`.
+
 ## Send The First Stable Prompt
 
 Use a fresh AnythingLLM thread:

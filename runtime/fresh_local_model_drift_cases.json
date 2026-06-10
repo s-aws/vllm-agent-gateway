@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "kind": "fresh_local_model_drift_case_catalog",
+  "catalog_id": "phase127_fresh_local_model_drift_v1",
+  "phase": 127,
+  "priority_backlog_id": "P0-BB-012",
+  "description": "Bounded fresh local-model drift gate for stable Priority 0 prompt families. Reuses the existing Phase 116-119 local eval and comparison scripts without overwriting accepted baseline artifacts.",
+  "required_routes": [
+    "gateway",
+    "anythingllm"
+  ],
+  "output_root": "runtime-state/fresh-local-model-drift/phase127",
+  "families": [
+    {
+      "family_id": "phase116_code_quality",
+      "priority_backlog_id": "P0-BB-001",
+      "run_script": "scripts/run_phase116_code_quality_local_eval.py",
+      "compare_script": "scripts/compare_phase116_code_quality_local_eval.py",
+      "cases_path": "runtime/phase116_code_quality_prompt_cases.json",
+      "baselines_path": "runtime/phase116_code_quality_blind_baselines.json",
+      "fresh_local_eval_path": "runtime-state/fresh-local-model-drift/phase127/phase116-code-quality-local-eval.json",
+      "fresh_comparison_path": "runtime-state/fresh-local-model-drift/phase127/phase116-code-quality-comparison.json",
+      "case_ids": [
+        "CQ116-001",
+        "CQ116-009"
+      ],
+      "expected_response_count": 4
+    },
+    {
+      "family_id": "phase117_defect_diagnosis",
+      "priority_backlog_id": "P0-BB-002",
+      "run_script": "scripts/run_phase117_defect_diagnosis_local_eval.py",
+      "compare_script": "scripts/compare_phase117_defect_diagnosis_local_eval.py",
+      "cases_path": "runtime/phase117_defect_diagnosis_prompt_cases.json",
+      "baselines_path": "runtime/phase117_defect_diagnosis_blind_baselines.json",
+      "fresh_local_eval_path": "runtime-state/fresh-local-model-drift/phase127/phase117-defect-diagnosis-local-eval.json",
+      "fresh_comparison_path": "runtime-state/fresh-local-model-drift/phase127/phase117-defect-diagnosis-comparison.json",
+      "case_ids": [
+        "DD117-001",
+        "DD117-002"
+      ],
+      "expected_response_count": 4
+    },
+    {
+      "family_id": "phase118_engineering_judgment",
+      "priority_backlog_id": "P0-BB-003",
+      "run_script": "scripts/run_phase118_engineering_judgment_local_eval.py",
+      "compare_script": "scripts/compare_phase118_engineering_judgment_local_eval.py",
+      "cases_path": "runtime/phase118_engineering_judgment_prompt_cases.json",
+      "baselines_path": "runtime/phase118_engineering_judgment_blind_baselines.json",
+      "fresh_local_eval_path": "runtime-state/fresh-local-model-drift/phase127/phase118-engineering-judgment-local-eval.json",
+      "fresh_comparison_path": "runtime-state/fresh-local-model-drift/phase127/phase118-engineering-judgment-comparison.json",
+      "case_ids": [
+        "EJ118-001",
+        "EJ118-002"
+      ],
+      "expected_response_count": 4
+    },
+    {
+      "family_id": "phase119_delivery_mentorship",
+      "priority_backlog_id": "P0-BB-004",
+      "run_script": "scripts/run_phase119_delivery_mentorship_local_eval.py",
+      "compare_script": "scripts/compare_phase119_delivery_mentorship_local_eval.py",
+      "cases_path": "runtime/phase119_delivery_mentorship_prompt_cases.json",
+      "baselines_path": "runtime/phase119_delivery_mentorship_blind_baselines.json",
+      "fresh_local_eval_path": "runtime-state/fresh-local-model-drift/phase127/phase119-delivery-mentorship-local-eval.json",
+      "fresh_comparison_path": "runtime-state/fresh-local-model-drift/phase127/phase119-delivery-mentorship-comparison.json",
+      "case_ids": [
+        "DM119-001",
+        "DM119-002"
+      ],
+      "expected_response_count": 4
+    }
+  ]
+}

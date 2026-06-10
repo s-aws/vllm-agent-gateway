@@ -47,7 +47,7 @@ def build_variant_prompts() -> tuple[MatrixPrompt, ...]:
     variants: list[MatrixPrompt] = []
     for source_case_id in sorted(PROMPT_REFINEMENTS):
         source_case = cases[source_case_id]
-        expected_rule = source_case.expected_rule
+        expected_rule = source_case.refined_expected_rule or source_case.expected_rule
         refinement = PROMPT_REFINEMENTS[source_case_id]
         variants.append(
             MatrixPrompt(

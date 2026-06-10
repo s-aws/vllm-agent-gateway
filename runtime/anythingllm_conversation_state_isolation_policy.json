@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "anythingllm_conversation_state_isolation_policy",
+  "phase": 152,
+  "priority_backlog_id": "P0-BB-020",
+  "policy_version": "1.0.0",
+  "purpose": "Verify that the current user message controls workflow routing and output format even when direct gateway payloads or AnythingLLM sessions contain stale prior repository prompts, JSON requests, or explicit controller envelopes.",
+  "required_surfaces": [
+    "direct_controller_history",
+    "gateway_history_payload",
+    "anythingllm_same_session"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "cases": [
+    {
+      "case_id": "ISO-001",
+      "description": "A stale repository investigation in history must not override a current callers/usages prompt for the other fixture.",
+      "seed_kind": "stale_repo_prompt",
+      "current_prompt_template": "In {target_root}, find callers and usages of find_stealth_order_by_placed_order_id. Read only. Group by file and explain each usage briefly.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_context.lookup",
+      "expected_route_rules": [
+        "l1_callers_usages_terms"
+      ],
+      "expected_output_format": "format_a",
+      "forbidden_current_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Selected workflow: code_investigation.plan",
+        "\"output_format\": \"json\""
+      ]
+    },
+    {
+      "case_id": "ISO-002",
+      "description": "A stale JSON request in history must not force JSON when the current prompt is normal FormatA chat.",
+      "seed_kind": "stale_json_prompt",
+      "current_prompt_template": "In {target_root}, find tests related to placed_order_id stealth lookup. Read only. Return test files, matching terms, and recommended test commands.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_route_rules": [
+        "l1_find_related_tests_terms"
+      ],
+      "expected_output_format": "format_a",
+      "forbidden_current_markers": [
+        "\"output_format\": \"json\"",
+        "\"kind\": \"agentic_controller_chat_response\""
+      ]
+    },
+    {
+      "case_id": "ISO-003",
+      "description": "A stale explicit controller envelope in history must not route the latest normal greeting as repository work.",
+      "seed_kind": "stale_controller_envelope",
+      "current_prompt_template": "hi",
+      "expected_route_status": "general_chat_no_target",
+      "expected_selected_workflow": null,
+      "expected_route_rules": [],
+      "expected_output_format": "format_a",
+      "forbidden_current_markers": [
+        "Selected workflow: code_investigation.plan",
+        "Selected workflow: code_context.lookup",
+        "Selected workflow: task.decompose",
+        "Artifacts:"
+      ]
+    },
+    {
+      "case_id": "ISO-004",
+      "description": "A stale FormatA request in history must not prevent a current natural JSON request from returning JSON.",
+      "seed_kind": "stale_format_a_prompt",
+      "current_prompt_template": "In {target_root}, find tests related to placed_order_id stealth lookup. Read only. Return test files, matching terms, and recommended test commands. Return JSON.",
+      "expected_route_status": "ready",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_route_rules": [
+        "l1_find_related_tests_terms"
+      ],
+      "expected_output_format": "json",
+      "forbidden_current_markers": [
+        "Skill Selection:",
+        "workflow_router.plan completed\nrun_id:"
+      ]
+    }
+  ],
+  "required_current_markers": [
+    "workflow_router.plan",
+    "run_id:"
+  ],
+  "non_mutation_required": true,
+  "notes": [
+    "Direct and gateway surfaces use multi-message OpenAI-style payloads to prove latest-message selection.",
+    "AnythingLLM uses sequential messages with a reused sessionId to prove prior workspace messages do not contaminate the current response.",
+    "The gate must fail if a stale prior output-format request controls the current response."
+  ]
+}

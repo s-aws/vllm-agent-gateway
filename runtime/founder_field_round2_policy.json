@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "kind": "founder_field_round2_policy",
+  "phase": 164,
+  "priority_backlog_id": "P0-BB-028",
+  "goal": "Run founder field-test round 2 through blind-baseline-first comparison and the current AnythingLLM/local-model path.",
+  "existing_runner_script": "scripts/run_founder_field_prompt_eval.py",
+  "blind_baseline_source_path": "runtime/founder_field_round2_blind_baselines.json",
+  "post_restart_readiness_report_path": "runtime-state/post-restart-runtime-readiness/phase163/phase163-post-restart-runtime-readiness-report.json",
+  "phase158_feedback_report_path": "runtime-state/transcript-quality-feedback-intake/phase158/phase158-transcript-quality-feedback-intake-report.json",
+  "min_case_count": 12,
+  "max_case_count": 18,
+  "required_case_ids": [
+    "P01",
+    "P02",
+    "P03",
+    "P08",
+    "P11",
+    "P16",
+    "P17",
+    "P21",
+    "P27",
+    "P28",
+    "P29",
+    "P30",
+    "P31",
+    "P32",
+    "P33",
+    "P34"
+  ],
+  "required_advisory_case_ids": [
+    "P01",
+    "P08",
+    "P11",
+    "P16",
+    "P17",
+    "P21",
+    "P27",
+    "P28",
+    "P29",
+    "P30",
+    "P31",
+    "P32",
+    "P33",
+    "P34"
+  ],
+  "required_control_case_ids": [
+    "P02",
+    "P03"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_workflows": [
+    "code_investigation.plan",
+    "task.decompose"
+  ],
+  "required_blind_baseline_fields": [
+    "ideal_answer_shape",
+    "must_have_facts",
+    "must_have_markers",
+    "forbidden_markers",
+    "evidence_expectations",
+    "safety_boundaries",
+    "output_expectations",
+    "scoring_rubric"
+  ],
+  "required_route_surfaces": [
+    "anythingllm_via_workflow_router_gateway"
+  ],
+  "minimum_score": 85,
+  "allowed_quality_classifications": [
+    "pass",
+    "advisory",
+    "blocker",
+    "proposal_candidate"
+  ],
+  "acceptance_marker": "PHASE164 FOUNDER FIELD ROUND 2 PASS"
+}

@@ -12,6 +12,7 @@ Supported input report kinds:
 - `founder_field_prompt_evaluation`
 - `model_portability_report`
 - `run_artifact_diff`
+- `*_blind_baseline_comparison` Priority 0 comparison reports
 
 Failure categories:
 
@@ -71,6 +72,8 @@ findings[].recommended_next_action
 A passed taxonomy report means the taxonomy reader completed successfully. It does not mean the original validation run passed; check `summary.finding_count` and `findings`.
 
 If `unknown` appears repeatedly, add a narrower classification rule instead of treating the raw log as a one-off.
+
+For corpus-wide Priority 0 comparison validation, use `README.priority0-gap-taxonomy.md`. It preserves the existing taxonomy category and adds `evidence.gap_class` for repair ownership.
 
 ## Safety
 

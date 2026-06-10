@@ -478,6 +478,8 @@ def build_recommendation(
     accepted_repair_status: str = "proposed_advisory",
     target_result_status: str = RepairResultStatus.NOT_RUN_ADVISORY.value,
     holdout_result_status: str = RepairResultStatus.NOT_RUN_ADVISORY.value,
+    target_rerun_command_override: str = "",
+    holdout_rerun_command_override: str = "",
 ) -> dict[str, Any]:
     text = combined_text(source_category, message, evidence or {})
     category = classify_repair_category(source_category, text)
@@ -509,9 +511,9 @@ def build_recommendation(
         "minimal_repair_recommendation": recommendation_for(category, source_category),
         "validation_command": validation_command_for(category, source_category),
         "target_prompt_case_id": target_case,
-        "target_rerun_command": target_rerun_command(target_case),
+        "target_rerun_command": target_rerun_command_override.strip() or target_rerun_command(target_case),
         "holdout_prompt_case_id": holdout_case,
-        "holdout_rerun_command": holdout_rerun_command(holdout_case),
+        "holdout_rerun_command": holdout_rerun_command_override.strip() or holdout_rerun_command(holdout_case),
         "repair_cycle_count": repair_cycle_count,
         "advisory_only": advisory_only,
         "current_phase_tightening": current_phase_tightening,
@@ -556,6 +558,8 @@ def taxonomy_recommendations(
                 index=index,
                 target_prompt_case_id=target_prompt_case_id,
                 holdout_prompt_case_id=holdout_prompt_case_id,
+                target_rerun_command_override=str(evidence.get("target_rerun_command") or ""),
+                holdout_rerun_command_override=str(evidence.get("holdout_rerun_command") or ""),
             )
         )
     if report.get("status") != "passed":
@@ -641,6 +645,8 @@ def recursive_recommendations(
         current_phase_tightening = bool(finding.get("current_phase_tightening"))
         target_status = str(finding.get("target_result_status") or RepairResultStatus.NOT_RUN_ADVISORY.value)
         holdout_status = str(finding.get("holdout_result_status") or RepairResultStatus.NOT_RUN_ADVISORY.value)
+        target_rerun_override = str(finding.get("target_rerun_command") or "")
+        holdout_rerun_override = str(finding.get("holdout_rerun_command") or "")
         recommendations.append(
             build_recommendation(
                 source_kind="recursive_blind_testing",
@@ -661,6 +667,8 @@ def recursive_recommendations(
                 accepted_repair_status=accepted_repair_status(finding, current_phase_tightening=current_phase_tightening),
                 target_result_status=target_status,
                 holdout_result_status=holdout_status,
+                target_rerun_command_override=target_rerun_override,
+                holdout_rerun_command_override=holdout_rerun_override,
             )
         )
     for round_index, finding in blind_findings:

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "kind": "incremental_implementation_phase115_case_catalog",
+  "phase": 115,
+  "tenet_ids": [
+    "T06",
+    "T07"
+  ],
+  "cases": [
+    {
+      "case_id": "II115-FEAT-001",
+      "case_type": "feature_implementation_plan",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, create an incremental implementation plan for adding a requirement note to the stealth order lookup answer. Include isolated changesets, verification commands, and meaningful commit messages. Do not change files.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "incremental_implementation_plan",
+      "expected_domain_terms": [
+        "requirement_note",
+        "stealth",
+        "lookup"
+      ],
+      "expected_commit_subject_terms": [
+        "requirement note",
+        "stealth",
+        "lookup"
+      ],
+      "expected_markers": [
+        "Task Decomposition:",
+        "Incremental Implementation Plan:",
+        "- Changesets:",
+        "- Changeset verification:",
+        "- Commit messages:",
+        "- Commit order:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    },
+    {
+      "case_id": "II115-TEST-001",
+      "case_type": "test_update_plan",
+      "prompt": "In tests/fixtures/generalization/python_service_fixture, create an implementation plan with isolated changesets, verification commands, and meaningful commit messages for adding a focused test around resolved order status. Do not change files.",
+      "expected_workflow": "task.decompose",
+      "expected_rule": "task_decomposition_terms",
+      "expected_prompt_family": "incremental_implementation_plan",
+      "expected_domain_terms": [
+        "resolved order status"
+      ],
+      "expected_commit_subject_terms": [
+        "resolved order status"
+      ],
+      "expected_markers": [
+        "Task Decomposition:",
+        "Incremental Implementation Plan:",
+        "- Changesets:",
+        "- Changeset verification:",
+        "- Commit messages:",
+        "- Commit order:",
+        "- Source apply policy:",
+        "- Source mutation: False"
+      ]
+    }
+  ],
+  "contextless_audit_packet": {
+    "phase": 115,
+    "tenet_ids": [
+      "T06",
+      "T07"
+    ],
+    "score_threshold": 85,
+    "category_floor": 70,
+    "input_refs": [
+      "docs/ACTIONABLE_WORKFLOW_ROADMAP.md#approved-phase-115-incremental-implementation-and-version-control-tenets",
+      "README.task-decomposition.md",
+      "runtime/incremental_implementation_phase115_cases.json",
+      "vllm_agent_gateway/controllers/task_decompose/decompose.py",
+      "vllm_agent_gateway/acceptance/task_decomposition_quality.py",
+      "scripts/validate_incremental_implementation_phase115_cases.py",
+      "scripts/validate_incremental_implementation_live.py"
+    ],
+    "audit_dimensions": [
+      {
+        "id": "isolated_changesets",
+        "question": "Does each changeset have one behavior, a dependency boundary, and an unrelated-changes rejection policy?"
+      },
+      {
+        "id": "functional_and_testable_outcomes",
+        "question": "Does each changeset include a functional outcome, acceptance checks, and targeted verification commands?"
+      },
+      {
+        "id": "meaningful_commit_messages",
+        "question": "Are commit subjects and bodies specific, traceable, and non-vague?"
+      },
+      {
+        "id": "source_apply_blocked",
+        "question": "Does the plan keep source apply blocked inside task.decompose?"
+      }
+    ]
+  }
+}

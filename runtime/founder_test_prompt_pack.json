@@ -1,0 +1,36 @@
+{
+  "catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+  "description": "Phase 137 founder test prompt pack for stable read-only and decomposition testing after the four-prompt smoke passes.",
+  "kind": "founder_test_prompt_pack",
+  "phase": 137,
+  "priority_backlog_id": "P0-BB-020",
+  "schema_version": 1,
+  "tiers": [
+    {
+      "case_ids": [
+        "P01",
+        "P02",
+        "P03",
+        "P22"
+      ],
+      "description": "Current live founder smoke path.",
+      "tier": "smoke"
+    },
+    {
+      "case_ids": [
+        "P04",
+        "P05",
+        "P06",
+        "P08",
+        "P09",
+        "P10",
+        "P13",
+        "P17",
+        "P19",
+        "P21"
+      ],
+      "description": "Expanded read-only founder prompt pack for broader chat-quality coverage without draft/apply or advanced refactor.",
+      "tier": "expanded_read_only"
+    }
+  ]
+}
