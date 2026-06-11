@@ -364,6 +364,62 @@ def test_phase167_no_target_semantic_contract_accepts_answer_first() -> None:
     assert status["ordered_marker_errors"] == []
 
 
+def test_phase184_ui_prompt_catalog_includes_repaired_priority0_replay_cases() -> None:
+    cases = load_ui_prompt_cases(
+        REPO_ROOT,
+        case_ids=("UI184-ERR-001", "UI184-RTD-001", "UI184-RTD-002"),
+    )
+
+    assert [case.case_id for case in cases] == ["UI184-ERR-001", "UI184-RTD-001", "UI184-RTD-002"]
+    assert {case.prompt_family for case in cases} == {
+        "evidence_relevance_ranking",
+        "related_test_discovery_direct",
+        "related_test_discovery_no_test",
+    }
+    assert all(case.priority_backlog_id == "P0-BB-048" for case in cases)
+    assert all(case.expected_workflow == "code_investigation.plan" for case in cases)
+    assert all(case.target_root_mode == UiPromptTargetRootMode.TARGET_ROOT for case in cases)
+    assert all(
+        case.target_roots
+        == ("/mnt/c/coinbase_testing_repo_frozen_tmp", "/mnt/c/coinbase_testing_repo_frozen_tmp.github")
+        for case in cases
+    )
+    assert all("Read only" in case.prompt_template for case in cases)
+    assert all("{tag}" in case.prompt_template for case in cases)
+
+
+def test_phase184_related_test_semantic_contracts_cover_direct_and_no_bounded_evidence() -> None:
+    direct_case, no_test_case = load_ui_prompt_cases(
+        REPO_ROOT,
+        case_ids=("UI184-RTD-001", "UI184-RTD-002"),
+    )
+    direct_segment = (
+        "workflow_router.plan completed\n"
+        "selected_workflow: code_investigation.plan\n"
+        "Answer:\n"
+        "Related tests: tests/unit/test_order_id_and_followup_rules.py "
+        "(direct evidence, high confidence)\n"
+        "Recommended commands: python -m pytest tests/unit/test_order_id_and_followup_rules.py\n"
+        "Source mutation: false\n"
+    )
+    no_test_segment = (
+        "workflow_router.plan completed\n"
+        "selected_workflow: code_investigation.plan\n"
+        "Answer:\n"
+        "Related tests: none found in bounded evidence\n"
+        "Gaps: verification_tests_not_found\n"
+        "Confidence: low\n"
+        "Source mutation: false\n"
+    )
+    wrong_no_test_segment = no_test_segment + "python -m pytest tests/unit/test_order_id_and_followup_rules.py\n"
+
+    assert semantic_status_for_segment(direct_segment, direct_case)["semantic_status"] == "passed"
+    assert semantic_status_for_segment(no_test_segment, no_test_case)["semantic_status"] == "passed"
+    wrong_status = semantic_status_for_segment(wrong_no_test_segment, no_test_case)
+    assert wrong_status["semantic_status"] == "failed"
+    assert "python -m pytest tests/unit/test_order_id_and_followup_rules.py" in wrong_status["rejected_markers_present"]
+
+
 def test_load_ui_prompt_cases_filters_case_ids() -> None:
     cases = load_ui_prompt_cases(REPO_ROOT, case_ids=("UI126-CQ116-001", "UI126-DM119-002"))
 

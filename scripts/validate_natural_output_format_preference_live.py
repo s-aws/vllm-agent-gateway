@@ -77,6 +77,10 @@ def gateway_payload(case: NaturalOutputFormatPreferenceCase, preference: str) ->
         payload["output_format"] = "json"
     elif preference == "openai_response_format_json":
         payload["response_format"] = {"type": "json_object"}
+    elif preference == "unsupported_explicit_output_format":
+        payload["output_format"] = "markdown"
+    elif preference == "unsupported_response_format":
+        payload["response_format"] = {"type": "xml"}
     elif preference != "default_format_a":
         raise ValueError(f"unsupported gateway preference {preference!r}")
     return payload
@@ -138,10 +142,40 @@ def request_proof(preference: str) -> dict[str, Any]:
             "selector_kind": "openai_response_format",
             "explicit_output_format_fields": ["response_format"],
         }
+    if preference == "unsupported_explicit_output_format":
+        return {
+            "selector_kind": "unsupported_explicit_output_format",
+            "explicit_output_format_fields": ["output_format"],
+        }
+    if preference == "unsupported_response_format":
+        return {
+            "selector_kind": "unsupported_response_format",
+            "explicit_output_format_fields": ["response_format"],
+        }
     return {
         "selector_kind": "default",
         "explicit_output_format_fields": [],
     }
+
+
+def unsupported_output_format_error_code(status: int, body: dict[str, Any]) -> str | None:
+    if status == 400:
+        error = body.get("error") if isinstance(body.get("error"), dict) else {}
+        code = error.get("code")
+        return code if isinstance(code, str) else None
+    if status == 200:
+        compact = body.get("agentic_controller_response")
+        if not isinstance(compact, dict) or compact.get("status") != "failed":
+            return None
+        summary = compact.get("summary") if isinstance(compact.get("summary"), dict) else {}
+        code = summary.get("error_code")
+        if isinstance(code, str):
+            return code
+        failures = compact.get("failures") if isinstance(compact.get("failures"), list) else []
+        for failure in failures:
+            if isinstance(failure, dict) and isinstance(failure.get("code"), str):
+                return failure["code"]
+    return None
 
 
 def collect_gateway_preferences(args: argparse.Namespace, case: NaturalOutputFormatPreferenceCase) -> dict[str, Any]:
@@ -243,6 +277,32 @@ def collect_gateway_preferences(args: argparse.Namespace, case: NaturalOutputFor
             "request": request_proof(preference),
             "text": json_text,
             "parsed": parsed,
+            "errors": preference_errors,
+        }
+        errors.extend(preference_errors)
+
+    for preference in ("unsupported_explicit_output_format", "unsupported_response_format"):
+        unsupported_status, unsupported_body = json_request(
+            f"{args.workflow_router_gateway_base_url.rstrip('/')}/chat/completions",
+            payload=gateway_payload(case, preference),
+            timeout_seconds=args.timeout_seconds,
+        )
+        preference_errors: list[str] = []
+        error_code = unsupported_output_format_error_code(unsupported_status, unsupported_body)
+        if unsupported_status not in {200, 400}:
+            preference_errors.append(
+                f"gateway {preference} returned HTTP {unsupported_status}; expected visible 200 failure or raw 400: "
+                f"{json.dumps(unsupported_body, ensure_ascii=True)}"
+            )
+        if error_code != "unsupported_output_format":
+            preference_errors.append(
+                f"gateway {preference} error code was {error_code!r}; expected unsupported_output_format"
+            )
+        preferences[preference] = {
+            "status": "passed" if not preference_errors else "failed",
+            "http_status": unsupported_status,
+            "request": request_proof(preference),
+            "error": {"code": error_code},
             "errors": preference_errors,
         }
         errors.extend(preference_errors)

@@ -586,6 +586,12 @@ FORMAT_A_SUMMARY_KEY_PRIORITY = (
     "answer",
     "blocker_reasons",
     "blocker_messages",
+    "missing_information",
+    "bounded_next_step",
+    "safe_alternatives",
+    "evidence_expectations",
+    "mutation_policy",
+    "refusal_quality_status",
     "source_changed",
     "source_tree_changed",
     "disposable_copy_changed",
@@ -601,6 +607,14 @@ FORMAT_A_SUMMARY_KEY_PRIORITY = (
     "model_capability_profile_id",
     "model_capability_policy_status",
 )
+GOVERNED_EVIDENCE_BOUNDARY_KINDS = {
+    InlineArtifactKind.DATA_MODEL_LOOKUP,
+    InlineArtifactKind.CHANGE_SURFACE_SUMMARY,
+}
+PERSISTED_SCHEMA_FIELD_SOURCES = {
+    "sql_schema_block",
+    "sql_alter_add_column",
+}
 
 
 INLINE_ARTIFACT_KEYS: tuple[tuple[InlineArtifactKind, tuple[str, ...]], ...] = (
@@ -1184,7 +1198,127 @@ def workflow_router_summary(report: dict[str, Any] | None) -> dict[str, Any] | N
                 "answer",
                 f"I did not start a repository workflow. {blocker_messages[0]}",
             )
+        compact.update(refusal_quality_summary_for_blockers(blocker_reasons, blocker_messages))
     return compact
+
+
+def refusal_quality_summary_for_blockers(
+    blocker_reasons: list[str],
+    blocker_messages: list[str] | None = None,
+) -> dict[str, Any]:
+    reasons = [reason for reason in blocker_reasons if reason]
+    primary = reasons[0] if reasons else "blocked"
+    messages = [message for message in blocker_messages or [] if message]
+    defaults = {
+        "missing_information": [
+            "a concrete target behavior, file, symbol, failing command, error, or test",
+            "the expected outcome or acceptance condition",
+        ],
+        "bounded_next_step": (
+            "Send one concrete coding task with the repository path and the specific behavior, file, symbol, "
+            "error, or test to inspect."
+        ),
+        "safe_alternatives": [
+            "start with read-only inspection",
+            "prepare an approval-gated plan before mutation",
+            "use a disposable copy for apply testing",
+        ],
+        "evidence_expectations": [
+            "reproduction steps",
+            "failing command or test output",
+            "relevant logs, stack trace, screenshot, file, or symbol",
+        ],
+        "mutation_policy": "no repository workflow or source mutation started",
+        "refusal_quality_status": "actionable",
+    }
+    by_reason: dict[str, dict[str, Any]] = {
+        "ambiguous": {
+            "missing_information": [
+                "the specific behavior, file, symbol, error, or test to investigate",
+                "the expected result or acceptance criterion",
+            ],
+            "bounded_next_step": "Choose one concrete target and ask for read-only investigation before implementation.",
+            "safe_alternatives": [
+                "start with a read-only investigation",
+                "decompose the task into one small scoped request",
+            ],
+            "mutation_policy": "no repository workflow or source mutation started",
+        },
+        "blocked_approval_bypass": {
+            "missing_information": [
+                "approval-gated planning scope",
+                "the exact change request and target files or behavior",
+                "explicit approval only after a reviewed plan or packet",
+            ],
+            "bounded_next_step": (
+                "Ask for read-only investigation or draft packet planning first; do not request skipped approval."
+            ),
+            "safe_alternatives": [
+                "read-only investigation",
+                "draft-only implementation packet",
+                "disposable-copy apply after explicit approval",
+            ],
+            "mutation_policy": "source mutation is blocked until an approval-gated workflow allows it",
+        },
+        "blocked_raw_context": {
+            "missing_information": [
+                "the code question to answer from model-visible artifacts",
+                "the target file, symbol, relationship, or behavior to inspect",
+            ],
+            "bounded_next_step": (
+                "Ask for a code-context lookup or code investigation result instead of raw CodeGraphContext, MCP, or Cypher access."
+            ),
+            "safe_alternatives": [
+                "code_context.lookup for curated relationships",
+                "code_investigation.plan for bounded source evidence",
+            ],
+            "mutation_policy": "read-only only; no raw tool operation was started",
+        },
+        "unsupported": {
+            "missing_information": [
+                "a supported local development workflow request",
+                "the repository path and coding task if this is actually a code request",
+            ],
+            "bounded_next_step": (
+                "Reframe the request as a supported coding task such as explaining code, locating tests, "
+                "summarizing a failure, or planning a small approval-gated change."
+            ),
+            "safe_alternatives": [
+                "ask for supported coding workflow help",
+                "use the non-router model endpoint for ordinary chat",
+            ],
+            "mutation_policy": "no repository workflow or source mutation started",
+        },
+        "unsupported_repository_layout": {
+            "missing_information": [
+                "a repository root containing supported source, test, config, or documentation files",
+                "or an explicit supported file path",
+            ],
+            "bounded_next_step": "Point the request at the repository root or at a supported file path.",
+            "safe_alternatives": [
+                "use a supported fixture",
+                "provide an explicit source, test, config, or documentation file",
+            ],
+            "mutation_policy": "read-only route is blocked; no source mutation started",
+        },
+        "low_selection_confidence": {
+            "missing_information": [
+                "clearer task intent",
+                "target file, symbol, behavior, error, or test",
+            ],
+            "bounded_next_step": "Narrow the request until one workflow can be selected with confidence.",
+            "safe_alternatives": [
+                "ask for task decomposition",
+                "start with read-only code investigation",
+            ],
+            "mutation_policy": "no source mutation started",
+        },
+    }
+    summary = dict(defaults)
+    summary.update(by_reason.get(primary, {}))
+    if messages and not summary.get("answer"):
+        summary["answer"] = f"I did not start a repository workflow. {messages[0]}"
+    return summary
 
 
 def compact_tool_policy_record(value: Any) -> dict[str, Any] | None:
@@ -1342,16 +1476,22 @@ def parse_controller_output_format(value: Any, *, explicit: bool = False) -> Con
 
 
 def output_format_from_response_format(value: Any) -> ControllerOutputFormat | None:
+    if value is None:
+        return None
     if isinstance(value, dict):
         response_type = value.get("type")
-        selected = parse_controller_output_format(response_type)
-        if selected is not None:
-            return selected
-        if response_type in {"json_object", "json_schema"}:
-            return ControllerOutputFormat.JSON
+        if not isinstance(response_type, str) or not response_type.strip():
+            raise ControllerServiceError(
+                "Unsupported response_format. Use type json_object, json_schema, json, or format_a.",
+                code="unsupported_output_format",
+            )
+        return parse_controller_output_format(response_type, explicit=True)
     if isinstance(value, str):
-        return parse_controller_output_format(value)
-    return None
+        return parse_controller_output_format(value, explicit=True)
+    raise ControllerServiceError(
+        "Unsupported response_format. Use type json_object, json_schema, json, or format_a.",
+        code="unsupported_output_format",
+    )
 
 
 def latest_user_message_text_optional(payload: dict[str, Any]) -> str:
@@ -1849,6 +1989,34 @@ def append_chat_contract_lines(lines: list[str], response: dict[str, Any]) -> No
     lines.append(f"- Verification: {contract['verification']}")
 
 
+def append_refusal_quality_lines(lines: list[str], summary: Any) -> None:
+    if not isinstance(summary, dict) or summary.get("refusal_quality_status") != "actionable":
+        return
+    lines.append("")
+    lines.append("Recovery:")
+    blocker_reasons = summary.get("blocker_reasons") if isinstance(summary.get("blocker_reasons"), list) else []
+    blocker_messages = summary.get("blocker_messages") if isinstance(summary.get("blocker_messages"), list) else []
+    if blocker_reasons:
+        lines.append(f"- Blocking reason: {limited_join([str(item) for item in blocker_reasons], limit=3)}")
+    elif isinstance(summary.get("route_status"), str):
+        lines.append(f"- Blocking reason: {summary['route_status']}")
+    if blocker_messages:
+        lines.append(f"- Detail: {inline_text(str(blocker_messages[0]), 260)}")
+    missing = summary.get("missing_information") if isinstance(summary.get("missing_information"), list) else []
+    if missing:
+        lines.append(f"- Missing information: {limited_join([str(item) for item in missing], limit=4)}")
+    if isinstance(summary.get("bounded_next_step"), str):
+        lines.append(f"- Bounded next step: {inline_text(summary['bounded_next_step'], 300)}")
+    alternatives = summary.get("safe_alternatives") if isinstance(summary.get("safe_alternatives"), list) else []
+    if alternatives:
+        lines.append(f"- Safe alternatives: {limited_join([str(item) for item in alternatives], limit=4)}")
+    expectations = summary.get("evidence_expectations") if isinstance(summary.get("evidence_expectations"), list) else []
+    if expectations:
+        lines.append(f"- Evidence expected: {limited_join([str(item) for item in expectations], limit=4)}")
+    if isinstance(summary.get("mutation_policy"), str):
+        lines.append(f"- Mutation policy: {inline_text(summary['mutation_policy'], 260)}")
+
+
 def append_skill_selection_summary_lines(lines: list[str], response: dict[str, Any]) -> None:
     explanation = skill_selection_explanation_for_response(response)
     if not explanation:
@@ -1984,7 +2152,25 @@ def side_effect_summary(records: Any) -> str:
 def related_tests_summary(records: Any) -> str:
     if not isinstance(records, list):
         return ""
-    values = [path_with_line(record) for record in records if isinstance(record, dict)]
+    values: list[str] = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        path = path_with_line(record)
+        if not path:
+            continue
+        suffix_parts: list[str] = []
+        evidence_kind = record.get("evidence_kind")
+        confidence = record.get("confidence")
+        if isinstance(evidence_kind, str) and evidence_kind:
+            suffix_parts.append(f"{evidence_kind} evidence")
+        if isinstance(confidence, str) and confidence:
+            suffix_parts.append(f"{confidence} confidence")
+        markers = record.get("status_markers")
+        if isinstance(markers, list) and markers:
+            suffix_parts.append("markers: " + ", ".join(str(item) for item in markers[:3]))
+        suffix = f" ({', '.join(suffix_parts)})" if suffix_parts else ""
+        values.append(f"{path}{suffix}")
     return limited_join(values)
 
 
@@ -2005,6 +2191,9 @@ def participating_files_summary(records: Any) -> str:
             suffix_parts.append(category)
         if isinstance(match_count, int) and match_count:
             suffix_parts.append(f"{match_count} match(es)")
+        relevance = record.get("relevance")
+        if isinstance(relevance, dict) and isinstance(relevance.get("tier"), str):
+            suffix_parts.append(f"{relevance['tier']} evidence")
         suffix = f" ({', '.join(suffix_parts)})" if suffix_parts else ""
         values.append(f"{path}{suffix}")
     return limited_join(values, limit=5)
@@ -2025,6 +2214,9 @@ def boundary_files_summary(records: Any) -> str:
         suffix_parts: list[str] = []
         if isinstance(role, str) and role:
             suffix_parts.append(role)
+        relevance = record.get("relevance")
+        if isinstance(relevance, dict) and isinstance(relevance.get("tier"), str):
+            suffix_parts.append(f"{relevance['tier']} evidence")
         if isinstance(reason, str) and reason:
             suffix_parts.append(inline_text(reason, 140))
         suffix = f" ({'; '.join(suffix_parts)})" if suffix_parts else ""
@@ -2239,6 +2431,7 @@ def append_code_explanation_answer(lines: list[str], artifact: dict[str, Any]) -
     source_refs = source_refs_summary(artifact.get("source_refs"), limit=20)
     if source_refs:
         lines.append(f"- Source refs: {source_refs}")
+    lines.append("- Source mutation: false")
     return True
 
 
@@ -3235,6 +3428,13 @@ def append_test_selection_plan_answer(lines: list[str], artifact: dict[str, Any]
     if isinstance(target, str) and target:
         lines.append(f"- Target: {inline_text(target, 180)}")
         added = True
+    related_tests = related_tests_summary(artifact.get("related_tests"))
+    if related_tests:
+        lines.append(f"- Related tests: {related_tests}")
+        added = True
+    else:
+        lines.append("- Related tests: none found in bounded evidence")
+        added = True
     tiers = artifact.get("command_tiers")
     if isinstance(tiers, list):
         rationale_values: list[str] = []
@@ -3587,6 +3787,9 @@ def append_investigation_plan_answer(lines: list[str], artifact: dict[str, Any])
             if joined:
                 lines.append(f"- Recommended commands: {joined}")
                 added = True
+    if artifact.get("mutation_policy") == "read_only_no_source_mutation":
+        lines.append("- Source mutation: false")
+        added = True
     return added
 
 
@@ -4360,6 +4563,192 @@ def inline_artifact_answer_heading(kind: InlineArtifactKind) -> str:
     return "Answer:"
 
 
+def evidence_boundary_string(value: Any, label: str, errors: list[str]) -> str:
+    if isinstance(value, str) and value.strip():
+        return value
+    errors.append(f"{label} must be a non-empty string")
+    return ""
+
+
+def evidence_boundary_list(value: Any, label: str, errors: list[str]) -> list[Any]:
+    if isinstance(value, list):
+        return value
+    errors.append(f"{label} must be a list")
+    return []
+
+
+def evidence_boundary_object_list(value: Any, label: str, errors: list[str]) -> list[dict[str, Any]]:
+    records = evidence_boundary_list(value, label, errors)
+    objects = [item for item in records if isinstance(item, dict)]
+    if len(objects) != len(records):
+        errors.append(f"{label} must contain only objects")
+    return objects
+
+
+def source_ref_errors(records: list[dict[str, Any]], label: str) -> list[str]:
+    errors: list[str] = []
+    for index, record in enumerate(records):
+        if not isinstance(record.get("path"), str) or not record.get("path"):
+            errors.append(f"{label}[{index}].path must be a non-empty string")
+        line = record.get("line")
+        if line is not None and (not isinstance(line, int) or isinstance(line, bool)):
+            errors.append(f"{label}[{index}].line must be an integer when present")
+    return errors
+
+
+def data_model_evidence_boundary_errors(artifact: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    status = evidence_boundary_string(artifact.get("status"), "data_model_lookup.status", errors)
+    fields = evidence_boundary_object_list(artifact.get("fields"), "data_model_lookup.fields", errors)
+    model_files = evidence_boundary_list(artifact.get("model_files"), "data_model_lookup.model_files", errors)
+    source_refs = evidence_boundary_object_list(artifact.get("source_refs"), "data_model_lookup.source_refs", errors)
+    evidence_boundary_list(artifact.get("gaps"), "data_model_lookup.gaps", errors)
+    if artifact.get("mutation_policy") != "read_only_no_source_mutation":
+        errors.append("data_model_lookup.mutation_policy must be read_only_no_source_mutation")
+    if status == "ready":
+        if not fields:
+            errors.append("ready data_model_lookup requires at least one persisted schema field")
+        if not model_files:
+            errors.append("ready data_model_lookup requires model_files")
+        if not source_refs:
+            errors.append("ready data_model_lookup requires source_refs")
+    for index, field in enumerate(fields):
+        field_name = field.get("name")
+        if not isinstance(field_name, str) or not field_name.strip():
+            errors.append(f"data_model_lookup.fields[{index}].name must be a non-empty string")
+        field_path = field.get("path")
+        if not isinstance(field_path, str) or not field_path.strip():
+            errors.append(f"data_model_lookup.fields[{index}].path must be a non-empty string")
+        source = field.get("source")
+        scope_label = field.get("evidence_scope") or field.get("scope") or field.get("field_scope")
+        if source not in PERSISTED_SCHEMA_FIELD_SOURCES and not scope_label:
+            errors.append(
+                f"data_model_lookup.fields[{index}].source must be persisted schema evidence or explicitly label its scope"
+            )
+        if isinstance(source, str) and "runtime" in source.lower() and not scope_label:
+            errors.append(f"data_model_lookup.fields[{index}] mixes runtime evidence without an explicit scope label")
+    for index, model_file in enumerate(model_files):
+        if not isinstance(model_file, str) or not model_file.strip():
+            errors.append(f"data_model_lookup.model_files[{index}] must be a non-empty string")
+    errors.extend(source_ref_errors(source_refs, "data_model_lookup.source_refs"))
+    return errors
+
+
+def boundary_path_set(records: list[dict[str, Any]]) -> set[str]:
+    return {str(item.get("path")) for item in records if isinstance(item.get("path"), str) and item.get("path")}
+
+
+def change_surface_evidence_boundary_errors(artifact: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    status = evidence_boundary_string(artifact.get("status"), "change_surface_summary.status", errors)
+    files_to_touch = evidence_boundary_object_list(
+        artifact.get("files_to_touch"),
+        "change_surface_summary.files_to_touch",
+        errors,
+    )
+    files_not_to_touch = evidence_boundary_object_list(
+        artifact.get("files_not_to_touch"),
+        "change_surface_summary.files_not_to_touch",
+        errors,
+    )
+    unknowns = evidence_boundary_object_list(artifact.get("unknowns"), "change_surface_summary.unknowns", errors)
+    risks = evidence_boundary_object_list(artifact.get("risks"), "change_surface_summary.risks", errors)
+    gaps = evidence_boundary_list(artifact.get("gaps"), "change_surface_summary.gaps", errors)
+    verification = evidence_boundary_list(
+        artifact.get("verification_commands"),
+        "change_surface_summary.verification_commands",
+        errors,
+    )
+    source_refs = evidence_boundary_object_list(
+        artifact.get("source_refs"),
+        "change_surface_summary.source_refs",
+        errors,
+    )
+    if artifact.get("mutation_policy") != "read_only_no_source_mutation":
+        errors.append("change_surface_summary.mutation_policy must be read_only_no_source_mutation")
+    implementation_status = artifact.get("implementation_status")
+    if not isinstance(implementation_status, str) or "approval" not in implementation_status:
+        errors.append("change_surface_summary.implementation_status must keep implementation behind approval")
+    if status == "ready":
+        if not files_to_touch and not any(item.get("unknown") == "files_to_touch" for item in unknowns):
+            errors.append("ready change_surface_summary requires files_to_touch or an explicit files_to_touch unknown")
+        if not files_not_to_touch and not any(item.get("unknown") == "files_not_to_touch" for item in unknowns):
+            errors.append("ready change_surface_summary requires files_not_to_touch or an explicit files_not_to_touch unknown")
+        if not risks:
+            errors.append("ready change_surface_summary requires risks")
+        if not verification:
+            errors.append("ready change_surface_summary requires verification_commands")
+        if not source_refs:
+            errors.append("ready change_surface_summary requires source_refs")
+    touch_paths = boundary_path_set(files_to_touch)
+    no_touch_paths = boundary_path_set(files_not_to_touch)
+    overlap = sorted(touch_paths & no_touch_paths)
+    if overlap:
+        errors.append("change_surface_summary paths cannot appear in both files_to_touch and files_not_to_touch: " + ", ".join(overlap))
+    for label, records in (
+        ("change_surface_summary.files_to_touch", files_to_touch),
+        ("change_surface_summary.files_not_to_touch", files_not_to_touch),
+    ):
+        for index, record in enumerate(records):
+            if not isinstance(record.get("path"), str) or not record.get("path"):
+                errors.append(f"{label}[{index}].path must be a non-empty string")
+            if not isinstance(record.get("reason"), str) or not record.get("reason"):
+                errors.append(f"{label}[{index}].reason must explain the boundary decision")
+    for index, unknown in enumerate(unknowns):
+        if not isinstance(unknown.get("unknown"), str) or not unknown.get("unknown"):
+            errors.append(f"change_surface_summary.unknowns[{index}].unknown must be a non-empty string")
+        if not isinstance(unknown.get("reason"), str) or not unknown.get("reason"):
+            errors.append(f"change_surface_summary.unknowns[{index}].reason must explain the uncertainty")
+    for index, risk in enumerate(risks):
+        if not isinstance(risk.get("risk"), str) or not risk.get("risk"):
+            errors.append(f"change_surface_summary.risks[{index}].risk must be a non-empty string")
+    for index, gap in enumerate(gaps):
+        if not isinstance(gap, dict):
+            continue
+        if not isinstance(gap.get("gap"), str) or not gap.get("gap"):
+            errors.append(f"change_surface_summary.gaps[{index}].gap must be a non-empty string")
+    errors.extend(source_ref_errors(source_refs, "change_surface_summary.source_refs"))
+    return errors
+
+
+def evidence_boundary_errors_for_artifact(kind: InlineArtifactKind, artifact: dict[str, Any]) -> list[str]:
+    if kind == InlineArtifactKind.DATA_MODEL_LOOKUP:
+        return data_model_evidence_boundary_errors(artifact)
+    if kind == InlineArtifactKind.CHANGE_SURFACE_SUMMARY:
+        return change_surface_evidence_boundary_errors(artifact)
+    return []
+
+
+def evidence_boundary_failure_contract(
+    *,
+    kind: InlineArtifactKind,
+    key: str,
+    artifact: dict[str, Any],
+    errors: list[str],
+) -> dict[str, Any]:
+    heading = "Evidence Boundary Gate:"
+    answer_lines = [
+        "- Evidence boundary status: failed",
+        f"- Artifact: {kind.value}",
+        "- Blocking issues: " + limited_join(errors, limit=5),
+        "- Next action: repair the controller artifact evidence boundary before accepting this chat answer",
+    ]
+    if artifact.get("mutation_policy") == "read_only_no_source_mutation":
+        answer_lines.append("- Source mutation: false")
+    return {
+        "kind": "inline_artifact_answer_contract",
+        "artifact_kind": kind.value,
+        "artifact_key": key,
+        "artifact_status": artifact.get("status"),
+        "heading": heading,
+        "lines": answer_lines,
+        "text": "\n".join([heading, *answer_lines]),
+        "source_mutation": "false" if artifact.get("mutation_policy") == "read_only_no_source_mutation" else None,
+        "evidence_boundary_status": "failed",
+        "evidence_boundary_errors": errors,
+    }
+
+
 def primary_answer_contract_for_response(response: dict[str, Any]) -> dict[str, Any] | None:
     summary = response.get("summary") if isinstance(response.get("summary"), dict) else {}
     answer = first_string(summary.get("answer"))
@@ -4388,6 +4777,18 @@ def inline_artifact_answer_contract_for_response(response: dict[str, Any]) -> di
             artifact = read_inline_artifact(artifacts.get(key))
             if artifact is None or artifact.get("status") == "not_requested":
                 continue
+            boundary_errors = (
+                evidence_boundary_errors_for_artifact(kind, artifact)
+                if kind in GOVERNED_EVIDENCE_BOUNDARY_KINDS
+                else []
+            )
+            if boundary_errors:
+                return evidence_boundary_failure_contract(
+                    kind=kind,
+                    key=key,
+                    artifact=artifact,
+                    errors=boundary_errors,
+                )
             answer_lines: list[str] = []
             if not renderer(answer_lines, artifact):
                 break
@@ -4404,6 +4805,8 @@ def inline_artifact_answer_contract_for_response(response: dict[str, Any]) -> di
                 "source_mutation": "false"
                 if any(line.strip().lower() == "- source mutation: false" for line in answer_lines)
                 else None,
+                "evidence_boundary_status": "passed" if kind in GOVERNED_EVIDENCE_BOUNDARY_KINDS else None,
+                "evidence_boundary_errors": [],
             }
             break
     return None
@@ -4513,6 +4916,7 @@ def assistant_content_format_a(response: dict[str, Any]) -> str:
             ]
         )
     append_chat_contract_lines(lines, response)
+    append_refusal_quality_lines(lines, response.get("summary"))
     append_skill_selection_summary_lines(lines, response)
     append_context_source_summary_lines(lines, response)
     append_summary_lines(lines, response.get("summary"))
@@ -6967,6 +7371,16 @@ def no_target_guidance_summary(kind: str) -> dict[str, Any]:
                 "Example: In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what a function does. "
                 "For ordinary model chat, use the non-router model endpoint instead of the workflow-router gateway."
             ),
+            "missing_information": ["allowed target_root path", "concrete coding task"],
+            "bounded_next_step": (
+                "Send one coding prompt with a repository path and the behavior, file, symbol, error, or test to inspect."
+            ),
+            "safe_alternatives": ["use the non-router model endpoint for ordinary chat"],
+            "evidence_expectations": ["repository path", "specific coding target"],
+            "mutation_policy": "no repository workflow or source mutation started",
+            "refusal_quality_status": "actionable",
+            "source_changed": False,
+            "source_tree_changed": False,
         }
     if kind == "general_help_no_target":
         return {
@@ -6981,6 +7395,17 @@ def no_target_guidance_summary(kind: str) -> dict[str, Any]:
                 "Send a prompt like: In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what "
                 "find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only."
             ),
+            "missing_information": ["allowed target_root path", "concrete coding task"],
+            "bounded_next_step": (
+                "Pick one supported task, such as code explanation, related-test lookup, failure summary, "
+                "configuration lookup, or a small approval-gated change plan."
+            ),
+            "safe_alternatives": ["ask for supported workflow examples", "use the non-router model endpoint for ordinary chat"],
+            "evidence_expectations": ["repository path", "specific file, symbol, behavior, error, or test"],
+            "mutation_policy": "no repository workflow or source mutation started",
+            "refusal_quality_status": "actionable",
+            "source_changed": False,
+            "source_tree_changed": False,
         }
     if kind == "blocked_missing_target_and_approval":
         return {
@@ -6994,6 +7419,24 @@ def no_target_guidance_summary(kind: str) -> dict[str, Any]:
                 "I can start with read-only inspection."
             ),
             "blocker_reasons": ["missing_target_root", "blocked_approval_bypass"],
+            "missing_information": [
+                "allowed target_root path",
+                "concrete change request",
+                "approval-gated planning scope",
+            ],
+            "bounded_next_step": (
+                "Start with read-only inspection or a draft plan, then request approval after the plan is reviewable."
+            ),
+            "safe_alternatives": [
+                "read-only investigation",
+                "draft-only implementation packet",
+                "disposable-copy apply after explicit approval",
+            ],
+            "evidence_expectations": ["target files or behavior", "acceptance criteria", "verification command or test"],
+            "mutation_policy": "source mutation and approval bypass are blocked",
+            "refusal_quality_status": "actionable",
+            "source_changed": False,
+            "source_tree_changed": False,
         }
     return {
         "route_status": "missing_target_root_for_coding_request",
@@ -7005,6 +7448,19 @@ def no_target_guidance_summary(kind: str) -> dict[str, Any]:
             "Include the repository path and the specific behavior, file, symbol, error, or test you want investigated."
         ),
         "blocker_reasons": ["missing_target_root"],
+        "missing_information": [
+            "allowed target_root path",
+            "specific behavior, file, symbol, error, or test to investigate",
+        ],
+        "bounded_next_step": (
+            "Resend the request with an allowed repository path and one concrete coding target."
+        ),
+        "safe_alternatives": ["start with read-only investigation", "ask for supported prompt examples"],
+        "evidence_expectations": ["repository path", "expected behavior or failing command when debugging"],
+        "mutation_policy": "no repository workflow or source mutation started",
+        "refusal_quality_status": "actionable",
+        "source_changed": False,
+        "source_tree_changed": False,
     }
 
 

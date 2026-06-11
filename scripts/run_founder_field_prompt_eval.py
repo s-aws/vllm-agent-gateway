@@ -171,11 +171,12 @@ def fixture_state(target_roots: tuple[str, ...]) -> dict[str, dict[str, Any]]:
 def selected_cases(case_ids: list[str] | None, limit: int | None) -> tuple[FieldPrompt, ...]:
     cases = FIELD_PROMPTS
     if case_ids:
-        wanted = {case_id.upper() for case_id in case_ids}
-        cases = tuple(case for case in cases if case.case_id.upper() in wanted)
-        missing = sorted(wanted - {case.case_id.upper() for case in cases})
+        by_id = {case.case_id.upper(): case for case in FIELD_PROMPTS}
+        requested = [case_id.upper() for case_id in case_ids]
+        missing = sorted(set(requested) - set(by_id))
         if missing:
             raise RuntimeError(f"unknown field prompt case id(s): {', '.join(missing)}")
+        cases = tuple(by_id[case_id] for case_id in requested)
     if limit is not None:
         cases = cases[:limit]
     return cases

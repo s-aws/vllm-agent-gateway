@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "phase": "183",
+  "minimum_score": 85,
+  "required_case_ids": [
+    "RTD-001-direct-test-outranks-comment",
+    "RTD-002-command-carries-evidence",
+    "RTD-003-no-bounded-test-evidence"
+  ],
+  "blind_baseline_summary": {
+    "ideal_answer_shape": [
+      "Directly state the related tests found, or state that no bounded related tests were found.",
+      "For each test, include concrete evidence such as matching symbols, assertions, imports, fixtures, or markers.",
+      "Label confidence for each recommendation.",
+      "Provide exact narrow commands from the repo root when evidence-backed tests exist.",
+      "Expose honest gaps when bounded discovery finds no tests."
+    ],
+    "must_have_rules": [
+      "Only claim related tests when repo-visible evidence exists.",
+      "Prefer direct symbols, assertions, and test definitions over filename or comment similarity.",
+      "Separate tests found from verification commands suggested.",
+      "Do not claim coverage unless assertions or direct behavior evidence exist.",
+      "If no bounded tests are found, say so plainly and avoid invented commands."
+    ],
+    "negative_cases": [
+      "Invents a test file path.",
+      "Ranks comment-only evidence above a direct test definition.",
+      "Provides a pytest command for a non-existent or unsupported test path.",
+      "Omits confidence or source refs for related tests.",
+      "Says no tests found when direct matching tests exist.",
+      "Recommends only broad full-suite commands when a narrow related test exists."
+    ],
+    "rubric": [
+      "Evidence-backed discovery: 30 points.",
+      "Honesty and boundedness: 20 points.",
+      "Command usefulness: 20 points.",
+      "Answer shape and clarity: 15 points.",
+      "Failure-mode handling: 15 points."
+    ]
+  }
+}

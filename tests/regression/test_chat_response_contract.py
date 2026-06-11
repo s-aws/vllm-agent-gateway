@@ -247,6 +247,49 @@ def response_with_primary_summary_answer() -> dict[str, Any]:
     }
 
 
+def response_with_refusal_quality_summary() -> dict[str, Any]:
+    return {
+        "run_id": "workflow-router-refusal-test",
+        "workflow": "workflow_router.plan",
+        "status": "completed",
+        "summary": {
+            "route_status": "blocked",
+            "selected_workflow": "none",
+            "answer": "I did not start a repository workflow. The request asks to bypass approval.",
+            "next_action": "request_approval",
+            "blocker_reasons": ["blocked_approval_bypass"],
+            "blocker_messages": ["The request asks to bypass or skip approval before mutation."],
+            "missing_information": ["approval-gated planning scope", "exact change request"],
+            "bounded_next_step": "Ask for read-only investigation or draft packet planning first.",
+            "safe_alternatives": ["read-only investigation", "draft-only implementation packet"],
+            "evidence_expectations": ["target files or behavior", "verification command or test"],
+            "mutation_policy": "source mutation is blocked until an approval-gated workflow allows it",
+            "refusal_quality_status": "actionable",
+        },
+        "artifacts": {},
+        "warning_count": 0,
+        "warnings": [],
+        "failure_count": 0,
+        "failures": [],
+    }
+
+
+def response_with_artifact(tmp_path: Path, key: str, artifact: dict[str, Any]) -> dict[str, Any]:
+    artifact_path = tmp_path / f"{key}.json"
+    write_json(artifact_path, artifact)
+    return {
+        "run_id": f"workflow-router-{key}",
+        "workflow": "workflow_router.plan",
+        "status": "completed",
+        "summary": {"selected_workflow": "code_investigation.plan", "downstream_status": "completed"},
+        "artifacts": {key: str(artifact_path)},
+        "warning_count": 0,
+        "warnings": [],
+        "failure_count": 0,
+        "failures": [],
+    }
+
+
 def test_format_a_contract_renders_result_answer_before_artifacts(tmp_path: Path) -> None:
     markers = required_markers()
     content = assistant_content_for_controller_response(
@@ -287,6 +330,81 @@ def test_format_a_summary_answer_renders_before_router_boilerplate() -> None:
     assert content.index("Answer:") < content.index("I completed workflow_router.plan.")
     assert content.index("Answer:") < content.index("Result:")
     assert "Run record: /v1/controller/runs/workflow-router-general-test" in content
+
+
+def test_evidence_boundary_gate_rejects_runtime_schema_field_without_scope_label(tmp_path: Path) -> None:
+    response = response_with_artifact(
+        tmp_path,
+        "downstream_data_model_lookup",
+        {
+            "kind": "data_model_lookup",
+            "schema_version": 1,
+            "status": "ready",
+            "target": "stealth_orders",
+            "fields": [
+                {
+                    "name": "placed_order_id",
+                    "definition": "runtime cache key",
+                    "path": "core/stealth_order_manager.py",
+                    "line": 120,
+                    "source": "runtime_dictionary",
+                }
+            ],
+            "model_files": ["core/stealth_order_manager.py"],
+            "source_refs": [{"path": "core/stealth_order_manager.py", "line": 120}],
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": [],
+        },
+    )
+
+    content = assistant_content_for_controller_response(response, ControllerOutputFormat.FORMAT_A)
+    parsed = json.loads(assistant_content_for_controller_response(response, ControllerOutputFormat.JSON))
+
+    assert "Evidence Boundary Gate:" in content
+    assert "Evidence boundary status: failed" in content
+    assert "runtime evidence without an explicit scope label" in content
+    assert "Target model/schema:" not in content
+    assert parsed["inline_answer_contract"]["evidence_boundary_status"] == "failed"
+    assert any("runtime evidence" in error for error in parsed["inline_answer_contract"]["evidence_boundary_errors"])
+
+
+def test_evidence_boundary_gate_rejects_ambiguous_change_surface_overlap(tmp_path: Path) -> None:
+    boundary_file = {
+        "path": "core/stealth_order_manager.py",
+        "category": "source",
+        "reason": "Conflicting boundary fixture.",
+    }
+    response = response_with_artifact(
+        tmp_path,
+        "downstream_change_surface_summary",
+        {
+            "kind": "change_surface_summary",
+            "schema_version": 1,
+            "status": "ready",
+            "target": "placed_order_id stealth lookup",
+            "change_surface_files": [boundary_file],
+            "files_to_touch": [boundary_file],
+            "files_not_to_touch": [boundary_file],
+            "unknowns": [],
+            "related_tests": [],
+            "risk_level": "medium",
+            "risks": [{"risk": "boundary_conflict", "level": "medium", "reason": "Synthetic invalid fixture."}],
+            "implementation_status": "not_ready_without_approval",
+            "verification_commands": [{"command": ["python", "-m", "pytest", "tests/regression/", "-v"]}],
+            "source_refs": [{"path": "core/stealth_order_manager.py", "line": 120}],
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": [],
+        },
+    )
+
+    content = assistant_content_for_controller_response(response, ControllerOutputFormat.FORMAT_A)
+    parsed = json.loads(assistant_content_for_controller_response(response, ControllerOutputFormat.JSON))
+
+    assert "Evidence Boundary Gate:" in content
+    assert "paths cannot appear in both files_to_touch and files_not_to_touch" in content
+    assert "- Files to touch:" not in content
+    assert parsed["inline_answer_contract"]["evidence_boundary_status"] == "failed"
+    assert parsed["inline_answer_contract"]["source_mutation"] == "false"
 
 
 def test_format_a_behavior_start_prefers_investigation_plan_over_cli_lookup(tmp_path: Path) -> None:
@@ -403,6 +521,20 @@ def test_json_output_includes_primary_summary_answer_contract() -> None:
         "source": "summary.answer",
         "text": parsed["chat_contract"]["answer"],
     }
+
+
+def test_format_a_refusal_quality_recovery_section_is_chat_visible() -> None:
+    content = assistant_content_for_controller_response(
+        response_with_refusal_quality_summary(),
+        ControllerOutputFormat.FORMAT_A,
+    )
+
+    assert "Recovery:" in content
+    assert "- Blocking reason: blocked_approval_bypass" in content
+    assert "- Missing information: approval-gated planning scope; exact change request" in content
+    assert "- Bounded next step: Ask for read-only investigation or draft packet planning first." in content
+    assert "- Safe alternatives: read-only investigation; draft-only implementation packet" in content
+    assert "- Mutation policy: source mutation is blocked until an approval-gated workflow allows it" in content
 
 
 def test_json_output_inline_answer_contract_matches_format_a_body(tmp_path: Path) -> None:

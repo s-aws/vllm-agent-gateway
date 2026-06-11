@@ -1,0 +1,73 @@
+{
+  "acceptance_marker": "PHASE193 SKILL REGISTRY READINESS REVIEW PASS",
+  "decision_contract": {
+    "allowed_decisions": [
+      "keep",
+      "split",
+      "merge",
+      "retire",
+      "defer"
+    ],
+    "required_report_fields": [
+      "skill_id",
+      "decision",
+      "route_key",
+      "route_namespace",
+      "workflows",
+      "safety_level",
+      "mutation_policy",
+      "eval_status",
+      "coverage_entry_ids",
+      "planned_coverage_entry_ids",
+      "eval_case_ids",
+      "readiness_evidence",
+      "reasoning_summary",
+      "recommended_next_action"
+    ],
+    "split_triggers": [
+      "too_many_workflows",
+      "too_many_task_types",
+      "mixed_mutation_boundary"
+    ],
+    "merge_triggers": [
+      "semantic_intent_overlap",
+      "duplicate_route_key",
+      "duplicate_trigger_boundary"
+    ],
+    "retire_triggers": [
+      "deprecated",
+      "missing_body",
+      "unreferenced_invalid_eval"
+    ]
+  },
+  "description": "Phase 193 readiness review for whether current skills are small, deterministic, discoverable, testable, and scalable before adding more L1/L2 skill batches.",
+  "expected_counts": {
+    "deprecated_skill_count": 0,
+    "do_not_admit_count": 0,
+    "eval_case_count": 53,
+    "implemented_prompt_coverage_count": 38,
+    "planned_prompt_coverage_count": 2,
+    "prompt_coverage_entry_count": 40,
+    "route_key_count": 54,
+    "skill_count": 54
+  },
+  "kind": "skill_registry_readiness_review_policy",
+  "phase": 193,
+  "priority_backlog_id": "P0-BB-057",
+  "required_source_paths": {
+    "prompt_skill_coverage": "runtime/prompt_skill_coverage.json",
+    "skill_evals": "runtime/skill_evals.json",
+    "skill_registry": "runtime/skills.json",
+    "tools": "runtime/tools.json",
+    "workflows": "runtime/workflows.json"
+  },
+  "scaling_requirements": {
+    "metadata_only_selection": true,
+    "no_body_reads_during_selection": true,
+    "route_key_unique": true,
+    "semantic_overlap_rejected": true,
+    "batch_admission_required": true,
+    "live_proof_required_before_validated": true
+  },
+  "schema_version": 1
+}

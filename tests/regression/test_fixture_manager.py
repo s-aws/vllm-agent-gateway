@@ -11,7 +11,7 @@ from vllm_agent_gateway.fixtures.manager import (
     run_fixture_manager,
     validate_fixture_manifest,
 )
-from scripts.validate_multi_repo_fixtures_live import LIVE_CASES
+from scripts.validate_multi_repo_fixtures_live import LIVE_CASES, parity_matrix
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -85,9 +85,103 @@ def test_multi_repo_live_case_catalog_covers_coinbase_node_and_go_fixtures() -> 
     assert go_cases["go-http-table-read-write"].expected_artifact == "downstream_table_read_write_lookup"
     assert {case.case_id for case in by_fixture["python-service-generalization"]} == {
         "python-service-code-explanation",
+        "python-service-schema-lookup",
         "python-service-request-flow",
+        "python-service-change-surface",
     }
+    assert {case.prompt_family for case in LIVE_CASES} >= {
+        "code_explanation",
+        "schema_lookup",
+        "request_flow",
+        "change_surface",
+        "configuration_lookup",
+        "table_read_write",
+    }
+    coinbase_cases = {case.case_id for case in by_fixture["coinbase-frozen"]}
+    assert {
+        "coinbase-code-explanation",
+        "coinbase-schema-lookup",
+        "coinbase-request-flow",
+        "coinbase-change-surface",
+    } <= coinbase_cases
     assert "hardcoded" not in by_fixture["node-cli-generalization"][0].prompt_template.lower()
+
+
+def parity_case(
+    *,
+    prompt_family: str,
+    case_id: str,
+    fixture_id: str,
+    status: str = "passed",
+    client: str = "gateway",
+) -> dict[str, object]:
+    return {
+        "prompt_family": prompt_family,
+        "case_id": case_id,
+        "fixture_id": fixture_id,
+        "category": "unit",
+        "client": client,
+        "status": status,
+        "selected_workflow": "code_investigation.plan",
+        "expected_artifact": "downstream_code_explanation",
+    }
+
+
+def test_multi_fixture_parity_matrix_passes_when_all_family_cases_pass() -> None:
+    matrix = parity_matrix(
+        [
+            parity_case(prompt_family="code_explanation", case_id="a", fixture_id="coinbase-frozen"),
+            parity_case(prompt_family="code_explanation", case_id="b", fixture_id="coinbase-frozen-git"),
+            parity_case(prompt_family="schema_lookup", case_id="c", fixture_id="python-service-generalization"),
+        ]
+    )
+
+    assert matrix["status"] == "passed"
+    assert matrix["family_count"] == 2
+    assert matrix["fixture_specific_deltas"] == []
+    assert matrix["shared_workflow_deltas"] == []
+
+
+def test_multi_fixture_parity_matrix_classifies_fixture_specific_delta() -> None:
+    matrix = parity_matrix(
+        [
+            parity_case(prompt_family="request_flow", case_id="a", fixture_id="coinbase-frozen"),
+            parity_case(
+                prompt_family="request_flow",
+                case_id="b",
+                fixture_id="coinbase-frozen-git",
+                status="failed",
+            ),
+            parity_case(prompt_family="request_flow", case_id="c", fixture_id="python-service-generalization"),
+        ]
+    )
+
+    assert matrix["status"] == "failed"
+    assert matrix["fixture_specific_deltas"] == [{"prompt_family": "request_flow", "failed_case_ids": ["b"]}]
+    assert matrix["shared_workflow_deltas"] == []
+
+
+def test_multi_fixture_parity_matrix_classifies_shared_workflow_delta() -> None:
+    matrix = parity_matrix(
+        [
+            parity_case(
+                prompt_family="change_surface",
+                case_id="a",
+                fixture_id="coinbase-frozen",
+                status="failed",
+            ),
+            parity_case(
+                prompt_family="change_surface",
+                case_id="b",
+                fixture_id="coinbase-frozen-git",
+                status="failed",
+            ),
+        ]
+    )
+
+    assert matrix["status"] == "failed"
+    assert matrix["fixture_specific_deltas"] == []
+    assert matrix["shared_workflow_deltas"] == [{"prompt_family": "change_surface", "failed_case_ids": ["a", "b"]}]
 
 
 def test_fixture_manager_setup_copies_and_cleanup_removes_without_source_mutation(tmp_path: Path) -> None:

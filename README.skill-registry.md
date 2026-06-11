@@ -153,6 +153,8 @@ Phase 47 adds `skill.scaffold`, an artifact-only controller workflow for generat
 
 Phase 80 extends the same `skill.scaffold` path into the skill authoring factory. It still does not mutate runtime registries. It now also generates planned prompt coverage, docs stubs, an eval skeleton, and a fail-closed regression test skeleton from the same prompt-family specification.
 
+Phase 194 adds the Skill Authoring Pipeline V2 gate. It validates one draft candidate packet before promotion proof begins: batch admission, planned coverage, eval skeleton, docs/example stubs, fail-closed regression skeleton, target prompts, holdouts, objective acceptance criteria, blind-baseline-first proof plan, and live validation coverage. A passing Phase 194 packet is not promotion eligible. Details: [README.skill-authoring-pipeline-v2.md](README.skill-authoring-pipeline-v2.md).
+
 The scaffold request requires a `prompt_family_spec` with:
 
 - `skill_id`

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "kind": "founder_feedback_intake_repair_policy",
+  "phase": 198,
+  "priority_backlog_id": "P0-BB-062",
+  "goal": "Convert Phase 197 founder trial advisories, blockers, and optional founder notes into explicit repair proposals before V1 beta closeout.",
+  "required_phase197_report": {
+    "path": "runtime-state/phase197/phase197-founder-trial-execution-round-report.json",
+    "expected_kind": "founder_trial_execution_round_report",
+    "expected_status": "passed",
+    "expected_phase": 197
+  },
+  "optional_founder_notes_path": "runtime-state/phase198/founder-feedback-notes.json",
+  "required_source_classifications": ["advisory", "blocker"],
+  "allowed_source_types": ["phase197_case", "founder_note"],
+  "allowed_issue_categories": [
+    "prompt_issue",
+    "answer_quality",
+    "routing_issue",
+    "harness_issue",
+    "controller_or_formatter",
+    "missing_skill_tool",
+    "model_capability",
+    "safety_boundary",
+    "unsupported_scope",
+    "documentation_issue"
+  ],
+  "allowed_decisions": [
+    "accepted_repair_proposal",
+    "accepted_monitoring_or_documentation",
+    "accepted_future_roadmap_proposal",
+    "accepted_release_blocker",
+    "rejected_no_action"
+  ],
+  "allowed_closure_statuses": [
+    "open",
+    "closed_with_proof",
+    "deferred_nonblocking",
+    "rejected"
+  ],
+  "allowed_owner_paths": [
+    "prompt_catalog_review",
+    "controller_or_formatter_repair",
+    "skill_tool_gap_review",
+    "model_capability_watchlist",
+    "documentation_update",
+    "unsupported_scope_boundary",
+    "release_closeout_owner"
+  ],
+  "allowed_rerun_gates": [
+    "phase197_founder_trial_rerun",
+    "target_case_anythingllm_rerun",
+    "target_plus_holdout_anythingllm_rerun",
+    "docs_index_check",
+    "post_restart_runtime_readiness",
+    "phase199_beta_closeout_review",
+    "full_bash_regression"
+  ],
+  "blocker_policy": {
+    "must_block_phase199": true,
+    "required_decision": "accepted_release_blocker",
+    "required_rerun_gates": [
+      "target_case_anythingllm_rerun",
+      "target_plus_holdout_anythingllm_rerun",
+      "full_bash_regression"
+    ]
+  },
+  "advisory_policy": {
+    "must_have_decision": true,
+    "default_decision": "accepted_monitoring_or_documentation",
+    "default_owner_path": "prompt_catalog_review",
+    "required_rerun_gates": [
+      "target_case_anythingllm_rerun",
+      "phase199_beta_closeout_review"
+    ]
+  },
+  "required_docs": [
+    "README.founder-feedback-intake-repair.md",
+    "docs/examples/founder-feedback-intake-repair.md",
+    "README.founder-trial-execution-round.md"
+  ],
+  "acceptance_marker": "PHASE198 FOUNDER FEEDBACK INTAKE REPAIR PASS"
+}

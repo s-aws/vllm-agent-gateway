@@ -30,12 +30,12 @@ python3 scripts/validate_gateway_anythingllm_health_drift.py \
   --output-path runtime-state/gateway-anythingllm-health-drift/phase141/phase141-health-drift-report.json
 ```
 
-For AnythingLLM auth checks from Windows into Bash, export the key through `WSLENV` first.
+For AnythingLLM auth checks from Windows into WSL, inject the Windows API key into the WSL process explicitly.
 
 ```powershell
-$env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
-$env:WSLENV='ANYTHINGLLM_API_KEY/u'
-wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_gateway_anythingllm_health_drift.py
+$key=$env:ANYTHINGLLM_API_KEY
+if (-not $key) { throw 'ANYTHINGLLM_API_KEY is not set in Windows environment' }
+wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$key" python3 scripts/validate_gateway_anythingllm_health_drift.py
 ```
 
 ## Output
@@ -44,7 +44,7 @@ The report is written under `runtime-state/gateway-anythingllm-health-drift/phas
 
 - the linked first-time-user doctor report path and hash
 - checked categories and featured port check IDs
-- findings with `kind`, check ID, URL, HTTP status, message, and next action
+- findings with `kind`, check ID, URL, HTTP status, message, next action, and available recovery commands
 - summary counts by drift kind
 
 The gate passes only when the doctor passes and all required health surfaces are represented.

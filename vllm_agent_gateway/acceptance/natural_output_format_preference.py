@@ -28,6 +28,8 @@ REQUIRED_GATEWAY_PREFERENCES = (
     "natural_json",
     "explicit_output_format_json",
     "openai_response_format_json",
+    "unsupported_explicit_output_format",
+    "unsupported_response_format",
 )
 REQUIRED_ANYTHINGLLM_PREFERENCES = (
     "default_format_a",

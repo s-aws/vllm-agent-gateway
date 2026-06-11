@@ -4,7 +4,7 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
-Current stable-readiness status: the Phase 170 stable release refresh passes with `ready_for_founder_testing` and `release_for_founder_testing` after the Phase 163-169 chat-quality batch. Phase 161 remains the latest approved skill/tool batch decision and passes with `decision=no_new_batch_justified`; Phase 169 produced six unapproved product-gap proposals that are not implementation work until approved.
+Current stable-readiness status: the Phase 170 stable release refresh still provides the release decision, and Phases 180 through 185 added the current chat-quality hardening layer. The latest proof floor includes answer-first chat contracts, natural output-format selection, evidence relevance ranking, related-test discovery reliability, Phase 184 AnythingLLM UI replay, and the Phase 185 contextless-agent audit pack. Phase 186 is the active handoff-refresh phase.
 
 ## What This Proves
 
@@ -17,6 +17,8 @@ Current stable-readiness status: the Phase 170 stable release refresh passes wit
 - The controller can draft small config-default, exact-message, and assertion-update test proposals through the existing implementation workflow without mutating source files.
 - The controller can apply exact approved packet operations to a disposable copy, roll the copy back, and prove frozen source files did not change.
 - Source fixture files remain unchanged.
+- Current Phase 184 UI replay cases for evidence relevance and related-test discovery pass through the browser-visible AnythingLLM path.
+- Future blind-baseline audits can start from the Phase 185 contextless-agent audit pack.
 
 ## Prerequisites
 
@@ -158,7 +160,7 @@ PHASE170 STABLE RELEASE REFRESH PASS
 PHASE161 SKILL TOOL GAP BATCH PROPOSAL PASS
 ```
 
-The current Phase 170 summary should show `source_report_count=17`, `phase169_proposal_count=6`, `phase169_release_blocker_count=0`, and `validation_error_count=0`. The current Phase 161 summary should show `decision=no_new_batch_justified`, `gap_candidate_count=0`, `missing_skill_tool_finding_count=0`, and `non_batch_finding_count=14`. The six Phase 169 proposals are approved for Phases 171-176, but they are not part of the stable tester path until those phases pass.
+The current Phase 170 summary should show `source_report_count=17`, `phase169_proposal_count=6`, `phase169_release_blocker_count=0`, and `validation_error_count=0`. The current Phase 161 summary should show `decision=no_new_batch_justified`, `gap_candidate_count=0`, `missing_skill_tool_finding_count=0`, and `non_batch_finding_count=14`. The six Phase 169 proposals were closed in Phases 171-176, then refreshed through the Phase 177-185 chat-quality hardening path.
 
 After this setup path passes, use [README.external-tester-onboarding.md](README.external-tester-onboarding.md) for the contextless first-test prompt set and feedback capture templates.
 
@@ -259,7 +261,12 @@ $env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_
 python scripts\validate_anythingllm_ui_e2e.py `
   --anythingllm-api-base-url http://127.0.0.1:3001 `
   --workspace my-workspace `
-  --timeout-seconds 420
+  --prompt-catalog-path runtime\anythingllm_ui_prompt_cases.json `
+  --timeout-seconds 900 `
+  --output-path runtime-state\anythingllm-ui\getting-started-ui-replay.json `
+  --case-id UI184-ERR-001 `
+  --case-id UI184-RTD-001 `
+  --case-id UI184-RTD-002
 ```
 
 Expected marker:
@@ -268,42 +275,11 @@ Expected marker:
 ANYTHINGLLM UI E2E PASS
 ```
 
-This serves the extracted AnythingLLM Desktop UI bundle, drives it with Playwright and system Chrome, submits read-only L1 prompts through `/stream-chat`, and writes screenshots plus fixture mutation proof under `runtime-state/anythingllm-ui/`. See [README.anythingllm-ui-e2e.md](README.anythingllm-ui-e2e.md).
+This serves the extracted AnythingLLM Desktop UI bundle, drives it with Playwright and system Chrome, submits read-only Priority 0 prompts through `/stream-chat`, and writes screenshots plus fixture mutation proof under `runtime-state/anythingllm-ui/`. See [README.anythingllm-ui-e2e.md](README.anythingllm-ui-e2e.md).
 
 The default visible response format is `format_a`: deterministic human-readable text with a natural completion sentence, a `Result:` block, summary fields, bounded inline `Answer:` content for supported L1 artifacts, and artifact links. The structured `agentic_controller_response` is still returned for API clients.
 
-Optional approval UX check for later validation, not the first founder smoke:
-
-```text
-In /mnt/c/coinbase_testing_repo_frozen_tmp.github, refactor the placed_order_id stealth lookup so there is only one code path. Start from the logic beginning point, investigate first, create an implementation plan, wait for approval before implementation prep, and provide verification commands.
-```
-
-Expected initial response markers:
-
-- `workflow_router.plan completed`
-- `Selected workflow: refactor.single_path`
-- `Next action: request_approval`
-- `Approval:`
-- `State: waiting_for_approval`
-- `Type: packet_design`
-- `run_id: workflow-router-...`
-
-Only continue if you intend to approve draft-only implementation prep. Do not use this as the first founder smoke. The approval message must name the returned run ID:
-
-```text
-Approve packet design for run workflow-router-YYYYMMDDTHHMMSSffffffZ. Proceed with implementation prep.
-```
-
-Expected continuation markers:
-
-- `workflow_router.plan completed`
-- `execution_planning.plan`
-- `Approval:`
-- `State: finished`
-- `Type: packet_design`
-- `source_changed: False`
-
-Duplicate approvals, denied approvals, expired approvals, and approvals for the wrong run fail closed.
+Advanced broad refactor prompts are intentionally excluded from this getting-started path. Keep first-time validation on the smaller read-only and draft-only prompts below.
 
 Optional JSON output check:
 
@@ -319,6 +295,19 @@ Expected behavior:
 - `selection_explanation.route_rules` is populated
 - `summary.selected_workflow` is `code_investigation.plan`
 - the frozen fixture remains unchanged
+
+Optional contextless-audit-pack check:
+
+```bash
+python3 scripts/validate_contextless_agent_audit_pack.py \
+  --output-path runtime-state/contextless-agent-audit-pack/getting-started-audit-pack.json
+```
+
+Expected marker:
+
+```text
+CONTEXTLESS AGENT AUDIT PACK PASS
+```
 
 Optional second L1 check:
 

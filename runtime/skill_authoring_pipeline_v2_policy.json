@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "kind": "skill_authoring_pipeline_v2_policy",
+  "phase": 194,
+  "priority_backlog_id": "P0-BB-058",
+  "owner": "agentic_agents",
+  "status": "active",
+  "acceptance_marker": "PHASE194 SKILL AUTHORING PIPELINE V2 PASS",
+  "description": "Governed V2 draft-packet admission checklist for creating small deterministic L1/L2 skill candidates from observed prompt gaps without manual prompt injection or runtime registry mutation.",
+  "gate_scope": "draft_packet_admission_only",
+  "proof_complete_required": false,
+  "candidate_contract": {
+    "candidate_state": "draft_only",
+    "promotion_state": "not_promoted_by_authoring_pipeline",
+    "manual_prompt_injection_allowed": false,
+    "runtime_registry_mutation_allowed": false,
+    "promotion_eligible_on_packet_admission": false,
+    "required_artifacts": [
+      "skill_batch_manifest",
+      "skill_body",
+      "prompt_coverage_entry",
+      "eval_skeleton",
+      "docs_stub",
+      "docs_example",
+      "regression_test_skeleton",
+      "authoring_pipeline_plan"
+    ],
+    "required_eval_gate_ids": [
+      "routing",
+      "artifact_contract",
+      "natural_language_chat_output",
+      "prompt_coverage",
+      "blind_baseline_first",
+      "holdout_prompt",
+      "live_gateway",
+      "anythingllm_when_applicable",
+      "fixture_parity"
+    ],
+    "minimum_prompt_examples": 2,
+    "minimum_holdout_prompts": 2,
+    "minimum_acceptance_criteria": 3
+  },
+  "required_source_paths": {
+    "skill_registry": "runtime/skills.json",
+    "skill_evals": "runtime/skill_evals.json",
+    "prompt_skill_coverage": "runtime/prompt_skill_coverage.json",
+    "workflows": "runtime/workflows.json",
+    "tools": "runtime/tools.json",
+    "skill_registry_readiness_policy": "runtime/skill_registry_readiness_review_policy.json"
+  },
+  "live_validation_requirements": {
+    "blind_baseline_before_local_output": true,
+    "anythingllm_required_when_applicable": true,
+    "required_targets": [
+      "localhost_8000",
+      "gateway_8300",
+      "controller_8400",
+      "workflow_router_8500",
+      "documenter_8205",
+      "anythingllm"
+    ],
+    "required_target_roots": [
+      "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    ]
+  },
+  "promotion_requirements": {
+    "batch_admission_must_pass": true,
+    "prompt_coverage_starts_planned": true,
+    "regression_skeleton_must_fail_closed": true,
+    "phase193_readiness_must_pass": true,
+    "manual_registry_append_forbidden": true,
+    "candidate_absent_from_runtime_registries": true,
+    "runtime_registry_hashes_must_match_before_after": true
+  }
+}

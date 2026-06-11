@@ -173,6 +173,14 @@ def test_founder_field_prompt_runner_can_select_refined_prompt_variant() -> None
     assert module.prompt_for_case(Args(), case) == module.PROMPT_REFINEMENTS["P01"]["refined_prompt"]
 
 
+def test_founder_field_prompt_runner_preserves_explicit_case_order() -> None:
+    module = load_runner_module()
+
+    cases = module.selected_cases(["P22", "P01", "P03"], None)
+
+    assert [case.case_id for case in cases] == ["P22", "P01", "P03"]
+
+
 def test_founder_field_prompt_runner_uses_refined_expectations_when_requested() -> None:
     module = load_runner_module()
     case = next(item for item in module.FIELD_PROMPTS if item.case_id == "P08")

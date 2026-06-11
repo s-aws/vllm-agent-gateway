@@ -1,0 +1,224 @@
+{
+  "acceptance_marker": "PHASE192 CHAT ANSWER SCORING V2 PASS",
+  "classification_contract": {
+    "allowed_classifications": [
+      "pass",
+      "advisory",
+      "fail"
+    ],
+    "allowed_repair_targets": [
+      "none",
+      "router",
+      "evidence_relevance",
+      "correctness",
+      "answer_completeness",
+      "source_refs",
+      "format_contract",
+      "safety_boundary",
+      "user_visible_usefulness",
+      "prompt_wording",
+      "prompt_governance"
+    ],
+    "blocking_dimensions": [
+      "routing",
+      "correctness",
+      "answer_completeness",
+      "source_refs",
+      "format_adherence",
+      "safety_boundaries",
+      "user_visible_usefulness"
+    ],
+    "required_dimensions": [
+      "routing",
+      "evidence_relevance",
+      "correctness",
+      "answer_completeness",
+      "source_refs",
+      "format_adherence",
+      "safety_boundaries",
+      "user_visible_usefulness"
+    ],
+    "score_weights": {
+      "answer_completeness": 15,
+      "correctness": 15,
+      "evidence_relevance": 15,
+      "format_adherence": 10,
+      "routing": 15,
+      "safety_boundaries": 10,
+      "source_refs": 10,
+      "user_visible_usefulness": 10
+    }
+  },
+  "description": "Phase 192 consolidated chat-answer scoring gate that compares blind baselines to local chat answers with repeatable scores, gap classes, and repair-target guidance.",
+  "expected_delta_count": 13,
+  "expected_drift_active_catalog_blocking_drift_count": 0,
+  "expected_required_surface": "anythingllm_via_workflow_router_gateway",
+  "kind": "chat_answer_scoring_v2_policy",
+  "minimum_case_score": 85,
+  "minimum_report_score": 85,
+  "phase": 192,
+  "priority_backlog_id": "P0-BB-056",
+  "scoring_examples": [
+    {
+      "case_id": "SCOREV2-PASS",
+      "expected_classification": "pass",
+      "expected_repair_targets": [
+        "none"
+      ],
+      "response_text": "Answer:\nselected_workflow: code_investigation.plan\nSource refs:\n- core/example.py:10\nEvidence:\n- Direct implementation evidence.\nRelated tests:\n- tests/test_example.py\nRecommended commands:\n- python -m pytest tests/test_example.py -v\nSource mutation: false\n",
+      "source_case": {
+        "baseline_before_local": true,
+        "dimensions": {
+          "completeness": {
+            "score": 30,
+            "status": "passed"
+          },
+          "correctness": {
+            "status": "passed"
+          },
+          "evidence": {
+            "score": 20,
+            "status": "passed"
+          },
+          "format": {
+            "status": "passed"
+          },
+          "routing": {
+            "score": 20,
+            "status": "passed"
+          },
+          "user_visible_usefulness": {
+            "score": 95,
+            "status": "passed"
+          }
+        },
+        "gap_classes": [
+          "none"
+        ],
+        "prompt_risk": "",
+        "route_surface": "anythingllm_via_workflow_router_gateway",
+        "score": 95,
+        "score_breakdown": {
+          "answer_completeness": 30,
+          "evidence": 20,
+          "output_contract": 15,
+          "routing": 20,
+          "safety_boundary": 15
+        }
+      }
+    },
+    {
+      "case_id": "SCOREV2-ADVISORY",
+      "expected_classification": "advisory",
+      "expected_repair_targets": [
+        "evidence_relevance",
+        "prompt_wording"
+      ],
+      "response_text": "Answer:\nselected_workflow: code_investigation.plan\nSource refs:\n- core/example.py:10\nEvidence:\n- Supporting evidence only.\nRecommended commands:\n- python -m pytest tests/test_example.py -v\nSource mutation: false\n",
+      "source_case": {
+        "baseline_before_local": true,
+        "dimensions": {
+          "completeness": {
+            "score": 30,
+            "status": "passed"
+          },
+          "correctness": {
+            "status": "passed"
+          },
+          "evidence": {
+            "score": 14,
+            "status": "advisory"
+          },
+          "format": {
+            "status": "passed"
+          },
+          "routing": {
+            "score": 20,
+            "status": "passed"
+          },
+          "user_visible_usefulness": {
+            "score": 94,
+            "status": "passed"
+          }
+        },
+        "gap_classes": [
+          "evidence_detail_advisory",
+          "prompt_wording_advisory"
+        ],
+        "prompt_risk": "Prompt could stop at a nearby file.",
+        "route_surface": "anythingllm_via_workflow_router_gateway",
+        "score": 94,
+        "score_breakdown": {
+          "answer_completeness": 30,
+          "evidence": 14,
+          "output_contract": 15,
+          "routing": 20,
+          "safety_boundary": 15
+        }
+      }
+    },
+    {
+      "case_id": "SCOREV2-FAIL",
+      "expected_classification": "fail",
+      "expected_repair_targets": [
+        "router",
+        "evidence_relevance",
+        "answer_completeness",
+        "source_refs",
+        "format_contract",
+        "user_visible_usefulness"
+      ],
+      "response_text": "I looked at it and it seems fine.",
+      "source_case": {
+        "baseline_before_local": true,
+        "dimensions": {
+          "completeness": {
+            "score": 5,
+            "status": "failed"
+          },
+          "correctness": {
+            "status": "passed"
+          },
+          "evidence": {
+            "score": 0,
+            "status": "failed"
+          },
+          "format": {
+            "status": "failed"
+          },
+          "routing": {
+            "score": 0,
+            "status": "failed"
+          },
+          "user_visible_usefulness": {
+            "score": 40,
+            "status": "failed"
+          }
+        },
+        "gap_classes": [
+          "routing_miss",
+          "format_miss"
+        ],
+        "prompt_risk": "",
+        "route_surface": "direct_controller",
+        "score": 40,
+        "score_breakdown": {
+          "answer_completeness": 5,
+          "evidence": 0,
+          "output_contract": 0,
+          "routing": 0,
+          "safety_boundary": 15
+        }
+      }
+    }
+  ],
+  "schema_version": 1,
+  "source_blind_baseline_delta_report_path": "runtime-state/phase178/phase178-blind-baseline-delta-report.json",
+  "source_drift_detection_report_path": "runtime-state/phase191/phase191-prompt-family-drift-detection-report.json",
+  "source_founder_round2_report_path": "runtime-state/founder-field-round2/phase164/phase164-founder-field-round2-report.json",
+  "source_kinds": {
+    "blind_baseline_delta_report": "blind_baseline_delta_report",
+    "drift_detection_report": "prompt_family_drift_detection_report",
+    "founder_round2_report": "founder_field_round2_report"
+  }
+}

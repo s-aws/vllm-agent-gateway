@@ -11,9 +11,9 @@ python3 scripts/validate_gateway_anythingllm_health_drift.py \
 Run it from Windows while passing the AnythingLLM API key into WSL:
 
 ```powershell
-$env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
-$env:WSLENV='ANYTHINGLLM_API_KEY/u'
-wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_gateway_anythingllm_health_drift.py `
+$key=$env:ANYTHINGLLM_API_KEY
+if (-not $key) { throw 'ANYTHINGLLM_API_KEY is not set in Windows environment' }
+wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$key" python3 scripts/validate_gateway_anythingllm_health_drift.py `
   --timeout-seconds 45 `
   --output-path runtime-state/gateway-anythingllm-health-drift/phase141/phase141-health-drift-report.json
 ```
@@ -29,6 +29,10 @@ report = json.loads(Path("runtime-state/gateway-anythingllm-health-drift/phase14
 print(json.dumps(report["summary"]["kind_counts"], indent=2, sort_keys=True))
 for finding in report["findings"]:
     print(f"{finding['kind']}: {finding['check_id']} -> {finding['next_action']}")
+    if finding.get("recovery_command"):
+        print("  recovery:", finding["recovery_command"])
+    if finding.get("powershell_wsl_env_example"):
+        print("  key bridge:", finding["powershell_wsl_env_example"])
 PY
 ```
 

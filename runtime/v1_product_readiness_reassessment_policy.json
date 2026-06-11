@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "kind": "v1_product_readiness_reassessment_policy",
+  "phase": 196,
+  "priority_backlog_id": "P0-BB-060",
+  "goal": "Reassess whether the current local-model chat-quality product is ready for broader V1 founder beta after the Phase 191-195 proof chain.",
+  "allowed_recommendations": [
+    "release_for_broader_founder_beta",
+    "priority0_repair_cycle_required",
+    "scope_reduction_required",
+    "roadmap_expansion_required",
+    "blocked_stale_or_invalid_evidence"
+  ],
+  "required_reports": [
+    {
+      "id": "v1_stable_release_decision",
+      "path": "runtime-state/v1-stable-release-decision/phase156/phase156-v1-stable-release-decision-report.json",
+      "expected_kind": "v1_stable_release_decision_report",
+      "expected_status": "passed",
+      "expected_phase": 156
+    },
+    {
+      "id": "stable_release_refresh",
+      "path": "runtime-state/phase177/phase177-stable-release-refresh-report.json",
+      "expected_kind": "stable_release_refresh_report",
+      "expected_status": "passed",
+      "expected_phase": 160
+    },
+    {
+      "id": "release_notes",
+      "path": "runtime-state/release-notes/phase146/phase146-release-notes-report.json",
+      "expected_kind": "release_notes_validation_report",
+      "expected_status": "passed",
+      "expected_phase": 146
+    },
+    {
+      "id": "model_swap_smoke_probe",
+      "path": "runtime-state/model-swap-smoke-probe/phase154/phase154-model-swap-smoke-probe-report.json",
+      "expected_kind": "model_swap_smoke_probe_report",
+      "expected_status": "passed",
+      "expected_phase": 154
+    },
+    {
+      "id": "prompt_family_drift_detection",
+      "path": "runtime-state/phase191/phase191-prompt-family-drift-detection-report.json",
+      "expected_kind": "prompt_family_drift_detection_report",
+      "expected_status": "passed",
+      "expected_phase": 191
+    },
+    {
+      "id": "chat_answer_scoring_v2",
+      "path": "runtime-state/phase192/phase192-chat-answer-scoring-v2-report.json",
+      "expected_kind": "chat_answer_scoring_v2_report",
+      "expected_status": "passed",
+      "expected_phase": 192
+    },
+    {
+      "id": "skill_registry_readiness_review",
+      "path": "runtime-state/phase193/phase193-skill-registry-readiness-review-report.json",
+      "expected_kind": "skill_registry_readiness_review_report",
+      "expected_status": "passed",
+      "expected_phase": 193
+    },
+    {
+      "id": "skill_authoring_pipeline_v2",
+      "path": "runtime-state/phase194/phase194-skill-authoring-pipeline-v2-report.json",
+      "expected_kind": "skill_authoring_pipeline_v2_report",
+      "expected_status": "passed",
+      "expected_phase": 194
+    },
+    {
+      "id": "release_candidate_founder_trial_pack",
+      "path": "runtime-state/phase195/phase195-release-candidate-founder-trial-pack-fixture-state-report.json",
+      "expected_kind": "release_candidate_founder_trial_pack_report",
+      "expected_status": "passed",
+      "expected_phase": 195
+    }
+  ],
+  "release_scope": [
+    "local_founder_beta",
+    "anythingllm_workflow_router_path",
+    "current_localhost_model",
+    "two_frozen_coinbase_fixtures",
+    "format_a_and_json_output",
+    "read_only_l1_l2_chat_quality",
+    "draft_only_skill_authoring_packets",
+    "structured_founder_feedback_capture"
+  ],
+  "release_limitations": [
+    "not_production_deployment",
+    "not_advanced_broad_refactor_orchestration",
+    "not_mutation_capable_founder_prompt_pack",
+    "not_every_repository_language_or_coding_task",
+    "not_direct_mutation_of_protected_fixtures",
+    "not_automatic_model_selection",
+    "not_unbounded_skill_library_scale"
+  ],
+  "blocker_rules": [
+    "all_required_reports_present",
+    "all_required_reports_passed",
+    "all_required_reports_current_phase",
+    "fresh_phase196_live_runtime_proof_present",
+    "fresh_phase196_gateway_and_anythingllm_run_ids_present",
+    "no_validation_errors",
+    "phase195_fixture_state_validated",
+    "phase195_proof_artifact_mode_enabled",
+    "phase195_prompt_pack_has_smoke_and_expanded_cases",
+    "phase192_has_no_failed_scored_cases",
+    "phase193_has_no_semantic_conflicts",
+    "phase194_does_not_promote_without_proof"
+  ],
+  "advisory_rules": [
+    {
+      "id": "phase192_advisory_cases",
+      "severity": "medium",
+      "source": "chat_answer_scoring_v2",
+      "condition": "advisory_case_count_gt_zero",
+      "statement": "Phase 192 passed with advisory repair targets, so founder beta should continue collecting prompt-quality misses."
+    },
+    {
+      "id": "phase194_draft_only",
+      "severity": "medium",
+      "source": "skill_authoring_pipeline_v2",
+      "condition": "promotion_eligible_false",
+      "statement": "Skill authoring is ready for draft-packet admission, not automatic stable skill promotion."
+    },
+    {
+      "id": "advanced_refactor_deferred",
+      "severity": "high",
+      "source": "roadmap",
+      "condition": "always",
+      "statement": "Advanced broad refactor orchestration remains out of scope for V1 founder beta."
+    }
+  ],
+  "required_docs": [
+    "README.release-candidate-founder-trial-pack.md",
+    "README.skill-authoring-pipeline-v2.md",
+    "README.skill-registry-readiness-review.md",
+    "README.chat-answer-scoring-v2.md",
+    "README.prompt-family-drift-detection.md",
+    "README.v1-product-readiness-reassessment.md"
+  ],
+  "required_live_runtime_proof": {
+    "path": "runtime-state/phase196/phase196-v1-product-readiness-live-proof.json",
+    "expected_kind": "v1_product_readiness_reassessment_live_proof",
+    "expected_status": "passed",
+    "expected_phase": 196,
+    "required_model_id": "Qwen3-Coder-30B-A3B-Instruct",
+    "required_gateway_url": "http://127.0.0.1:8500/v1",
+    "required_anythingllm_target_url": "http://127.0.0.1:8500/v1",
+    "required_anythingllm_api_url": "http://127.0.0.1:3001",
+    "required_target_roots": [
+      "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    ],
+    "required_output_markers": [
+      "json",
+      "chat_contract",
+      "selected_workflow",
+      "workflow-router-"
+    ]
+  },
+  "next_unapproved_phase_candidates": [
+    "Phase 197: Founder Trial Execution Round",
+    "Phase 198: Founder Feedback Intake And Repair Proposal",
+    "Phase 199: V1 Beta Release Closeout"
+  ]
+}

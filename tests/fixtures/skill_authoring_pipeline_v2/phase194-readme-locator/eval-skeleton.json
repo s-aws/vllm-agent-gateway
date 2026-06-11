@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "kind": "skill_eval_skeleton",
+  "skill_id": "phase194-readme-locator",
+  "eval_case": {
+    "id": "phase194_readme_locator",
+    "prompt_family": "L1-phase194-skill-authoring-docs-lookup",
+    "natural_prompt": "In <repo>, find where the skill authoring pipeline docs explain promotion boundaries. Read only.",
+    "expected_workflow": "code_investigation.plan",
+    "expected_artifacts": [
+      "documentation_lookup"
+    ],
+    "live_suite": "workflow_router_l1_suite"
+  },
+  "required_gates": [
+    {
+      "id": "routing",
+      "status": "not_run"
+    },
+    {
+      "id": "artifact_contract",
+      "status": "not_run"
+    },
+    {
+      "id": "natural_language_chat_output",
+      "status": "not_run"
+    },
+    {
+      "id": "prompt_coverage",
+      "status": "not_run"
+    },
+    {
+      "id": "blind_baseline_first",
+      "status": "not_run"
+    },
+    {
+      "id": "holdout_prompt",
+      "status": "not_run"
+    },
+    {
+      "id": "live_gateway",
+      "status": "not_run"
+    },
+    {
+      "id": "anythingllm_when_applicable",
+      "status": "not_run"
+    },
+    {
+      "id": "fixture_parity",
+      "status": "not_run"
+    }
+  ],
+  "promotion_state": "not_promoted_by_authoring_pipeline"
+}

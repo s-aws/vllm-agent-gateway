@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "kind": "founder_trial_execution_round_policy",
+  "phase": 197,
+  "priority_backlog_id": "P0-BB-061",
+  "goal": "Execute the Phase 195 founder trial pack through AnythingLLM and capture run-level evidence for review and repair intake.",
+  "existing_runner_script": "scripts/run_founder_field_prompt_eval.py",
+  "required_trial_pack_report": {
+    "path": "runtime-state/phase195/phase195-release-candidate-founder-trial-pack-fixture-state-report.json",
+    "expected_kind": "release_candidate_founder_trial_pack_report",
+    "expected_status": "passed",
+    "expected_phase": 195
+  },
+  "required_readiness_report": {
+    "path": "runtime-state/phase196/phase196-v1-product-readiness-reassessment-report.json",
+    "expected_kind": "v1_product_readiness_reassessment_report",
+    "expected_status": "passed",
+    "expected_phase": 196,
+    "expected_recommendation": "release_for_broader_founder_beta"
+  },
+  "field_report_path": "runtime-state/phase197/phase197-founder-trial-execution-run.json",
+  "field_markdown_path": "runtime-state/phase197/phase197-founder-trial-execution-run.md",
+  "required_case_ids_by_stage": {
+    "founder-smoke": [
+      "P01",
+      "P02",
+      "P03",
+      "P22"
+    ],
+    "expanded-read-only": [
+      "P04",
+      "P05",
+      "P06",
+      "P08",
+      "P09",
+      "P10",
+      "P13",
+      "P17",
+      "P19",
+      "P21"
+    ]
+  },
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_route_surface": "anythingllm_via_workflow_router_gateway",
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "workspace": "my-workspace"
+  },
+  "allowed_quality_classifications": [
+    "pass",
+    "advisory",
+    "blocker"
+  ],
+  "required_docs": [
+    "README.founder-trial-execution-round.md",
+    "docs/examples/founder-trial-execution-round.md",
+    "README.release-candidate-founder-trial-pack.md",
+    "README.v1-product-readiness-reassessment.md"
+  ],
+  "acceptance_marker": "PHASE197 FOUNDER TRIAL EXECUTION ROUND PASS"
+}

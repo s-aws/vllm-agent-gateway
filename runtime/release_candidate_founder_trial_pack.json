@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "kind": "release_candidate_founder_trial_pack",
+  "phase": 195,
+  "priority_backlog_id": "P0-BB-059",
+  "status": "ready_for_founder_trial",
+  "description": "Contextless founder trial pack for validating the current local-model chat-quality surface through AnythingLLM and the workflow-router gateway.",
+  "anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "llm_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace",
+    "model": "Qwen3-Coder-30B-A3B-Instruct"
+  },
+  "target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "prompt_sources": {
+    "founder_test_prompt_pack": "runtime/founder_test_prompt_pack.json",
+    "prompt_catalog": "runtime/prompt_catalogs/founder_field_v1.json"
+  },
+  "trial_stages": [
+    {
+      "id": "setup-readiness",
+      "description": "Confirm the local model, gateway, controller, AnythingLLM, and frozen fixtures are reachable before prompt testing.",
+      "commands": [
+        {
+          "command": "bash start-agent-prompt-proxies.sh",
+          "expected_marker": "controller service",
+          "failure_recovery": "Run bash stop-agent-prompt-proxies.sh, confirm vLLM is live on 8000, then start again.",
+          "required_before_prompt_testing": true
+        },
+        {
+          "command": "curl -fsS http://127.0.0.1:8500/v1/models",
+          "expected_marker": "Qwen3-Coder-30B-A3B-Instruct",
+          "failure_recovery": "Restart vLLM and gateway/proxies, then verify AnythingLLM is configured to use http://127.0.0.1:8500/v1.",
+          "required_before_prompt_testing": true
+        },
+        {
+          "command": "curl -fsS http://127.0.0.1:3001",
+          "expected_marker": "AnythingLLM HTTP response",
+          "failure_recovery": "Open or restart the AnythingLLM Desktop app, wait for http://127.0.0.1:3001 to respond, then rerun this command.",
+          "required_before_prompt_testing": true
+        },
+        {
+          "command": "python3 scripts/run_first_time_user_doctor.py",
+          "expected_marker": "FIRST TIME USER DOCTOR PASS",
+          "failure_recovery": "Fix the failed_check_ids before opening AnythingLLM prompt testing.",
+          "required_before_prompt_testing": true
+        },
+        {
+          "command": "python3 scripts/validate_post_restart_runtime_readiness.py",
+          "expected_marker": "POST RESTART RUNTIME READINESS PASS",
+          "failure_recovery": "Restart vLLM, AnythingLLM, and gateway/proxies, then rerun this readiness gate.",
+          "required_before_prompt_testing": true
+        },
+        {
+          "command": "python3 scripts/validate_release_candidate_founder_trial_pack.py --require-proof-artifacts",
+          "expected_marker": "PHASE195 RELEASE CANDIDATE FOUNDER TRIAL PACK PASS",
+          "failure_recovery": "Rebuild missing proof artifacts or fix the reported pack validation errors.",
+          "required_before_prompt_testing": true
+        }
+      ],
+      "expected_markers": [
+        "FIRST TIME USER DOCTOR PASS",
+        "POST RESTART RUNTIME READINESS PASS",
+        "PHASE195 RELEASE CANDIDATE FOUNDER TRIAL PACK PASS"
+      ]
+    },
+    {
+      "id": "founder-smoke",
+      "description": "Run the smallest representative founder prompt set first.",
+      "prompt_case_ids": [
+        "P01",
+        "P02",
+        "P03",
+        "P22"
+      ],
+      "expected_answer_qualities": [
+        "Answer appears in chat before artifact inspection.",
+        "Workflow, selected skills, and route evidence are visible.",
+        "Source mutation boundaries are visible.",
+        "The response cites files, tests, commands, or decomposition evidence appropriate to the prompt."
+      ]
+    },
+    {
+      "id": "expanded-read-only",
+      "description": "Run the broader read-only prompt set after smoke prompts pass.",
+      "prompt_case_ids": [
+        "P04",
+        "P05",
+        "P06",
+        "P08",
+        "P09",
+        "P10",
+        "P13",
+        "P17",
+        "P19",
+        "P21"
+      ],
+      "expected_answer_qualities": [
+        "The selected workflow matches the cataloged prompt family.",
+        "The answer includes bounded source evidence or an honest no-evidence statement.",
+        "The response remains read-only and does not request manual skill injection."
+      ]
+    }
+  ],
+  "known_limits": [
+    "Advanced broad refactor orchestration is not released.",
+    "The trial validates the current local model and the two frozen Coinbase fixture roots.",
+    "FormatA and JSON are the only governed output formats.",
+    "Mutation-capable prompts are not part of the founder trial pack.",
+    "AnythingLLM must point to http://127.0.0.1:8500/v1 for natural workflow testing."
+  ],
+  "mutation_safety": {
+    "source_mutation_allowed": false,
+    "forbidden_workflows": [
+      "refactor.single_path"
+    ],
+    "fixture_state_required": "unchanged"
+  },
+  "feedback_capture": {
+    "destination": "runtime-state/phase195/founder-feedback.jsonl",
+    "allowed_classifications": [
+      "answer_quality",
+      "confusing",
+      "routing"
+    ],
+    "allowed_severities": [
+      "advisory",
+      "blocker"
+    ],
+    "required_fields": [
+      "case_id",
+      "prompt",
+      "target_run_id",
+      "classification",
+      "severity",
+      "actual_response_excerpt",
+      "expected_behavior",
+      "fixture_root",
+      "created_at"
+    ],
+    "templates": [
+      {
+        "id": "confusing-response",
+        "classification": "confusing",
+        "severity": "advisory",
+        "template": "Record feedback for run workflow-router-YYYYMMDDTHHMMSSffffffZ: confusing: <what was hard to understand>. missing: <what context was missing>. expected: <what you expected instead>."
+      },
+      {
+        "id": "answer-quality-miss",
+        "classification": "answer_quality",
+        "severity": "advisory",
+        "template": "Record feedback for run workflow-router-YYYYMMDDTHHMMSSffffffZ: missing: <expected answer detail>. confusing: <what was unclear>. expected: <specific answer marker, source ref, or command>."
+      },
+      {
+        "id": "routing-miss",
+        "classification": "routing",
+        "severity": "blocker",
+        "template": "Record feedback for run workflow-router-YYYYMMDDTHHMMSSffffffZ: wrong: selected the wrong workflow or skill. missing: <expected route evidence>. confusing: <what route or skill looked wrong>. expected: <documented workflow or prompt family>."
+      }
+    ]
+  },
+  "fixture_safety": {
+    "integrity_commands": [
+      {
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+        "command": "git -C /mnt/c/coinbase_testing_repo_frozen_tmp.github status --short",
+        "expected_output": "",
+        "when": "before_and_after_prompt_testing"
+      },
+      {
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "command": "find /mnt/c/coinbase_testing_repo_frozen_tmp -type f -print0 | sort -z | xargs -0 sha256sum > runtime-state/phase195/non-git-fixture.before.sha256",
+        "expected_output": "before hash file created",
+        "when": "before_prompt_testing"
+      },
+      {
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "command": "find /mnt/c/coinbase_testing_repo_frozen_tmp -type f -print0 | sort -z | xargs -0 sha256sum > runtime-state/phase195/non-git-fixture.after.sha256",
+        "expected_output": "after hash file created",
+        "when": "after_prompt_testing"
+      },
+      {
+        "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "command": "diff -u runtime-state/phase195/non-git-fixture.before.sha256 runtime-state/phase195/non-git-fixture.after.sha256",
+        "expected_output": "",
+        "when": "after_prompt_testing"
+      }
+    ],
+    "recovery": [
+      "Stop prompt testing immediately if either fixture changes.",
+      "Restore the frozen fixture from its known-good source or recreate a disposable copy.",
+      "Rerun python3 scripts/validate_post_restart_runtime_readiness.py before continuing."
+    ]
+  },
+  "recovery": {
+    "anythingllm_down": "Open or restart the AnythingLLM Desktop app, wait for http://127.0.0.1:3001 to respond, then rerun curl -fsS http://127.0.0.1:3001 and python3 scripts/validate_post_restart_runtime_readiness.py.",
+    "stale_proxies": "Run bash stop-agent-prompt-proxies.sh, confirm vLLM is live, then run bash start-agent-prompt-proxies.sh.",
+    "wrong_anythingllm_target": "Set the Generic OpenAI-compatible base URL to http://127.0.0.1:8500/v1 and model to Qwen3-Coder-30B-A3B-Instruct.",
+    "missing_api_key": "Export ANYTHINGLLM_API_KEY from the Windows user environment before API validation.",
+    "dirty_fixture": "Stop testing, restore the fixture, and rerun the post-restart readiness gate.",
+    "failed_doctor": "Fix the reported failed_check_ids before running founder prompts."
+  },
+  "proof_refs": [
+    "runtime-state/phase191/phase191-prompt-family-drift-detection-report.json",
+    "runtime-state/phase192/phase192-chat-answer-scoring-v2-report.json",
+    "runtime-state/phase193/phase193-skill-registry-readiness-review-report.json",
+    "runtime-state/phase194/phase194-skill-authoring-pipeline-v2-report.json"
+  ],
+  "docs": [
+    "README.release-candidate-founder-trial-pack.md",
+    "docs/examples/release-candidate-founder-trial-pack.md",
+    "README.getting-started.md",
+    "README.external-tester-onboarding.md"
+  ],
+  "next_action": "Run the founder trial pack, capture feedback against workflow-router run IDs, then use Phase 196 to reassess V1 readiness."
+}

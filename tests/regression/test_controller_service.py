@@ -6609,6 +6609,9 @@ def test_workflow_router_chat_l2_test_selection_returns_command_tiers(tmp_path: 
     assert compact["summary"]["target_repo_read"] is True
     assert "downstream_test_selection_plan" in compact["artifacts"]
     assert "Answer:" in content
+    assert "- Related tests:" in content
+    assert "direct evidence" in content
+    assert "high confidence" in content
     assert "- Smallest command:" in content
     assert "- Medium command:" in content
     assert "- Broad command:" in content
@@ -6633,10 +6636,64 @@ def test_workflow_router_chat_l2_test_selection_returns_command_tiers(tmp_path: 
     selection = json.loads(Path(downstream["artifact_paths"]["test_selection_plan"]).read_text(encoding="utf-8"))
     assert selection["status"] == "ready"
     assert selection["mutation_policy"] == "read_only_no_source_mutation"
+    assert selection["related_tests"][0]["confidence"] == "high"
+    assert selection["related_tests"][0]["evidence_kind"] == "direct"
+    assert selection["related_tests"][0]["source_refs"]
     tiers = {tier["tier"]: tier for tier in selection["command_tiers"]}
     assert {"smallest", "medium", "broad"} <= set(tiers)
     assert tiers["smallest"]["commands"][0]["command"][:3] == ["python", "-m", "pytest"]
     assert selection["confidence"] == "medium"
+
+
+def test_workflow_router_chat_l2_test_selection_honestly_reports_no_bounded_tests(tmp_path: Path) -> None:
+    target = make_execution_planning_tree(tmp_path)
+    sentinel = target / "core" / "stealth_order_manager.py"
+    before = sentinel.read_text(encoding="utf-8")
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"In {target}, choose the smallest, medium, and broad validation commands "
+                            "for resolve_payment_timeout. Read only. Explain why each command is relevant, "
+                            "what risk it covers, and what gaps remain."
+                        ),
+                    },
+                ],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert compact["summary"]["downstream_status"] == "completed"
+    assert "downstream_test_selection_plan" in compact["artifacts"]
+    assert "- Related tests: none found in bounded evidence" in content
+    assert "- Confidence: low" in content
+    assert "verification_tests_not_found" in content
+    assert "Source mutation: false" in content
+    assert "python -m pytest tests/unit/test_order_id_and_followup_rules.py" not in content
+    assert sentinel.read_text(encoding="utf-8") == before
+    downstream = json.loads(Path(compact["artifacts"]["downstream_result"]).read_text(encoding="utf-8"))
+    selection = json.loads(Path(downstream["artifact_paths"]["test_selection_plan"]).read_text(encoding="utf-8"))
+    assert selection["status"] == "not_ready_no_related_tests"
+    assert selection["related_tests"] == []
+    assert selection["command_tiers"] == []
 
 
 def test_workflow_router_chat_l2_runtime_error_diagnosis_returns_artifact(tmp_path: Path) -> None:

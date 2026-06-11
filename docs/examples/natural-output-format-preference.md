@@ -41,10 +41,13 @@ Review each case in this order:
 2. `responses.gateway.preferences.natural_format_a`
 3. `responses.gateway.preferences.natural_json.request`
 4. `responses.gateway.preferences.natural_json.parsed.inline_answer_contract`
-5. `responses.anythingllm.preferences.default_format_a`
-6. `responses.anythingllm.preferences.natural_format_a`
-7. `responses.anythingllm.preferences.natural_json.parsed.inline_answer_contract`
-8. `mutation_proof.target_changed_files`
-9. `mutation_proof.target_git_changed`
+5. `responses.gateway.preferences.unsupported_explicit_output_format.error.code`
+6. `responses.gateway.preferences.unsupported_response_format.error.code`
+7. `responses.anythingllm.preferences.default_format_a`
+8. `responses.anythingllm.preferences.natural_format_a`
+9. `responses.anythingllm.preferences.natural_json.parsed.inline_answer_contract`
+10. `mutation_proof.target_changed_files`
+11. `mutation_proof.target_git_changed`
 
 The `natural_json.request.explicit_output_format_fields` list must be empty. If it is not empty, the test did not prove natural-language selection.
+Unsupported format holdouts must return `unsupported_output_format`; otherwise the selector is silently accepting or ignoring an unsupported user request.

@@ -4,10 +4,10 @@ Run these before first-time AnythingLLM prompt testing.
 
 ## Default Doctor
 
-```bash
-cd /mnt/c/agentic_agents
-export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
-python3 scripts/run_first_time_user_doctor.py
+```powershell
+$key=$env:ANYTHINGLLM_API_KEY
+if (-not $key) { throw 'ANYTHINGLLM_API_KEY is not set in Windows environment' }
+wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$key" python3 scripts/run_first_time_user_doctor.py
 ```
 
 Expected markers:
@@ -45,6 +45,8 @@ summary.warning_check_ids=[...]
 checks[].id=...
 checks[].status=passed|failed|warning|skipped
 checks[].next_action=...
+checks[].details.recovery_command=...
+checks[].details.powershell_wsl_env_example=...
 ```
 
 ## Review Order

@@ -78,6 +78,12 @@ Phase 167 adds no-target UI replay cases:
 - `UI167-GENHELP-001`: coding-agent capability guidance without a repository target
 - `UI167-VAGUE-001`: vague coding prompt guidance that asks for `target_root` and refuses to start repository work
 
+Phase 184 adds repaired Priority 0 replay cases:
+
+- `UI184-ERR-001`: evidence relevance ranking for change-surface answers
+- `UI184-RTD-001`: direct related-test discovery evidence and confidence
+- `UI184-RTD-002`: honest no-bounded-test-evidence reporting
+
 Each case records transport markers, semantic required markers, rejected markers, screenshots, parsed run ID, `/stream-chat` proof, and answer-usefulness status where applicable.
 
 No-target cases use the same browser replay path, but they do not require `Artifacts:` because no repository workflow should start.

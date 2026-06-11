@@ -329,11 +329,97 @@ def category_for_path(path: str) -> str:
     return "source"
 
 
+def evidence_query_weight(query: Any) -> int:
+    text = str(query or "").strip()
+    if not text:
+        return 0
+    if "/" in text or "\\" in text:
+        return 85
+    if "_" in text:
+        return 80
+    if re.search(r"[a-z][A-Z]|[A-Z][a-z]", text):
+        return 75
+    if len(text) >= 18:
+        return 65
+    if len(text) >= 10:
+        return 45
+    return 20
+
+
+def evidence_record_relevance_score(record: dict[str, Any]) -> int:
+    category_score = {"source": 360, "test": 300, "configuration": 180, "documentation": 80}
+    score = category_score.get(str(record.get("category")), 0)
+    if record.get("hinted"):
+        score += 250
+    score += min(int(record.get("match_count") or 0), 12) * 12
+    queries = record.get("queries") if isinstance(record.get("queries"), list) else []
+    score += sum(evidence_query_weight(query) for query in queries[:8])
+    line_refs = record.get("line_refs") if isinstance(record.get("line_refs"), list) else []
+    score += min(len(line_refs), 10) * 4
+    path = str(record.get("path") or "").lower()
+    if path:
+        basename = Path(path).stem.lower()
+        for query in queries:
+            query_text = str(query or "").strip().lower()
+            if query_text and (query_text in path or query_text.replace(" ", "_") in basename):
+                score += 35
+                break
+    return score
+
+
+def evidence_relevance_tier(score: int) -> str:
+    if score >= 520:
+        return "direct"
+    if score >= 330:
+        return "strong"
+    if score >= 180:
+        return "supporting"
+    return "weak"
+
+
+def evidence_relevance_reasons(record: dict[str, Any]) -> list[str]:
+    reasons: list[str] = []
+    category = str(record.get("category") or "")
+    if record.get("hinted"):
+        reasons.append("explicit_path_or_symbol_hint")
+    if category == "source":
+        reasons.append("source_implementation_evidence")
+    elif category == "test":
+        reasons.append("test_or_regression_evidence")
+    elif category == "configuration":
+        reasons.append("configuration_supporting_evidence")
+    elif category == "documentation":
+        reasons.append("documentation_supporting_evidence")
+    match_count = int(record.get("match_count") or 0)
+    if match_count:
+        reasons.append(f"bounded_match_count:{min(match_count, 12)}")
+    queries = record.get("queries") if isinstance(record.get("queries"), list) else []
+    if any(evidence_query_weight(query) >= 75 for query in queries):
+        reasons.append("exact_behavior_or_symbol_query")
+    elif queries:
+        reasons.append("broad_query_match")
+    return reasons[:6]
+
+
+def evidence_relevance(record: dict[str, Any]) -> dict[str, Any]:
+    score = evidence_record_relevance_score(record)
+    return {
+        "score": score,
+        "tier": evidence_relevance_tier(score),
+        "reasons": evidence_relevance_reasons(record),
+    }
+
+
+def line_ref_sort_key(line_ref: dict[str, Any]) -> tuple[int, int]:
+    query_score = evidence_query_weight(line_ref.get("query"))
+    line = line_ref.get("line") if isinstance(line_ref.get("line"), int) else 0
+    return (-query_score, line)
+
+
 def file_record_sort_key(record: dict[str, Any]) -> tuple[int, int, str]:
-    category_priority = {"source": 0, "configuration": 1, "documentation": 2, "test": 3}
     return (
         0 if record.get("hinted") else 1,
-        category_priority.get(str(record.get("category")), 9),
+        -evidence_record_relevance_score(record),
         str(record.get("path", "")),
     )
 
@@ -439,7 +525,14 @@ def evidence_file_records(
     ordered = sorted(records.values(), key=file_record_sort_key)
     for record in ordered:
         record["queries"] = sorted(record["queries"])
-        record["line_refs"] = record["line_refs"][:10]
+        ordered_line_refs = sorted(record["line_refs"], key=line_ref_sort_key)
+        for line_ref in ordered_line_refs:
+            line_ref["relevance"] = {
+                "score": evidence_query_weight(line_ref.get("query")),
+                "tier": "direct" if evidence_query_weight(line_ref.get("query")) >= 75 else "supporting",
+            }
+        record["line_refs"] = ordered_line_refs[:10]
+        record["relevance"] = evidence_relevance(record)
     return ordered
 
 
@@ -968,11 +1061,17 @@ def build_test_selection_plan(
         return {"kind": "test_selection_plan", "schema_version": SCHEMA_VERSION, "status": "not_requested"}
     tiers = test_selection_tiers(verification_commands, related_tests)
     status = "ready" if tiers else "not_ready_no_related_tests"
-    plan_gaps = list(gaps)
+    plan_gaps: list[dict[str, Any]] = []
     if not tiers:
-        plan_gaps.append({"gap": "verification_tests_not_found"})
+        plan_gaps.append(
+            {
+                "gap": "verification_tests_not_found",
+                "reason": "I did not find a bounded related test file for this behavior.",
+            }
+        )
     else:
         plan_gaps.append({"gap": "tiers_are_bounded_related_tests_not_full_suite"})
+    plan_gaps.extend(gaps)
     return {
         "kind": "test_selection_plan",
         "schema_version": SCHEMA_VERSION,
@@ -1664,6 +1763,38 @@ def request_flow_role_for_match(text: str, query: Any, behavior: str) -> str:
     return "source_evidence"
 
 
+def request_flow_match_relevance(match: dict[str, Any], *, behavior: str, role: str | None = None) -> dict[str, Any]:
+    text = str(match.get("text") or "")
+    lowered = text.lower()
+    query = match.get("query")
+    role_value = role or request_flow_role_for_match(text, query, behavior)
+    role_score = {
+        "handler_branch": 260,
+        "downstream_snapshot_call": 230,
+        "downstream_snapshot_function": 210,
+        "snapshot_payload": 190,
+        "snapshot_evidence": 150,
+        "source_evidence": 110,
+    }.get(role_value, 80)
+    score = role_score + evidence_query_weight(query)
+    behavior_value = behavior.lower().strip()
+    if behavior_value and behavior_value in lowered:
+        score += 120
+    query_value = str(query or "").strip().lower()
+    if query_value and query_value in lowered:
+        score += 60
+    if category_for_path(str(match.get("path") or "")) == "source":
+        score += 40
+    reasons = [role_value]
+    if evidence_query_weight(query) >= 75:
+        reasons.append("exact_behavior_or_symbol_query")
+    elif query_value:
+        reasons.append("broad_query_match")
+    if behavior_value and behavior_value in lowered:
+        reasons.append("behavior_text_match")
+    return {"score": score, "tier": evidence_relevance_tier(score), "reasons": reasons[:5]}
+
+
 def request_flow_steps_from_matches(
     matches: list[dict[str, Any]],
     *,
@@ -1684,6 +1815,7 @@ def request_flow_steps_from_matches(
     source_matches.sort(
         key=lambda item: (
             0 if beginning_path and item.get("path") == beginning_path else 1,
+            -int(request_flow_match_relevance(item, behavior=behavior).get("score") or 0),
             str(item.get("path", "")),
             item.get("line") if isinstance(item.get("line"), int) else 0,
             str(item.get("query", "")),
@@ -1699,15 +1831,18 @@ def request_flow_steps_from_matches(
         if key in seen:
             continue
         seen.add(key)
+        role = request_flow_role_for_match(text, match.get("query"), behavior)
+        relevance = request_flow_match_relevance(match, behavior=behavior, role=role)
         steps.append(
             {
                 "step": len(steps) + 1,
                 "path": path,
                 "line": line,
-                "role": request_flow_role_for_match(text, match.get("query"), behavior),
+                "role": role,
                 "query": match.get("query"),
                 "evidence": bounded_text(text, 300),
                 "source": match.get("source") or "bounded_investigation",
+                "relevance": relevance,
             }
         )
         if len(steps) >= max_steps:
@@ -1740,6 +1875,7 @@ def request_flow_source_refs(
             "line": step.get("line"),
             "role": step.get("role"),
             "source": step.get("source"),
+            "relevance": step.get("relevance"),
         }.items() if value is not None}
         refs.append(ref)
     return refs or source_refs_from_records(fallback_records)
@@ -2071,8 +2207,8 @@ def change_surface_verification_commands(
 def change_surface_sort_key(record: dict[str, Any]) -> tuple[int, int, str]:
     category_priority = {"source": 0, "test": 1, "configuration": 2, "documentation": 3}
     return (
+        -evidence_record_relevance_score(record),
         category_priority.get(str(record.get("category")), 9),
-        -int(record.get("match_count") or 0),
         str(record.get("path", "")),
     )
 
@@ -2367,13 +2503,25 @@ def compact_related_tests(related_tests: list[dict[str, Any]]) -> list[dict[str,
         path = item.get("path")
         if not isinstance(path, str):
             continue
-        compact.append(
-            {
-                "path": path,
-                "matched_terms": item.get("matched_terms") if isinstance(item.get("matched_terms"), list) else [],
-                "source": item.get("source"),
-            }
-        )
+        compact_item = {
+            "path": path,
+            "matched_terms": item.get("matched_terms") if isinstance(item.get("matched_terms"), list) else [],
+            "source": item.get("source"),
+        }
+        for key in (
+            "confidence",
+            "evidence_kind",
+            "evidence_reason",
+            "runner",
+            "executable",
+            "status_markers",
+            "source_refs",
+            "evidence_refs",
+        ):
+            value = item.get(key)
+            if value not in (None, [], ""):
+                compact_item[key] = value
+        compact.append(compact_item)
     return compact
 
 
@@ -2542,15 +2690,16 @@ def compact_evidence_records(records: list[dict[str, Any]]) -> list[dict[str, An
         path = record.get("path")
         if not isinstance(path, str):
             continue
-        compact.append(
-            {
-                "path": path,
-                "category": record.get("category"),
-                "match_count": record.get("match_count", 0),
-                "queries": record.get("queries") if isinstance(record.get("queries"), list) else [],
-                "line_refs": record.get("line_refs") if isinstance(record.get("line_refs"), list) else [],
-            }
-        )
+        item = {
+            "path": path,
+            "category": record.get("category"),
+            "match_count": record.get("match_count", 0),
+            "queries": record.get("queries") if isinstance(record.get("queries"), list) else [],
+            "line_refs": record.get("line_refs") if isinstance(record.get("line_refs"), list) else [],
+        }
+        relevance = record.get("relevance")
+        item["relevance"] = relevance if isinstance(relevance, dict) else evidence_relevance(record)
+        compact.append(item)
     return compact
 
 
@@ -2562,7 +2711,14 @@ def source_refs_from_records(records: list[dict[str, Any]]) -> list[dict[str, An
             continue
         line_refs = record.get("line_refs")
         if not isinstance(line_refs, list):
-            refs.append({"path": path, "source": "bounded_investigation"})
+            relevance = record.get("relevance")
+            refs.append(
+                {
+                    "path": path,
+                    "source": "bounded_investigation",
+                    "relevance": relevance if isinstance(relevance, dict) else evidence_relevance(record),
+                }
+            )
             continue
         for line_ref in line_refs[:5]:
             if not isinstance(line_ref, dict):
@@ -2572,7 +2728,20 @@ def source_refs_from_records(records: list[dict[str, Any]]) -> list[dict[str, An
                 ref["line"] = line_ref["line"]
             if isinstance(line_ref.get("query"), str):
                 ref["query"] = line_ref["query"]
+            ref["relevance"] = line_ref.get("relevance") if isinstance(line_ref.get("relevance"), dict) else {
+                "score": evidence_query_weight(line_ref.get("query")),
+                "tier": "direct" if evidence_query_weight(line_ref.get("query")) >= 75 else "supporting",
+            }
             refs.append(ref)
+        if not line_refs:
+            relevance = record.get("relevance")
+            refs.append(
+                {
+                    "path": path,
+                    "source": "bounded_investigation",
+                    "relevance": relevance if isinstance(relevance, dict) else evidence_relevance(record),
+                }
+            )
     return refs
 
 

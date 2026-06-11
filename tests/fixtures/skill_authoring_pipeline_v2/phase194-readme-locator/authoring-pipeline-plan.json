@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "kind": "skill_authoring_pipeline_v2_candidate_plan",
+  "candidate_id": "phase194-readme-locator",
+  "skill_id": "phase194-readme-locator",
+  "promotion_state": "not_promoted_by_authoring_pipeline",
+  "manual_prompt_injection_allowed": false,
+  "runtime_registry_mutation_allowed": false,
+  "artifact_paths": {
+    "docs_stub": "docs-stubs/README.phase194-readme-locator.md",
+    "docs_example": "docs-stubs/examples/phase194-readme-locator.md",
+    "regression_test_skeleton": "test-skeletons/test_phase194_readme_locator_authoring_gate.py"
+  },
+  "prompt_examples": [
+    {
+      "id": "target-docs-boundary",
+      "prompt": "In <repo>, find where the skill authoring pipeline docs explain promotion boundaries. Read only.",
+      "expected_route": "code_investigation.plan"
+    },
+    {
+      "id": "target-authoring-gates",
+      "prompt": "In <repo>, show the docs section that lists required proof before a draft skill can be promoted. Read only.",
+      "expected_route": "code_investigation.plan"
+    }
+  ],
+  "holdout_prompts": [
+    {
+      "id": "holdout-no-promotion",
+      "prompt": "Where do the docs say a scaffolded skill is not promoted automatically?",
+      "expected_route": "code_investigation.plan"
+    },
+    {
+      "id": "holdout-live-proof",
+      "prompt": "Find the authoring docs that require live validation before stable skill admission.",
+      "expected_route": "code_investigation.plan"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "answer-cites-docs",
+      "criterion": "The answer cites the exact documentation file or generated artifact that describes the promotion boundary.",
+      "verification": "Run the target prompt through the workflow-router gateway and inspect source references.",
+      "evidence_required": "Gateway response artifact plus chat-visible source reference."
+    },
+    {
+      "id": "blind-baseline-first",
+      "criterion": "A contextless blind baseline is collected before the local model output is shown to the evaluator.",
+      "verification": "Compare timestamps and input hashes in the blind baseline report.",
+      "evidence_required": "Blind baseline report with local-output-unavailable marker."
+    },
+    {
+      "id": "fixture-parity",
+      "criterion": "The target and holdout prompts pass on both frozen Coinbase fixture roots without mutating protected source files.",
+      "verification": "Run the live validation suite against both target roots and inspect fixture hashes.",
+      "evidence_required": "Live validation report with both target roots and unchanged fixture proof."
+    }
+  ],
+  "blind_baseline_plan": {
+    "contextless_agent_first": true,
+    "local_model_output_available_to_blind_agent": false,
+    "required_outputs": [
+      "ideal_answer_shape",
+      "must_have_facts",
+      "evidence_expectations",
+      "scoring_rubric",
+      "safety_boundaries"
+    ],
+    "comparison_dimensions": [
+      "routing",
+      "evidence",
+      "correctness",
+      "completeness",
+      "format",
+      "user_visible_usefulness"
+    ]
+  },
+  "live_validation_plan": {
+    "anythingllm_required_when_applicable": true,
+    "required_targets": [
+      "localhost_8000",
+      "gateway_8300",
+      "controller_8400",
+      "workflow_router_8500",
+      "documenter_8205",
+      "anythingllm"
+    ],
+    "target_roots": [
+      "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    ],
+    "commands": [
+      "python3 scripts/validate_skill_authoring_pipeline_v2.py",
+      "python3 scripts/validate_skill_authoring_factory_live.py --timeout-seconds 900"
+    ]
+  }
+}

@@ -191,6 +191,90 @@ def source_artifact(name: str, path: Path | None, report: dict[str, Any]) -> dic
     }
 
 
+def diagnostic_actions(
+    *,
+    doctor_report: dict[str, Any],
+    health_drift_report: dict[str, Any],
+    session_recovery_report: dict[str, Any],
+) -> list[dict[str, Any]]:
+    actions: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+
+    for check in object_list(doctor_report.get("checks")):
+        status = str(check.get("status") or "")
+        if status not in {"failed", "warning", "skipped"}:
+            continue
+        detail = object_dict(check.get("details"))
+        action = {
+            "source": "first_time_user_doctor",
+            "check_id": str(check.get("id") or ""),
+            "category": str(check.get("category") or ""),
+            "status": status,
+            "message": str(check.get("message") or ""),
+            "next_action": str(check.get("next_action") or ""),
+        }
+        for key in (
+            "diagnostic_kind",
+            "stage",
+            "url",
+            "http_status",
+            "recovery_command",
+            "runtime_boundary",
+            "powershell_wsl_env_example",
+            "bash_export_example",
+        ):
+            if detail.get(key):
+                action[key] = detail[key]
+        identity = (action["source"], action["check_id"])
+        if identity not in seen:
+            seen.add(identity)
+            actions.append(action)
+
+    for finding in object_list(health_drift_report.get("findings")):
+        action = {
+            "source": "gateway_anythingllm_health_drift",
+            "check_id": str(finding.get("check_id") or ""),
+            "category": str(finding.get("category") or ""),
+            "status": str(finding.get("status") or ""),
+            "kind": str(finding.get("kind") or ""),
+            "message": str(finding.get("message") or ""),
+            "next_action": str(finding.get("next_action") or ""),
+        }
+        for key in (
+            "diagnostic_kind",
+            "stage",
+            "url",
+            "http_status",
+            "recovery_command",
+            "runtime_boundary",
+            "powershell_wsl_env_example",
+            "bash_export_example",
+        ):
+            if finding.get(key):
+                action[key] = finding[key]
+        identity = (action["source"], action["check_id"])
+        if identity not in seen:
+            seen.add(identity)
+            actions.append(action)
+
+    for error in session_recovery_report.get("errors") or []:
+        if not isinstance(error, str):
+            continue
+        action = {
+            "source": "anythingllm_session_recovery",
+            "check_id": "session_recovery.error",
+            "category": "anythingllm",
+            "status": "failed",
+            "message": error,
+            "next_action": "Fix AnythingLLM preflight/session recovery before founder testing.",
+        }
+        identity = (action["source"], action["message"])
+        if identity not in seen:
+            seen.add(identity)
+            actions.append(action)
+    return actions
+
+
 def validate_source_reports(
     *,
     policy: dict[str, Any],
@@ -276,6 +360,11 @@ def build_post_restart_runtime_readiness_report(
     missing_surfaces = sorted(required_surfaces - covered)
     if missing_surfaces:
         errors.append("missing required restart surfaces: " + ", ".join(missing_surfaces))
+    actions = diagnostic_actions(
+        doctor_report=doctor_report,
+        health_drift_report=health_drift_report,
+        session_recovery_report=session_recovery_report,
+    )
 
     status = PostRestartRuntimeReadinessStatus.FAILED.value if errors else PostRestartRuntimeReadinessStatus.PASSED.value
     decision = (
@@ -284,7 +373,7 @@ def build_post_restart_runtime_readiness_report(
         else PostRestartRuntimeReadinessDecision.BLOCKED_AFTER_RESTART.value
     )
     next_action = (
-        "continue founder testing on the stable path; work approved Phase 177 Priority 0 repair next"
+        "continue founder testing on the stable path; work approved Phase 196 Priority 0 repair next"
         if not errors
         else "fix restart readiness findings before founder testing"
     )
@@ -303,6 +392,7 @@ def build_post_restart_runtime_readiness_report(
             source_artifact("gateway_anythingllm_health_drift", health_drift_report_path, health_drift_report),
             source_artifact("anythingllm_session_recovery", session_recovery_report_path, session_recovery_report),
         ],
+        "diagnostic_actions": actions,
         "required_surfaces": sorted(required_surfaces),
         "covered_surfaces": sorted(covered),
         "missing_required_surfaces": missing_surfaces,
@@ -321,6 +411,8 @@ def build_post_restart_runtime_readiness_report(
             "session_recovery_blocker_finding_count": object_dict(session_recovery_report.get("summary")).get(
                 "blocker_finding_count"
             ),
+            "diagnostic_action_count": len(actions),
+            "blocking_diagnostic_action_count": sum(1 for action in actions if action.get("status") == "failed"),
             "validation_error_count": len(errors),
             "next_action": next_action,
         },
@@ -361,6 +453,7 @@ def validate_post_restart_runtime_readiness_report(
         "policy_path",
         "policy_sha256",
         "source_artifacts",
+        "diagnostic_actions",
         "required_surfaces",
         "covered_surfaces",
         "missing_required_surfaces",

@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "kind": "release_candidate_founder_trial_pack_policy",
+  "phase": 195,
+  "priority_backlog_id": "P0-BB-059",
+  "owner": "agentic_agents",
+  "status": "active",
+  "acceptance_marker": "PHASE195 RELEASE CANDIDATE FOUNDER TRIAL PACK PASS",
+  "description": "Governance policy for the contextless founder trial pack that packages the current validated chat-quality surface.",
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "llm_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace"
+  },
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_prompt_case_ids": [
+    "P01",
+    "P02",
+    "P03",
+    "P22"
+  ],
+  "required_stage_case_ids": {
+    "founder-smoke": [
+      "P01",
+      "P02",
+      "P03",
+      "P22"
+    ],
+    "expanded-read-only": [
+      "P04",
+      "P05",
+      "P06",
+      "P08",
+      "P09",
+      "P10",
+      "P13",
+      "P17",
+      "P19",
+      "P21"
+    ]
+  },
+  "forbidden_prompt_tags": [
+    "advanced-refactor",
+    "apply-proof",
+    "disposable-copy",
+    "draft-only"
+  ],
+  "required_setup_command_markers": [
+    "start-agent-prompt-proxies.sh",
+    "curl -fsS http://127.0.0.1:8500/v1/models",
+    "http://127.0.0.1:3001",
+    "run_first_time_user_doctor.py",
+    "validate_post_restart_runtime_readiness.py",
+    "validate_release_candidate_founder_trial_pack.py",
+    "--require-proof-artifacts"
+  ],
+  "proof_artifact_mode_required_for_release": true,
+  "required_feedback_template_markers": [
+    "workflow-router-",
+    "missing:",
+    "confusing:",
+    "expected:"
+  ],
+  "required_docs": [
+    "README.release-candidate-founder-trial-pack.md",
+    "docs/examples/release-candidate-founder-trial-pack.md",
+    "README.getting-started.md",
+    "README.external-tester-onboarding.md"
+  ],
+  "feedback_capture": {
+    "destination": "runtime-state/phase195/founder-feedback.jsonl",
+    "allowed_classifications": [
+      "answer_quality",
+      "confusing",
+      "routing"
+    ],
+    "allowed_severities": [
+      "advisory",
+      "blocker"
+    ],
+    "required_record_fields": [
+      "case_id",
+      "prompt",
+      "target_run_id",
+      "classification",
+      "severity",
+      "actual_response_excerpt",
+      "expected_behavior",
+      "fixture_root",
+      "created_at"
+    ]
+  },
+  "fixture_safety": {
+    "required_integrity_commands": [
+      "git -C /mnt/c/coinbase_testing_repo_frozen_tmp.github status --short",
+      "non-git-fixture.before.sha256",
+      "non-git-fixture.after.sha256",
+      "diff -u runtime-state/phase195/non-git-fixture.before.sha256 runtime-state/phase195/non-git-fixture.after.sha256"
+    ],
+    "source_mutation_allowed": false
+  },
+  "required_recovery_keys": [
+    "anythingllm_down",
+    "dirty_fixture",
+    "failed_doctor",
+    "missing_api_key",
+    "stale_proxies",
+    "wrong_anythingllm_target"
+  ],
+  "required_proof_refs": [
+    "runtime-state/phase191/phase191-prompt-family-drift-detection-report.json",
+    "runtime-state/phase192/phase192-chat-answer-scoring-v2-report.json",
+    "runtime-state/phase193/phase193-skill-registry-readiness-review-report.json",
+    "runtime-state/phase194/phase194-skill-authoring-pipeline-v2-report.json"
+  ]
+}

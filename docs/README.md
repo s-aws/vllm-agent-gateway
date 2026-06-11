@@ -17,12 +17,29 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Release Adherence README](../README.release-adherence.md): consolidated current-local-model release gate for founder/testing readiness.
 - [Failure-To-Roadmap README](../README.failure-to-roadmap.md): Phase 148 proposal gate for failed proof artifacts and founder misses.
 - [Contextless Audit Scorecard README](../README.contextless-audit-scorecard.md): Phase 149 deterministic scorecard for contextless audit and blind-baseline evidence packages.
+- [Contextless Agent Audit Pack README](../README.contextless-agent-audit-pack.md): Phase 185 reusable blind-baseline-first audit pack for contextless agents.
+- [Multi-Fixture Prompt Parity README](../README.multi-fixture-prompt-parity.md): Phase 187 prompt-family parity matrix across Coinbase, git Coinbase, and non-Coinbase fixtures.
+- [Evidence Boundary Schema Gate README](../README.evidence-boundary-schema-gate.md): Phase 189 gate preventing malformed schema and change-boundary evidence from rendering as successful chat answers.
+- [Unsupported Scope Refusal Quality README](../README.unsupported-scope-refusal-quality.md): Phase 190 gate proving unsupported, unsafe, and under-specified prompts return actionable recovery guidance.
+- [Prompt Family Drift Detection README](../README.prompt-family-drift-detection.md): Phase 191 gate classifying prompt-family drift before live founder field runs.
+- [Chat Answer Scoring V2 README](../README.chat-answer-scoring-v2.md): Phase 192 consolidated scoring gate for blind-baseline versus local chat answers.
+- [Skill Registry Readiness Review README](../README.skill-registry-readiness-review.md): Phase 193 readiness review for scaling the current skill registry.
+- [Skill Authoring Pipeline V2 README](../README.skill-authoring-pipeline-v2.md): Phase 194 repeatable draft-packet admission gate for skill candidates with eval, holdout, blind-baseline, and live-validation requirements.
+- [Release Candidate Founder Trial Pack README](../README.release-candidate-founder-trial-pack.md): Phase 195 contextless founder trial pack with setup, prompts, answer-quality expectations, limits, and feedback capture.
+- [V1 Product Readiness Reassessment README](../README.v1-product-readiness-reassessment.md): Phase 196 current readiness reassessment for broader V1 founder beta after the Phase 191-195 proof chain.
+- [Founder Trial Execution Round README](../README.founder-trial-execution-round.md): Phase 197 live founder trial execution through AnythingLLM with run IDs, response artifacts, and quality classifications.
+- [Founder Feedback Intake And Repair README](../README.founder-feedback-intake-repair.md): Phase 198 deterministic intake for founder trial advisories, blockers, optional notes, and Phase 199 repair decisions.
 - [Current-Model Compatibility README](../README.current-model-compatibility.md): Phase 150 current localhost model support matrix, boundaries, and monitored risks.
 - [Model Swap Smoke Probe README](../README.model-swap-smoke-probe.md): Phase 154 localhost model-swap detector and next-gate decision for drift and portability.
 - [V1 Product Readiness Review README](../README.v1-product-readiness-review.md): Phase 155 go/no-go review for V1 founder-testing readiness.
 - [V1 Stable Release Decision README](../README.v1-stable-release-decision.md): Phase 156 final release decision, scope, limitations, rollback path, and next roadmap batch.
 - [Founder Field Round 1 README](../README.founder-field-round1.md): Phase 157 founder field-test round through AnythingLLM with advisory/blocker routing into feedback intake.
 - [Founder Field Round 2 README](../README.founder-field-round2.md): Phase 164 blind-baseline-first founder field round with full response artifacts, route-surface proof, and quality classification.
+- [Blind-Baseline Delta Report README](../README.blind-baseline-delta-report.md): Phase 178 target/holdout delta report for repaired prompt families, local answer artifacts, scores, gap classes, and next actions.
+- [Prompt Corpus Governance V2 README](../README.prompt-corpus-governance-v2.md): Phase 179 role overlay for target, holdout, regression, promotion-candidate, and retired prompt cases.
+- [Chat Answer Contract Hardening README](../README.chat-answer-contract-hardening.md): Phase 180 gate proving supported Priority 0 workflows return answer-first chat output instead of artifact-only responses.
+- [Evidence Relevance Ranking README](../README.evidence-relevance-ranking.md): Phase 182 ranking repair for direct/strong/supporting evidence ordering in chat-visible code investigations.
+- [Related-Test Discovery Reliability README](../README.related-test-discovery-reliability.md): Phase 183 gate proving related-test answers are evidence-backed, confidence-labeled, and honest when no bounded tests are found.
 - [Prompt Advisory Closure README](../README.prompt-advisory-closure.md): Phase 165 closure decisions for prompt-risk advisories using refined prompt candidates and holdout proof.
 - [Generic Chat And Vague Prompt Contract README](../README.generic-chat-vague-prompt-contract.md): Phase 166 gate for greetings, help, missing targets, vague prompts, and approval-bypass refusal.
 - [Transcript Quality Feedback Intake README](../README.transcript-quality-feedback-intake.md): Phase 158 governed intake for Phase 157 advisory/blocker cases and founder notes.
@@ -91,6 +108,11 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Fixture Manager README](../README.fixture-manager.md): controlled fixture manifest, protected-source snapshots, disposable copies, and cleanup.
 - [Skill Registry README](../README.skill-registry.md): canonical metadata registry, natural lifecycle chat with approval continuations, admission validation, selection explanation, proposal, registration, skill-pack validation/install, scaffold generation, mutation gate, promotion, lifecycle audit, deprecation, update/versioning workflow, release gate, Batch B validation, selector-scale proof, capability contracts, executable eval runner, and eval fixtures for project-local planning skills.
 - [Skill Authoring Factory README](../README.skill-authoring-factory.md): dry-run factory sidecars for scaffolded skills, prompt coverage entries, docs stubs, eval skeletons, and fail-closed regression gates.
+- [Skill Authoring Pipeline V2 README](../README.skill-authoring-pipeline-v2.md): governed draft-packet admission checklist before stable skill promotion proof.
+- [Release Candidate Founder Trial Pack README](../README.release-candidate-founder-trial-pack.md): contextless founder trial pack and feedback capture surface for release-candidate review.
+- [V1 Product Readiness Reassessment README](../README.v1-product-readiness-reassessment.md): current V1 founder-beta readiness reassessment based on the Phase 191-195 proof chain.
+- [Founder Trial Execution Round README](../README.founder-trial-execution-round.md): live founder trial execution round for the release-candidate prompt pack.
+- [Founder Feedback Intake And Repair README](../README.founder-feedback-intake-repair.md): deterministic intake for founder trial advisories, blockers, optional notes, and Phase 199 repair decisions.
 - [Skill Regression Tiers README](../README.skill-regression-tiers.md): explicit offline, controller, gateway, AnythingLLM, UI, fixture-mutation, and release-candidate proof tiers.
 - [Skill Packaging README](../README.skill-packaging.md): governed skill-pack layout, namespace ownership, dependency policy, versioning, import/export, and retirement rules.
 - [L1 Coding Agent Prompt Backlog](L1_CODING_AGENT_PROMPTS.md): validated simple prompt/skill/tool targets, full L1 suite proof boundaries, and gates before advanced refactor work resumes.
@@ -117,6 +139,13 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Run Artifact Diff README](../README.run-artifact-diff.md): report-to-report comparison for route, suite, semantic, classification, artifact, and fixture-state changes.
 - [Failure Taxonomy README](../README.failure-taxonomy.md): validation artifact failure categories, severity, and recommended next actions.
 - [Eval Repair Loop README](../README.eval-repair-loop.md): repair recommendations with advisory mode, closed-loop target/holdout execution proof, and hard-stop validation.
+- [Contextless Agent Audit Pack README](../README.contextless-agent-audit-pack.md): reusable contextless-agent prompts, ordering rules, sample reports, and validation for blind-baseline-first audits.
+- [Multi-Fixture Prompt Parity README](../README.multi-fixture-prompt-parity.md): selected prompt-family parity across protected and generalization fixtures through gateway and AnythingLLM.
+- [Evidence Boundary Schema Gate README](../README.evidence-boundary-schema-gate.md): governed schema and change-boundary validation in the shared inline-answer path.
+- [Unsupported Scope Refusal Quality README](../README.unsupported-scope-refusal-quality.md): blocked-prompt recovery gate for unsupported, unsafe, and under-specified requests.
+- [Prompt Family Drift Detection README](../README.prompt-family-drift-detection.md): prompt-family drift classification against catalog, skill coverage, holdouts, and founder prompt pack.
+- [Chat Answer Scoring V2 README](../README.chat-answer-scoring-v2.md): repeatable chat-answer scoring, classification, and repair-target guidance.
+- [Skill Registry Readiness Review README](../README.skill-registry-readiness-review.md): keep, split, merge, retire, or defer review for current skills before scaling.
 - [Engineering Tenet Coverage README](../README.engineering-tenets.md): governed tenet matrix with status, evidence, live validation tier, known gaps, and contextless audit criteria.
 - [Advanced Refactor Readiness README](../README.advanced-refactor-readiness.md): fail-closed Phase 105 prerequisite report and stable-promotion blocker for advanced refactor pilots.
 - [Founder Field Tests README](../README.founder-field-tests.md): V1 founder field-test prompts through AnythingLLM with reviewable Markdown and JSON reports.
@@ -208,14 +237,34 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Release Adherence Examples](examples/release-adherence.md)
 - [Failure-To-Roadmap Examples](examples/failure-to-roadmap.md)
 - [Contextless Audit Scorecard Examples](examples/contextless-audit-scorecard.md)
+- [Contextless Agent Audit Pack Examples](examples/contextless-agent-audit-pack.md)
+- [Multi-Fixture Prompt Parity Examples](examples/multi-fixture-prompt-parity.md)
+- [Evidence Boundary Schema Gate Examples](examples/evidence-boundary-schema-gate.md)
+- [Unsupported Scope Refusal Quality Examples](examples/unsupported-scope-refusal-quality.md)
+- [Prompt Family Drift Detection Examples](examples/prompt-family-drift-detection.md)
+- [Chat Answer Scoring V2 Examples](examples/chat-answer-scoring-v2.md)
+- [Skill Registry Readiness Review Examples](examples/skill-registry-readiness-review.md)
+- [Skill Authoring Pipeline V2 Examples](examples/skill-authoring-pipeline-v2.md)
+- [Release Candidate Founder Trial Pack Examples](examples/release-candidate-founder-trial-pack.md)
+- [V1 Product Readiness Reassessment Examples](examples/v1-product-readiness-reassessment.md)
+- [Founder Trial Execution Round Examples](examples/founder-trial-execution-round.md)
 - [Current-Model Compatibility Examples](examples/current-model-compatibility.md)
 - [Model Swap Smoke Probe Examples](examples/model-swap-smoke-probe.md)
 - [V1 Product Readiness Review Examples](examples/v1-product-readiness-review.md)
 - [V1 Stable Release Decision Examples](examples/v1-stable-release-decision.md)
 - [Founder Field Round 1 Examples](examples/founder-field-round1.md)
 - [Founder Field Round 2 Examples](examples/founder-field-round2.md)
+- [Blind-Baseline Delta Report Examples](examples/blind-baseline-delta-report.md)
+- [Prompt Corpus Governance V2 Examples](examples/prompt-corpus-governance-v2.md)
+- [Chat Answer Contract Hardening Examples](examples/chat-answer-contract-hardening.md)
+- [Evidence Relevance Ranking Examples](examples/evidence-relevance-ranking.md)
+- [Related-Test Discovery Reliability Examples](examples/related-test-discovery-reliability.md)
 - [Prompt Advisory Closure Examples](examples/prompt-advisory-closure.md)
 - [Generic Chat And Vague Prompt Contract Examples](examples/generic-chat-vague-prompt-contract.md)
+- [Unsupported Scope Refusal Quality Examples](examples/unsupported-scope-refusal-quality.md)
+- [Prompt Family Drift Detection Examples](examples/prompt-family-drift-detection.md)
+- [Chat Answer Scoring V2 Examples](examples/chat-answer-scoring-v2.md)
+- [Skill Registry Readiness Review Examples](examples/skill-registry-readiness-review.md)
 - [Transcript Quality Feedback Intake Examples](examples/transcript-quality-feedback-intake.md)
 - [Priority 0 Repair Loop Examples](examples/priority0-repair-loop.md)
 - [Stable Release Refresh Examples](examples/stable-release-refresh.md)
@@ -289,6 +338,11 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Fixture Manager Examples](examples/fixture-manager.md)
 - [Skill Registry Examples](examples/skill-registry.md)
 - [Skill Authoring Factory Examples](examples/skill-authoring-factory.md)
+- [Skill Authoring Pipeline V2 Examples](examples/skill-authoring-pipeline-v2.md)
+- [Release Candidate Founder Trial Pack Examples](examples/release-candidate-founder-trial-pack.md)
+- [V1 Product Readiness Reassessment Examples](examples/v1-product-readiness-reassessment.md)
+- [Founder Trial Execution Round Examples](examples/founder-trial-execution-round.md)
+- [Founder Feedback Intake And Repair Examples](examples/founder-feedback-intake-repair.md)
 - [Skill Regression Tier Examples](examples/skill-regression-tiers.md)
 - [Skill Packaging Examples](examples/skill-packaging.md)
 - [Documenter Examples](examples/documenter.md)

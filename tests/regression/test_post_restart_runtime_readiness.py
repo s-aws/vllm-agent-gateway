@@ -25,6 +25,7 @@ def check(
     status: str = "passed",
     details: dict[str, Any] | None = None,
     message: str = "ok",
+    next_action: str = "",
 ) -> dict[str, Any]:
     return {
         "id": check_id,
@@ -32,7 +33,7 @@ def check(
         "status": status,
         "message": message,
         "details": details or {},
-        "next_action": "",
+        "next_action": next_action,
     }
 
 
@@ -162,6 +163,27 @@ def build_reports(tmp_path: Path) -> tuple[dict[str, Any], dict[str, Any], dict[
     return current_policy, doctor, health, session, policy_path, doctor_path, health_path, session_path
 
 
+def replace_check_and_refresh_summary(report: dict[str, Any], check_id: str, replacement: dict[str, Any]) -> None:
+    checks = report["checks"]
+    for index, item in enumerate(checks):
+        if item["id"] == check_id:
+            checks[index] = replacement
+            break
+    else:
+        raise AssertionError(f"missing check {check_id}")
+    failed_ids = sorted(item["id"] for item in checks if item["status"] == "failed")
+    warning_ids = sorted(item["id"] for item in checks if item["status"] == "warning")
+    report["summary"]["failed_check_ids"] = failed_ids
+    report["summary"]["warning_check_ids"] = warning_ids
+    report["summary"]["status_counts"] = {
+        "passed": sum(1 for item in checks if item["status"] == "passed"),
+        "failed": len(failed_ids),
+        "warning": len(warning_ids),
+        "skipped": sum(1 for item in checks if item["status"] == "skipped"),
+    }
+    report["status"] = "failed" if failed_ids else "passed"
+
+
 def test_post_restart_runtime_readiness_passes_clean_sources(tmp_path: Path) -> None:
     current_policy, doctor, health, session, policy_path, doctor_path, health_path, session_path = build_reports(tmp_path)
 
@@ -181,8 +203,56 @@ def test_post_restart_runtime_readiness_passes_clean_sources(tmp_path: Path) -> 
     assert report["summary"]["missing_required_surface_count"] == 0
     assert (
         report["summary"]["next_action"]
-        == "continue founder testing on the stable path; work approved Phase 177 Priority 0 repair next"
+        == "continue founder testing on the stable path; work approved Phase 196 Priority 0 repair next"
     )
+    assert report["summary"]["diagnostic_action_count"] == 0
+    assert report["summary"]["blocking_diagnostic_action_count"] == 0
+    assert report["diagnostic_actions"] == []
+
+
+def test_post_restart_runtime_readiness_surfaces_api_key_bridge_recovery_action(tmp_path: Path) -> None:
+    current_policy, doctor, _health, session, policy_path, doctor_path, health_path, session_path = build_reports(tmp_path)
+    replace_check_and_refresh_summary(
+        doctor,
+        "anythingllm.api_key",
+        check(
+            "anythingllm.api_key",
+            "anythingllm",
+            status="failed",
+            message="ANYTHINGLLM_API_KEY is missing.",
+            details={
+                "api_key_env": "ANYTHINGLLM_API_KEY",
+                "api_key_available": False,
+                "powershell_wsl_env_example": (
+                    "$key=$env:ANYTHINGLLM_API_KEY; wsl.exe --cd /mnt/c/agentic_agents -- "
+                    "env \"ANYTHINGLLM_API_KEY=$key\" python3 scripts/validate_post_restart_runtime_readiness.py"
+                ),
+            },
+            next_action="Inject the Windows AnythingLLM API key into WSL with the command shown in details.",
+        ),
+    )
+    write_json(doctor_path, doctor)
+    health = build_gateway_anythingllm_health_drift_report(doctor_report=doctor, doctor_report_path=doctor_path)
+    write_json(health_path, health)
+
+    report = build_post_restart_runtime_readiness_report(
+        policy=current_policy,
+        doctor_report=doctor,
+        health_drift_report=health,
+        session_recovery_report=session,
+        policy_path=policy_path,
+        doctor_report_path=doctor_path,
+        health_drift_report_path=health_path,
+        session_recovery_report_path=session_path,
+    )
+
+    assert report["status"] == "failed"
+    assert report["summary"]["diagnostic_action_count"] >= 1
+    assert report["summary"]["blocking_diagnostic_action_count"] >= 1
+    matching = [item for item in report["diagnostic_actions"] if item["check_id"] == "anythingllm.api_key"]
+    assert matching
+    assert any("wsl.exe --cd" in item.get("powershell_wsl_env_example", "") for item in matching)
+    assert "anythingllm.api_key" in report["missing_required_surfaces"]
 
 
 def test_post_restart_runtime_readiness_fails_missing_port_surface(tmp_path: Path) -> None:

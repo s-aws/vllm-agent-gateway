@@ -40,11 +40,16 @@ PORT_HEALTH_PROBES = (
     ("controller", "http://127.0.0.1:8400/health"),
     ("workflow-router-gateway", "http://127.0.0.1:8500/v1/models"),
 )
+EVIDENCE_BOUNDARY_ARTIFACTS = {
+    "downstream_data_model_lookup",
+    "downstream_change_surface_summary",
+}
 
 
 @dataclass(frozen=True)
 class FixtureLiveCase:
     case_id: str
+    prompt_family: str
     fixture_id: str
     prompt_template: str
     expected_workflow: str
@@ -57,6 +62,7 @@ class FixtureLiveCase:
 LIVE_CASES = [
     FixtureLiveCase(
         case_id="coinbase-code-explanation",
+        prompt_family="code_explanation",
         fixture_id="coinbase-frozen",
         prompt_template=(
             "In {target_root}, explain what find_stealth_order_by_placed_order_id does "
@@ -69,6 +75,7 @@ LIVE_CASES = [
     ),
     FixtureLiveCase(
         case_id="coinbase-git-code-explanation",
+        prompt_family="code_explanation",
         fixture_id="coinbase-frozen-git",
         prompt_template=(
             "In {target_root}, explain what find_stealth_order_by_placed_order_id does "
@@ -81,6 +88,7 @@ LIVE_CASES = [
     ),
     FixtureLiveCase(
         case_id="python-service-code-explanation",
+        prompt_family="code_explanation",
         fixture_id="python-service-generalization",
         prompt_template=(
             "In {target_root}, explain resolve_order_status in service/orders.py. Read only. "
@@ -92,7 +100,75 @@ LIVE_CASES = [
         expected_task_class="read_only_l1",
     ),
     FixtureLiveCase(
+        case_id="coinbase-schema-lookup",
+        prompt_family="schema_lookup",
+        fixture_id="coinbase-frozen",
+        prompt_template=(
+            "In {target_root}, find only the persisted stealth_orders table schema. Read only. "
+            "Return schema field names, model files, and source refs. Exclude runtime dictionary fields. Return JSON."
+        ),
+        expected_workflow="code_investigation.plan",
+        expected_artifact="downstream_data_model_lookup",
+        expected_route_hint="l1_data_model_lookup_terms",
+        expected_task_class="read_only_l1",
+    ),
+    FixtureLiveCase(
+        case_id="coinbase-git-schema-lookup",
+        prompt_family="schema_lookup",
+        fixture_id="coinbase-frozen-git",
+        prompt_template=(
+            "In {target_root}, find only the persisted stealth_orders table schema. Read only. "
+            "Return schema field names, model files, and source refs. Exclude runtime dictionary fields. Return JSON."
+        ),
+        expected_workflow="code_investigation.plan",
+        expected_artifact="downstream_data_model_lookup",
+        expected_route_hint="l1_data_model_lookup_terms",
+        expected_task_class="read_only_l1",
+    ),
+    FixtureLiveCase(
+        case_id="python-service-schema-lookup",
+        prompt_family="schema_lookup",
+        fixture_id="python-service-generalization",
+        prompt_template=(
+            "In {target_root}, find the orders table schema only. Read only. "
+            "Return schema field names, model files, and source refs. Return JSON."
+        ),
+        expected_workflow="code_investigation.plan",
+        expected_artifact="downstream_data_model_lookup",
+        expected_route_hint="l1_data_model_lookup_terms",
+        expected_task_class="read_only_l1",
+    ),
+    FixtureLiveCase(
+        case_id="coinbase-request-flow",
+        prompt_family="request_flow",
+        fixture_id="coinbase-frozen",
+        prompt_template=(
+            "In {target_root}, map the request/data flow for request_stealth_orders from dashboard message "
+            "to stealth order snapshot. Read only. Return flow steps, participating files, risks, gaps, "
+            "and verification commands. Return JSON."
+        ),
+        expected_workflow="code_investigation.plan",
+        expected_artifact="downstream_request_flow_map",
+        expected_route_hint="l2_request_flow_map_terms",
+        expected_task_class="l2_read_only",
+    ),
+    FixtureLiveCase(
+        case_id="coinbase-git-request-flow",
+        prompt_family="request_flow",
+        fixture_id="coinbase-frozen-git",
+        prompt_template=(
+            "In {target_root}, map the request/data flow for request_stealth_orders from dashboard message "
+            "to stealth order snapshot. Read only. Return flow steps, participating files, risks, gaps, "
+            "and verification commands. Return JSON."
+        ),
+        expected_workflow="code_investigation.plan",
+        expected_artifact="downstream_request_flow_map",
+        expected_route_hint="l2_request_flow_map_terms",
+        expected_task_class="l2_read_only",
+    ),
+    FixtureLiveCase(
         case_id="python-service-request-flow",
+        prompt_family="request_flow",
         fixture_id="python-service-generalization",
         prompt_template=(
             "In {target_root}, follow handler branch trace for handle_create_order as a request flow through "
@@ -105,7 +181,50 @@ LIVE_CASES = [
         expected_task_class="l2_read_only",
     ),
     FixtureLiveCase(
+        case_id="coinbase-change-surface",
+        prompt_family="change_surface",
+        fixture_id="coinbase-frozen",
+        prompt_template=(
+            "In {target_root}, identify the minimal safe change surface for changing placed_order_id stealth lookup behavior. "
+            "Read only. Return files that would need review, related tests, risk level, gaps, and verification commands. "
+            "Stop before implementation. Return JSON."
+        ),
+        expected_workflow="code_investigation.plan",
+        expected_artifact="downstream_change_surface_summary",
+        expected_route_hint="l2_change_surface_summary_terms",
+        expected_task_class="l2_read_only",
+    ),
+    FixtureLiveCase(
+        case_id="coinbase-git-change-surface",
+        prompt_family="change_surface",
+        fixture_id="coinbase-frozen-git",
+        prompt_template=(
+            "In {target_root}, identify the minimal safe change surface for changing placed_order_id stealth lookup behavior. "
+            "Read only. Return files that would need review, related tests, risk level, gaps, and verification commands. "
+            "Stop before implementation. Return JSON."
+        ),
+        expected_workflow="code_investigation.plan",
+        expected_artifact="downstream_change_surface_summary",
+        expected_route_hint="l2_change_surface_summary_terms",
+        expected_task_class="l2_read_only",
+    ),
+    FixtureLiveCase(
+        case_id="python-service-change-surface",
+        prompt_family="change_surface",
+        fixture_id="python-service-generalization",
+        prompt_template=(
+            "In {target_root}, identify files to touch and files not to touch for the minimal safe change surface "
+            "for order status behavior. Read only and stop before implementation. Return risks, gaps, "
+            "and verification commands. Return JSON."
+        ),
+        expected_workflow="code_investigation.plan",
+        expected_artifact="downstream_change_surface_summary",
+        expected_route_hint="l2_change_surface_summary_terms",
+        expected_task_class="l2_read_only",
+    ),
+    FixtureLiveCase(
         case_id="node-cli-configuration-lookup",
+        prompt_family="configuration_lookup",
         fixture_id="node-cli-generalization",
         prompt_template=(
             "In {target_root}, locate where DEFAULT_PROFILE is defined or used as a configuration setting. "
@@ -118,6 +237,7 @@ LIVE_CASES = [
     ),
     FixtureLiveCase(
         case_id="go-http-configuration-lookup",
+        prompt_family="configuration_lookup",
         fixture_id="go-http-generalization",
         prompt_template=(
             "In {target_root}, locate where ORDER_STATUS_TIMEOUT_MS is defined or used as a configuration setting. "
@@ -130,6 +250,7 @@ LIVE_CASES = [
     ),
     FixtureLiveCase(
         case_id="go-http-table-read-write",
+        prompt_family="table_read_write",
         fixture_id="go-http-generalization",
         prompt_template=(
             "In {target_root}, locate the orders table definition, reads, and writes. Read only. "
@@ -270,6 +391,7 @@ def assert_route_decision(parsed: dict[str, Any], *, case: FixtureLiveCase, labe
 
 def assert_parsed_content(parsed: dict[str, Any], *, case: FixtureLiveCase, label: str) -> dict[str, Any]:
     contract = parsed.get("chat_contract") if isinstance(parsed.get("chat_contract"), dict) else {}
+    inline_contract = parsed.get("inline_answer_contract") if isinstance(parsed.get("inline_answer_contract"), dict) else {}
     artifacts = parsed.get("artifacts") if isinstance(parsed.get("artifacts"), dict) else {}
     if parsed.get("workflow") != "workflow_router.plan":
         raise RuntimeError(f"{label} returned wrong wrapper workflow: {parsed.get('workflow')!r}")
@@ -277,6 +399,24 @@ def assert_parsed_content(parsed: dict[str, Any], *, case: FixtureLiveCase, labe
         raise RuntimeError(f"{label} selected wrong workflow: {contract.get('selected_workflow')!r}")
     if case.expected_artifact not in artifacts:
         raise RuntimeError(f"{label} missing expected artifact: {case.expected_artifact}")
+    evidence_boundary_status = None
+    evidence_boundary_errors: list[Any] = []
+    if case.expected_artifact in EVIDENCE_BOUNDARY_ARTIFACTS:
+        evidence_boundary_status = inline_contract.get("evidence_boundary_status")
+        evidence_boundary_errors = (
+            inline_contract.get("evidence_boundary_errors")
+            if isinstance(inline_contract.get("evidence_boundary_errors"), list)
+            else []
+        )
+        if evidence_boundary_status != "passed" or evidence_boundary_errors:
+            raise RuntimeError(
+                f"{label} evidence boundary gate failed: "
+                + json.dumps(
+                    {"status": evidence_boundary_status, "errors": evidence_boundary_errors},
+                    ensure_ascii=True,
+                    sort_keys=True,
+                )
+            )
     decision = assert_route_decision(parsed, case=case, label=label)
     audit = decision.get("context_source_audit") if isinstance(decision.get("context_source_audit"), dict) else {}
     layout = audit.get("layout") if isinstance(audit.get("layout"), dict) else {}
@@ -292,6 +432,8 @@ def assert_parsed_content(parsed: dict[str, Any], *, case: FixtureLiveCase, labe
         "supported_file_count": layout.get("supported_file_count"),
         "selected_context_sources": audit.get("selected_source_ids") if isinstance(audit.get("selected_source_ids"), list) else [],
         "context_gaps": audit.get("gaps") if isinstance(audit.get("gaps"), list) else [],
+        "evidence_boundary_status": evidence_boundary_status,
+        "evidence_boundary_error_count": len(evidence_boundary_errors),
     }
 
 
@@ -366,6 +508,7 @@ def case_result(
     return {
         "client": client,
         "case_id": case.case_id,
+        "prompt_family": case.prompt_family,
         "fixture_id": case.fixture_id,
         "category": entry.category,
         "target_root": entry.source_path.as_posix(),
@@ -381,11 +524,58 @@ def case_result(
         "supported_file_count": proof["supported_file_count"],
         "selected_context_sources": proof["selected_context_sources"],
         "context_gaps": proof["context_gaps"],
+        "evidence_boundary_status": proof.get("evidence_boundary_status"),
+        "evidence_boundary_error_count": proof.get("evidence_boundary_error_count"),
         "expected_route_hint": case.expected_route_hint,
         "expected_task_class": case.expected_task_class,
         "repo_layout_limitations": repo_layout_limitations(entry),
         "source_unchanged": True,
         "git_status_unchanged": before_git_status == git_status(entry.source_path),
+    }
+
+
+def parity_matrix(results: list[dict[str, Any]]) -> dict[str, Any]:
+    by_family: dict[str, list[dict[str, Any]]] = {}
+    for item in results:
+        if not isinstance(item, dict):
+            continue
+        by_family.setdefault(str(item.get("prompt_family") or "unknown"), []).append(item)
+    families: list[dict[str, Any]] = []
+    fixture_specific_deltas: list[dict[str, Any]] = []
+    shared_workflow_deltas: list[dict[str, Any]] = []
+    for family, items in sorted(by_family.items()):
+        failed = [item for item in items if item.get("status") != "passed"]
+        selected_workflows = sorted({str(item.get("selected_workflow")) for item in items})
+        artifacts = sorted({str(item.get("expected_artifact")) for item in items})
+        fixtures = sorted({str(item.get("fixture_id")) for item in items})
+        categories = sorted({str(item.get("category")) for item in items})
+        clients = sorted({str(item.get("client")) for item in items})
+        status = "passed" if not failed else "failed"
+        if failed and len(failed) == len(items):
+            shared_workflow_deltas.append({"prompt_family": family, "failed_case_ids": [item["case_id"] for item in failed]})
+        elif failed:
+            fixture_specific_deltas.append({"prompt_family": family, "failed_case_ids": [item["case_id"] for item in failed]})
+        families.append(
+            {
+                "prompt_family": family,
+                "status": status,
+                "case_count": len(items),
+                "fixture_count": len(fixtures),
+                "fixtures": fixtures,
+                "category_count": len(categories),
+                "categories": categories,
+                "clients": clients,
+                "selected_workflows": selected_workflows,
+                "expected_artifacts": artifacts,
+                "fixture_specific_delta_count": 0 if not failed else len(failed),
+            }
+        )
+    return {
+        "status": "passed" if not fixture_specific_deltas and not shared_workflow_deltas else "failed",
+        "family_count": len(families),
+        "families": families,
+        "fixture_specific_deltas": fixture_specific_deltas,
+        "shared_workflow_deltas": shared_workflow_deltas,
     }
 
 
@@ -481,6 +671,7 @@ def main() -> int:
             "case_count": len(cases),
             "client_case_count": len(report["cases"]),
             "fixture_count": len({case["fixture_id"] for case in report["cases"] if isinstance(case, dict)}),
+            "prompt_family_count": len({case["prompt_family"] for case in report["cases"] if isinstance(case, dict)}),
             "category_count": len(categories),
             "categories": sorted(categories),
             "clients": sorted({case["client"] for case in report["cases"] if isinstance(case, dict)}),
@@ -494,6 +685,9 @@ def main() -> int:
             ),
             "error_count": 0,
         }
+        report["parity_matrix"] = parity_matrix(report["cases"])
+        if report["parity_matrix"]["status"] != "passed":
+            raise RuntimeError("multi-fixture prompt parity matrix failed")
         report["status"] = "passed"
     except Exception as exc:
         report["errors"].append(str(exc))

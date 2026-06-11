@@ -224,8 +224,14 @@ def test_first_time_user_doctor_fails_and_skips_anythingllm_details_without_api_
 
     assert report["status"] == "failed"
     assert "anythingllm.api_key" in report["summary"]["failed_check_ids"]
+    api_key_check = next(item for item in report["checks"] if item["id"] == "anythingllm.api_key")
+    assert "wsl.exe --cd" in api_key_check["details"]["powershell_wsl_env_example"]
+    assert "ANYTHINGLLM_API_KEY=$key" in api_key_check["details"]["powershell_wsl_env_example"]
+    assert "Inject the Windows AnythingLLM API key into WSL" in api_key_check["next_action"]
     skipped = [item["id"] for item in report["checks"] if item["status"] == "skipped"]
     assert "anythingllm.target_url" in skipped
+    target_url_check = next(item for item in report["checks"] if item["id"] == "anythingllm.target_url")
+    assert "powershell_wsl_env_example" in target_url_check["details"]
 
 
 def test_first_time_user_doctor_warns_for_fixture_line_ending_only_git_noise(tmp_path: Path, monkeypatch) -> None:

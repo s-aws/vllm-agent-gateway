@@ -284,6 +284,38 @@ def test_gateway_anythingllm_health_drift_classifies_auth_failure() -> None:
     assert finding_kinds(report) == {HealthDriftKind.AUTH_FAILURE.value}
 
 
+def test_gateway_anythingllm_health_drift_carries_api_key_bridge_recovery_command() -> None:
+    doctor = passing_doctor_report()
+    replace_check(
+        doctor,
+        "anythingllm.api_key",
+        check(
+            "anythingllm.api_key",
+            "anythingllm",
+            status="failed",
+            message="ANYTHINGLLM_API_KEY is missing.",
+            details={
+                "api_key_env": "ANYTHINGLLM_API_KEY",
+                "api_key_available": False,
+                "powershell_wsl_env_example": (
+                    "$key=$env:ANYTHINGLLM_API_KEY; wsl.exe --cd /mnt/c/agentic_agents -- "
+                    "env \"ANYTHINGLLM_API_KEY=$key\" python3 scripts/validate_post_restart_runtime_readiness.py"
+                ),
+                "bash_export_example": "export ANYTHINGLLM_API_KEY=...",
+            },
+            next_action="Inject the Windows AnythingLLM API key into WSL with the command shown in details.",
+        ),
+    )
+
+    report = report_for(doctor)
+
+    assert report["status"] == "failed"
+    assert finding_kinds(report) == {HealthDriftKind.AUTH_FAILURE.value}
+    finding = report["findings"][0]
+    assert "wsl.exe --cd" in finding["powershell_wsl_env_example"]
+    assert finding["bash_export_example"].startswith("export ANYTHINGLLM_API_KEY")
+
+
 def test_gateway_anythingllm_health_drift_does_not_call_missing_workspace_auth_failure() -> None:
     doctor = passing_doctor_report()
     replace_check(

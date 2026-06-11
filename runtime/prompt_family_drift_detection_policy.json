@@ -1,0 +1,179 @@
+{
+  "acceptance_marker": "PHASE191 PROMPT FAMILY DRIFT DETECTION PASS",
+  "allowed_active_catalog_blocking_drift_count": 0,
+  "decision_contract": {
+    "allowed_decisions": [
+      "in_coverage",
+      "holdout",
+      "partial_drift",
+      "out_of_coverage"
+    ],
+    "allowed_required_verification_gates": [
+      "static_registry",
+      "live_gateway_anythingllm",
+      "prompt_governance_update",
+      "workflow_repair",
+      "new_skill_tool_proposal",
+      "unsupported_scope_backlog"
+    ],
+    "allowed_weak_layers": [
+      "none",
+      "workflow",
+      "router",
+      "skill",
+      "tool",
+      "policy",
+      "docs",
+      "test_coverage",
+      "prompt_governance",
+      "runtime_proof"
+    ],
+    "required_probe_decisions": [
+      "in_coverage",
+      "holdout",
+      "partial_drift",
+      "out_of_coverage"
+    ],
+    "required_report_fields": [
+      "prompt_id",
+      "prompt_text",
+      "prompt_family",
+      "decision",
+      "confidence",
+      "expected_intent",
+      "matched_workflow",
+      "matched_skill",
+      "matched_router_path",
+      "missing_or_weak_layer",
+      "evidence_artifacts_checked",
+      "reasoning_summary",
+      "required_verification_gate",
+      "recommended_next_action",
+      "coverage_version_or_commit",
+      "timestamp"
+    ]
+  },
+  "description": "Phase 191 gate that classifies prompt-family drift against the current prompt catalog, skill coverage registry, corpus governance roles, holdout bank, and founder prompt pack before expensive live field runs.",
+  "drift_probe_cases": [
+    {
+      "confidence": "high",
+      "expected_decision": "in_coverage",
+      "expected_intent": "Explain a named function with inputs, outputs, side effects, tests, and source evidence.",
+      "expected_route_rule": "l1_explain_code_terms",
+      "expected_workflow": "code_investigation.plan",
+      "matched_coverage_entry_ids": [
+        "L1-002"
+      ],
+      "missing_or_weak_layer": [
+        "none"
+      ],
+      "prompt_family": "L1-code-explanation",
+      "prompt_id": "PFDD-001",
+      "prompt_text": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only.",
+      "recommended_next_action": "keep in governed regression and rerun live gateway/AnythingLLM proof when the source prompt changes",
+      "required_verification_gate": "live_gateway_anythingllm"
+    },
+    {
+      "confidence": "high",
+      "expected_decision": "holdout",
+      "expected_intent": "Map a handler branch trace as an independent holdout for request-flow evidence.",
+      "expected_route_rule": "l2_request_flow_map_terms",
+      "expected_workflow": "code_investigation.plan",
+      "matched_coverage_entry_ids": [
+        "L2-007"
+      ],
+      "missing_or_weak_layer": [
+        "none"
+      ],
+      "prompt_family": "L2-request-flow-map",
+      "prompt_id": "PFDD-002",
+      "prompt_text": "In /mnt/c/coinbase_testing_repo_frozen_tmp, follow the request_stealth_order handler branch trace and cite the decision points. Read only.",
+      "recommended_next_action": "keep as a holdout and do not promote related targets without blind-baseline proof",
+      "required_verification_gate": "live_gateway_anythingllm"
+    },
+    {
+      "confidence": "medium",
+      "expected_decision": "partial_drift",
+      "expected_intent": "Generate and govern new founder-intent prompt variants, then classify answer-quality misses.",
+      "expected_route_rule": "",
+      "expected_workflow": "",
+      "matched_coverage_entry_ids": [],
+      "missing_or_weak_layer": [
+        "skill",
+        "tool",
+        "test_coverage",
+        "prompt_governance"
+      ],
+      "prompt_family": "prompt-corpus-expansion",
+      "prompt_id": "PFDD-003",
+      "prompt_text": "Create twenty new founder-intent prompts, run blind baselines, compare them to local chat answers, and tell me which skill gaps are real.",
+      "recommended_next_action": "create a bounded skill/tool or governance proposal before adding these prompts to the release pack",
+      "required_verification_gate": "new_skill_tool_proposal"
+    },
+    {
+      "confidence": "high",
+      "expected_decision": "out_of_coverage",
+      "expected_intent": "Evaluate startup pricing and market strategy without a code or local-workflow target.",
+      "expected_route_rule": "",
+      "expected_workflow": "",
+      "matched_coverage_entry_ids": [],
+      "missing_or_weak_layer": [
+        "workflow",
+        "skill",
+        "policy"
+      ],
+      "prompt_family": "non-development-business-critique",
+      "prompt_id": "PFDD-004",
+      "prompt_text": "Review my pricing strategy against competitors and tell me whether this startup will win the market.",
+      "recommended_next_action": "keep out of the coding-agent release scope or add an explicitly approved unsupported-scope backlog item",
+      "required_verification_gate": "unsupported_scope_backlog"
+    },
+    {
+      "confidence": "medium",
+      "expected_decision": "partial_drift",
+      "expected_intent": "Automatically promote prompt families after one successful run without independent holdout evidence.",
+      "expected_route_rule": "",
+      "expected_workflow": "",
+      "matched_coverage_entry_ids": [],
+      "missing_or_weak_layer": [
+        "policy",
+        "prompt_governance",
+        "runtime_proof"
+      ],
+      "prompt_family": "unsafe-auto-promotion",
+      "prompt_id": "PFDD-005",
+      "prompt_text": "If a new prompt passes once, promote it into the stable prompt corpus automatically so we can move faster.",
+      "recommended_next_action": "block automatic promotion and require prompt governance plus holdout proof",
+      "required_verification_gate": "prompt_governance_update"
+    }
+  ],
+  "expected_catalog_case_count": 34,
+  "expected_coverage_entry_count": 40,
+  "expected_corpus_role_counts": {
+    "holdout": 6,
+    "promotion_candidate": 6,
+    "regression": 34,
+    "retired": 0,
+    "target": 6
+  },
+  "expected_prompt_pack_tiers": [
+    "smoke",
+    "expanded_read_only"
+  ],
+  "kind": "prompt_family_drift_detection_policy",
+  "phase": 191,
+  "priority_backlog_id": "P0-BB-055",
+  "source_catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+  "source_corpus_governance_path": "runtime/prompt_corpus_governance_v2.json",
+  "source_holdout_bank_path": "runtime/holdout_prompt_bank.json",
+  "source_prompt_pack_path": "runtime/founder_test_prompt_pack.json",
+  "source_skill_coverage_path": "runtime/prompt_skill_coverage.json",
+  "source_kinds": {
+    "catalog": "prompt_catalog",
+    "corpus_governance": "prompt_corpus_governance_v2_policy",
+    "holdout_bank": "priority0_holdout_prompt_bank",
+    "prompt_pack": "founder_test_prompt_pack",
+    "skill_coverage": "prompt_skill_coverage_registry"
+  },
+  "schema_version": 1
+}

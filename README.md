@@ -31,6 +31,16 @@ First-time AnythingLLM testers should start here:
 - [README.release-adherence.md](README.release-adherence.md): consolidated current-local-model release gate for founder/testing readiness.
 - [README.failure-to-roadmap.md](README.failure-to-roadmap.md): Phase 148 proposal gate for turning failed proof artifacts into unapproved roadmap candidates.
 - [README.contextless-audit-scorecard.md](README.contextless-audit-scorecard.md): Phase 149 deterministic scorecard for contextless audit and blind-baseline evidence packages.
+- [README.contextless-agent-audit-pack.md](README.contextless-agent-audit-pack.md): Phase 185 reusable blind-baseline-first audit pack for contextless agents.
+- [README.multi-fixture-prompt-parity.md](README.multi-fixture-prompt-parity.md): Phase 187 parity matrix for supported prompt families across Coinbase and non-Coinbase fixtures.
+- [README.evidence-boundary-schema-gate.md](README.evidence-boundary-schema-gate.md): Phase 189 gate preventing malformed schema and change-boundary evidence from rendering as successful chat answers.
+- [README.unsupported-scope-refusal-quality.md](README.unsupported-scope-refusal-quality.md): Phase 190 gate proving unsupported, unsafe, and under-specified prompts return actionable recovery guidance.
+- [README.prompt-family-drift-detection.md](README.prompt-family-drift-detection.md): Phase 191 gate classifying prompt-family drift before live founder field runs.
+- [README.chat-answer-scoring-v2.md](README.chat-answer-scoring-v2.md): Phase 192 consolidated scoring gate for blind-baseline versus local chat answers.
+- [README.skill-registry-readiness-review.md](README.skill-registry-readiness-review.md): Phase 193 readiness review for scaling the current skill registry.
+- [README.release-candidate-founder-trial-pack.md](README.release-candidate-founder-trial-pack.md): Phase 195 contextless founder trial pack with setup, prompts, answer-quality expectations, limits, and feedback capture.
+- [README.v1-product-readiness-reassessment.md](README.v1-product-readiness-reassessment.md): Phase 196 current readiness reassessment for broader V1 founder beta after the Phase 191-195 proof chain.
+- [README.founder-trial-execution-round.md](README.founder-trial-execution-round.md): Phase 197 live founder trial execution through AnythingLLM with run IDs, response artifacts, and quality classifications.
 - [README.current-model-compatibility.md](README.current-model-compatibility.md): Phase 150 matrix for current localhost model support, boundaries, and monitored risks.
 - [README.model-swap-smoke-probe.md](README.model-swap-smoke-probe.md): Phase 154 smoke probe that detects localhost model swaps and decides whether drift gates are required.
 - [README.v1-product-readiness-review.md](README.v1-product-readiness-review.md): Phase 155 go/no-go review for V1 founder-testing readiness.
@@ -131,6 +141,17 @@ Feature docs:
 - [README.release-adherence.md](README.release-adherence.md): one JSON/Markdown gate for current local model release readiness
 - [README.failure-to-roadmap.md](README.failure-to-roadmap.md): failure-to-roadmap proposal gate for failed release proof artifacts
 - [README.contextless-audit-scorecard.md](README.contextless-audit-scorecard.md): contextless audit and blind-baseline evidence scorecard
+- [README.multi-fixture-prompt-parity.md](README.multi-fixture-prompt-parity.md): multi-fixture prompt parity across gateway and AnythingLLM
+- [README.evidence-boundary-schema-gate.md](README.evidence-boundary-schema-gate.md): governed schema and change-boundary evidence validation before chat answers
+- [README.unsupported-scope-refusal-quality.md](README.unsupported-scope-refusal-quality.md): unsupported-scope refusal and clarification quality gate
+- [README.prompt-family-drift-detection.md](README.prompt-family-drift-detection.md): prompt-family drift classification against catalog, skill coverage, holdouts, and founder prompt pack
+- [README.chat-answer-scoring-v2.md](README.chat-answer-scoring-v2.md): repeatable chat-answer scoring, classification, and repair-target guidance
+- [README.skill-registry-readiness-review.md](README.skill-registry-readiness-review.md): keep, split, merge, retire, or defer review for current skills before scaling
+- [README.skill-authoring-pipeline-v2.md](README.skill-authoring-pipeline-v2.md): repeatable draft-packet admission gate for skill candidates with eval, holdout, blind-baseline, and live-validation requirements
+- [README.release-candidate-founder-trial-pack.md](README.release-candidate-founder-trial-pack.md): contextless founder trial pack with setup, prompts, expected answer qualities, limits, and feedback capture
+- [README.v1-product-readiness-reassessment.md](README.v1-product-readiness-reassessment.md): current V1 founder-beta readiness reassessment based on the Phase 191-195 proof chain
+- [README.founder-trial-execution-round.md](README.founder-trial-execution-round.md): live founder trial execution round for the release-candidate prompt pack
+- [README.founder-feedback-intake-repair.md](README.founder-feedback-intake-repair.md): deterministic intake for founder trial advisories, blockers, optional notes, and Phase 199 repair decisions
 - [README.current-model-compatibility.md](README.current-model-compatibility.md): current localhost model compatibility matrix and known boundaries
 - [README.model-swap-smoke-probe.md](README.model-swap-smoke-probe.md): localhost model-swap detector with next-gate decision for drift and portability
 - [README.v1-product-readiness-review.md](README.v1-product-readiness-review.md): V1 product readiness review with supported scope, unsupported scope, blockers, risks, and go/no-go recommendation

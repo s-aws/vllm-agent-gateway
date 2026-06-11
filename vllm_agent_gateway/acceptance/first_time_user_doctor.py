@@ -36,6 +36,7 @@ DEFAULT_MODEL_BASE_URL = "http://127.0.0.1:8000/v1"
 DEFAULT_LLM_GATEWAY_BASE_URL = "http://127.0.0.1:8300/v1"
 DEFAULT_REPORT_DIR = Path("runtime-state") / "first-time-user-doctor"
 DEFAULT_ROLES_PATH = Path("runtime") / "roles.json"
+STACK_RESTART_COMMAND = "./stop-agent-prompt-proxies.sh && ./start-agent-prompt-proxies.sh"
 
 
 class DoctorStatus(str, Enum):
@@ -114,6 +115,59 @@ def check(
         "details": details or {},
         "next_action": next_action,
     }
+
+
+def wsl_path(path: Path) -> str:
+    value = str(path).replace("\\", "/")
+    drive_match = re.match(r"^(?P<drive>[A-Za-z]):/(?P<rest>.+)$", value)
+    if drive_match:
+        return f"/mnt/{drive_match.group('drive').lower()}/{drive_match.group('rest')}"
+    return value
+
+
+def api_key_bridge_details(config: FirstTimeUserDoctorConfig) -> dict[str, str]:
+    cwd = wsl_path(config.config_root.resolve())
+    env_name = config.api_key_env
+    return {
+        "windows_env_var": env_name,
+        "wsl_env_bridge_required": "true",
+        "powershell_wsl_env_example": (
+            f"$key=$env:{env_name}; if (-not $key) {{ throw '{env_name} is not set in Windows environment' }}; "
+            f"wsl.exe --cd {cwd} -- env \"{env_name}=$key\" "
+            "python3 scripts/validate_post_restart_runtime_readiness.py"
+        ),
+        "bash_export_example": (
+            f"export {env_name}=\"$(powershell.exe -NoProfile -Command "
+            f"'[Console]::Out.Write([Environment]::GetEnvironmentVariable(\"{env_name}\",\"User\"))')\""
+        ),
+    }
+
+
+def request_failure_next_action(exc: BaseException, fallback: str) -> str:
+    if isinstance(exc, DoctorRequestError) and exc.diagnostic_kind == DoctorRequestDiagnostic.HEADERS_WITHOUT_BODY_TIMEOUT.value:
+        return (
+            "Retry the same validation from WSL/Bash. If Bash also times out waiting for body bytes, "
+            f"restart the local gateway stack with `{STACK_RESTART_COMMAND}` and inspect upstream logs."
+        )
+    return fallback
+
+
+def port_recovery_details(target: dict[str, Any]) -> dict[str, Any]:
+    if target.get("name") == "model":
+        return {
+            "recovery_command": "Start vLLM manually using the command in VLLM_AGENT_HOST.md, then rerun the readiness validator.",
+            "runtime_boundary": "vllm",
+        }
+    return {
+        "recovery_command": STACK_RESTART_COMMAND,
+        "runtime_boundary": "bash_gateway_stack",
+    }
+
+
+def port_next_action(target: dict[str, Any]) -> str:
+    if target.get("name") == "model":
+        return "Start vLLM manually using VLLM_AGENT_HOST.md, then restart the gateway stack from Bash."
+    return f"Restart the local gateway/controller/proxy stack from Bash with `{STACK_RESTART_COMMAND}`."
 
 
 def failed_check(check_id: str, message: str, *, category: str, details: dict[str, Any] | None = None, next_action: str) -> dict[str, Any]:
@@ -286,8 +340,8 @@ def port_health_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                     DoctorStatus.PASSED if passed else DoctorStatus.FAILED,
                     f"{target['name']} returned HTTP {status}.",
                     category="port_health",
-                    details={**target, "url": url, "http_status": status, "body_keys": sorted(body.keys())},
-                    next_action="" if passed else "Start or restart the local model/gateway/controller stack from Bash.",
+                    details={**target, "url": url, "http_status": status, "body_keys": sorted(body.keys()), **port_recovery_details(target)},
+                    next_action="" if passed else port_next_action(target),
                 )
             )
         except Exception as exc:  # noqa: BLE001
@@ -296,8 +350,8 @@ def port_health_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                     f"port.{target['name']}",
                     f"{target['name']} health check failed: {type(exc).__name__}: {exc}",
                     category="port_health",
-                    details={**target, "url": url, **exception_details(exc)},
-                    next_action="Start or restart the local model/gateway/controller stack from Bash.",
+                    details={**target, "url": url, **exception_details(exc), **port_recovery_details(target)},
+                    next_action=request_failure_next_action(exc, port_next_action(target)),
                 )
             )
     return checks
@@ -486,14 +540,14 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
     key_present = bool(api_key)
     checks.append(
         check(
-            "anythingllm.api_key",
-            DoctorStatus.PASSED if key_present else DoctorStatus.FAILED,
-            f"{config.api_key_env} is available." if key_present else f"{config.api_key_env} is missing.",
-            category="anythingllm",
-            details={"api_key_env": config.api_key_env, "api_key_available": key_present},
-            next_action="" if key_present else "Set ANYTHINGLLM_API_KEY in the Windows user environment and export it to Bash with WSLENV.",
-        )
-    )
+                    "anythingllm.api_key",
+                    DoctorStatus.PASSED if key_present else DoctorStatus.FAILED,
+                    f"{config.api_key_env} is available." if key_present else f"{config.api_key_env} is missing.",
+                    category="anythingllm",
+                    details={"api_key_env": config.api_key_env, "api_key_available": key_present, **api_key_bridge_details(config)},
+                    next_action="" if key_present else "Inject the Windows AnythingLLM API key into WSL with the `wsl.exe -- env` command shown in details.",
+                )
+            )
     if not api_key:
         for check_id in ("anythingllm.ping", "anythingllm.workspace", "anythingllm.target_url"):
             checks.append(
@@ -502,7 +556,8 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                     DoctorStatus.SKIPPED,
                     "Skipped because the AnythingLLM API key is missing.",
                     category="anythingllm",
-                    next_action="Set ANYTHINGLLM_API_KEY and rerun the doctor.",
+                    details=api_key_bridge_details(config),
+                    next_action="Inject ANYTHINGLLM_API_KEY into WSL and rerun the readiness validator.",
                 )
             )
         return checks

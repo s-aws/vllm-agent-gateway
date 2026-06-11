@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "kind": "anythingllm_ui_prompt_catalog",
-  "catalog_id": "phase167_anythingllm_ui_prompt_cases_v2",
-  "phase": 167,
+  "catalog_id": "phase184_anythingllm_ui_prompt_cases_v3",
+  "phase": 184,
   "priority_backlog_id": "P0-BB-011",
-  "description": "Governed AnythingLLM Desktop UI prompt cases. Phase 126 extended browser-visible proof beyond the original L1 smoke prompts to a representative stable Priority 0 corpus subset. Phase 167 adds no-target generic and vague prompt replay cases.",
+  "description": "Governed AnythingLLM Desktop UI prompt cases. Phase 126 extended browser-visible proof beyond the original L1 smoke prompts to a representative stable Priority 0 corpus subset. Phase 167 adds no-target generic and vague prompt replay cases. Phase 184 adds repaired Priority 0 evidence relevance and related-test discovery UI replay cases.",
   "cases": [
     {
       "case_id": "L1-001",
@@ -373,6 +373,77 @@
         "Source mutation: True"
       ],
       "prompt_template": "In {target_root}, coach a junior engineer through safely adding CSV export for filtered order search results while preserving the existing JSON export behavior. Read only. Include delivery plan, testing strategy, deployment readiness, rollback, observability, and definition of done. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI184-ERR-001",
+      "name": "UI Evidence Relevance Ranking",
+      "prompt_family": "evidence_relevance_ranking",
+      "priority_backlog_id": "P0-BB-048",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Change surface files:",
+        "Files to touch:",
+        "core/stealth_order_manager.py",
+        "evidence",
+        "Files not to touch:",
+        "Source mutation: false"
+      ],
+      "rejected_markers": [
+        "Source mutation: true"
+      ],
+      "prompt_template": "In {target_root}, identify files to touch and files not to touch for a minimal safe placed_order_id stealth lookup change. Read only and stop before implementation. Lead with strongest evidence, related tests, risks, gaps, and verification commands. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI184-RTD-001",
+      "name": "UI Related Test Direct Evidence",
+      "prompt_family": "related_test_discovery_direct",
+      "priority_backlog_id": "P0-BB-048",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Related tests:",
+        "tests/unit/test_order_id_and_followup_rules.py",
+        "direct evidence",
+        "high confidence",
+        "python -m pytest tests/unit/test_order_id_and_followup_rules.py",
+        "Source mutation: false"
+      ],
+      "rejected_markers": [
+        "Source mutation: true"
+      ],
+      "prompt_template": "In {target_root}, choose the smallest, medium, and broad validation commands for placed_order_id stealth lookup. Read only. Explain why each command is relevant, what risk it covers, and what gaps remain. Tracking tag: {tag}"
+    },
+    {
+      "case_id": "UI184-RTD-002",
+      "name": "UI Related Test No Bounded Evidence",
+      "prompt_family": "related_test_discovery_no_test",
+      "priority_backlog_id": "P0-BB-048",
+      "target_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "expected_workflow": "code_investigation.plan",
+      "required_markers": [
+        "selected_workflow: code_investigation.plan",
+        "Related tests: none found in bounded evidence",
+        "verification_tests_not_found",
+        "Confidence: low",
+        "Source mutation: false"
+      ],
+      "rejected_markers": [
+        "python -m pytest tests/unit/test_order_id_and_followup_rules.py",
+        "Source mutation: true"
+      ],
+      "prompt_template": "In {target_root}, choose the smallest, medium, and broad validation commands for resolve_payment_timeout. Read only. Explain why each command is relevant, what risk it covers, and what gaps remain. Tracking tag: {tag}"
     }
   ]
 }

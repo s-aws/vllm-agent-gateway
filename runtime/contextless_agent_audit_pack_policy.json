@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "kind": "contextless_agent_audit_pack_policy",
+  "phase": 185,
+  "priority_backlog_id": "P0-BB-049",
+  "policy_version": "1.0.0",
+  "purpose": "Reusable contextless-agent audit pack for Priority 0 chat quality. It requires baseline before local output and is not a substitute for live local-stack proof.",
+  "sample_reports_path": "runtime/contextless_agent_audit_pack_sample_reports.json",
+  "context_policy": {
+    "fresh_contextless_agent": true,
+    "fork_context": false,
+    "session_history_allowed": false,
+    "local_model_output_visible_to_baseline_agent": false,
+    "allowed_inputs": [
+      "natural_language_prompt",
+      "target_root",
+      "bounded_repository_context",
+      "public_docs_or_repo_files_needed_for_the_prompt"
+    ],
+    "forbidden_inputs": [
+      "local model output before baseline",
+      "previous assistant answer",
+      "route decision artifacts from the local run",
+      "controller artifacts from the target local run",
+      "scoring suggestions derived from the local answer"
+    ]
+  },
+  "process_steps": [
+    {
+      "id": "prompt_intake",
+      "owner": "maintainer",
+      "required_outputs": [
+        "prompt",
+        "target_root_or_no_target_marker",
+        "prompt_family",
+        "expected_user_visible_outcome",
+        "safety_boundary"
+      ]
+    },
+    {
+      "id": "blind_baseline",
+      "owner": "contextless_blind_agent",
+      "required_outputs": [
+        "ideal_answer_shape",
+        "must_have_facts",
+        "evidence_expectations",
+        "safety_boundaries",
+        "output_expectations",
+        "100_point_scoring_rubric"
+      ]
+    },
+    {
+      "id": "local_stack_run",
+      "owner": "local_runtime",
+      "required_outputs": [
+        "localhost_8000_model_proof",
+        "workflow_router_gateway_run_id",
+        "anythingllm_run",
+        "response_text",
+        "route_evidence",
+        "fixture_mutation_proof"
+      ]
+    },
+    {
+      "id": "comparison_scoring",
+      "owner": "deterministic_validator_or_contextless_scorer",
+      "required_outputs": [
+        "score",
+        "rubric_breakdown",
+        "missing_must_have_facts",
+        "evidence_gaps",
+        "format_gaps",
+        "safety_or_mutation_gaps"
+      ]
+    },
+    {
+      "id": "repair_recommendation",
+      "owner": "maintainer",
+      "required_outputs": [
+        "accepted_findings",
+        "rejected_findings",
+        "smallest_repair_surface",
+        "required_rerun_targets",
+        "scope_expansion_flag"
+      ]
+    },
+    {
+      "id": "rerun_and_holdouts",
+      "owner": "local_runtime",
+      "required_outputs": [
+        "target_prompt_rerun",
+        "holdout_prompt_reruns",
+        "regression_or_live_gate_refs",
+        "fixture_mutation_proof"
+      ]
+    },
+    {
+      "id": "closure_summary",
+      "owner": "maintainer",
+      "required_outputs": [
+        "final_status",
+        "residual_risks",
+        "validation_refs",
+        "roadmap_or_backlog_updates",
+        "next_action"
+      ]
+    }
+  ],
+  "prompt_templates": [
+    {
+      "id": "ideal_answer_baseline",
+      "prompt_text": "You are a fresh contextless blind evaluator. Do not inspect local model output. For this prompt, define the ideal answer shape, must-have facts, evidence expectations, safety boundaries, output expectations, and a 100-point scoring rubric. Prompt: {prompt}",
+      "required_output_sections": [
+        "ideal_answer_shape",
+        "must_have_facts",
+        "evidence_expectations",
+        "safety_boundaries",
+        "output_expectations",
+        "scoring_rubric"
+      ]
+    },
+    {
+      "id": "local_answer_scoring",
+      "prompt_text": "Score the local answer against the blind baseline. Use only the baseline, prompt, local answer, route evidence, and mutation proof provided here. Prompt: {prompt}",
+      "required_output_sections": [
+        "score",
+        "rubric_breakdown",
+        "missing_requirements",
+        "unsupported_claims",
+        "recommended_repairs"
+      ]
+    },
+    {
+      "id": "repair_recommendation",
+      "prompt_text": "Given the blind baseline, local answer score, and deterministic evidence, recommend the smallest repair or explain why no repair is needed. Prompt: {prompt}",
+      "required_output_sections": [
+        "accepted_findings",
+        "rejected_findings",
+        "smallest_repair",
+        "rerun_plan",
+        "scope_expansion_needed"
+      ]
+    },
+    {
+      "id": "holdout_rerun_review",
+      "prompt_text": "Review the target rerun and holdout reruns after repair. Confirm whether the original miss is fixed without weakening related prompt families. Prompt: {prompt}",
+      "required_output_sections": [
+        "target_result",
+        "holdout_results",
+        "regressions",
+        "fixture_mutation_status",
+        "closure_recommendation"
+      ]
+    }
+  ],
+  "recursion_limits": {
+    "max_rounds": 3,
+    "max_repair_cycles_per_issue": 2,
+    "stop_conditions": [
+      "critical_or_high_issue_remains_after_two_repair_cycles",
+      "scope_change_exceeds_current_roadmap_phase",
+      "live_stack_unavailable_after_recovery_attempts",
+      "protected_fixture_mutation_detected",
+      "baseline_before_local_ordering_missing"
+    ]
+  },
+  "live_validation_requirements": {
+    "required_surfaces": [
+      "localhost_8000_model",
+      "workflow_router_gateway",
+      "anythingllm"
+    ],
+    "required_target_roots": [
+      "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    ],
+    "protected_fixture_mutation_blocks_pass": true
+  },
+  "report_contract": {
+    "required_fields": [
+      "report_id",
+      "prompt_family",
+      "prompt",
+      "prompt_hash",
+      "target_root",
+      "blind_agent",
+      "blind_baseline",
+      "local_run",
+      "comparison",
+      "repair_decision",
+      "closure"
+    ],
+    "ordering_rules": {
+      "baseline_created_before_local_run": true,
+      "same_prompt_hash_for_baseline_and_local": true,
+      "blind_agent_is_contextless": true
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "kind": "prompt_corpus_governance_v2_policy",
+  "phase": 179,
+  "priority_backlog_id": "P0-BB-043",
+  "goal": "Govern founder-field prompt corpus roles, holdouts, regression coverage, promotion candidates, and retired cases so repairs cannot overfit tuned targets.",
+  "source_catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+  "source_delta_report_path": "runtime-state/phase178/phase178-blind-baseline-delta-report-final.json",
+  "expected_catalog_case_count": 34,
+  "minimum_holdout_score": 85,
+  "roles": {
+    "target": [
+      "P08",
+      "P21",
+      "P29",
+      "P30",
+      "P33",
+      "P34"
+    ],
+    "holdout": [
+      "P27",
+      "P28",
+      "P29",
+      "P30",
+      "P33",
+      "P34"
+    ],
+    "regression": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19",
+      "P20",
+      "P21",
+      "P22",
+      "P23",
+      "P24",
+      "P25",
+      "P26",
+      "P27",
+      "P28",
+      "P29",
+      "P30",
+      "P31",
+      "P32",
+      "P33",
+      "P34"
+    ],
+    "promotion_candidate": [
+      "P08",
+      "P21",
+      "P29",
+      "P30",
+      "P33",
+      "P34"
+    ],
+    "retired": []
+  },
+  "target_holdout_links": [
+    {
+      "family": "handler_branch_evidence",
+      "target_case_id": "P08",
+      "holdout_case_ids": ["P27", "P28"],
+      "source_phases": [171]
+    },
+    {
+      "family": "minimal_change_surface_boundary",
+      "target_case_id": "P21",
+      "holdout_case_ids": ["P34"],
+      "source_phases": [172]
+    },
+    {
+      "family": "persisted_schema_git_fixture",
+      "target_case_id": "P29",
+      "holdout_case_ids": ["P30"],
+      "source_phases": [173]
+    },
+    {
+      "family": "persisted_schema_non_git_fixture",
+      "target_case_id": "P30",
+      "holdout_case_ids": ["P29"],
+      "source_phases": [174]
+    },
+    {
+      "family": "change_boundary_verification_git_fixture",
+      "target_case_id": "P33",
+      "holdout_case_ids": ["P34"],
+      "source_phases": [175]
+    },
+    {
+      "family": "change_boundary_verification_non_git_fixture",
+      "target_case_id": "P34",
+      "holdout_case_ids": ["P33"],
+      "source_phases": [176]
+    }
+  ],
+  "promotion_rules": {
+    "promotion_candidates_require_independent_holdouts": true,
+    "promotion_requires_founder_approval": true,
+    "stable_corpus_update_requires_separate_phase": true,
+    "auto_promote_allowed": false
+  },
+  "promotion_candidate_groups": [
+    {
+      "candidate_id": "repaired-phase171-176-founder-field-prompts",
+      "case_ids": ["P08", "P21", "P29", "P30", "P33", "P34"],
+      "required_holdout_case_ids": ["P27", "P28", "P29", "P30", "P33", "P34"],
+      "decision_status": "blocked_pending_founder_approval",
+      "founder_approval": {
+        "status": "not_requested"
+      },
+      "reason": "Phase 178 proves target and holdout deltas, but stable corpus promotion remains blocked until explicit founder approval and a separate stable-corpus update phase."
+    }
+  ]
+}

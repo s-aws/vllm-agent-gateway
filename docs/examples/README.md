@@ -14,14 +14,35 @@ Examples are grouped by feature so the root README can stay small.
 - [Release Adherence](release-adherence.md): consolidated current-local-model gate, blocker classifications, and report review.
 - [Failure-To-Roadmap](failure-to-roadmap.md): convert failed proof artifacts into unapproved roadmap proposals without automatic implementation.
 - [Contextless Audit Scorecard](contextless-audit-scorecard.md): consolidate contextless audit and blind-baseline evidence into deterministic source and dimension scores.
+- [Contextless Agent Audit Pack](contextless-agent-audit-pack.md): validate reusable baseline-first contextless-agent prompts, sample reports, and ordering rules.
+- [Multi-Fixture Prompt Parity](multi-fixture-prompt-parity.md): validate selected prompt families across protected Coinbase and non-Coinbase fixtures through gateway and AnythingLLM.
+- [Evidence Boundary Schema Gate](evidence-boundary-schema-gate.md): prove malformed schema and change-boundary artifacts fail before normal chat-answer rendering.
+- [Unsupported Scope Refusal Quality](unsupported-scope-refusal-quality.md): prove blocked prompts return actionable recovery guidance and supported prompts are not refused.
+- [Prompt Family Drift Detection](prompt-family-drift-detection.md): classify prompt-family drift before live founder field runs.
+- [Chat Answer Scoring V2](chat-answer-scoring-v2.md): score blind-baseline versus local chat answers with repeatable repair-target guidance.
+- [Skill Registry Readiness Review](skill-registry-readiness-review.md): review current skills for keep, split, merge, retire, or defer actions before scaling.
+- [Release Candidate Founder Trial Pack](release-candidate-founder-trial-pack.md): validate the contextless founder trial pack and inspect prompt cases.
+- [V1 Product Readiness Reassessment](v1-product-readiness-reassessment.md): generate the current V1 founder-beta readiness reassessment from the Phase 191-195 proof chain.
+- [Founder Trial Execution Round](founder-trial-execution-round.md): execute the release-candidate founder trial through AnythingLLM and inspect run-level evidence.
 - [Current-Model Compatibility](current-model-compatibility.md): summarize current localhost model support, known boundaries, and monitored failure modes.
 - [Model Swap Smoke Probe](model-swap-smoke-probe.md): detect localhost model swaps and decide whether drift and portability gates are required.
 - [V1 Product Readiness Review](v1-product-readiness-review.md): generate the V1 founder-testing readiness go/no-go report.
 - [V1 Stable Release Decision](v1-stable-release-decision.md): generate the final V1 founder-testing release decision with rollback and next-batch status.
 - [Founder Field Round 1](founder-field-round1.md): run the Phase 157 AnythingLLM field round and inspect pass, advisory, and blocker cases.
 - [Founder Field Round 2](founder-field-round2.md): run the Phase 164 blind-baseline-first AnythingLLM field round and inspect full response evidence.
+- [Blind-Baseline Delta Report](blind-baseline-delta-report.md): build the Phase 178 target/holdout delta report from live AnythingLLM field evidence and blind baselines.
+- [Prompt Corpus Governance V2](prompt-corpus-governance-v2.md): validate target, holdout, regression, promotion-candidate, and retired prompt roles.
+- [Chat Answer Contract Hardening](chat-answer-contract-hardening.md): run the Phase 180 answer-first chat contract gate and inspect failed workflow families.
+- [Evidence Relevance Ranking](evidence-relevance-ranking.md): run the Phase 182 synthetic and live ranking gate for direct/strong/supporting evidence ordering.
+- [Related-Test Discovery Reliability](related-test-discovery-reliability.md): run the Phase 183 direct-test and no-test gate through gateway and AnythingLLM.
 - [Prompt Advisory Closure](prompt-advisory-closure.md): run the Phase 165 refined prompt and holdout closure gate for Phase 158 advisories.
 - [Generic Chat And Vague Prompt Contract](generic-chat-vague-prompt-contract.md): run the Phase 166 direct, gateway, and AnythingLLM gate for greetings, vague prompts, missing targets, and approval-bypass refusal.
+- [Unsupported Scope Refusal Quality](unsupported-scope-refusal-quality.md): run the Phase 190 gate for unsupported, unsafe, and under-specified prompt recovery quality.
+- [Prompt Family Drift Detection](prompt-family-drift-detection.md): run the Phase 191 catalog, skill coverage, holdout, and founder prompt-pack drift gate.
+- [Chat Answer Scoring V2](chat-answer-scoring-v2.md): run the Phase 192 scoring gate and inspect advisory or failed repair targets.
+- [Skill Registry Readiness Review](skill-registry-readiness-review.md): run the Phase 193 skill-readiness review and inspect non-keep decisions.
+- [Skill Authoring Pipeline V2](skill-authoring-pipeline-v2.md): validate a draft skill candidate before any runtime registry mutation or promotion.
+- [Release Candidate Founder Trial Pack](release-candidate-founder-trial-pack.md): validate setup, trial prompts, limits, and feedback templates for founder review.
 - [Transcript Quality Feedback Intake](transcript-quality-feedback-intake.md): classify Phase 157 advisory/blocker cases and founder notes into governed accepted/rejected findings.
 - [Priority 0 Repair Loop](priority0-repair-loop.md): close Phase 158 findings as monitoring-only, repaired with target/holdout proof, or blocked with next action.
 - [Stable Release Refresh](stable-release-refresh.md): rerun the stable proof floor and confirm the founder-testing release decision remains current.
@@ -87,6 +108,11 @@ Examples are grouped by feature so the root README can stay small.
 - [Fixture Manager](fixture-manager.md): manifest validation, protected snapshots, disposable setup, and cleanup.
 - [Skill Registry](skill-registry.md): metadata validation, deterministic selection explanation, release gate, mutation gate, skill-batch proposal, registration, skill-pack validation/install, scaffold generation, promotion, deprecation, and update examples.
 - [Skill Authoring Factory](skill-authoring-factory.md): dry-run scaffold sidecars, planned coverage entry, eval skeleton, docs stubs, and fail-closed regression tests.
+- [Skill Authoring Pipeline V2](skill-authoring-pipeline-v2.md): candidate packet validation, planned coverage, blind-baseline-first proof requirements, and live validation targets.
+- [Release Candidate Founder Trial Pack](release-candidate-founder-trial-pack.md): trial pack validation command, prompt-case inspection, proof-artifact mode, and feedback capture.
+- [V1 Product Readiness Reassessment](v1-product-readiness-reassessment.md): reassessment command, blocker/advisory inspection, and next unapproved phase candidates.
+- [Founder Trial Execution Round](founder-trial-execution-round.md): live run command, report inspection, and response artifact review.
+- [Founder Feedback Intake And Repair](founder-feedback-intake-repair.md): convert trial advisories, blockers, and founder notes into accepted or rejected repair decisions.
 - [Skill Regression Tiers](skill-regression-tiers.md): tier catalog validation and minimum commands for offline, controller, gateway, AnythingLLM, UI, mutation, and release-candidate proof.
 - [Skill Packaging](skill-packaging.md): packaging policy validation, pack validation, approval-gated install shape, and review order.
 - [Documenter](documenter.md): dry runs, full review, all-file scans, follow-ups, drafts, and resume.

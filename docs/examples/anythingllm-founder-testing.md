@@ -22,7 +22,7 @@ Expected marker:
 STABLE CHAT QUALITY RELEASE PASS
 ```
 
-For the current founder-testing handoff, also refresh the Phase 170 stable floor and the Phase 161 skill/tool batch decision:
+For the current founder-testing handoff, also refresh the Phase 170 stable floor, the Phase 161 skill/tool batch decision, and the Phase 185 audit-pack contract:
 
 ```bash
 python3 scripts/validate_stable_release_refresh.py \
@@ -35,6 +35,8 @@ python3 scripts/validate_stable_release_refresh.py \
 python3 scripts/validate_skill_tool_gap_batch_proposal.py \
   --output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.json \
   --markdown-output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.md
+python3 scripts/validate_contextless_agent_audit_pack.py \
+  --output-path runtime-state/contextless-agent-audit-pack/phase185/phase185-contextless-agent-audit-pack-report.json
 ```
 
 Expected current result:
@@ -42,6 +44,7 @@ Expected current result:
 ```text
 PHASE170 STABLE RELEASE REFRESH PASS
 PHASE161 SKILL TOOL GAP BATCH PROPOSAL PASS
+CONTEXTLESS AGENT AUDIT PACK PASS
 ```
 
 For natural workflow-router testing, AnythingLLM should point at:
@@ -71,7 +74,9 @@ Latest field-test closeout:
 - Phase 159 required no repairs.
 - Phase 170 keeps the release decision at `release_for_founder_testing` after the Phase 163-169 chat-quality batch.
 - Phase 161 found no evidence-backed deterministic skill/tool batch to implement.
-- Phase 169 recorded six product-gap proposals approved for Phases 171-176; they are not part of the stable tester path until those phases pass.
+- Phase 169 recorded six product-gap proposals; Phases 171-176 closed that repair set, and Phases 177-185 refreshed the chat-quality proof floor.
+- Phase 184 replayed repaired evidence relevance and related-test discovery prompts through the browser-visible AnythingLLM UI.
+- Phase 185 packaged the blind-baseline-first process as a reusable contextless-agent audit pack.
 
 Known current miss class: prompt wording can still matter. If a prompt asks for a handler, schema, entrypoint, or change surface too broadly, use the refined wording from the Phase 158 report before treating it as a product defect.
 
@@ -103,7 +108,7 @@ Invoke-RestMethod -Uri "http://127.0.0.1:3001/api/system/update-env" -Headers $h
 
 ## Natural Workflow Router Through AnythingLLM
 
-The broad refactor prompt below is advanced validation, not the first L1 skill test. First-time testers should use the smaller prompt in [Getting Started With AnythingLLM](../../README.getting-started.md), and L1 prompt candidates are listed in [L1 Coding Agent Prompt Backlog](../L1_CODING_AGENT_PROMPTS.md).
+Advanced broad refactor orchestration is intentionally excluded from founder first-pass testing. First-time testers should use the smaller prompts in [Getting Started With AnythingLLM](../../README.getting-started.md), and L1 prompt candidates are listed in [L1 Coding Agent Prompt Backlog](../L1_CODING_AGENT_PROMPTS.md).
 
 Default output is `format_a`, a deterministic human-readable response with `run_id:`, summary fields, bounded inline `Answer:` content for supported read-only artifacts, `Draft proposal:` content for supported draft-only artifacts, and artifact links. Users should be able to review the answer directly in the chat body; artifact files are for audit and deeper inspection. To request strict JSON from the AnythingLLM chat box, add a natural phrase such as `Return JSON`:
 
@@ -220,21 +225,7 @@ Expected response markers:
 - `run_id: workflow-router-...`
 - selected frozen files remain unchanged
 
-Advanced refactor message, only after the L1 prompt checks work. Send it as normal AnythingLLM text; do not wrap it in JSON:
-
-```text
-In /mnt/c/coinbase_testing_repo_frozen_tmp.github, refactor the placed_order_id stealth lookup so there is only one code path. Start from the logic beginning point, investigate first, create an implementation plan, wait for approval before implementation prep, and provide verification commands.
-```
-
-Expected response markers:
-
-- `workflow_router.plan completed`
-- `run_id: workflow-router-...`
-- `selected_workflow`
-- `refactor.single_path`
-- `verification_command_count`
-- `Artifacts:`
-- selected frozen files remain unchanged
+Advanced refactor prompts are deferred until the roadmap explicitly reopens that capability. Do not use broad refactor prompts as founder smoke tests.
 
 ## Natural Approval Continuation
 
@@ -423,28 +414,12 @@ Expected response markers:
 - `lookup_results`
 - `relationship_results`
 
-## Pasteable UI: Single-Path Refactor Investigation
-
-Paste this exact JSON object as a message in the AnythingLLM workspace:
-
-```json
-{"agentic_controller_request":{"workflow":"refactor.single_path","schema_version":1,"target_root":"/mnt/c/coinbase_testing_repo_frozen_tmp.github","user_request":"Investigate whether StealthOrderManager.find_stealth_order_by_placed_order_id has one path before planning a refactor.","behavior":"placed_order_id stealth lookup","entrypoint_hints":[{"path":"core/stealth_order_manager.py","symbol":"StealthOrderManager.find_stealth_order_by_placed_order_id","reason":"Known owner of placed-order lookup behavior."}],"queries":["find_stealth_order_by_placed_order_id","placed_order_id"],"paths":["core/stealth_order_manager.py","tests/unit/test_order_id_and_followup_rules.py","tests/regression/test_order_id_regression.py"],"max_results":50,"max_files":10}}
-```
-
-Expected response markers:
-
-- `refactor.single_path completed`
-- `summary.refactor_status` is approval-gated
-- `Artifacts:`
-- `refactor_plan`
-- selected frozen files remain unchanged
-
 ## Pasteable UI: Feedback Capture
 
 After a workflow run, replace `<run_id>` with the run ID returned by AnythingLLM:
 
 ```json
-{"agentic_controller_request":{"workflow":"workflow_feedback.record","schema_version":1,"target_workflow":"refactor.single_path","target_run_id":"<run_id>","target_root":"/mnt/c/coinbase_testing_repo_frozen_tmp.github","feedback":{"useful":["The workflow returned inspectable artifacts."],"wrong":[],"missing":["Add one clearer next manual test instruction."],"too_slow":[],"too_noisy":[],"notes":"Founder UI test feedback."},"tester":{"id":"founder","surface":"AnythingLLM UI"},"request_payload":{"source":"docs/examples/anythingllm-founder-testing.md"},"artifact_refs":{}}}
+{"agentic_controller_request":{"workflow":"workflow_feedback.record","schema_version":1,"target_workflow":"code_context.lookup","target_run_id":"<run_id>","target_root":"/mnt/c/coinbase_testing_repo_frozen_tmp.github","feedback":{"useful":["The workflow returned inspectable relationship artifacts."],"wrong":[],"missing":["Add one clearer next manual test instruction."],"too_slow":[],"too_noisy":[],"notes":"Founder UI test feedback."},"tester":{"id":"founder","surface":"AnythingLLM UI"},"request_payload":{"source":"docs/examples/anythingllm-founder-testing.md"},"artifact_refs":{}}}
 ```
 
 Expected response markers:
@@ -470,6 +445,8 @@ Latest local validation on June 10, 2026:
 - Phase 159 repair loop passed with `repair_mode=no_repair_required`.
 - Phase 170 stable release refresh passed with `readiness=ready_for_founder_testing`, `decision=release_for_founder_testing`, `source_report_count=17`, `phase169_proposal_count=6`, and `phase169_release_blocker_count=0`.
 - Phase 161 skill/tool gap batch proposal passed with `decision=no_new_batch_justified`, `gap_candidate_count=0`, and `implementation_authorized=false`.
+- Phase 184 AnythingLLM UI replay passed with `case_count=6`, `fixture_unchanged=true`, semantic status passed for every case, and no UI errors.
+- Phase 185 contextless-agent audit pack passed with `template_count=4`, `process_step_count=7`, `sample_report_count=3`, `prompt_family_count=3`, and `validation_error_count=0`.
 
 Earlier validation on June 4, 2026:
 

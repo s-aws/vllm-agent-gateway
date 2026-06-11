@@ -12,6 +12,7 @@ from vllm_agent_gateway.acceptance.natural_output_format_preference import (
 )
 from vllm_agent_gateway.acceptance.output_format_parity import OutputFormatParityCase
 from vllm_agent_gateway.controller_service.server import (
+    ControllerServiceError,
     ControllerOutputFormat,
     select_controller_output_format,
 )
@@ -80,6 +81,16 @@ def synthetic_report() -> dict[str, object]:
                             },
                             "explicit_output_format_json": {"status": "passed"},
                             "openai_response_format_json": {"status": "passed"},
+                            "unsupported_explicit_output_format": {
+                                "status": "passed",
+                                "http_status": 400,
+                                "error": {"code": "unsupported_output_format"},
+                            },
+                            "unsupported_response_format": {
+                                "status": "passed",
+                                "http_status": 400,
+                                "error": {"code": "unsupported_output_format"},
+                            },
                         },
                     },
                     "anythingllm": {
@@ -217,3 +228,26 @@ def test_selector_natural_json_works_without_explicit_fields() -> None:
     assert "output_format" not in payload
     assert "response_format" not in payload
     assert select_controller_output_format(payload) == ControllerOutputFormat.JSON
+
+
+def test_selector_rejects_unsupported_response_format_dict() -> None:
+    try:
+        select_controller_output_format(
+            {
+                "response_format": {"type": "xml"},
+                "messages": [{"role": "user", "content": "Answer in plain English."}],
+            }
+        )
+    except ControllerServiceError as exc:
+        assert exc.code == "unsupported_output_format"
+    else:
+        raise AssertionError("unsupported response_format should fail closed")
+
+
+def test_selector_rejects_malformed_response_format_dict() -> None:
+    try:
+        select_controller_output_format({"response_format": {"json_schema": {}}})
+    except ControllerServiceError as exc:
+        assert exc.code == "unsupported_output_format"
+    else:
+        raise AssertionError("malformed response_format should fail closed")

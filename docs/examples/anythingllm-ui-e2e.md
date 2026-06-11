@@ -87,6 +87,34 @@ The report should include:
 - `Artifacts:` absent from the no-target response segments
 - `fixture_unchanged=true` for both frozen Coinbase fixtures
 
+## Phase 184 Priority 0 Repair Replay Gate
+
+Run the repaired evidence relevance and related-test discovery UI slice:
+
+```powershell
+$env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
+python scripts\validate_anythingllm_ui_e2e.py `
+  --anythingllm-api-base-url http://127.0.0.1:3001 `
+  --workspace my-workspace `
+  --prompt-catalog-path runtime\anythingllm_ui_prompt_cases.json `
+  --timeout-seconds 900 `
+  --output-path runtime-state\anythingllm-ui\phase184-ui-replay-report.json `
+  --case-id UI184-ERR-001 `
+  --case-id UI184-RTD-001 `
+  --case-id UI184-RTD-002
+```
+
+The report should include:
+
+- `status=passed`
+- `case_count=6` because each case runs against both frozen Coinbase fixtures
+- `stream_chat_seen=true` for each case
+- semantic status `passed` for each case
+- direct related-test evidence for the `placed_order_id` lookup prompt
+- `Related tests: none found in bounded evidence` for the no-bounded-test prompt
+- `fixture_unchanged=true` for both frozen Coinbase fixtures
+- before/after screenshots for each prompt
+
 ## Reuse An Extracted UI Bundle
 
 If `runtime-state/anythingllm-ui/asar-dist/dist` already exists, the validator reuses it by default.

@@ -9,7 +9,9 @@
     "natural_format_a",
     "natural_json",
     "explicit_output_format_json",
-    "openai_response_format_json"
+    "openai_response_format_json",
+    "unsupported_explicit_output_format",
+    "unsupported_response_format"
   ],
   "required_anythingllm_preferences": [
     "default_format_a",

@@ -28,9 +28,9 @@ The Phase 163 report links those source reports by path and SHA-256 hash.
 From PowerShell, pass the AnythingLLM key into WSL:
 
 ```powershell
-$env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
-$env:WSLENV='ANYTHINGLLM_API_KEY/u'
-wsl.exe --cd /mnt/c/agentic_agents -- python3 scripts/validate_post_restart_runtime_readiness.py
+$key=$env:ANYTHINGLLM_API_KEY
+if (-not $key) { throw 'ANYTHINGLLM_API_KEY is not set in Windows environment' }
+wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$key" python3 scripts/validate_post_restart_runtime_readiness.py
 ```
 
 Expected marker:
@@ -52,8 +52,9 @@ The report includes:
 - child report paths and hashes
 - required and covered restart surfaces
 - missing restart surfaces
+- diagnostic actions with recovery commands and WSL API-key bridge examples when available
 - source report summaries
 - validation errors
 - next action
 
-If it passes, the next action is Phase 164 founder field test round 2.
+If it passes, the next action points to the lowest-numbered approved roadmap phase.

@@ -4,7 +4,7 @@
 
 Current status: `ready_for_founder_testing`.
 
-Latest founder-field closeout: Phase 170 refreshed the stable proof floor after the Phase 163-169 chat-quality batch and kept the decision at `release_for_founder_testing`. Phase 161 remains the latest approved skill/tool batch decision and returned `decision=no_new_batch_justified`; no deterministic skill/tool candidates are authorized for implementation. Phase 163 proves the restarted runtime is ready with `decision=ready_after_restart`. Phase 164 completed the next blind-baseline-first field round with valid evidence, 16/16 live AnythingLLM cases passing, and 14 prompt advisories routed to Phase 165. Phase 165 closed those advisories as 8 documented-guidance cases and 6 product-gap escalations for Phase 169. Phase 166 proved generic chat and vague prompt handling through direct controller, workflow-router gateway, and AnythingLLM with no accidental repository workflow and unchanged frozen fixtures. Phase 167 replayed stable and no-target prompt cases through the browser-visible AnythingLLM UI with screenshots, run IDs, answer-usefulness checks, and unchanged frozen fixtures. Phase 168 tightened `summary.answer` rendering so no-target guidance starts with a human `Answer:` in FormatA and exposes the same text through JSON `chat_contract.answer` plus `primary_answer_contract`. Phase 169 converted the six remaining product-gap escalations into unapproved, not-started roadmap proposals without implementing them.
+Latest founder-field closeout: Phase 170 refreshed the stable proof floor after the Phase 163-169 chat-quality batch and kept the decision at `release_for_founder_testing`. Phases 171 through 176 closed the six Phase 169 product-gap proposals, and Phases 180 through 185 added the current chat-quality hardening layer: answer-first chat contract hardening, natural output-format selector stabilization, evidence relevance ranking, related-test discovery reliability, browser-visible AnythingLLM UI replay for repaired Priority 0 prompt families, and a reusable contextless-agent audit pack. Phase 161 remains the latest approved skill/tool batch decision and returned `decision=no_new_batch_justified`; no deterministic skill/tool candidates are authorized for implementation. Phase 163 proves the restarted runtime is ready with `decision=ready_after_restart`. Phase 164 completed the next blind-baseline-first field round with valid evidence, 16/16 live AnythingLLM cases passing, and 14 prompt advisories routed to Phase 165. Phase 165 closed those advisories as 8 documented-guidance cases and 6 product-gap escalations for Phase 169. Phase 166 proved generic chat and vague prompt handling through direct controller, workflow-router gateway, and AnythingLLM with no accidental repository workflow and unchanged frozen fixtures. Phase 167 replayed stable and no-target prompt cases through the browser-visible AnythingLLM UI with screenshots, run IDs, answer-usefulness checks, and unchanged frozen fixtures. Phase 168 tightened `summary.answer` rendering so no-target guidance starts with a human `Answer:` in FormatA and exposes the same text through JSON `chat_contract.answer` plus `primary_answer_contract`. Phase 169 converted the six remaining product-gap escalations into roadmap proposals before the Phase 171-176 repair set.
 
 This release is a local coding-agent harness for chat-quality testing through the workflow-router gateway. The tested user-facing path is AnythingLLM configured to use:
 
@@ -51,8 +51,12 @@ runtime/release_proofs/v1-1-release-candidate-stable-proof.json
 - Prompt-advisory closure proof with refined prompt candidates, holdouts, no silent prompt rewrites, and Phase 169 escalation routing.
 - Generic chat and vague prompt guidance for greetings, ordinary help, missing target roots, target-scoped no-task prompts, approval-bypass mutation requests, and stale-session greeting isolation.
 - Browser-visible AnythingLLM UI replay proof for stable Priority 0 cases and no-target generic/vague prompts.
+- Browser-visible AnythingLLM UI replay proof for repaired evidence relevance and related-test discovery prompt families.
 - Primary answer rendering for `summary.answer`: FormatA starts with `Answer:` before router metadata, and JSON exposes matching `chat_contract.answer` and `primary_answer_contract.text`.
-- Failure-to-roadmap proposal pass for unresolved Phase 165 product-gap escalations, with proposals left unapproved until founder review.
+- Evidence relevance ranking that labels direct, strong, and supporting evidence in chat-visible code investigations.
+- Related-test discovery that labels evidence kind and confidence, and says when no bounded tests are found instead of inventing coverage.
+- Contextless-agent audit pack for future blind-baseline-first chat-quality evaluations.
+- Failure-to-roadmap proposal pass for unresolved Phase 165 product-gap escalations, with the resulting Phase 171-176 repair set now closed.
 
 Validated fixture roots:
 
@@ -70,7 +74,7 @@ Validated fixture roots:
 - `format_a` and `json` are the only governed output formats currently released.
 - Draft and apply flows are intentionally narrow. Unsupported mutation requests should block or require exact approved packet details.
 - The git-enabled frozen fixture can show Windows/WSL line-ending noise; watched-hash and protected-fixture mutation proof are the release checks.
-- Phase 169 converted 6 prompt-advisory product gaps into proposals: `FTR-P169-001-p08`, `FTR-P169-002-p21`, `FTR-P169-003-p29`, `FTR-P169-004-p30`, `FTR-P169-005-p33`, and `FTR-P169-006-p34`. They are approved for the next Priority 0 repair batch as Phases 171-176, but they are not released behavior until those phases pass validation.
+- Phase 169 converted 6 prompt-advisory product gaps into proposals: `FTR-P169-001-p08`, `FTR-P169-002-p21`, `FTR-P169-003-p29`, `FTR-P169-004-p30`, `FTR-P169-005-p33`, and `FTR-P169-006-p34`. That repair set is closed in Phases 171-176, but future broad prompt families still need their own blind-baseline and live validation before release.
 
 ## Not Included
 
@@ -109,6 +113,11 @@ Current proof summary:
 - AnythingLLM UI replay gate: `status=passed`, `case_count=11`, `fixture_unchanged=true`, `non_ignored_request_failures=0`, `page_errors=0`, stable answer-usefulness cases passed, 22 screenshots captured, and both frozen fixtures covered.
 - Chat answer usefulness tightening: no-target UI replay `status=passed`, `case_count=3`, ordered `Answer:` markers passed before router metadata, JSON parity proved matching `summary.answer`, `chat_contract.answer`, and `primary_answer_contract.text`, and mixed UI replay still passed 11 cases with unchanged fixtures.
 - Failure-to-roadmap Phase 169: `status=passed`, `finding_count=6`, `proposal_count=6`, `unapproved_proposal_count=6`, `approved_proposal_count=0`, `release_blocker_count=0`, `roadmap_mutation_allowed=false`, and `source_mutation_allowed=false`.
+- Chat answer contract hardening: `status=passed`, supported Priority 0 workflows return answer-first chat output instead of artifact-only responses.
+- Evidence relevance ranking: synthetic gate passed `3/3`; live gateway and AnythingLLM gate passed `4/4` cases on both frozen Coinbase fixtures.
+- Related-test discovery reliability: synthetic gate passed `3/3`; live gateway and AnythingLLM gate passed `8/8` direct/no-test cases on both frozen Coinbase fixtures.
+- Phase 184 AnythingLLM UI replay: `status=passed`, `case_count=6`, `fixture_unchanged=true`, semantic status passed for every case, and no UI errors.
+- Phase 185 contextless-agent audit pack: `status=passed`, `template_count=4`, `process_step_count=7`, `sample_report_count=3`, `prompt_family_count=3`, and `validation_error_count=0`.
 
 Primary proof artifacts:
 
@@ -142,6 +151,11 @@ runtime-state/release-notes/phase169/phase169-release-notes-report.json
 runtime-state/stable-release-refresh/phase170/phase170-stable-release-refresh-report.json
 runtime-state/post-restart-runtime-readiness/phase170/phase170-post-restart-runtime-readiness-report.json
 runtime-state/release-notes/phase170/phase170-release-notes-report.json
+runtime-state/chat-answer-contract-hardening/phase180-live-inline-report.json
+runtime-state/evidence-relevance-ranking/phase182-live-report.json
+runtime-state/related-test-discovery-reliability/phase183-live-report.json
+runtime-state/anythingllm-ui/phase184-ui-replay-report.json
+runtime-state/contextless-agent-audit-pack/phase185/phase185-contextless-agent-audit-pack-report.json
 ```
 
 ## Re-Run Commands
@@ -219,4 +233,6 @@ python3 scripts/validate_failure_to_roadmap.py \
   --require-artifacts \
   --policy-path runtime/failure_to_roadmap_phase169_policy.json \
   --output-path runtime-state/failure-to-roadmap/phase169/phase169-failure-to-roadmap-report.json
+python3 scripts/validate_contextless_agent_audit_pack.py \
+  --output-path runtime-state/contextless-agent-audit-pack/phase185/phase185-contextless-agent-audit-pack-report.json
 ```

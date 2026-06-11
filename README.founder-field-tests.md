@@ -4,7 +4,7 @@ This field test checks whether the V1 harness behaves like a usable product from
 
 It runs natural-language prompts through the AnythingLLM workspace API, with AnythingLLM pointed at the workflow-router gateway `http://127.0.0.1:8500/v1`. Each prompt has a baseline target, expected workflow, required chat-visible markers, semantic answer markers, forbidden mutation markers, and a refined prompt when the original wording has ambiguity risk.
 
-Before running the field suite, run the stable release gate from [README.stable-chat-quality-release.md](README.stable-chat-quality-release.md). The current expected readiness is `ready_for_founder_testing`.
+Before running the field suite, run the stable release gate from [README.stable-chat-quality-release.md](README.stable-chat-quality-release.md) and the post-restart readiness gate. The current expected readiness is `ready_for_founder_testing`, with the Phase 180 through Phase 185 hardening layer covering answer-first chat contracts, natural output-format selection, evidence relevance ranking, related-test reliability, browser-visible AnythingLLM replay, and the reusable contextless-agent audit pack.
 
 ## What This Proves
 
@@ -44,6 +44,10 @@ python3 scripts/validate_stable_release_blocker_closure.py \
 python3 scripts/validate_stable_chat_quality_release.py \
   --require-artifacts \
   --output-path runtime-state/stable-chat-quality-release/phase130/phase130-stable-chat-quality-release-report.json
+python3 scripts/validate_post_restart_runtime_readiness.py \
+  --output-path runtime-state/post-restart-runtime-readiness/founder-field-readiness.json
+python3 scripts/validate_contextless_agent_audit_pack.py \
+  --output-path runtime-state/contextless-agent-audit-pack/founder-field-audit-pack.json
 python3 scripts/run_founder_field_prompt_eval.py \
   --anythingllm-api-base-url http://127.0.0.1:3001 \
   --workspace my-workspace \

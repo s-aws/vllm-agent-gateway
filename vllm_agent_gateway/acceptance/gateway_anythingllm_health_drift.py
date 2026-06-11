@@ -226,7 +226,7 @@ def finding_for_check(check: dict[str, Any]) -> dict[str, Any] | None:
     if kind == HealthDriftKind.NONE:
         return None
     detail = details(check)
-    return {
+    finding = {
         "check_id": check_id(check),
         "category": check_category(check),
         "status": check_status(check),
@@ -236,6 +236,17 @@ def finding_for_check(check: dict[str, Any]) -> dict[str, Any] | None:
         "url": detail.get("url"),
         "http_status": detail.get("http_status"),
     }
+    for key in (
+        "diagnostic_kind",
+        "stage",
+        "recovery_command",
+        "runtime_boundary",
+        "powershell_wsl_env_example",
+        "bash_export_example",
+    ):
+        if detail.get(key):
+            finding[key] = detail[key]
+    return finding
 
 
 def default_next_action(kind: HealthDriftKind) -> str:

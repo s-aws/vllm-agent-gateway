@@ -1,0 +1,338 @@
+{
+  "schema_version": 1,
+  "kind": "contextless_agent_audit_pack_sample_reports",
+  "phase": 185,
+  "priority_backlog_id": "P0-BB-049",
+  "description": "Small sample audit records showing the Phase 185 baseline-before-local ordering and closure shape for current Priority 0 prompt families.",
+  "reports": [
+    {
+      "report_id": "phase185-sample-evidence-relevance",
+      "prompt_family": "evidence_relevance_ranking",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, identify files to touch and files not to touch for a minimal safe placed_order_id stealth lookup change. Read only and stop before implementation. Lead with strongest evidence, related tests, risks, gaps, and verification commands.",
+      "prompt_hash": "702433ea7ca6eabb46aa2a328bbb6ec2b2aeb1b08fdf1e07e2ea38c39e0673bc",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "blind_agent": {
+        "agent_role": "contextless_blind_baseline",
+        "fork_context": false,
+        "session_history_allowed": false,
+        "local_model_output_seen": false
+      },
+      "blind_baseline": {
+        "created_at": "2026-06-10T23:40:00Z",
+        "prompt_hash": "702433ea7ca6eabb46aa2a328bbb6ec2b2aeb1b08fdf1e07e2ea38c39e0673bc",
+        "ideal_answer_shape": "Answer-first change-surface summary that ranks direct manager evidence before supporting callers or docs.",
+        "must_have_facts": [
+          "core/stealth_order_manager.py is the primary manager-owned lookup surface",
+          "files not to touch are separated from files to touch",
+          "related tests and gaps are identified without implementation"
+        ],
+        "evidence_expectations": [
+          "direct evidence labels",
+          "source file references",
+          "verification command rationale"
+        ],
+        "safety_boundaries": [
+          "read only",
+          "no protected fixture mutation",
+          "stop before implementation"
+        ],
+        "output_expectations": [
+          "answer-first chat output",
+          "files to touch before files not to touch",
+          "run id and validation references remain visible"
+        ],
+        "scoring_rubric": [
+          "routing 20",
+          "evidence ranking 30",
+          "completeness 25",
+          "safety 15",
+          "chat usefulness 10"
+        ]
+      },
+      "local_run": {
+        "started_at": "2026-06-10T23:50:29Z",
+        "prompt_hash": "702433ea7ca6eabb46aa2a328bbb6ec2b2aeb1b08fdf1e07e2ea38c39e0673bc",
+        "status": "passed",
+        "run_id": "workflow-router-20260610T235029187250Z",
+        "route_surfaces": [
+          "localhost_8000_model",
+          "workflow_router_gateway",
+          "anythingllm"
+        ],
+        "response_ref": "runtime-state/anythingllm-ui/phase184-ui-replay-report.json#UI184-ERR-001",
+        "route_evidence": {
+          "selected_workflow": "code_investigation.plan",
+          "required_markers": [
+            "Change surface files:",
+            "Files to touch:",
+            "Files not to touch:"
+          ]
+        },
+        "fixture_mutation_proof": {
+          "fixture_unchanged": true,
+          "proof_ref": "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        },
+        "artifact_refs": [
+          "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        ]
+      },
+      "comparison": {
+        "prompt_hash": "702433ea7ca6eabb46aa2a328bbb6ec2b2aeb1b08fdf1e07e2ea38c39e0673bc",
+        "score": 94,
+        "rubric_dimensions": [
+          "routing",
+          "evidence_ranking",
+          "completeness",
+          "safety",
+          "chat_usefulness"
+        ],
+        "proof_flags": [
+          "baseline-before-local",
+          "same-prompt",
+          "fixture-unchanged"
+        ],
+        "deltas": [
+          "No blocking delta in Phase 184 UI replay."
+        ]
+      },
+      "repair_decision": {
+        "status": "no_repair_needed",
+        "reason": "The selected UI case passed semantic markers and fixture mutation proof."
+      },
+      "closure": {
+        "final_status": "passed",
+        "fixture_unchanged": true,
+        "validation_refs": [
+          "tests/regression/test_anythingllm_ui_e2e.py",
+          "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        ],
+        "live_stack_proof_refs": [
+          "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        ],
+        "residual_risks": [
+          "Sample record is illustrative; live gates remain authoritative."
+        ]
+      }
+    },
+    {
+      "report_id": "phase185-sample-related-test-direct",
+      "prompt_family": "related_test_discovery_direct",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, choose the smallest, medium, and broad validation commands for placed_order_id stealth lookup. Read only. Explain why each command is relevant, what risk it covers, and what gaps remain.",
+      "prompt_hash": "4e05bcda3ae1136d30f9f5cfa2fa981450c5c72c30964c972711f69724f58acf",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "blind_agent": {
+        "agent_role": "contextless_blind_baseline",
+        "fork_context": false,
+        "session_history_allowed": false,
+        "local_model_output_seen": false
+      },
+      "blind_baseline": {
+        "created_at": "2026-06-10T23:41:00Z",
+        "prompt_hash": "4e05bcda3ae1136d30f9f5cfa2fa981450c5c72c30964c972711f69724f58acf",
+        "ideal_answer_shape": "Verification plan with smallest, medium, and broad command tiers, each backed by direct or bounded evidence.",
+        "must_have_facts": [
+          "tests/unit/test_order_id_and_followup_rules.py is direct related evidence",
+          "confidence is visible",
+          "gaps remain explicit"
+        ],
+        "evidence_expectations": [
+          "direct evidence label",
+          "high confidence label",
+          "command-to-risk explanation"
+        ],
+        "safety_boundaries": [
+          "read only",
+          "do not invent unrelated tests",
+          "no protected fixture mutation"
+        ],
+        "output_expectations": [
+          "related tests line is visible",
+          "confidence and evidence labels are visible",
+          "commands are grouped by validation tier"
+        ],
+        "scoring_rubric": [
+          "test relevance 35",
+          "command tiers 25",
+          "risk coverage 20",
+          "gaps 10",
+          "safety 10"
+        ]
+      },
+      "local_run": {
+        "started_at": "2026-06-10T23:51:52Z",
+        "prompt_hash": "4e05bcda3ae1136d30f9f5cfa2fa981450c5c72c30964c972711f69724f58acf",
+        "status": "passed",
+        "run_id": "workflow-router-20260610T235152234913Z",
+        "route_surfaces": [
+          "localhost_8000_model",
+          "workflow_router_gateway",
+          "anythingllm"
+        ],
+        "response_ref": "runtime-state/anythingllm-ui/phase184-ui-replay-report.json#UI184-RTD-001",
+        "route_evidence": {
+          "selected_workflow": "code_investigation.plan",
+          "required_markers": [
+            "Related tests:",
+            "direct evidence",
+            "high confidence"
+          ]
+        },
+        "fixture_mutation_proof": {
+          "fixture_unchanged": true,
+          "proof_ref": "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        },
+        "artifact_refs": [
+          "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        ]
+      },
+      "comparison": {
+        "prompt_hash": "4e05bcda3ae1136d30f9f5cfa2fa981450c5c72c30964c972711f69724f58acf",
+        "score": 96,
+        "rubric_dimensions": [
+          "test_relevance",
+          "command_tiers",
+          "risk_coverage",
+          "gaps",
+          "safety"
+        ],
+        "proof_flags": [
+          "baseline-before-local",
+          "same-prompt",
+          "fixture-unchanged"
+        ],
+        "deltas": [
+          "No blocking delta in Phase 184 UI replay."
+        ]
+      },
+      "repair_decision": {
+        "status": "no_repair_needed",
+        "reason": "The selected UI case returned direct evidence, high confidence, and the bounded unit-test command."
+      },
+      "closure": {
+        "final_status": "passed",
+        "fixture_unchanged": true,
+        "validation_refs": [
+          "tests/regression/test_related_test_discovery_reliability.py",
+          "tests/regression/test_anythingllm_ui_e2e.py"
+        ],
+        "live_stack_proof_refs": [
+          "runtime-state/related-test-discovery-reliability/phase183-live-report.json",
+          "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        ],
+        "residual_risks": [
+          "Sample record is illustrative; live gates remain authoritative."
+        ]
+      }
+    },
+    {
+      "report_id": "phase185-sample-related-test-no-bounded-evidence",
+      "prompt_family": "related_test_discovery_no_test",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, choose the smallest, medium, and broad validation commands for resolve_payment_timeout. Read only. Explain why each command is relevant, what risk it covers, and what gaps remain.",
+      "prompt_hash": "0d4d79f46f343513ddfd84ffe8018afb35f3f2c837770bc9705c84ae00395a7a",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "blind_agent": {
+        "agent_role": "contextless_blind_baseline",
+        "fork_context": false,
+        "session_history_allowed": false,
+        "local_model_output_seen": false
+      },
+      "blind_baseline": {
+        "created_at": "2026-06-10T23:42:00Z",
+        "prompt_hash": "0d4d79f46f343513ddfd84ffe8018afb35f3f2c837770bc9705c84ae00395a7a",
+        "ideal_answer_shape": "Honest test-selection response that says no bounded related tests were found and avoids naming unrelated tests.",
+        "must_have_facts": [
+          "no bounded related test evidence is acceptable when true",
+          "verification_tests_not_found is visible",
+          "low confidence is visible"
+        ],
+        "evidence_expectations": [
+          "explicit no-test-found statement",
+          "gap code",
+          "no unrelated command claim"
+        ],
+        "safety_boundaries": [
+          "read only",
+          "do not fabricate test coverage",
+          "no protected fixture mutation"
+        ],
+        "output_expectations": [
+          "no bounded tests found statement is visible",
+          "low confidence is visible",
+          "unrelated test commands are absent"
+        ],
+        "scoring_rubric": [
+          "honesty 35",
+          "gap visibility 25",
+          "command restraint 20",
+          "confidence labeling 10",
+          "safety 10"
+        ]
+      },
+      "local_run": {
+        "started_at": "2026-06-10T23:52:06Z",
+        "prompt_hash": "0d4d79f46f343513ddfd84ffe8018afb35f3f2c837770bc9705c84ae00395a7a",
+        "status": "passed",
+        "run_id": "workflow-router-20260610T235206037584Z",
+        "route_surfaces": [
+          "localhost_8000_model",
+          "workflow_router_gateway",
+          "anythingllm"
+        ],
+        "response_ref": "runtime-state/anythingllm-ui/phase184-ui-replay-report.json#UI184-RTD-002",
+        "route_evidence": {
+          "selected_workflow": "code_investigation.plan",
+          "required_markers": [
+            "Related tests: none found in bounded evidence",
+            "verification_tests_not_found",
+            "Confidence: low"
+          ]
+        },
+        "fixture_mutation_proof": {
+          "fixture_unchanged": true,
+          "proof_ref": "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        },
+        "artifact_refs": [
+          "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        ]
+      },
+      "comparison": {
+        "prompt_hash": "0d4d79f46f343513ddfd84ffe8018afb35f3f2c837770bc9705c84ae00395a7a",
+        "score": 95,
+        "rubric_dimensions": [
+          "honesty",
+          "gap_visibility",
+          "command_restraint",
+          "confidence_labeling",
+          "safety"
+        ],
+        "proof_flags": [
+          "baseline-before-local",
+          "same-prompt",
+          "fixture-unchanged"
+        ],
+        "deltas": [
+          "No blocking delta in Phase 184 UI replay."
+        ]
+      },
+      "repair_decision": {
+        "status": "no_repair_needed",
+        "reason": "The selected UI case surfaced no bounded tests found, low confidence, and did not include the rejected unrelated unit-test command."
+      },
+      "closure": {
+        "final_status": "passed",
+        "fixture_unchanged": true,
+        "validation_refs": [
+          "tests/regression/test_related_test_discovery_reliability.py",
+          "tests/regression/test_anythingllm_ui_e2e.py"
+        ],
+        "live_stack_proof_refs": [
+          "runtime-state/related-test-discovery-reliability/phase183-live-report.json",
+          "runtime-state/anythingllm-ui/phase184-ui-replay-report.json"
+        ],
+        "residual_risks": [
+          "Sample record is illustrative; live gates remain authoritative."
+        ]
+      }
+    }
+  ]
+}

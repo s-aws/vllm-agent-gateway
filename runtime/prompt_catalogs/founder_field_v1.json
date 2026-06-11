@@ -980,6 +980,11 @@
       "change_history": [
         {
           "date": "2026-06-10",
+          "summary": "Aligned the original change-surface wording with the change-surface-summarizer skill while preserving boundary semantic markers.",
+          "version": "1.0.2"
+        },
+        {
+          "date": "2026-06-10",
           "summary": "Promoted P21 to require the change-surface artifact plus explicit files-to-touch and files-not-to-touch chat markers after Phase 172 repair.",
           "version": "1.0.1"
         },
@@ -1001,7 +1006,7 @@
         "Source mutation: false"
       ],
       "expected_rule": "l2_change_surface_summary_terms",
-      "expected_skill_id": "change-boundary-summarizer",
+      "expected_skill_id": "change-surface-summarizer",
       "expected_workflow": "code_investigation.plan",
       "forbidden_markers": [
         "Source mutation: true",

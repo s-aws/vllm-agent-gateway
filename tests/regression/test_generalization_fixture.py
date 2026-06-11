@@ -8,9 +8,11 @@ from vllm_agent_gateway.controllers.code_investigation.plan import (
     CodeInvestigationRequest,
     build_table_read_write_lookup,
     data_model_target_from_request,
+    evidence_file_records,
     is_endpoint_route_lookup_request,
     is_table_read_write_lookup_request,
     query_candidates,
+    request_flow_steps_from_matches,
     table_schema_fields,
 )
 from vllm_agent_gateway.controllers.natural_query import change_subject_queries_from_request
@@ -296,6 +298,90 @@ def test_files_to_touch_prompt_extracts_change_subject_without_change_surface_ph
         "revealed_orders",
         "placement_client_order_id",
     ]
+
+
+def test_evidence_records_rank_exact_behavior_above_broad_source_match() -> None:
+    records = evidence_file_records(
+        ["core/stealth_order_manager.py", "tests/unit/test_order_id_and_followup_rules.py"],
+        [],
+        [
+            {
+                "path": "core/stealth_order_manager.py",
+                "line": 10,
+                "query": "lookup",
+                "source": "git_grep",
+            },
+            {
+                "path": "tests/unit/test_order_id_and_followup_rules.py",
+                "line": 42,
+                "query": "placed_order_id_stealth_lookup",
+                "source": "git_grep",
+            },
+            {
+                "path": "tests/unit/test_order_id_and_followup_rules.py",
+                "line": 45,
+                "query": "placed_order_id",
+                "source": "git_grep",
+            },
+        ],
+    )
+
+    assert records[0]["path"] == "tests/unit/test_order_id_and_followup_rules.py"
+    assert records[0]["relevance"]["tier"] in {"direct", "strong"}
+    assert "exact_behavior_or_symbol_query" in records[0]["relevance"]["reasons"]
+
+
+def test_evidence_line_refs_rank_exact_symbol_before_broad_keyword() -> None:
+    records = evidence_file_records(
+        ["core/stealth_order_manager.py"],
+        [],
+        [
+            {
+                "path": "core/stealth_order_manager.py",
+                "line": 10,
+                "query": "lookup",
+                "source": "git_grep",
+            },
+            {
+                "path": "core/stealth_order_manager.py",
+                "line": 250,
+                "query": "placed_order_id",
+                "source": "git_grep",
+            },
+        ],
+    )
+
+    assert records[0]["line_refs"][0]["query"] == "placed_order_id"
+    assert records[0]["line_refs"][0]["relevance"]["tier"] == "direct"
+
+
+def test_request_flow_steps_rank_direct_handler_branch_above_path_sorted_broad_match() -> None:
+    steps = request_flow_steps_from_matches(
+        [
+            {
+                "path": "api/audit.py",
+                "line": 8,
+                "text": "request audit metadata",
+                "query": "request",
+                "source": "git_grep",
+            },
+            {
+                "path": "websocket/z_handler.py",
+                "line": 91,
+                "text": "if msg_type == 'request_stealth_orders':",
+                "query": "request_stealth_orders",
+                "source": "git_grep",
+            },
+        ],
+        source_paths={"api/audit.py", "websocket/z_handler.py"},
+        behavior="request_stealth_orders",
+        beginning_path=None,
+        max_steps=5,
+    )
+
+    assert steps[0]["path"] == "websocket/z_handler.py"
+    assert steps[0]["role"] == "handler_branch"
+    assert steps[0]["relevance"]["tier"] in {"direct", "strong"}
 
 
 def test_l2_test_selection_rule_promotes_specific_skill_within_budget() -> None:

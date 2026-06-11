@@ -399,20 +399,30 @@ Approved Priority 0 governance phases:
 51. Phase 170: Stable Release Refresh And Handoff Update - complete
 52. Phase 171: Handler Branch Evidence Repair - complete
 53. Phase 172: Minimal Change Surface Boundary Repair - complete
-54. Phase 173: Persisted Schema Evidence Repair - Git Fixture - approved
-55. Phase 174: Persisted Schema Evidence Repair - Non-Git Fixture - approved
-56. Phase 175: Change Boundary Verification Repair - Git Fixture - approved
-57. Phase 176: Change Boundary Verification Repair - Non-Git Fixture - approved
-58. Phase 177: Post-Repair Stable Proof Refresh - approved
-59. Phase 178: Blind-Baseline Delta Report - approved
-60. Phase 179: Prompt Corpus Governance V2 - approved
-61. Phase 180: Chat Answer Contract Hardening - approved
-62. Phase 181: Output Format Selector Stabilization - approved
-63. Phase 182: Evidence Relevance Ranking Repair - approved
-64. Phase 183: Related-Test Discovery Reliability - approved
-65. Phase 184: AnythingLLM UI Replay Expansion - approved
-66. Phase 185: Contextless Agent Audit Pack - approved
-67. Phase 186: Founder Testing Handoff Refresh - approved
+54. Phase 173: Persisted Schema Evidence Repair - Git Fixture - complete
+55. Phase 174: Persisted Schema Evidence Repair - Non-Git Fixture - complete
+56. Phase 175: Change Boundary Verification Repair - Git Fixture - complete
+57. Phase 176: Change Boundary Verification Repair - Non-Git Fixture - complete
+58. Phase 177: Post-Repair Stable Proof Refresh - complete
+59. Phase 178: Blind-Baseline Delta Report - complete
+60. Phase 179: Prompt Corpus Governance V2 - complete
+61. Phase 180: Chat Answer Contract Hardening - complete
+62. Phase 181: Output Format Selector Stabilization - complete
+63. Phase 182: Evidence Relevance Ranking Repair - complete
+64. Phase 183: Related-Test Discovery Reliability - complete
+65. Phase 184: AnythingLLM UI Replay Expansion - complete
+66. Phase 185: Contextless Agent Audit Pack - complete
+67. Phase 186: Founder Testing Handoff Refresh - complete
+68. Phase 187: Multi-Fixture Prompt Parity Matrix - complete
+69. Phase 188: WSL/AnythingLLM Runtime Environment Hardening - complete
+70. Phase 189: Evidence Boundary Schema Gate - complete
+71. Phase 190: Unsupported Scope Refusal Quality - complete
+72. Phase 191: Prompt Family Drift Detection - complete
+73. Phase 192: Chat Answer Scoring Automation V2 - complete
+74. Phase 193: Skill Registry Readiness Review - complete
+75. Phase 194: Skill Authoring Pipeline V2 - complete
+76. Phase 195: Release Candidate Founder Trial Pack - complete
+77. Phase 196: V1 Product Readiness Reassessment - complete
 
 Second-step approved phases:
 
@@ -7916,7 +7926,7 @@ Proof:
 
 ### Approved Phase 177: Post-Repair Stable Proof Refresh
 
-Status: Approved.
+Status: Complete.
 
 Goal: refresh the stable proof floor after Phases 172 through 176 are complete so the next work starts from verified current behavior instead of stale confidence.
 
@@ -7930,9 +7940,36 @@ Scope:
 
 Acceptance target: the release remains founder-testable, every repaired prompt family has current proof, and any blocker becomes a new roadmap proposal rather than implicit scope drift.
 
+Proof:
+
+- Stable chat-quality release gate passed with `readiness=ready_for_founder_testing`, `gate_count=11`, and `passed_gate_count=11`:
+  - `runtime-state/phase177/phase177-stable-chat-quality-release-report.json`
+- Post-restart runtime readiness passed with all required localhost, gateway, controller, role-proxy, AnythingLLM, and fixture surfaces covered:
+  - `runtime-state/phase177/phase177-post-restart-runtime-readiness-report-final.json`
+  - `runtime-state/phase177/phase177-gateway-anythingllm-health-drift-final.json`
+  - `runtime-state/phase177/phase177-first-time-user-doctor-final.json`
+  - `runtime-state/phase177/phase177-anythingllm-session-recovery-final.json`
+- Founder-field prompt matrix passed after aligning the P21 prompt metadata with the selected `change-surface-summarizer` skill:
+  - `runtime-state/phase177/phase177-founder-field-prompt-matrix-final.json`
+- Live AnythingLLM/workflow-router/local-model founder-field round 2 passed `16/16` cases after the P21 metadata repair:
+  - `runtime-state/phase177/phase177-founder-field-round2-live-field-report-after-p21-metadata.json`
+  - `runtime-state/phase177/phase177-founder-field-round2-live-field-report-after-p21-metadata.md`
+- Blind-baseline comparison for the same live field run passed with `average_score=94.75`, `min_score=91`, `blocker=0`, and `validation_error_count=0`:
+  - `runtime-state/phase177/phase177-founder-field-round2-report-after-p21-metadata.json`
+  - `runtime-state/phase177/phase177-founder-field-round2-report-after-p21-metadata.md`
+- Stable release refresh passed with `decision=release_for_founder_testing`, `readiness=ready_for_founder_testing`, `refresh_command_count=5`, and `validation_error_count=0`:
+  - `runtime-state/phase177/phase177-stable-release-refresh-report-final.json`
+  - `runtime-state/phase177/phase177-stable-release-refresh-report-final.md`
+- Focused regression for the prompt metadata and founder-field gates passed:
+  - `python3 -m pytest tests/regression/test_founder_field_prompt_eval.py tests/regression/test_founder_field_round2.py tests/regression/test_post_restart_runtime_readiness.py -v`
+- Full Bash regression initially exposed a stale governed hash in `runtime/baseline_corpus_promotion_rules.json` after the P21 prompt-catalog metadata repair. Updating `source_prompt_pack.catalog_sha256` restored the baseline-corpus promotion gate.
+- Final full Bash regression passed:
+  - `python3 -m pytest tests/regression/ -v`
+  - Result: `1106 passed, 4 skipped, 23 deselected`
+
 ### Approved Phase 178: Blind-Baseline Delta Report
 
-Status: Approved.
+Status: Complete.
 
 Goal: make the blind-baseline-first process auditable by showing where the local model matches or misses the blind ideal answer across the repaired prompt families.
 
@@ -7946,9 +7983,28 @@ Scope:
 
 Acceptance target: each evaluated prompt has blind baseline, local answer, score, gap classification, and next action.
 
+Proof:
+
+- Added a deterministic Phase 178 policy and validator:
+  - `runtime/blind_baseline_delta_report_policy.json`
+  - `vllm_agent_gateway/acceptance/blind_baseline_delta_report.py`
+  - `scripts/validate_blind_baseline_delta_report.py`
+- Added regression coverage for policy validation, synthetic passing reports, late blind-baseline rejection, blocking-gap backlog candidates, and JSON/markdown writing:
+  - `tests/regression/test_blind_baseline_delta_report.py`
+- Live Phase 178 report passed using Phase 177 AnythingLLM/workflow-router/local-model field evidence and the governed blind baseline package:
+  - `runtime-state/phase178/phase178-blind-baseline-delta-report-final.json`
+  - `runtime-state/phase178/phase178-blind-baseline-delta-report-final.md`
+- Live summary: `unique_case_count=8`, `delta_count=13`, `min_score=94`, `average_score=94.46`, `blocking_gap_count=0`, `validation_error_count=0`, and `next_action=work Phase 179 next`.
+- Added founder-facing documentation:
+  - `README.blind-baseline-delta-report.md`
+  - `docs/examples/blind-baseline-delta-report.md`
+- Final full Bash regression passed:
+  - `python3 -m pytest tests/regression/ -v`
+  - Result: `1111 passed, 4 skipped, 23 deselected`
+
 ### Approved Phase 179: Prompt Corpus Governance V2
 
-Status: Approved.
+Status: Complete.
 
 Goal: prevent overfitting by governing prompt roles, promotion rules, and holdouts as the natural-language corpus grows.
 
@@ -7962,9 +8018,30 @@ Scope:
 
 Acceptance target: prompt-corpus state is machine-validated, holdouts are explicit, and repaired prompt families cannot be promoted without independent proof.
 
-### Approved Phase 180: Chat Answer Contract Hardening
+Proof:
 
-Status: Approved.
+- Added a prompt-corpus governance overlay and validator:
+  - `runtime/prompt_corpus_governance_v2.json`
+  - `vllm_agent_gateway/acceptance/prompt_corpus_governance_v2.py`
+  - `scripts/validate_prompt_corpus_governance_v2.py`
+- The governance overlay keeps the existing prompt catalog as the source of prompt text and assigns role categories by case ID: `target`, `holdout`, `regression`, `promotion_candidate`, and `retired`.
+- Added regression coverage for role coverage, target-without-holdout rejection, target-as-own-holdout rejection, approved promotion without founder approval, same-phase promoted status rejection, missing delta holdout proof, and JSON/markdown writing:
+  - `tests/regression/test_prompt_corpus_governance_v2.py`
+- Live Phase 179 report passed using the current founder prompt catalog and Phase 178 delta report:
+  - `runtime-state/phase179/phase179-prompt-corpus-governance-v2-report-final.json`
+  - `runtime-state/phase179/phase179-prompt-corpus-governance-v2-report-final.md`
+- Live summary: `catalog_case_count=34`, `target_count=6`, `holdout_count=6`, `regression_count=34`, `promotion_candidate_count=6`, `blocked_candidate_count=1`, and `validation_error_count=0`.
+- The live run exposed and repaired an over-strict group-level independence rule. Holdout independence is now validated per target/holdout link, so a prompt can be a candidate target in one family and an independent holdout in another.
+- Added founder-facing documentation:
+  - `README.prompt-corpus-governance-v2.md`
+  - `docs/examples/prompt-corpus-governance-v2.md`
+- Final full Bash regression passed:
+  - `python3 -m pytest tests/regression/ -v`
+  - Result: `1120 passed, 4 skipped, 23 deselected`
+
+### Phase 180: Chat Answer Contract Hardening
+
+Status: Complete.
 
 Goal: ensure supported workflows return useful chat-visible answers by default instead of relying on artifact file lists for immediate review.
 
@@ -7978,9 +8055,37 @@ Scope:
 
 Acceptance target: every supported Priority 0 workflow returns a useful in-chat answer with evidence, risks or gaps when applicable, and source mutation status.
 
-### Approved Phase 181: Output Format Selector Stabilization
+Phase 180 is complete. The chat answer contract now has a governed acceptance gate and the shared renderer surfaces explicit non-mutation evidence for read-only investigation/code-explanation answers and no-target generic chat.
 
-Status: Approved.
+What changed:
+
+- Added `runtime/chat_answer_contract_hardening_policy.json`.
+- Added `vllm_agent_gateway/acceptance/chat_answer_contract_hardening.py`.
+- Added `scripts/validate_chat_answer_contract_hardening.py`.
+- Added regression coverage in `tests/regression/test_chat_answer_contract_hardening.py`.
+- Added `README.chat-answer-contract-hardening.md` and `docs/examples/chat-answer-contract-hardening.md`.
+- Updated the shared chat renderer so `code_explanation` and `investigation_plan` inline answers include `Source mutation: false`.
+- Updated generic no-target workflow-router summaries to expose `source_changed=false` and `source_tree_changed=false`.
+- Updated post-restart readiness next action to Phase 181.
+
+Validation proof:
+
+- Bounded contextless audit recommended section-level contract checks, artifact-only rejection, boundary/unknowns, next action, format adherence, and a negative artifact-only guard.
+- Focused regression passed: `19 passed`.
+- Phase 180 contract validator passed: `runtime-state/phase180/phase180-chat-answer-contract-report-final.json`; summary `7` cases, `7` passed, `0` blocking errors.
+- Bash health checks returned HTTP `200` for `8000`, `8300`, `8400`, `8500`, `8101`, `8102`, `8201`, `8202`, `8203`, `8204`, and `8205`.
+- Live inline-answer validation passed through gateway and AnythingLLM on both frozen fixtures:
+  - gateway `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T203403355438Z`
+  - gateway `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T203422237314Z`
+  - AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T203433465255Z`
+  - AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T203453069180Z`
+- Post-restart readiness passed with next action Phase 181: `runtime-state/phase180/phase180-post-restart-runtime-readiness-report-final.json`.
+- Natural output-format preference live gate passed through gateway and AnythingLLM with all featured ports: `runtime-state/phase180/phase180-natural-output-format-preference-live.json`.
+- Full Bash regression passed: `1126 passed, 4 skipped, 23 deselected`.
+
+### Phase 181: Output Format Selector Stabilization
+
+Status: Complete.
 
 Goal: stabilize default FormatA output and requested JSON output without creating parallel behavior paths.
 
@@ -7994,9 +8099,30 @@ Scope:
 
 Acceptance target: supported workflows produce equivalent evidence in FormatA and JSON, default to readable chat output, and pass gateway plus AnythingLLM validation.
 
-### Approved Phase 182: Evidence Relevance Ranking Repair
+Phase 181 is complete. The selector now fails closed for unsupported OpenAI-compatible `response_format` values, and the existing natural-output-format gate now proves unsupported explicit and `response_format` selectors fail visibly through the workflow-router gateway.
 
-Status: Approved.
+What changed:
+
+- Updated `output_format_from_response_format` so malformed or unsupported `response_format` values raise `unsupported_output_format` instead of silently falling back to FormatA.
+- Extended `runtime/natural_output_format_preference_cases.json` to require gateway negative holdouts for unsupported explicit and OpenAI-compatible format selectors.
+- Extended `scripts/validate_natural_output_format_preference_live.py` to exercise those negative holdouts.
+- Updated `vllm_agent_gateway/acceptance/natural_output_format_preference.py` and regression tests for the expanded gateway selector contract.
+- Updated `README.natural-output-format-preference.md` and `docs/examples/natural-output-format-preference.md`.
+- Restarted the gateway/proxy stack before live validation so the running controller used the new selector code.
+- Updated post-restart readiness next action to Phase 182.
+
+Validation proof:
+
+- Focused selector/docs regression passed: `12 passed` plus docs index `1 passed`.
+- First expanded live selector run exposed the gateway failure-envelope shape: unsupported selector requests return HTTP `200` chat completions with `agentic_controller_response.status=failed` and `summary.error_code=unsupported_output_format`.
+- Validator was tightened to accept only raw HTTP `400` errors or that visible gateway failure envelope.
+- One-case live selector probe passed: `runtime-state/phase181/phase181-natural-output-format-preference-one-case.json`.
+- Full live selector gate passed through gateway and AnythingLLM with all featured ports healthy: `runtime-state/phase181/phase181-natural-output-format-preference-live-final.json`.
+- Full Bash regression passed: `1128 passed, 4 skipped, 23 deselected`.
+
+### Phase 182: Evidence Relevance Ranking Repair
+
+Status: Complete.
 
 Goal: improve answer quality by ranking files, lines, tests, and source refs by relevance to the user's requested behavior.
 
@@ -8010,9 +8136,35 @@ Scope:
 
 Acceptance target: responses lead with the most relevant evidence, demote weak matches, and explicitly label unresolved gaps.
 
-### Approved Phase 183: Related-Test Discovery Reliability
+Phase 182 is complete. The shared `code_investigation.plan` evidence path now ranks records, line refs, request-flow steps, and change-surface artifacts by relevance instead of relying on category/path order alone. Chat-visible file summaries expose direct, strong, supporting, or weak evidence labels.
 
-Status: Approved.
+What changed:
+
+- Added shared relevance scoring for evidence records based on category, explicit hints, match count, query specificity, line refs, and path/query alignment.
+- Sorted line refs so exact symbol or behavior queries appear before broad keyword matches inside the same file.
+- Added relevance metadata to compact evidence records and source refs.
+- Ranked request-flow steps by direct handler/branch relevance before path order.
+- Updated change-surface summaries to use the shared relevance score and expose relevance labels in chat.
+- Added a governed Phase 182 policy and validator with synthetic negative controls.
+- Added feature docs and examples for the evidence relevance ranking gate.
+- Updated post-restart readiness next action to Phase 183.
+
+Validation proof:
+
+- Bounded contextless blind baseline defined the ideal answer shape, must-have ranking rules, negative cases, and 100-point rubric for evidence relevance ranking.
+- Focused regression passed: `30 passed`.
+- Synthetic validator passed: `runtime-state/evidence-relevance-ranking/phase182-synthetic-report.json` with `3/3` synthetic cases and `0` errors.
+- Post-restart readiness passed after explicit WSL `ANYTHINGLLM_API_KEY` injection: `runtime-state/evidence-relevance-ranking/phase182-post-restart-readiness-before-live-wsl-env.json` with `16/16` required surfaces covered.
+- Live Phase 182 validator passed through gateway and AnythingLLM on both frozen fixtures: `runtime-state/evidence-relevance-ranking/phase182-live-report.json` with `4/4` live cases and `0` errors.
+  - gateway `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T224637327676Z`
+  - AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T224706807820Z`
+  - gateway `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T224733222861Z`
+  - AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T224745398042Z`
+- Full Bash regression passed: `1136 passed, 4 skipped, 23 deselected`.
+
+### Phase 183: Related-Test Discovery Reliability
+
+Status: Complete.
 
 Goal: make related-test answers reliable and honest, including when bounded evidence finds no related tests.
 
@@ -8026,9 +8178,40 @@ Scope:
 
 Acceptance target: related-test responses identify evidence-backed tests, avoid unsupported claims, and provide practical verification commands.
 
+Phase 183 is complete. Related-test discovery now classifies test evidence, carries confidence and source refs into artifacts and verification commands, and makes no-bounded-test cases visible in chat instead of inventing coverage.
+
+What changed:
+
+- Added related-test evidence classification in `vllm_agent_gateway/controllers/verification.py`.
+- Related test candidates now include `confidence`, `evidence_kind`, `evidence_reason`, `evidence_refs`, `runner`, `executable`, and `status_markers`.
+- Controller verification commands now carry confidence and evidence kind.
+- Compact related-test artifacts preserve confidence, evidence kind, source refs, and evidence refs.
+- Chat related-test summaries now show direct/adjacent/weak evidence and confidence.
+- Test-selection answers now always include a `Related tests` line, including `none found in bounded evidence`.
+- No-test cases now put `verification_tests_not_found` first in the visible gap list.
+- Added Phase 183 policy, validator, docs, examples, and regression tests.
+- Updated post-restart readiness next action to Phase 184.
+
+Validation proof:
+
+- Bounded contextless blind baseline defined the ideal answer shape, must-have discovery rules, negative cases, and 100-point rubric.
+- Focused regression passed: `12 passed`.
+- Synthetic validator passed: `runtime-state/related-test-discovery-reliability/phase183-synthetic-report.json` with `3/3` cases and `0` errors.
+- Post-restart readiness passed before live validation: `runtime-state/related-test-discovery-reliability/phase183-post-restart-readiness-before-live.json` with `16/16` required surfaces covered.
+- Live Phase 183 validator passed through gateway and AnythingLLM on both frozen fixtures: `runtime-state/related-test-discovery-reliability/phase183-live-report.json` with `8/8` live cases and `0` errors.
+  - gateway direct `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T231853492890Z`
+  - AnythingLLM direct `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T231917058225Z`
+  - gateway no-test `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T231939709177Z`
+  - AnythingLLM no-test `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T231959235642Z`
+  - gateway direct `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T232019606811Z`
+  - AnythingLLM direct `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T232029528835Z`
+  - gateway no-test `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T232040997636Z`
+  - AnythingLLM no-test `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T232049763538Z`
+- Full Bash regression passed: `1145 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 184: AnythingLLM UI Replay Expansion
 
-Status: Approved.
+Status: Complete.
 
 Goal: expand UI-level proof so Priority 0 behavior is validated in the actual tester surface, not only API runs.
 
@@ -8042,9 +8225,33 @@ Scope:
 
 Acceptance target: the selected prompts produce useful chat answers in AnythingLLM UI or produce actionable classified failures.
 
+Phase 184 is complete. The AnythingLLM UI prompt catalog now includes representative replay cases for repaired evidence relevance ranking and related-test discovery behavior, and the browser-visible AnythingLLM path passed those cases against both frozen Coinbase fixtures.
+
+What changed:
+
+- Added `UI184-ERR-001`, `UI184-RTD-001`, and `UI184-RTD-002` to `runtime/anythingllm_ui_prompt_cases.json`.
+- Updated the UI prompt catalog metadata to Phase 184.
+- Added regression coverage that guards the Phase 184 catalog entries and their semantic marker contracts.
+- Updated AnythingLLM UI E2E documentation and examples with the bounded Phase 184 replay command.
+- Updated post-restart readiness next action to Phase 185.
+
+Validation proof:
+
+- Focused UI catalog regression passed: `30 passed`.
+- Post-restart readiness passed before UI replay: `runtime-state/anythingllm-ui/phase184-post-restart-readiness-before-ui.json` with `16/16` required surfaces covered.
+- Phase 184 AnythingLLM UI replay passed: `runtime-state/anythingllm-ui/phase184-ui-replay-report.json` with `6/6` case/root executions, `0` errors, `fixture_unchanged=true`, and semantic status `passed` for every case.
+  - `UI184-ERR-001` `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T235029187250Z`
+  - `UI184-ERR-001` `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T235107072699Z`
+  - `UI184-RTD-001` `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T235124094288Z`
+  - `UI184-RTD-001` `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T235152234913Z`
+  - `UI184-RTD-002` `/mnt/c/coinbase_testing_repo_frozen_tmp`: `workflow-router-20260610T235206037584Z`
+  - `UI184-RTD-002` `/mnt/c/coinbase_testing_repo_frozen_tmp.github`: `workflow-router-20260610T235234305285Z`
+- Final post-restart readiness passed: `runtime-state/anythingllm-ui/phase184-post-restart-readiness-final.json` with next action set to Phase 185.
+- Full Bash regression passed: `1147 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 185: Contextless Agent Audit Pack
 
-Status: Approved.
+Status: Complete.
 
 Goal: turn contextless blind-agent validation into a reusable project asset that can audit future skills, prompts, and workflows.
 
@@ -8058,9 +8265,31 @@ Scope:
 
 Acceptance target: a new contextless agent can run the audit process from documentation and produce comparable scoring artifacts.
 
+Phase 185 is complete. The reusable contextless-agent audit pack now has governed templates, ordered process steps, recursion limits, sample audit records, deterministic validation, docs, examples, and regression coverage.
+
+What changed:
+
+- Added `runtime/contextless_agent_audit_pack_policy.json`.
+- Added `runtime/contextless_agent_audit_pack_sample_reports.json`.
+- Added `vllm_agent_gateway/acceptance/contextless_agent_audit_pack.py`.
+- Added `scripts/validate_contextless_agent_audit_pack.py`.
+- Added `tests/regression/test_contextless_agent_audit_pack.py`.
+- Added `README.contextless-agent-audit-pack.md` and `docs/examples/contextless-agent-audit-pack.md`.
+- Linked the audit pack from the root README, ordered docs index, and examples index.
+- Updated post-restart readiness next action to Phase 186.
+
+Validation proof:
+
+- Phase 185 validator passed: `runtime-state/contextless-agent-audit-pack/phase185/phase185-contextless-agent-audit-pack-report.json` with `template_count=4`, `process_step_count=7`, `sample_report_count=3`, `prompt_family_count=3`, and `validation_error_count=0`.
+- Focused regression passed: `13 passed`.
+- Related audit regression passed: `36 passed`.
+- Bounded contextless audit judged the pack usable and identified tightening gaps. The current phase fixed those gaps by requiring real prompt hashes, `blind_baseline.output_expectations`, response refs, route evidence, explicit fixture mutation proof, and always-on AnythingLLM wording for this pack.
+- Final post-restart readiness passed: `runtime-state/contextless-agent-audit-pack/phase185/phase185-post-restart-readiness-final.json` with next action set to Phase 186.
+- Full Bash regression passed: `1160 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 186: Founder Testing Handoff Refresh
 
-Status: Approved.
+Status: Complete.
 
 Goal: refresh founder-facing testing guidance after Phases 172 through 185 so manual AnythingLLM testing starts from current, stable instructions.
 
@@ -8074,9 +8303,27 @@ Scope:
 
 Acceptance target: a first-time tester can run the current approved chat-quality path through AnythingLLM with minimal setup ambiguity.
 
+Phase 186 is complete. Founder-facing handoff docs now point at the current Phase 180-185 proof floor, keep first-time testing on supported L1/L2 prompts, remove active broad-refactor prompts from the founder path, document the current AnythingLLM target and validation commands, and link the Phase 184 UI replay plus Phase 185 contextless-agent audit pack.
+
+What changed:
+
+- Updated `README.getting-started.md` with the Phase 180-185 proof floor, Phase 184 UI replay command, Phase 185 audit-pack command, and explicit advanced-refactor exclusion from first-time testing.
+- Updated `README.founder-field-tests.md` with post-restart readiness and audit-pack validation before field testing.
+- Updated `README.release-notes.md` with current Phase 171-176 closure state plus Phase 180-185 hardening proof.
+- Updated `docs/examples/anythingllm-founder-testing.md` to remove active advanced-refactor examples from founder smoke testing and refresh current validation history.
+- Updated post-restart readiness next action to Phase 187.
+
+Validation proof:
+
+- Docs index passed: `DOCS INDEX PASS` with `linked_count=227`, `orphaned_docs=[]`, and `extra_linked_docs=[]`.
+- Release notes validator passed: `runtime-state/release-notes/phase186/phase186-release-notes-report.json` with `error_count=0`.
+- Focused regression passed: `48 passed`.
+- Final post-restart readiness passed: `runtime-state/founder-handoff/phase186-post-restart-readiness-final.json` with next action set to Phase 187.
+- Full Bash regression passed: `1160 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 187: Multi-Fixture Prompt Parity Matrix
 
-Status: Approved.
+Status: Complete.
 
 Goal: prove supported prompt families behave consistently across the git Coinbase fixture, non-git Coinbase fixture, and at least one non-Coinbase fixture where available.
 
@@ -8090,9 +8337,30 @@ Scope:
 
 Acceptance target: each selected prompt family has a parity result with pass/fail status, fixture-specific deltas, mutation proof, and clear next action.
 
+Phase 187 is complete. The live matrix now covers selected code explanation, schema lookup, request-flow, change-surface, configuration lookup, and table read/write prompt families across both protected Coinbase fixtures plus bounded Python, Node, and Go generalization fixtures.
+
+What changed:
+
+- Extended `scripts/validate_multi_repo_fixtures_live.py` with prompt-family metadata and a parity matrix that separates fixture-specific deltas from shared workflow deltas.
+- Expanded live fixture coverage to `15` cases across `5` fixtures, `5` repo categories, and `6` prompt families.
+- Added regression coverage for pass, fixture-specific delta, and shared workflow delta classification.
+- Added `README.multi-fixture-prompt-parity.md` and `docs/examples/multi-fixture-prompt-parity.md`.
+- Linked the feature from the root README, ordered docs index, and examples index.
+- Updated post-restart readiness next action to Phase 188.
+
+Validation proof:
+
+- Gateway-only matrix passed: `runtime-state/multi-fixture-prompt-parity/phase187-gateway-report.json` with `15` client cases, `5` fixtures, `6` prompt families, and `0` errors.
+- Gateway plus AnythingLLM matrix passed: `runtime-state/multi-fixture-prompt-parity/phase187-anythingllm-report.json` with `30` client cases, `5` fixtures, `6` prompt families, and `0` errors.
+- The Phase 187 parity matrix passed with `0` fixture-specific deltas and `0` shared workflow deltas.
+- Focused regression passed: `37 passed`.
+- Docs index passed: `DOCS INDEX PASS` with `linked_count=229`, no orphaned docs, and no extra linked docs.
+- Final post-restart readiness passed: `runtime-state/multi-fixture-prompt-parity/phase187-post-restart-readiness-final.json` with next action set to Phase 188.
+- Full Bash regression passed: `1163 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 188: WSL/AnythingLLM Runtime Environment Hardening
 
-Status: Approved.
+Status: Complete.
 
 Goal: make local runtime failures easier to diagnose so chat-quality testing does not stall on opaque API key, port, proxy, or Bash/Windows boundary issues.
 
@@ -8106,9 +8374,28 @@ Scope:
 
 Acceptance target: a failed live validation clearly identifies the failing surface, likely cause, and next recovery command without requiring session history.
 
+Phase 188 is complete. The local runtime diagnostics now carry explicit recovery commands for WSL/AnythingLLM API-key bridging, stack restart, model-start, wrong-target, unreachable-port, and headers-without-body timeout symptoms without adding a second health-check path.
+
+What changed:
+
+- Extended the first-time user doctor with explicit `powershell_wsl_env_example`, `bash_export_example`, `recovery_command`, and runtime-boundary details where applicable.
+- Updated health-drift findings to preserve diagnostic kind, stage, recovery command, runtime boundary, and WSL API-key bridge examples from doctor checks.
+- Added top-level `diagnostic_actions` to post-restart readiness reports so failed readiness artifacts can be acted on without opening every child report.
+- Split readiness diagnostics into `diagnostic_action_count` and `blocking_diagnostic_action_count` so non-blocking fixture warnings do not look like hidden blockers.
+- Updated first-time doctor, health-drift, and post-restart readiness docs/examples to use explicit `wsl.exe -- env "ANYTHINGLLM_API_KEY=$key"` bridging instead of relying on `WSLENV`.
+- Updated post-restart readiness next action to Phase 189.
+
+Validation proof:
+
+- Intentional missing-key live readiness failed as expected: `runtime-state/runtime-environment-hardening/phase188-missing-key-report.json` with `blocked_after_restart`, `diagnostic_action_count=10`, `blocking_diagnostic_action_count=3`, missing `anythingllm.api_key`, and a top-level WSL key-bridge command.
+- Final live readiness passed: `runtime-state/runtime-environment-hardening/phase188-post-restart-readiness-final.json` with `ready_after_restart`, `16/16` required surfaces covered, `0` blocking diagnostic actions, and next action set to Phase 189.
+- Focused regression passed: `23 passed`.
+- Docs index passed with `linked_count=229`, no orphaned docs, and no extra linked docs.
+- Full Bash regression passed: `1165 passed, 4 skipped, 23 deselected`.
+
 ### Approved Phase 189: Evidence Boundary Schema Gate
 
-Status: Approved.
+Status: Complete.
 
 Goal: ensure structured evidence fields used by chat answers are present, correctly typed, and semantically separated before responses are accepted.
 
@@ -8122,9 +8409,29 @@ Scope:
 
 Acceptance target: malformed or ambiguous evidence boundaries fail validation before being presented as a successful chat-quality result.
 
-### Approved Phase 190: Unsupported Scope Refusal Quality
+Phase 189 is complete. The shared inline-answer path now validates governed schema and change-boundary artifacts before rendering normal chat answers. Malformed governed artifacts render an `Evidence Boundary Gate:` failure block in both FormatA and JSON instead of appearing as successful answers.
 
-Status: Approved.
+What changed:
+
+- Added evidence-boundary validation for `data_model_lookup` and `change_surface_summary` inline artifacts.
+- Enforced persisted schema field/source separation, source refs, model files, gaps typing, read-only mutation policy, and explicit runtime-scope labeling when non-schema evidence appears.
+- Enforced change-surface touch/no-touch/unknown/risks/gaps/verification/source-ref typing, approval-gated implementation status, and no overlap between touch and no-touch files.
+- Extended `scripts/validate_multi_repo_fixtures_live.py` so schema and change-surface live cases fail when `inline_answer_contract.evidence_boundary_status` is not `passed`.
+- Added docs and examples for the evidence boundary gate.
+- Updated post-restart readiness next action to Phase 190.
+
+Validation proof:
+
+- Negative regression tests proved malformed runtime schema fields and conflicting touch/no-touch boundaries render `Evidence Boundary Gate:` failures instead of normal answers.
+- Live schema and change-surface target/holdout gate passed: `runtime-state/evidence-boundary-schema-gate/phase189-live-report.json` with `12` gateway/AnythingLLM client cases, `2` prompt families, `0` errors, and all boundary statuses `passed` with `0` boundary errors.
+- Final post-restart readiness passed: `runtime-state/evidence-boundary-schema-gate/phase189-post-restart-readiness-final.json` with next action set to Phase 190.
+- Focused regression passed: `31 passed`.
+- Docs index passed with `linked_count=231`, no orphaned docs, and no extra linked docs.
+- Full Bash regression passed: `1167 passed, 4 skipped, 23 deselected`.
+
+### Completed Phase 190: Unsupported Scope Refusal Quality
+
+Status: Complete.
 
 Goal: make unsupported, oversized, unsafe, or underspecified requests fail usefully instead of returning vague fallback answers or starting the wrong workflow.
 
@@ -8138,9 +8445,24 @@ Scope:
 
 Acceptance target: unsupported requests produce clear, actionable chat-visible guidance without fixture mutation or silent workflow misrouting.
 
-### Approved Phase 191: Prompt Family Drift Detection
+Implemented:
 
-Status: Approved.
+- Added shared refusal-quality summary fields for blocked workflow-router responses: `missing_information`, `bounded_next_step`, `safe_alternatives`, `evidence_expectations`, `mutation_policy`, and `refusal_quality_status`.
+- Added a chat-visible `Recovery:` section to FormatA responses so AnythingLLM users see the blocking reason, missing information, bounded next step, safe alternatives, evidence expectations, and mutation policy in the chat body.
+- Added the Phase 190 governed policy, validator, tests, README, and examples.
+- Included a supported code-explanation holdout so the refusal gate cannot silently swallow valid prompts.
+- Updated post-restart readiness next action to Phase 191.
+
+Validation proof:
+
+- Focused regression passed: `18 passed`.
+- Direct frozen-fixture validation passed: `runtime-state/unsupported-scope-refusal-quality/phase190/phase190-direct-windows-report.json` with `11` direct-controller cases, `0` failures, and no protected fixture mutation.
+- Live gateway and AnythingLLM validation passed: `runtime-state/unsupported-scope-refusal-quality/phase190/phase190-live-report.json` with `33` cases across `direct_controller`, `workflow_router_gateway`, and `anythingllm`, `0` failures, `30` actionable refusal-quality cases, and no protected fixture mutation.
+- Full Bash regression passed: `1175 passed, 4 skipped, 23 deselected`.
+
+### Completed Phase 191: Prompt Family Drift Detection
+
+Status: Complete.
 
 Goal: detect when real founder prompts drift away from current skill, router, or workflow triggers before chat quality degrades.
 
@@ -8154,9 +8476,28 @@ Scope:
 
 Acceptance target: prompt drift is visible, classified, and tied to either prompt governance, workflow repair, or new skill/tool proposals.
 
-### Approved Phase 192: Chat Answer Scoring Automation V2
+Implemented:
 
-Status: Approved.
+- Added `runtime/prompt_family_drift_detection_policy.json` with explicit decision categories, weak-layer taxonomy, verification gates, required contextless report fields, and governed drift probes.
+- Added `vllm_agent_gateway/acceptance/prompt_family_drift_detection.py` and `scripts/validate_prompt_family_drift_detection.py`.
+- Classified all governed founder catalog prompts against the current skill coverage registry, corpus governance roles, holdout bank, and founder prompt pack.
+- Added family-level holdout relationship evidence so cross-family target/holdout prompts are auditable instead of appearing as ambiguous role conflicts.
+- Added separate catalog and drift-probe decision counts so synthetic probe drift does not look like active catalog drift.
+- Added JSON and Markdown report output, README, examples, docs index links, and focused regression coverage.
+- Updated post-restart readiness next action to Phase 192.
+
+Validation proof:
+
+- Focused regression passed: `9 passed`.
+- Focused readiness regression passed with Phase 191 tests: `13 passed`.
+- Phase 191 validator passed: `runtime-state/phase191/phase191-prompt-family-drift-detection-report.json` with `34` catalog cases, `5` drift probes, `0` active catalog blocking drift cases, `0` validation errors, catalog decisions `{"holdout": 6, "in_coverage": 28}`, and drift-probe decisions `{"holdout": 1, "in_coverage": 1, "out_of_coverage": 1, "partial_drift": 2}`.
+- Docs index passed with `235` linked docs and no orphaned docs.
+- Contextless audit found no critical issues. Its high holdout-ambiguity finding and medium source-split/Markdown findings were fixed in Phase 191 before closure.
+- Full Bash regression passed: `1184 passed, 4 skipped, 23 deselected`.
+
+### Completed Phase 192: Chat Answer Scoring Automation V2
+
+Status: Complete.
 
 Goal: reduce manual scoring by strengthening automated comparison between blind baselines and local chat answers.
 
@@ -8170,9 +8511,29 @@ Scope:
 
 Acceptance target: chat-quality evaluations produce repeatable scores and repair guidance without replacing live local-stack proof.
 
-### Approved Phase 193: Skill Registry Readiness Review
+Implemented:
 
-Status: Approved.
+- Added `runtime/chat_answer_scoring_v2_policy.json` with eight scoring dimensions, score weights, blocking dimensions, repair targets, and known pass/advisory/fail examples.
+- Added `vllm_agent_gateway/acceptance/chat_answer_scoring_v2.py` and `scripts/validate_chat_answer_scoring_v2.py`.
+- Scored the existing Phase 178 blind-baseline delta cases while requiring Phase 191 to have no active catalog-blocking prompt drift.
+- Added source artifact hash checks, baseline-before-local validation, source-reference checks, format checks, safety-boundary checks, and report rebuild validation.
+- Added composite `scored_case_id` values so repeated prompt case IDs can still be repaired from a contextless report.
+- Added `pass_with_advisories_explanation` so a passing report with advisory cases explains why it passed and which repair targets remain monitored.
+- Added README, examples, docs index links, and focused regression coverage.
+- Updated post-restart readiness next action to Phase 193.
+
+Validation proof:
+
+- Focused regression passed: `7 passed`.
+- Focused combined regression passed: `22 passed`.
+- Phase 192 validator passed: `runtime-state/phase192/phase192-chat-answer-scoring-v2-report.json` with `13` scored cases, `0` failed cases, `13` advisory cases, average score `95.0`, minimum score `95`, repeated advisory repair targets `evidence_relevance` and `prompt_wording`, and `0` validation errors.
+- Docs index passed with `237` linked docs and no orphaned docs.
+- Contextless audit found no critical or high issues. Its medium advisory-pass and case-identity findings were fixed in Phase 192 before closure.
+- Full Bash regression passed: `1191 passed, 4 skipped, 23 deselected`.
+
+### Completed Phase 193: Skill Registry Readiness Review
+
+Status: Complete.
 
 Goal: audit whether current skills are small, deterministic, discoverable, testable, and suitable for scaling into a larger skill library.
 
@@ -8186,9 +8547,23 @@ Scope:
 
 Acceptance target: the project has a clear skill-readiness report and a prioritized set of skill-library scaling actions.
 
-### Approved Phase 194: Skill Authoring Pipeline V2
+Implemented:
 
-Status: Approved.
+- Added a governed skill-registry readiness report that composes registry, scale, workflow, tool, eval, prompt-coverage, and skill-body evidence.
+- Added deterministic keep, split, merge, retire, and defer decision logic for declared registry risks.
+- Separated implemented coverage evidence from planned coverage so planned fixture-generalization entries cannot be treated as validated skill readiness.
+- Added per-skill readiness evidence for body presence, route-key uniqueness, trigger-boundary uniqueness, eval proof, workflow mapping, and coverage state.
+- Added docs, examples, CLI validation, and regression coverage for duplicate route keys, duplicate trigger boundaries, missing skill bodies, and planned-only coverage.
+
+Validation:
+
+- Phase 193 validator passed: `runtime-state/phase193/phase193-skill-registry-readiness-review-report.json` with `54` skills, decision counts `{"keep": 54}`, `0` semantic conflicts, `0` validation errors, and `2` planned coverage entries kept outside implemented readiness.
+- Focused regression passed for the Phase 193 readiness review.
+- Contextless audit found no critical issues. Its high findings on declared policy trigger enforcement and planned-coverage evidence were fixed before closure.
+
+### Completed Phase 194: Skill Authoring Pipeline V2
+
+Status: Complete.
 
 Goal: improve the process for creating new L1/L2 skills from observed prompt gaps so each new skill ships with eval gates by default.
 
@@ -8202,9 +8577,25 @@ Scope:
 
 Acceptance target: new skill creation follows a repeatable, testable pipeline with explicit gates and no manual prompt injection requirement.
 
+Implemented:
+
+- Added a governed Phase 194 draft-packet admission gate for skill candidates.
+- Added a sample candidate packet under `tests/fixtures/skill_authoring_pipeline_v2/phase194-readme-locator`.
+- Added validation for skill batch admission, planned prompt coverage, eval skeleton gates, docs/example stubs, fail-closed regression skeletons, target prompts, holdouts, objective acceptance criteria, blind-baseline-first plan shape, and live-validation plan coverage.
+- Added runtime registry absence and before/after hash checks so draft candidates cannot be treated as installed or mutate runtime registries during validation.
+- Added explicit report fields: `gate_scope=draft_packet_admission_only`, `packet_status=admitted`, `proof_status=not_run`, and `promotion_eligible=false`.
+- Added docs, examples, CLI validation, and regression coverage.
+
+Validation:
+
+- Phase 194 validator passed: `runtime-state/phase194/phase194-skill-authoring-pipeline-v2-report.json` with `packet_status=admitted`, `proof_status=not_run`, `promotion_eligible=false`, `9` required gates, `2` target prompts, `2` holdout prompts, `3` acceptance criteria, passing batch admission, and `0` validation errors.
+- Focused regression passed for Phase 194 plus nearby readiness gates.
+- Docs index passed with `241` linked docs and no orphaned docs.
+- Contextless audit initially found critical scope ambiguity between draft admission and promotion proof. The gate was corrected before closure, and follow-up contextless audit found no critical or high issues.
+
 ### Approved Phase 195: Release Candidate Founder Trial Pack
 
-Status: Approved.
+Status: Complete.
 
 Goal: package the current validated chat-quality surface into a founder trial pack that is easy to run and review.
 
@@ -8218,9 +8609,40 @@ Scope:
 
 Acceptance target: the founder can run the trial pack without session history and provide structured feedback tied to the roadmap.
 
+Implementation completed:
+
+- Added `runtime/release_candidate_founder_trial_pack.json`.
+- Added `runtime/release_candidate_founder_trial_pack_policy.json`.
+- Added `vllm_agent_gateway/acceptance/release_candidate_founder_trial_pack.py`.
+- Added `scripts/validate_release_candidate_founder_trial_pack.py`.
+- Added `tests/regression/test_release_candidate_founder_trial_pack.py`.
+- Added `README.release-candidate-founder-trial-pack.md`.
+- Added `docs/examples/release-candidate-founder-trial-pack.md`.
+- Linked the feature README and example through the ordered docs index.
+- Included exact prompt text in generated reports so a contextless founder can copy prompts directly into AnythingLLM.
+- Added strict proof-artifact mode. Phase 195 release validation now fails if proof mode is disabled.
+- Added proof artifact content validation for referenced Phase 191 through Phase 194 reports.
+- Added structured setup commands for gateway, AnythingLLM, first-time doctor, post-restart readiness, and Phase 195 validation.
+- Added feedback JSONL destination, required fields, allowed classifications, allowed severities, template validation, and record validation when feedback exists.
+- Added fixture integrity command governance and live fixture-state validation via `--validate-fixture-state`.
+
+Validation proof:
+
+- Passed: `python3 scripts/validate_release_candidate_founder_trial_pack.py --require-proof-artifacts --output-path runtime-state/phase195/phase195-release-candidate-founder-trial-pack-report.json --markdown-output-path runtime-state/phase195/phase195-release-candidate-founder-trial-pack-report.md`.
+- Passed: `python3 -m pytest tests/regression/test_release_candidate_founder_trial_pack.py -q` returned `19 passed`.
+- Passed: `python3 -m pytest tests/regression/test_release_candidate_founder_trial_pack.py tests/regression/test_skill_authoring_pipeline_v2.py tests/regression/test_post_restart_runtime_readiness.py -q` returned `41 passed`.
+- Passed: `python3 scripts/check_docs_index.py` returned `DOCS INDEX PASS` with `243` linked docs and no orphaned docs.
+- Passed: `python3 -m pytest tests/regression/ -v` returned `1236 passed, 4 skipped, 23 deselected`.
+- Contextless audit found a critical proof-mode gap and high proof/fixture/feedback enforcement gaps; proof and feedback gaps are closed by validator and regression coverage.
+- The live fixture-state gate initially failed with `fixture_state.git_dirty` on `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Founder approved restoring/resetting the git-enabled frozen fixture.
+- Preserved pre-reset status, worktree diff, staged diff, and untracked list under `runtime-state/phase195/fixture-reset/20260611T074303Z-*`.
+- Reset `/mnt/c/coinbase_testing_repo_frozen_tmp.github` to `HEAD` and cleaned untracked files.
+- Passed after reset: `python3 scripts/validate_release_candidate_founder_trial_pack.py --require-proof-artifacts --validate-fixture-state --output-path runtime-state/phase195/phase195-release-candidate-founder-trial-pack-fixture-state-report.json --markdown-output-path runtime-state/phase195/phase195-release-candidate-founder-trial-pack-fixture-state-report.md` returned `0` validation errors and `PHASE195 RELEASE CANDIDATE FOUNDER TRIAL PACK PASS`.
+
 ### Approved Phase 196: V1 Product Readiness Reassessment
 
-Status: Approved.
+Status: Complete.
 
 Goal: decide whether the current local-model chat-quality product is ready for broader V1 founder beta or needs another Priority 0 repair cycle.
 
@@ -8233,6 +8655,40 @@ Scope:
 - Document the decision with evidence and next approved phase needs.
 
 Acceptance target: the project has a current V1 readiness decision that is evidence-backed and actionable.
+
+Implementation completed:
+
+- Added `runtime/v1_product_readiness_reassessment_policy.json`.
+- Added `vllm_agent_gateway/acceptance/v1_product_readiness_reassessment.py`.
+- Added `scripts/validate_v1_product_readiness_reassessment.py`.
+- Added `scripts/validate_v1_product_readiness_reassessment_live.py`.
+- Added `tests/regression/test_v1_product_readiness_reassessment.py`.
+- Added `README.v1-product-readiness-reassessment.md`.
+- Added `docs/examples/v1-product-readiness-reassessment.md`.
+- Linked the README and example through the ordered docs indexes.
+- Required stable release evidence, release notes, model-swap evidence, Phase 191-195 proof artifacts, and a fresh Phase 196 live-runtime proof artifact.
+- Required fresh gateway and AnythingLLM run IDs, current model ID, workflow-router target URL, output markers, and fixture integrity in the live proof.
+- Used the governed decision labels: `release_for_broader_founder_beta`, `priority0_repair_cycle_required`, `scope_reduction_required`, `roadmap_expansion_required`, and `blocked_stale_or_invalid_evidence`.
+
+Validation proof:
+
+- Passed: Windows-to-WSL API-key bridge command for `scripts/validate_v1_product_readiness_reassessment_live.py --timeout-seconds 900`.
+- Passed: `runtime-state/phase196/phase196-v1-product-readiness-live-proof.json` with `2` gateway run IDs, `2` AnythingLLM run IDs, both frozen fixture roots, current model ID `Qwen3-Coder-30B-A3B-Instruct`, `0` errors, and fixture integrity `passed`.
+- Passed: `python3 scripts/validate_v1_product_readiness_reassessment.py` returned `PHASE196 V1 PRODUCT READINESS REASSESSMENT PASS`, recommendation `release_for_broader_founder_beta`, `0` blockers, and `3` advisories.
+- Passed: `python3 -m pytest tests/regression/test_v1_product_readiness_reassessment.py -q` returned `14 passed`.
+- Passed: focused proof-chain regression over Phase 155/156 and Phase 191-196 returned `97 passed`.
+- Passed: `python3 scripts/check_docs_index.py` returned `DOCS INDEX PASS` with `245` linked docs and no orphaned docs.
+
+Decision:
+
+- The current product is ready for broader founder beta within the documented limits.
+- Advisories remain for Phase 192 prompt-quality monitoring, Phase 194 draft-only skill admission, and advanced-refactor deferral.
+
+Next unapproved phase candidates:
+
+- Phase 197: Founder Trial Execution Round.
+- Phase 198: Founder Feedback Intake And Repair Proposal.
+- Phase 199: V1 Beta Release Closeout.
 
 ## Stop Conditions
 
@@ -8260,4 +8716,90 @@ When a new Codex session starts, do this:
 7. Apply the Verification Gate Requirements: focused tests during iteration, live Bash/AnythingLLM proof for runtime-facing work, and full Bash regression only when the change tier requires it.
 8. Follow the Structured Development Rule in this roadmap for every non-trivial change: define the problem, gather evidence, identify root cause, design the smallest correction, implement, verify, inspect artifacts, and document the result.
 
-Phases 43 through 176 are complete. Phases 177 through 196 are approved. Work Phase 177 next.
+### Approved Phase 197: Founder Trial Execution Round
+
+Status: Complete.
+
+Goal: execute the Phase 195 founder trial pack through AnythingLLM and capture prompt-level evidence for founder review.
+
+Scope:
+
+- Run the four smoke prompts and ten expanded read-only prompts from the Phase 195 trial pack.
+- Capture workflow-router run IDs, response artifacts, quality classifications, initial differences, and suggested prompt improvements.
+- Verify AnythingLLM API preflight and route surface.
+- Verify protected fixture state before and after prompt execution.
+- Produce a report that Phase 198 can consume for feedback intake and repair proposal decisions.
+
+Acceptance target: the project has fresh founder-trial evidence from the current local model through AnythingLLM, with no protected fixture mutation and no missing response artifacts.
+
+Implementation completed:
+
+- Added `runtime/founder_trial_execution_round_policy.json`.
+- Added `vllm_agent_gateway/acceptance/founder_trial_execution_round.py`.
+- Added `scripts/validate_founder_trial_execution_round.py`.
+- Added `tests/regression/test_founder_trial_execution_round.py`.
+- Added `README.founder-trial-execution-round.md`.
+- Added `docs/examples/founder-trial-execution-round.md`.
+- Updated `scripts/run_founder_field_prompt_eval.py` so explicit `--case-id` order is preserved, matching the Phase 195 trial-pack order.
+- Linked Phase 197 docs through the root README, ordered docs index, and examples index.
+
+Validation proof:
+
+- Passed: Windows-to-WSL API-key bridge command for `python3 scripts/validate_founder_trial_execution_round.py --run-live --timeout-seconds 900`.
+- Passed: `runtime-state/phase197/phase197-founder-trial-execution-run.json` with `14` prompt passes and `0` failures.
+- Passed: `runtime-state/phase197/phase197-founder-trial-execution-round-report.json` with `status=passed`, `quality_status=advisory`, `10` pass classifications, `4` advisory classifications, `0` blockers, both frozen fixture roots, and `0` validation errors.
+- Passed: `python3 -m pytest tests/regression/test_founder_field_prompt_eval.py tests/regression/test_founder_trial_execution_round.py -q` returned `21 passed`.
+- Passed: `python3 scripts/check_docs_index.py` returned `DOCS INDEX PASS` with `247` linked docs and no orphaned docs.
+- Passed: `/mnt/c/coinbase_testing_repo_frozen_tmp.github` remained clean after the live trial.
+
+Decision:
+
+- The current founder trial execution evidence is valid and blocker-free.
+- Phase 198 is required to process the four advisory cases and prepare repair/proposal decisions before closeout.
+
+### Approved Phase 198: Founder Feedback Intake And Repair Proposal
+
+Status: Complete.
+
+Goal: convert Phase 197 advisories/blockers and founder notes into accepted or rejected repair proposals.
+
+Scope:
+
+- Consume the Phase 197 founder trial execution report and its field-report source reference.
+- Require every Phase 197 advisory or blocker to have exactly one decision record.
+- Support optional founder notes, but reject unlinked or vague notes instead of silently converting them into work.
+- Freshly verify response artifact hashes so stale or edited response proof blocks closeout.
+- Assign deterministic decision, owner, closure status, and rerun-gate fields for Phase 199.
+- Block Phase 199 if any release blocker, invalid proof, stale source, missing decision, or validation error remains.
+
+Acceptance target: Phase 199 can determine beta closeout readiness from a deterministic Phase 198 report without reading session history.
+
+Implementation completed:
+
+- Added `runtime/founder_feedback_intake_repair_policy.json`.
+- Added `vllm_agent_gateway/acceptance/founder_feedback_intake_repair.py`.
+- Added `scripts/validate_founder_feedback_intake_repair.py`.
+- Added `tests/regression/test_founder_feedback_intake_repair.py`.
+- Added `README.founder-feedback-intake-repair.md`.
+- Added `docs/examples/founder-feedback-intake-repair.md`.
+- Linked Phase 198 docs through the root README, ordered docs index, and examples index.
+- Used a contextless subagent audit to tighten the gate around source proof, decision taxonomy, rejected notes, owner paths, rerun gates, and Phase 199 blockers.
+
+Validation proof:
+
+- Passed: `python3 scripts/validate_founder_feedback_intake_repair.py` with `4` accepted advisory records, `0` rejected records, `0` blockers, `0` validation errors, and `phase199_ready_after_intake=true`.
+- Passed: `python3 -m pytest tests/regression/test_founder_feedback_intake_repair.py -q` returned `8 passed`.
+- Passed: `python3 scripts/check_docs_index.py` returned `DOCS INDEX PASS` with `249` linked docs and no orphaned docs.
+
+Decision:
+
+- The four Phase 197 advisory cases are nonblocking after intake because they are accepted as monitoring/documentation records with owner paths and target rerun gates.
+- Phase 199 can proceed after full regression for this phase passes.
+
+### Proposed Phase 199: V1 Beta Release Closeout
+
+Status: Proposed, not approved.
+
+Goal: close the V1 beta release package after Phase 197 execution and Phase 198 feedback intake are complete.
+
+Phases 43 through 198 are complete. Phase 199 is proposed but not approved.

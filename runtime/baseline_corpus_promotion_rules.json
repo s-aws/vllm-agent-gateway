@@ -13,7 +13,7 @@
     "path": "runtime/founder_test_prompt_pack.json",
     "sha256": "8f662bf48d4d8201979f359febf85bf15ea4cb9ec523127a71b78320a0e5f495",
     "catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
-    "catalog_sha256": "357559a750ce3630b5a6e3a2eb76126eebd7136d0f088a208c695b398326fcd2",
+    "catalog_sha256": "f124ef5908b1423cc26f30f104e6c3e141d96f58841cd9d817da0e573edc929d",
     "expected_case_ids": [
       "P01",
       "P02",

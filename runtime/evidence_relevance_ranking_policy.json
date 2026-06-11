@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "phase": "182",
+  "minimum_score": 85,
+  "required_case_ids": [
+    "ERR-001-exact-behavior-over-broad-source",
+    "ERR-002-exact-line-over-broad-line",
+    "ERR-003-handler-branch-over-path-sorted-match"
+  ],
+  "blind_baseline_summary": {
+    "ideal_answer_shape": [
+      "Short answer states the likely implementation location or answer first.",
+      "Strongest evidence lists the best file and line references before supporting refs.",
+      "Supporting evidence is separated from direct implementation or focused test evidence.",
+      "Tests and proof identify focused tests or state that no bounded test evidence was found.",
+      "Gaps and confidence are explicit when evidence is incomplete or indirect."
+    ],
+    "must_have_ranking_rules": [
+      "Exact behavior evidence beats broad keyword matches.",
+      "Implementation and focused test evidence outrank documentation, examples, snapshots, and broad references.",
+      "Direct call-path or handler-branch evidence outranks path-sorted adjacent source matches.",
+      "Specific file and line references must be inspectable without another search.",
+      "Weak or missing evidence must be labeled as a gap instead of presented as proof."
+    ],
+    "negative_cases": [
+      "A broad source keyword match is listed before an exact focused behavior test.",
+      "A broad line match appears before an exact symbol or behavior line in the same file.",
+      "Request-flow evidence is ordered by path instead of direct handler or branch relevance.",
+      "The answer lists files without relevance labels or gap boundaries.",
+      "The answer claims tests exist when only nearby tests or keyword matches were found."
+    ],
+    "rubric": [
+      "Directness of top evidence: 25 points.",
+      "Ranking quality and demotion of weak matches: 20 points.",
+      "Specificity and inspectability of file and line refs: 15 points.",
+      "Explicit gap labeling: 15 points.",
+      "Complete answer contract: 10 points.",
+      "Correctness discipline and no unsupported inference: 10 points.",
+      "Concise chat usefulness: 5 points."
+    ]
+  }
+}

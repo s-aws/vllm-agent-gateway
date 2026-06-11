@@ -24,6 +24,8 @@ For each governed case, the live gate proves:
 - natural gateway text such as `Return JSON.` returns strict JSON without explicit `output_format` or `response_format` fields
 - explicit gateway `output_format=json` still returns strict JSON
 - OpenAI-compatible `response_format={"type":"json_object"}` still returns strict JSON
+- unsupported gateway `output_format` values fail with `unsupported_output_format`
+- unsupported OpenAI-compatible `response_format` values fail with `unsupported_output_format`
 - default AnythingLLM chat returns FormatA
 - natural AnythingLLM text such as `plain English` returns FormatA
 - natural AnythingLLM text such as `Return JSON.` returns strict JSON

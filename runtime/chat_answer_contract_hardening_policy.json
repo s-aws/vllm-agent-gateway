@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "kind": "chat_answer_contract_hardening_policy",
+  "phase": 180,
+  "priority_backlog_id": "P0-BB-044",
+  "description": "Phase 180 gate proving supported Priority 0 workflows return useful chat-visible answers before artifacts.",
+  "acceptance_marker": "PHASE180 CHAT ANSWER CONTRACT PASS",
+  "cases": [
+    {
+      "case_id": "P180-001",
+      "workflow_family": "read_only_investigation",
+      "expected_selected_workflow": "code_investigation.plan",
+      "route_rule": "l1_find_behavior_start_terms",
+      "contract_kind": "inline",
+      "expected_heading": "Answer:",
+      "expected_artifact_kind": "investigation_plan",
+      "expected_output_formats": ["format_a", "json"],
+      "required_format_a_markers": [
+        "Answer:",
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:",
+        "Source mutation: false",
+        "Artifacts:"
+      ],
+      "required_json_markers": [
+        "Answer:",
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:",
+        "Source mutation: false"
+      ]
+    },
+    {
+      "case_id": "P180-002",
+      "workflow_family": "schema_evidence",
+      "expected_selected_workflow": "code_investigation.plan",
+      "contract_kind": "inline",
+      "expected_heading": "Answer:",
+      "expected_artifact_kind": "data_model_lookup",
+      "expected_output_formats": ["format_a", "json"],
+      "required_format_a_markers": [
+        "Answer:",
+        "Target model/schema:",
+        "Fields:",
+        "Source refs:",
+        "Source mutation: false",
+        "Artifacts:"
+      ],
+      "required_json_markers": [
+        "Answer:",
+        "Target model/schema:",
+        "Fields:",
+        "Source refs:",
+        "Source mutation: false"
+      ]
+    },
+    {
+      "case_id": "P180-003",
+      "workflow_family": "request_flow",
+      "expected_selected_workflow": "code_investigation.plan",
+      "contract_kind": "inline",
+      "expected_heading": "Answer:",
+      "expected_artifact_kind": "request_flow_map",
+      "expected_output_formats": ["format_a", "json"],
+      "required_format_a_markers": [
+        "Answer:",
+        "Target flow:",
+        "Flow steps:",
+        "Related tests:",
+        "Verification:",
+        "Source mutation: false",
+        "Artifacts:"
+      ],
+      "required_json_markers": [
+        "Answer:",
+        "Target flow:",
+        "Flow steps:",
+        "Related tests:",
+        "Verification:",
+        "Source mutation: false"
+      ]
+    },
+    {
+      "case_id": "P180-004",
+      "workflow_family": "change_boundary",
+      "expected_selected_workflow": "code_investigation.plan",
+      "contract_kind": "inline",
+      "expected_heading": "Answer:",
+      "expected_artifact_kind": "change_surface_summary",
+      "expected_output_formats": ["format_a", "json"],
+      "required_format_a_markers": [
+        "Answer:",
+        "Files to touch:",
+        "Files not to touch:",
+        "Risk level:",
+        "Unknowns:",
+        "Verification:",
+        "Source mutation: false",
+        "Artifacts:"
+      ],
+      "required_json_markers": [
+        "Answer:",
+        "Files to touch:",
+        "Files not to touch:",
+        "Risk level:",
+        "Unknowns:",
+        "Verification:",
+        "Source mutation: false"
+      ]
+    },
+    {
+      "case_id": "P180-005",
+      "workflow_family": "generic_chat",
+      "expected_selected_workflow": "none",
+      "contract_kind": "primary",
+      "expected_heading": "Answer:",
+      "expected_artifact_kind": null,
+      "expected_output_formats": ["format_a", "json"],
+      "required_format_a_markers": [
+        "Answer:",
+        "allowed target_root",
+        "No repository source was changed",
+        "source_changed: False",
+        "source_tree_changed: False"
+      ],
+      "required_json_markers": [
+        "allowed target_root",
+        "No repository source was changed"
+      ]
+    },
+    {
+      "case_id": "P180-006",
+      "workflow_family": "format_selected_output",
+      "expected_selected_workflow": "code_investigation.plan",
+      "contract_kind": "inline",
+      "expected_heading": "Answer:",
+      "expected_artifact_kind": "code_explanation",
+      "expected_output_formats": ["format_a", "json"],
+      "required_format_a_markers": [
+        "Answer:",
+        "Target:",
+        "Summary:",
+        "Inputs:",
+        "Outputs:",
+        "Source refs:",
+        "Source mutation: false",
+        "Artifacts:"
+      ],
+      "required_json_markers": [
+        "Answer:",
+        "Target:",
+        "Summary:",
+        "Inputs:",
+        "Outputs:",
+        "Source refs:",
+        "Source mutation: false"
+      ]
+    },
+    {
+      "case_id": "P180-007",
+      "workflow_family": "mixed_route_guard",
+      "expected_selected_workflow": "code_investigation.plan",
+      "route_rule": "l1_find_behavior_start_terms",
+      "contract_kind": "inline",
+      "expected_heading": "Answer:",
+      "expected_artifact_kind": "investigation_plan",
+      "expected_output_formats": ["format_a", "json"],
+      "negative_artifact_only_guard": true,
+      "required_format_a_markers": [
+        "Answer:",
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:",
+        "Source mutation: false",
+        "Artifacts:"
+      ],
+      "required_json_markers": [
+        "Answer:",
+        "Beginning point:",
+        "Related tests:",
+        "Recommended commands:",
+        "Source mutation: false"
+      ]
+    }
+  ]
+}

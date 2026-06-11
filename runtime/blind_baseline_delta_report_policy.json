@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "kind": "blind_baseline_delta_report_policy",
+  "phase": 178,
+  "priority_backlog_id": "P0-BB-042",
+  "goal": "Make blind-baseline-first comparison auditable across the repaired Phase 171 through 176 prompt families without creating a second live evaluation path.",
+  "source_round2_report_path": "runtime-state/phase177/phase177-founder-field-round2-report-after-p21-metadata.json",
+  "source_field_report_path": "runtime-state/phase177/phase177-founder-field-round2-live-field-report-after-p21-metadata.json",
+  "source_blind_baseline_path": "runtime-state/founder-field-round2/phase164/phase164-founder-field-round2-blind-baselines.json",
+  "required_route_surface": "anythingllm_via_workflow_router_gateway",
+  "minimum_score": 85,
+  "required_dimensions": [
+    "routing",
+    "evidence",
+    "correctness",
+    "completeness",
+    "format",
+    "user_visible_usefulness"
+  ],
+  "required_case_ids": [
+    "P08",
+    "P21",
+    "P27",
+    "P28",
+    "P29",
+    "P30",
+    "P33",
+    "P34"
+  ],
+  "case_groups": [
+    {
+      "family": "handler_branch_evidence",
+      "source_phases": [171],
+      "target_case_ids": ["P08"],
+      "holdout_case_ids": ["P27", "P28"]
+    },
+    {
+      "family": "minimal_change_surface_boundary",
+      "source_phases": [172],
+      "target_case_ids": ["P21"],
+      "holdout_case_ids": ["P34"]
+    },
+    {
+      "family": "persisted_schema_git_fixture",
+      "source_phases": [173],
+      "target_case_ids": ["P29"],
+      "holdout_case_ids": ["P30"]
+    },
+    {
+      "family": "persisted_schema_non_git_fixture",
+      "source_phases": [174],
+      "target_case_ids": ["P30"],
+      "holdout_case_ids": ["P29"]
+    },
+    {
+      "family": "change_boundary_verification_git_fixture",
+      "source_phases": [175],
+      "target_case_ids": ["P33"],
+      "holdout_case_ids": ["P34"]
+    },
+    {
+      "family": "change_boundary_verification_non_git_fixture",
+      "source_phases": [176],
+      "target_case_ids": ["P34"],
+      "holdout_case_ids": ["P33"]
+    }
+  ],
+  "gap_classes": [
+    "none",
+    "prompt_wording_advisory",
+    "evidence_detail_advisory",
+    "routing_miss",
+    "correctness_miss",
+    "completeness_miss",
+    "format_miss",
+    "usefulness_miss",
+    "evidence_miss"
+  ],
+  "acceptance_marker": "PHASE178 BLIND BASELINE DELTA REPORT PASS"
+}
