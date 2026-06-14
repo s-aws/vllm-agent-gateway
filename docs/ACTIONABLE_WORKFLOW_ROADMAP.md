@@ -10539,7 +10539,7 @@ Phase 244 decision:
 
 ### Approved Phase 245: Release-Candidate Runtime Health Restoration
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M13 Runtime Recovery And Restart Reliability, M14 Release Packaging And Onboarding.
 
@@ -10556,9 +10556,20 @@ Scope:
 
 Acceptance target: Phase 244 runtime-health blockers are cleared and the stack is ready for a release-candidate decision rerun.
 
+Completion proof:
+
+- Added `runtime/release_candidate_runtime_health_restoration_policy.json`, `vllm_agent_gateway.acceptance.release_candidate_runtime_health_restoration`, `scripts/validate_release_candidate_runtime_health_restoration.py`, focused regression tests, feature docs, and examples.
+- Tightened the shared AnythingLLM health probe from `/api/docs` to `/api/docs/` so healthy AnythingLLM instances are not failed by the expected redirect.
+- Active-stack Phase 245 live validation passed with `decision=runtime_health_restored`, `runtime_health_probe_count=12`, `runtime_health_blocker_count=0`, `target_settings_status=passed`, `case_count=2`, `passed_case_count=2`, `fixture_unchanged=true`, and `phase246_ready=true`.
+- Pushed branch `codex/m14-release-clone-proof` to commit `bf9b518`, fast-forwarded `/tmp/agentic_agents_phase243_remote_clone`, and restarted the gateway/controller/proxy stack from that clone.
+- Clone-stack Phase 245 live validation passed with `decision=runtime_health_restored`, `runtime_health_probe_count=12`, `runtime_health_blocker_count=0`, `target_settings_status=passed`, `case_count=2`, `passed_case_count=2`, `fixture_unchanged=true`, and `phase246_ready=true`.
+- Clone-stack Phase 245 run IDs: gateway `workflow-router-20260614T220819061536Z`; AnythingLLM `workflow-router-20260614T220830745365Z`.
+- During the Phase 246 precheck, the clone exposed stale Phase 242 prompt-case/blind-baseline hashes caused by CRLF byte hashes captured in the active workspace. The repair normalized the governed release-candidate corpus metadata to the LF checkout required by `.gitattributes`, updated the dependent promotion-rule source hash, and preserved the single baseline-corpus validation path.
+- Focused Bash validation passed for baseline corpus, baseline corpus promotion rules, Phase 245 runtime restoration, and Phase 244 decision-gate coverage.
+
 ### Approved Phase 246: Release-Candidate Decision Rerun After Runtime Health
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M1 V1 Founder Beta Closeout, M14 Release Packaging And Onboarding.
 
@@ -10572,3 +10583,10 @@ Scope:
 - Do not ship if any required Priority 0 chat-quality gate has unresolved critical or high findings or any required runtime-health probe fails.
 
 Acceptance target: the release candidate has a fresh post-health decision with no stale runtime caveat.
+
+Completion proof:
+
+- Regenerated the ignored Phase 242 baseline-corpus governance report in the release clone from committed source after the LF hash repair.
+- Reran `scripts/validate_v1_release_candidate_decision_gate.py --health-timeout-seconds 20` from `/tmp/agentic_agents_phase243_remote_clone` at commit `bf9b518`.
+- Phase 244 decision rerun returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`.
+- The ship decision used restored runtime health, the regenerated Phase 242 baseline report, the Phase 243 external tester feedback proof, docs/known-limit checks, and the completed Phase 232-243 roadmap proof chain.
