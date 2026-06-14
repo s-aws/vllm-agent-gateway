@@ -1,0 +1,120 @@
+{
+  "acceptance_marker": "PHASE244 V1 RELEASE CANDIDATE DECISION GATE PASS",
+  "allowed_decisions": [
+    "ship",
+    "hold",
+    "repair_required"
+  ],
+  "decision_rules": {
+    "hold_on_runtime_health_failure": true,
+    "repair_on_missing_required_phase_or_artifact": true,
+    "ship_only_when_no_blockers": true
+  },
+  "kind": "v1_release_candidate_decision_gate_policy",
+  "known_limit_markers": [
+    "Raw 1M-token prompt serving is not claimed",
+    "Advanced broad refactor orchestration is not released",
+    "not a production deployment"
+  ],
+  "milestone_ids": [
+    "M1",
+    "M14"
+  ],
+  "phase": 244,
+  "priority_backlog_id": "P0-M14-244",
+  "required_docs": [
+    "README.getting-started.md",
+    "README.external-tester-onboarding.md",
+    "README.release-notes.md",
+    "README.release-candidate-baseline-corpus-promotion.md",
+    "README.external-tester-feedback-loop-from-clone.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "docs/PROJECT_MILESTONES.md"
+  ],
+  "required_machine_reports": [
+    {
+      "expected_kind": "baseline_corpus_governance_report",
+      "expected_status": "passed",
+      "id": "phase242_baseline_corpus",
+      "path": "runtime-state/baseline-corpus/phase242-baseline-corpus-report.json"
+    },
+    {
+      "expected_kind": "external_tester_feedback_loop_from_clone_report",
+      "expected_status": "passed",
+      "expected_summary": {
+        "phase244_ready": true,
+        "trace_count": 2
+      },
+      "id": "phase243_external_feedback_loop",
+      "path": "runtime-state/external-tester-feedback-loop-from-clone/phase243/phase243-external-tester-feedback-loop-from-clone-report.json"
+    }
+  ],
+  "required_phase_range": {
+    "end": 243,
+    "start": 232
+  },
+  "required_runtime_health": [
+    {
+      "id": "localhost_model",
+      "required": true,
+      "url": "http://127.0.0.1:8000/v1/models"
+    },
+    {
+      "id": "llm_gateway",
+      "required": true,
+      "url": "http://127.0.0.1:8300/v1/models"
+    },
+    {
+      "id": "controller",
+      "required": true,
+      "url": "http://127.0.0.1:8400/health"
+    },
+    {
+      "id": "workflow_router_gateway",
+      "required": true,
+      "url": "http://127.0.0.1:8500/v1/models"
+    },
+    {
+      "id": "reviewer_code",
+      "required": true,
+      "url": "http://127.0.0.1:8101/v1/models"
+    },
+    {
+      "id": "tester_code",
+      "required": true,
+      "url": "http://127.0.0.1:8102/v1/models"
+    },
+    {
+      "id": "architect_default",
+      "required": true,
+      "url": "http://127.0.0.1:8201/v1/models"
+    },
+    {
+      "id": "dispatcher_default",
+      "required": true,
+      "url": "http://127.0.0.1:8202/v1/models"
+    },
+    {
+      "id": "implementer_default",
+      "required": true,
+      "url": "http://127.0.0.1:8203/v1/models"
+    },
+    {
+      "id": "researcher_default",
+      "required": true,
+      "url": "http://127.0.0.1:8204/v1/models"
+    },
+    {
+      "id": "documenter_default",
+      "required": true,
+      "url": "http://127.0.0.1:8205/v1/models"
+    },
+    {
+      "id": "anythingllm_api",
+      "required": true,
+      "url": "http://127.0.0.1:3001/api/docs"
+    }
+  ],
+  "schema_version": 1
+}

@@ -10503,7 +10503,7 @@ Phase 243 runtime-health caveat:
 
 ### Approved Phase 244: V1 Release-Candidate Decision Gate
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M1 V1 Founder Beta Closeout, M14 Release Packaging And Onboarding.
 
@@ -10518,3 +10518,57 @@ Scope:
 - Do not declare stable readiness if any required Priority 0 chat-quality gate has unresolved critical or high findings.
 
 Acceptance target: the project has a durable, auditable decision on whether the current release candidate is ready for founder/external tester use.
+
+Phase 244 completion proof:
+
+- added `runtime/v1_release_candidate_decision_gate_policy.json`
+- added `vllm_agent_gateway.acceptance.v1_release_candidate_decision_gate` and `scripts/validate_v1_release_candidate_decision_gate.py`
+- added Phase 244 docs and examples
+- validated Phase 232-243 roadmap completion
+- validated Phase 242 and Phase 243 machine-readable proof reports
+- live Phase 244 decision gate returned decision `hold`
+- `hold` reason: 10 required runtime-health probes failed while vLLM/model-backed endpoints were unavailable
+- focused Bash regression for Phase 244 returned `6 passed`
+- docs-index validation returned `expected_count=332`, `linked_count=332`, `orphaned_docs=[]`, and `status=passed`
+- full Bash regression returned `1581 passed`, `4 skipped`, and `23 deselected`
+
+Phase 244 decision:
+
+- Decision: `hold`
+- Next action: restore runtime health, rerun live gates, then rerun Phase 244.
+
+### Approved Phase 245: Release-Candidate Runtime Health Restoration
+
+Status: Approved.
+
+Milestone mapping: M13 Runtime Recovery And Restart Reliability, M14 Release Packaging And Onboarding.
+
+Goal: restore the release-candidate runtime stack so the model, controller, gateways, role proxy ports, workflow-router gateway, and AnythingLLM path are all healthy from Bash.
+
+Scope:
+
+- Restore or manually restart vLLM on `http://127.0.0.1:8000/v1`.
+- Restart the gateway/proxy/controller stack from the release-candidate branch.
+- Verify every featured port required by Phase 244.
+- Verify AnythingLLM still targets `http://127.0.0.1:8500/v1`.
+- Rerun a minimal read-only workflow-router prompt through gateway and AnythingLLM.
+- Confirm no protected fixture source changed.
+
+Acceptance target: Phase 244 runtime-health blockers are cleared and the stack is ready for a release-candidate decision rerun.
+
+### Approved Phase 246: Release-Candidate Decision Rerun After Runtime Health
+
+Status: Approved.
+
+Milestone mapping: M1 V1 Founder Beta Closeout, M14 Release Packaging And Onboarding.
+
+Goal: rerun the Phase 244 decision gate after runtime health is restored.
+
+Scope:
+
+- Rerun Phase 244 with live health enabled.
+- If decision is `ship`, record exact branch, commit, tester instructions, known limits, and rollback path.
+- If decision remains `hold` or becomes `repair_required`, create the smallest next roadmap batch tied to the blocking evidence.
+- Do not ship if any required Priority 0 chat-quality gate has unresolved critical or high findings or any required runtime-health probe fails.
+
+Acceptance target: the release candidate has a fresh post-health decision with no stale runtime caveat.

@@ -96,7 +96,9 @@ The first proposed milestone-aligned phase set is:
 | Phase 241 | M6/M8/M16/M14 | Complete. Replayed large-context strategy and safety behavior from the release-candidate path with generated-corpus/index bootstrap, gateway and AnythingLLM proof, all required strategies covered, no raw 1M claim, metadata-only source retention, and no generated-corpus mutation. |
 | Phase 242 | M2/M3/M4/M9/M12 | Complete. Promoted release-candidate prompt coverage into the governed baseline corpus with 20 cases, 8 holdouts, 40 gateway/AnythingLLM response summaries, Phase 239/240/241 evidence refs, focused gates, docs-index proof, and full regression. |
 | Phase 243 | M9/M14 | Complete. Proved tester feedback from the release-candidate clone path becomes traceable work, including positive gateway feedback, AnythingLLM defect feedback, governed decisions, prompt hashes, route/output artifact hashes, ignored runtime-state proof, focused regression, and full regression. Caveat: model port `8000` was unavailable, so Phase 244 must include restored full-port health before a ship decision. |
-| Phase 244 | M1/M14 | Approved. Aggregate the release-candidate proof chain into a deterministic ship, hold, or repair decision. |
+| Phase 244 | M1/M14 | Complete. Aggregated the release-candidate proof chain into deterministic decision `hold` because required runtime-health probes failed while vLLM/model-backed endpoints were unavailable. |
+| Phase 245 | M13/M14 | Approved. Restore release-candidate runtime health across vLLM, gateway, controller, workflow-router gateway, role ports, AnythingLLM target, and protected fixture checks. |
+| Phase 246 | M1/M14 | Approved. Rerun the release-candidate decision gate after runtime health is restored. |
 
 ## Usage Rules
 
