@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "kind": "remote_clone_non_coinbase_generalization_replay_policy",
+  "phase": 240,
+  "priority_backlog_id": "P0-M14-240",
+  "milestone_id": "M5",
+  "required_decision": "remote_clone_non_coinbase_generalization_ready",
+  "description": "Release-candidate remote-clone replay gate for non-Coinbase generalization. Uses the existing multi-repo live-case runner without relying on ignored runtime-state reports.",
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "workflow_router_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace",
+    "model": "Qwen3-Coder-30B-A3B-Instruct",
+    "provider": "generic-openai"
+  },
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_chat_markers": [
+    "Answer:",
+    "Source mutation: false"
+  ],
+  "minimum_case_count": 6,
+  "minimum_response_count": 12,
+  "minimum_non_coinbase_root_count": 2,
+  "minimum_score_for_pass": 80,
+  "required_gap_classes_for_closeout": [
+    "none"
+  ],
+  "safety_boundaries": [
+    "do not commit or push to s-aws/staterail",
+    "do not mutate protected frozen fixture source files",
+    "do not rely on ignored runtime-state reports in a clean clone",
+    "fail on route, evidence, formatter, runtime, model capability, unsupported scope, or fixture mutation gaps"
+  ],
+  "cases": [
+    {
+      "case_id": "P240-PY-ENDPOINT-001",
+      "category": "python_service_endpoint_route_lookup",
+      "prompt_family": "endpoint_route_lookup",
+      "target_root": "{config_root}/tests/fixtures/generalization/python_service_fixture",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In {config_root}/tests/fixtures/generalization/python_service_fixture, locate the order request message handler. Read only. Return handler file, handler symbol, route or message evidence, related tests, and whether an HTTP method/path is present.",
+      "source_hints": [
+        "service/api.py",
+        "service/orders.py"
+      ],
+      "test_hints": [
+        "tests/test_orders.py"
+      ]
+    },
+    {
+      "case_id": "P240-PY-SCHEMA-001",
+      "category": "python_service_schema_lookup",
+      "prompt_family": "schema_lookup",
+      "target_root": "{config_root}/tests/fixtures/generalization/python_service_fixture",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In {config_root}/tests/fixtures/generalization/python_service_fixture, find the orders table schema only. Read only. Return schema field names, model files, and source refs.",
+      "source_hints": [
+        "database/schema.py",
+        "service/api.py"
+      ],
+      "test_hints": [
+        "tests/test_orders.py"
+      ]
+    },
+    {
+      "case_id": "P240-SR-CODE-001",
+      "category": "staterail_code_explanation",
+      "prompt_family": "code_explanation",
+      "target_root": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In /mnt/c/staterail_testing_repo_frozen_tmp.github, explain what ActionGateway does in actions/gateway.py. Read only. Include key inputs, outputs, side effects, and tests.",
+      "source_hints": [
+        "actions/gateway.py",
+        "actions/execution.py",
+        "risk/gate.py"
+      ],
+      "test_hints": [
+        "tests/regression/test_action_gateway.py",
+        "tests/regression/test_dry_run_executor.py",
+        "tests/regression/test_risk_gate.py"
+      ]
+    },
+    {
+      "case_id": "P240-SR-TESTS-001",
+      "category": "staterail_related_tests",
+      "prompt_family": "related_test_discovery",
+      "target_root": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In /mnt/c/staterail_testing_repo_frozen_tmp.github, find the most relevant tests for RiskGate rejecting orders that exceed notional, leverage, product, or operator constraints. Read only. Include confidence and why each test is relevant.",
+      "source_hints": [
+        "risk/gate.py",
+        "config/assembly.py",
+        "products/catalog.py"
+      ],
+      "test_hints": [
+        "tests/regression/test_risk_gate.py",
+        "tests/regression/test_product_catalog.py",
+        "tests/regression/test_config_assembly.py"
+      ]
+    },
+    {
+      "case_id": "P240-SR-VALIDATION-001",
+      "category": "staterail_validation_commands",
+      "prompt_family": "validation_command_selection",
+      "target_root": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In /mnt/c/staterail_testing_repo_frozen_tmp.github, recommend the smallest, medium, and broad pytest commands for validating changes around strategy simulation gates. Read only. Explain why each command belongs at that tier.",
+      "source_hints": [
+        "app/strategy_simulation_gate.py",
+        "strategies/simulation.py",
+        "strategies/harness.py"
+      ],
+      "test_hints": [
+        "tests/regression/test_strategy_simulation.py",
+        "tests/regression/test_strategy_harness.py",
+        "tests/regression/test_strategy_scenario.py"
+      ]
+    },
+    {
+      "case_id": "P240-CB-HOLDOUT-001",
+      "category": "coinbase_code_explanation_holdout",
+      "prompt_family": "code_explanation",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests.",
+      "source_hints": [
+        "core/stealth_order_manager.py",
+        "core/order_engine.py"
+      ],
+      "test_hints": [
+        "tests/unit/test_order_id_and_followup_rules.py",
+        "tests/regression/test_order_id_regression.py"
+      ]
+    }
+  ],
+  "acceptance_marker": "REMOTE CLONE NON-COINBASE GENERALIZATION REPLAY PASS"
+}

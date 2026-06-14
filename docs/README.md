@@ -124,6 +124,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [AnythingLLM Fresh Chat Responsiveness README](../README.anythingllm-fresh-chat-responsiveness.md): Phase 237 fresh chat, target settings, UI stream-chat, and coding prompt proof.
 - [Release-Candidate PR Readiness README](../README.release-candidate-pr-readiness.md): Phase 238 review packet for the pushed release-candidate branch.
 - [Remote-Clone Priority 0 Chat-Quality Replay README](../README.remote-clone-priority0-chat-quality-replay.md): Phase 239 remote-clone replay for representative Priority 0 prompts through gateway and AnythingLLM.
+- [Remote-Clone Non-Coinbase Generalization Replay README](../README.remote-clone-non-coinbase-generalization-replay.md): Phase 240 remote-clone replay for Python-service and Staterail non-Coinbase fixtures.
 - [Stable Release Blocker Closure README](../README.stable-release-blocker-closure.md): Phase 131 closure gate for prompt-tightening and founder-feedback blockers before stable release readiness can pass.
 - [Stable Chat Quality Release README](../README.stable-chat-quality-release.md): Phase 130 release-readiness gate that consolidates Priority 0 proof and blocks founder testing on unresolved chat-quality items.
 - [AnythingLLM Founder Smoke README](../README.anythingllm-founder-smoke.md): Phase 134 live founder smoke suite through AnythingLLM for the current ready release path.
@@ -238,6 +239,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [AnythingLLM Fresh Chat Responsiveness README](../README.anythingllm-fresh-chat-responsiveness.md): current M14/M13/M2 proof that fresh AnythingLLM chats answer `hi` and a representative coding prompt.
 - [Release-Candidate PR Readiness README](../README.release-candidate-pr-readiness.md): current M14 review packet for branch hygiene, known limits, proof commands, and draft PR body.
 - [Remote-Clone Priority 0 Chat-Quality Replay README](../README.remote-clone-priority0-chat-quality-replay.md): current M14/M2/M3/M4 replay gate for representative Priority 0 chat-answer usefulness.
+- [Remote-Clone Non-Coinbase Generalization Replay README](../README.remote-clone-non-coinbase-generalization-replay.md): current M14/M5 replay gate for Python-service and Staterail generalization from the clone path.
 - [Stable Release Blocker Closure README](../README.stable-release-blocker-closure.md): governed closure evidence for stable release blockers.
 - [Stable Chat Quality Release README](../README.stable-chat-quality-release.md): consolidated release-readiness report with artifact hashes, blockers, and founder-testing readiness.
 - [Model Swap Smoke Probe README](../README.model-swap-smoke-probe.md): live localhost model metadata, generation, harness, compatibility, and drift-required decision gate.
@@ -393,6 +395,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [AnythingLLM Fresh Chat Responsiveness Examples](examples/anythingllm-fresh-chat-responsiveness.md)
 - [Release-Candidate PR Readiness Examples](examples/release-candidate-pr-readiness.md)
 - [Remote-Clone Priority 0 Chat-Quality Replay Examples](examples/remote-clone-priority0-chat-quality-replay.md)
+- [Remote-Clone Non-Coinbase Generalization Replay Examples](examples/remote-clone-non-coinbase-generalization-replay.md)
 - [Stable Release Blocker Closure Examples](examples/stable-release-blocker-closure.md)
 - [Stable Chat Quality Release Examples](examples/stable-chat-quality-release.md)
 - [AnythingLLM Founder Smoke Examples](examples/anythingllm-founder-smoke.md)
@@ -502,6 +505,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [AnythingLLM Fresh Chat Responsiveness README](../README.anythingllm-fresh-chat-responsiveness.md): Phase 237 gate for fresh AnythingLLM `hi`, coding prompt, target settings, UI stream-chat, and fixture proof.
 - [Release-Candidate PR Readiness README](../README.release-candidate-pr-readiness.md): Phase 238 gate for branch review packet and PR readiness hygiene.
 - [Remote-Clone Priority 0 Chat-Quality Replay README](../README.remote-clone-priority0-chat-quality-replay.md): Phase 239 gate for remote-clone Priority 0 chat-quality replay.
+- [Remote-Clone Non-Coinbase Generalization Replay README](../README.remote-clone-non-coinbase-generalization-replay.md): Phase 240 gate for remote-clone non-Coinbase generalization replay.
 - [Phase 94 Runtime Skill Selection Hardening](PHASE94_RUNTIME_SKILL_SELECTION_HARDENING.md): selector contract, case catalog, live validation, and closeout proof requirements.
 - [Phase 95 Context Retrieval Upgrade](PHASE95_CONTEXT_RETRIEVAL_UPGRADE.md): context-source audit contract, unsupported layout blocking, and live validation proof.
 - [Phase 96 Implementation-Prep Workflow Expansion](PHASE96_IMPLEMENTATION_PREP_EXPANSION.md): draft-only packet proposal expansion, validation reports, fixture mutation proof, and known limits.
