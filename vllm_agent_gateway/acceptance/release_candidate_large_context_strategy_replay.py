@@ -197,10 +197,10 @@ def output_dir_for(config: ReleaseCandidateLargeContextStrategyReplayConfig) -> 
 
 
 def run_bootstrap_reports(config: ReleaseCandidateLargeContextStrategyReplayConfig, output_dir: Path) -> dict[str, Any]:
+    del output_dir  # Phase 214 must use its canonical report path; controllers read it at runtime.
     phase214 = run_large_corpus_context_budget_inventory(
         LargeCorpusContextBudgetInventoryConfig(
             config_root=config.config_root,
-            output_path=output_dir / "phase241-phase214-large-corpus-context-budget-inventory-report.json",
         )
     )
     phase217 = run_context_index_prototype(
