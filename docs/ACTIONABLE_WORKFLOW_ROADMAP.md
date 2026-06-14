@@ -10314,7 +10314,7 @@ Completion proof:
 
 ### Approved Phase 238: Release-Candidate PR Readiness Packet
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M14 Release Packaging And Onboarding, M9 Founder Feedback Repair Loop.
 
@@ -10329,6 +10329,18 @@ Scope:
 - Do not treat a PR description as proof; it must link to reproducible commands and committed docs.
 
 Acceptance target: a reviewer can open the branch or draft PR and understand what changed, how to test it, what passed, what remains unsupported, and where feedback should go.
+
+Completion proof:
+
+- Added `runtime/release_candidate_pr_readiness_policy.json`, `vllm_agent_gateway/acceptance/release_candidate_pr_readiness.py`, `scripts/validate_release_candidate_pr_readiness.py`, focused regression tests, README, and examples.
+- Focused readiness tests passed with `5 passed`.
+- The first live readiness packet run correctly failed because tracked release artifacts still included `.tmp_debug_phase160/*` generated debug files and because fixture-owned `tests/fixtures/.../runtime-state/...` paths needed an explicit policy allowance.
+- Removed tracked `.tmp_debug_phase160/*` files, added `.tmp_debug*/` to `.gitignore`, and tightened the readiness policy so generated root `runtime-state/` remains forbidden while fixture-owned runtime-state under `tests/fixtures/` is allowed.
+- Pushed branch `codex/m14-release-clone-proof` to `s-aws/vllm-agent-gateway` at commit `8eb874b58e3afd37abefc69d22db09994c8c425a`.
+- Phase 238 readiness packet passed with `decision=release_candidate_reviewable`, `branch_ok=true`, `source_clean=true`, `missing_doc_count=0`, `missing_script_count=0`, `incomplete_phase_count=0`, `forbidden_tracked_path_count=0`, and `missing_limit_marker_count=0`.
+- Generated review packet: `runtime-state/release-candidate-pr-readiness/phase238/phase238-release-candidate-pr-readiness-packet.md`.
+- The packet records supported scope, non-goals, proof commands, rollback path, and a draft PR body. A PR was not created in Phase 238.
+- Final full Bash regression after the Phase 238 closeout passed with `1547 passed`, `4 skipped`, and `23 deselected`.
 
 ### Approved Phase 239: Remote-Clone Priority 0 Chat-Quality Replay
 
