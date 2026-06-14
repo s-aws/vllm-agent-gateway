@@ -10468,7 +10468,7 @@ Phase 242 validation proof:
 
 ### Approved Phase 243: External Tester Feedback Loop From Clone
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding.
 
@@ -10482,6 +10482,24 @@ Scope:
 - Ensure feedback artifacts remain local/ignored and do not mutate protected fixture source.
 
 Acceptance target: a tester can report feedback from the release-candidate path and a future contextless agent can determine the correct next action from the feedback artifacts.
+
+Phase 243 completion proof:
+
+- added `runtime/external_tester_feedback_loop_from_clone_cases.json` with two release-candidate feedback cases covering useful-only positive feedback and targeted defect feedback
+- added `runtime/external_tester_feedback_loop_from_clone_policy.json` requiring remote-clone source proof, clean branch state, positive/defect outcome coverage, route-decision traceability, prompt hashes, output artifact hashes, ignored runtime-state artifacts, and accepted-repair rerun contract
+- added `vllm_agent_gateway.acceptance.external_tester_feedback_loop_from_clone` and `scripts/validate_external_tester_feedback_loop_from_clone.py`
+- extended `scripts/validate_founder_feedback_loop_live.py` so Phase 243 live reports include source Git metadata and so Windows clients can inspect `/mnt/c/...` artifacts when WSL is unavailable
+- contextless audit required the chain `release-candidate clone -> workflow-router target run -> workflow-feedback run -> workflow_feedback_record -> governed_decision -> required next gate`; the implementation added commit, remote, clean-state, artifact-hash, and ignored-runtime-state proof
+- release-candidate clone `/tmp/agentic_agents_phase243_remote_clone` validated branch `codex/m14-release-clone-proof`, commit `98896e1`, remote `https://github.com/s-aws/vllm-agent-gateway.git`, clean source, and non-active-workspace source path
+- live feedback loop from the clone passed `FL243-001` through gateway as `rejected_finding` and `FL243-002` through AnythingLLM as accepted `repair_followup`
+- Phase 243 trace gate passed with `phase244_ready=true`, `trace_count=2`, prompt hashes, route-decision hashes, and output artifact hashes for both feedback records
+- focused Bash regression for Phase 243 plus founder-feedback rebaseline/rerun gates returned `18 passed`
+- full Bash regression returned `1575 passed`, `4 skipped`, and `23 deselected`
+
+Phase 243 runtime-health caveat:
+
+- vLLM/model port `8000` was unavailable during the clone live run, so the Phase 243 live runner used `--skip-port-health`
+- the feedback-chain proof still exercised the workflow-router gateway and AnythingLLM feedback path, but Phase 244 must treat restored model and full port health as release-decision evidence before any ship decision
 
 ### Approved Phase 244: V1 Release-Candidate Decision Gate
 
