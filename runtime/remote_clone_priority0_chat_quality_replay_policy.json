@@ -267,7 +267,8 @@
           "route_status: blocked"
         ],
         [
-          "advanced_refactor_pilot_scope_not_admitted"
+          "advanced_refactor_pilot_scope_not_admitted",
+          "advanced_refactor_readiness_not_met"
         ],
         [
           "no repository workflow or source mutation started"
