@@ -5841,6 +5841,10 @@ def test_data_model_lookup_answer_keeps_schema_fields_visible() -> None:
             for index in range(1, 8)
         ],
         "model_files": ["database/order.py"],
+        "model_symbols": [
+            {"name": "OrderRecord", "kind": "class", "path": "database/order.py", "line": 7},
+            {"name": "ORDERS_TABLE_SCHEMA", "kind": "assignment", "path": "database/order.py", "line": 14},
+        ],
         "source_refs": [{"path": "database/order.py", "line": 1}],
         "mutation_policy": "read_only_no_source_mutation",
     }
@@ -5850,6 +5854,8 @@ def test_data_model_lookup_answer_keeps_schema_fields_visible() -> None:
 
     assert "field_1: TEXT (database/order.py:1)" in answer
     assert "field_7: TEXT (database/order.py:7)" in answer
+    assert "OrderRecord (class) at database/order.py:7" in answer
+    assert "ORDERS_TABLE_SCHEMA (assignment) at database/order.py:14" in answer
     assert "+2 more" not in answer
 
 

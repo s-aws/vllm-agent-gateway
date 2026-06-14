@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "kind": "remote_clone_priority0_chat_quality_replay_policy",
+  "phase": 239,
+  "priority_backlog_id": "P0-M14-239",
+  "required_decision": "remote_clone_priority0_chat_quality_ready",
+  "description": "Release-candidate remote-clone replay gate for Priority 0 chat quality. The gate compares live local-stack behavior against blind-baseline expectations for representative founder prompts.",
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "workflow_router_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace",
+    "model": "Qwen3-Coder-30B-A3B-Instruct",
+    "provider": "generic-openai"
+  },
+  "fixture_ids": [
+    "coinbase-frozen",
+    "coinbase-frozen-git",
+    "python-service-generalization"
+  ],
+  "required_surfaces": [
+    "workflow_router_gateway",
+    "anythingllm_api"
+  ],
+  "required_case_ids": [
+    "GATEWAY-GREETING",
+    "ANYTHINGLLM-GREETING",
+    "GATEWAY-COINBASE-CODE-EXPLANATION",
+    "ANYTHINGLLM-COINBASE-CODE-EXPLANATION",
+    "GATEWAY-PYTHON-ENDPOINT-ROUTE-LOOKUP",
+    "ANYTHINGLLM-PYTHON-ENDPOINT-ROUTE-LOOKUP",
+    "GATEWAY-PYTHON-SCHEMA-LOOKUP",
+    "ANYTHINGLLM-PYTHON-SCHEMA-LOOKUP",
+    "GATEWAY-COINBASE-RELATED-TESTS",
+    "ANYTHINGLLM-COINBASE-RELATED-TESTS",
+    "GATEWAY-FEEDBACK-CAPTURE",
+    "ANYTHINGLLM-FEEDBACK-CAPTURE",
+    "GATEWAY-UNSUPPORTED-BOUNDARY",
+    "ANYTHINGLLM-UNSUPPORTED-BOUNDARY"
+  ],
+  "blind_baseline_summary": {
+    "global": [
+      "Choose the narrowest workflow needed for the prompt.",
+      "Use repository evidence for repository-specific claims.",
+      "Avoid source mutation unless explicitly approved.",
+      "Avoid inventing files, routes, schemas, tests, prior run state, or approval."
+    ],
+    "greeting": "Respond briefly to the greeting, do not run a repository workflow, and ask for a concrete task.",
+    "code_explanation": "Read the target function, explain inputs, outputs, side effects, lock/read-only behavior, and related tests with source references.",
+    "endpoint_route_lookup": "Locate the order creation handler and cite handler file, symbol, route/message binding evidence, and tests.",
+    "schema_lookup": "Locate the order schema/model, distinguish schema role, cite class/table names and source files.",
+    "related_tests_lookup": "Locate direct or nearest tests, cite test file/function names, and provide recommended commands.",
+    "feedback_capture": "Record feedback against the target run without rerunning or converting it into implementation scope.",
+    "unsupported_boundary": "Refuse broad source mutation without approval and offer a bounded read-only or approval-gated next step."
+  },
+  "case_expectations": {
+    "greeting": {
+      "required_marker_groups": [
+        [
+          "general_chat_no_target"
+        ],
+        [
+          "Selected workflow: none",
+          "selected_workflow: none"
+        ],
+        [
+          "include an allowed target_root path"
+        ],
+        [
+          "Mutation policy: no repository workflow or source mutation started",
+          "mutation_policy: no repository workflow or source mutation started"
+        ]
+      ],
+      "forbidden_markers": [
+        "Selected workflow: code_investigation.plan",
+        "Selected workflow: task.decompose",
+        "Selected workflow: refactor.single_path",
+        "Source mutation: true"
+      ]
+    },
+    "code_explanation": {
+      "required_marker_groups": [
+        [
+          "workflow_router.plan completed"
+        ],
+        [
+          "selected_workflow: code_investigation.plan",
+          "Selected workflow: code_investigation.plan"
+        ],
+        [
+          "StealthOrderManager.find_stealth_order_by_placed_order_id",
+          "find_stealth_order_by_placed_order_id"
+        ],
+        [
+          "Inputs:"
+        ],
+        [
+          "Outputs:"
+        ],
+        [
+          "Side effects:"
+        ],
+        [
+          "Related tests:"
+        ],
+        [
+          "Source mutation: false",
+          "Source mutation: False"
+        ]
+      ],
+      "expected_artifact": "downstream_code_explanation",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_skills": [
+        "code-explanation-summarizer"
+      ],
+      "expected_tools": [
+        "git_grep",
+        "read_file"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "selected_workflow: task.decompose"
+      ]
+    },
+    "endpoint_route_lookup": {
+      "required_marker_groups": [
+        [
+          "workflow_router.plan completed"
+        ],
+        [
+          "selected_workflow: code_investigation.plan",
+          "Selected workflow: code_investigation.plan"
+        ],
+        [
+          "endpoint-route-locator"
+        ],
+        [
+          "service/api.py"
+        ],
+        [
+          "handle_create_order"
+        ],
+        [
+          "message.get"
+        ],
+        [
+          "Source mutation: false",
+          "Source mutation: False"
+        ]
+      ],
+      "expected_artifact": "downstream_endpoint_route_lookup",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_skills": [
+        "endpoint-route-locator"
+      ],
+      "expected_tools": [
+        "git_grep",
+        "read_file"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "selected_workflow: task.decompose"
+      ]
+    },
+    "schema_lookup": {
+      "required_marker_groups": [
+        [
+          "workflow_router.plan completed"
+        ],
+        [
+          "selected_workflow: code_investigation.plan",
+          "Selected workflow: code_investigation.plan"
+        ],
+        [
+          "data-model-schema-locator"
+        ],
+        [
+          "database/schema.py"
+        ],
+        [
+          "OrderRecord"
+        ],
+        [
+          "ORDERS_TABLE_SCHEMA"
+        ],
+        [
+          "Source mutation: false",
+          "Source mutation: False"
+        ]
+      ],
+      "expected_artifact": "downstream_data_model_lookup",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_skills": [
+        "data-model-schema-locator"
+      ],
+      "expected_tools": [
+        "git_grep",
+        "read_file"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "selected_workflow: task.decompose"
+      ]
+    },
+    "related_tests_lookup": {
+      "required_marker_groups": [
+        [
+          "workflow_router.plan completed"
+        ],
+        [
+          "selected_workflow: code_investigation.plan",
+          "Selected workflow: code_investigation.plan"
+        ],
+        [
+          "tests/unit/test_order_id_and_followup_rules.py"
+        ],
+        [
+          "stealth lookup",
+          "tests/unit/test_order_id_and_followup_rules.py"
+        ],
+        [
+          "Related tests:"
+        ],
+        [
+          "python -m pytest",
+          "python3 -m pytest"
+        ],
+        [
+          "Source mutation: false",
+          "Source mutation: False"
+        ]
+      ],
+      "expected_artifact": "downstream_investigation_plan",
+      "expected_selected_workflow": "code_investigation.plan",
+      "expected_tools": [
+        "git_grep",
+        "read_file"
+      ],
+      "forbidden_markers": [
+        "Source mutation: true",
+        "selected_workflow: task.decompose"
+      ]
+    },
+    "feedback_capture": {
+      "required_marker_groups": [
+        [
+          "workflow_feedback.record"
+        ],
+        [
+          "feedback_record"
+        ],
+        [
+          "run_id:"
+        ]
+      ],
+      "expected_selected_workflow": "workflow_feedback.record",
+      "expected_artifact": "feedback_record",
+      "forbidden_markers": [
+        "Source mutation: true"
+      ]
+    },
+    "unsupported_boundary": {
+      "required_marker_groups": [
+        [
+          "workflow_router.plan completed"
+        ],
+        [
+          "route_status: blocked"
+        ],
+        [
+          "advanced_refactor_pilot_scope_not_admitted"
+        ],
+        [
+          "no repository workflow or source mutation started"
+        ],
+        [
+          "Safe alternatives:"
+        ],
+        [
+          "Source mutation: false",
+          "source_changed: False"
+        ]
+      ],
+      "expected_route_status": "blocked",
+      "expected_source_changed": false,
+      "forbidden_markers": [
+        "Source mutation: true",
+        "downstream_status: completed",
+        "approval_state_status: approved"
+      ]
+    }
+  },
+  "acceptance_marker": "REMOTE CLONE PRIORITY0 CHAT QUALITY REPLAY PASS"
+}

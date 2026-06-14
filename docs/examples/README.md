@@ -98,6 +98,7 @@ Examples are grouped by feature so the root README can stay small.
 - [Clone-Safe Model Capability Routing](clone-safe-model-capability-routing.md): validate that clean checkout routing no longer depends on runtime-state profile seeding.
 - [AnythingLLM Fresh Chat Responsiveness](anythingllm-fresh-chat-responsiveness.md): validate fresh `hi`, coding prompt, target settings, UI stream-chat, and fixture proof.
 - [Release-Candidate PR Readiness](release-candidate-pr-readiness.md): generate the branch review packet and draft PR body from committed proof state.
+- [Remote-Clone Priority 0 Chat-Quality Replay](remote-clone-priority0-chat-quality-replay.md): replay representative Priority 0 prompts through gateway and AnythingLLM from the release-candidate clone.
 - [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.
 - [Stable Chat Quality Release](stable-chat-quality-release.md): consolidated release-readiness command, blocker review, and ready-state shape.
 - [AnythingLLM Founder Smoke](anythingllm-founder-smoke.md): curated four-prompt smoke suite through the real AnythingLLM workspace.

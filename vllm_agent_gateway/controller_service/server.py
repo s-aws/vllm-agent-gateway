@@ -1731,6 +1731,10 @@ def inline_artifact_keys_for_response(
         return promoted_inline_artifact_keys(InlineArtifactKind.ENGINEERING_JUDGMENT_REVIEW)
     if "l2_code_quality_review_terms" in route_rules:
         return promoted_inline_artifact_keys(InlineArtifactKind.CODE_QUALITY_REVIEW)
+    if "l1_endpoint_route_lookup_terms" in route_rules:
+        return promoted_inline_artifact_keys(InlineArtifactKind.ENDPOINT_ROUTE_LOOKUP)
+    if "l1_data_model_lookup_terms" in route_rules:
+        return promoted_inline_artifact_keys(InlineArtifactKind.DATA_MODEL_LOOKUP)
     if "l1_find_behavior_start_terms" in route_rules:
         return promoted_inline_artifact_keys(InlineArtifactKind.INVESTIGATION_PLAN)
     return INLINE_ARTIFACT_KEYS
@@ -2834,6 +2838,26 @@ def append_data_model_lookup_answer(lines: list[str], artifact: dict[str, Any]) 
         joined = limited_join([inline_text(item, 120) for item in files if isinstance(item, str)])
         if joined:
             lines.append(f"- Model files: {joined}")
+    symbols = artifact.get("model_symbols")
+    if isinstance(symbols, list):
+        symbol_values: list[str] = []
+        for symbol in symbols:
+            if not isinstance(symbol, dict):
+                continue
+            name = symbol.get("name")
+            if not isinstance(name, str) or not name:
+                continue
+            kind = symbol.get("kind")
+            path = path_with_line(symbol)
+            label = name
+            if isinstance(kind, str) and kind:
+                label = f"{label} ({kind})"
+            if path:
+                label = f"{label} at {path}"
+            symbol_values.append(label)
+        joined = limited_join(symbol_values, limit=8)
+        if joined:
+            lines.append(f"- Model symbols: {joined}")
     if isinstance(artifact.get("reason"), str):
         lines.append(f"- Reason: {inline_text(artifact['reason'])}")
     source_refs = source_refs_summary(artifact.get("source_refs"))
