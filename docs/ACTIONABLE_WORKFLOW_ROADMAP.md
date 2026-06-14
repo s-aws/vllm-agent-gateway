@@ -10344,7 +10344,7 @@ Completion proof:
 
 ### Approved Phase 239: Remote-Clone Priority 0 Chat-Quality Replay
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M2 Chat-Visible Answer Contract, M3 Workflow/Skill/Tool Selection Reliability, M4 Evidence Quality And Relevance, M14 Release Packaging And Onboarding.
 
@@ -10359,6 +10359,15 @@ Scope:
 - Repair only concrete controller, router, formatter, skill, tool, or docs gaps found by the replay.
 
 Acceptance target: representative Priority 0 prompts meet their blind-baseline rubrics through the release-candidate clone path, with no critical or high unresolved chat-quality gaps.
+
+Completion proof:
+
+- Added `runtime/remote_clone_priority0_chat_quality_replay_policy.json`, `scripts/validate_remote_clone_priority0_chat_quality_replay.py`, and the Phase 239 acceptance module/regression tests.
+- Repaired a chat-quality gap found by the blind-baseline replay: endpoint/schema prompts had correct artifacts but the chat answer rendered lower-value artifacts first or omitted schema symbols. The shared formatter now promotes endpoint and data-model inline artifacts for their matched route rules and includes model symbols such as `OrderRecord` and `ORDERS_TABLE_SCHEMA`.
+- Active workspace live replay passed through gateway and AnythingLLM with `decision=remote_clone_priority0_chat_quality_ready`, `case_count=14`, `passed_case_count=14`, `critical_or_high_finding_count=0`, `target_settings_status=passed`, and `fixture_unchanged=true`.
+- Pushed branch `codex/m14-release-clone-proof` to commit `161676b`, cloned it into `/tmp/agentic_agents_phase239_remote_clone`, restarted the gateway/controller stack from that clone, and reran the replay from the clone.
+- Remote-clone replay passed with `decision=remote_clone_priority0_chat_quality_ready`, `case_count=14`, `passed_case_count=14`, `workflow_router_gateway_case_count=7`, `anythingllm_api_case_count=7`, `critical_or_high_finding_count=0`, `target_settings_status=passed`, and `fixture_unchanged=true`.
+- Remote-clone run IDs: gateway greeting `workflow-router-general-20260614T163640437224Z`, gateway code explanation `workflow-router-20260614T163640458250Z`, gateway endpoint lookup `workflow-router-20260614T163647921849Z`, gateway schema lookup `workflow-router-20260614T163649520406Z`, gateway related tests `workflow-router-20260614T163651541420Z`, gateway unsupported boundary `workflow-router-20260614T163659550274Z`, gateway feedback `workflow-feedback-20260614T163707526439Z`, AnythingLLM greeting `workflow-router-general-20260614T163707626123Z`, AnythingLLM code explanation `workflow-router-20260614T163707679884Z`, AnythingLLM endpoint lookup `workflow-router-20260614T163714860393Z`, AnythingLLM schema lookup `workflow-router-20260614T163715678401Z`, AnythingLLM related tests `workflow-router-20260614T163716371913Z`, AnythingLLM unsupported boundary `workflow-router-20260614T163726471242Z`, and AnythingLLM feedback `workflow-feedback-20260614T163734553479Z`.
 
 ### Approved Phase 240: Remote-Clone Non-Coinbase Generalization Replay
 

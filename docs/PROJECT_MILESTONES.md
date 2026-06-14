@@ -91,7 +91,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 236 | M14 | Complete. Proved the release candidate can be committed, pushed, cloned, started, and tested from a remote branch without active-workspace state. |
 | Phase 237 | M2/M13/M14 | Complete. Rebaselined AnythingLLM fresh-chat responsiveness, including the user-reported `hi` no-response failure mode, active-stack UI proof, API proof, target settings, coding prompt proof, and fixture safety. |
 | Phase 238 | M14/M9 | Complete. Prepared the release-candidate branch for contextless review with proof links, known limits, branch hygiene, generated markdown packet, and no draft PR creation. |
-| Phase 239 | M2/M3/M4/M14 | Approved. Replay Priority 0 chat-quality prompts from the remote-clone path with blind-baseline comparison. |
+| Phase 239 | M2/M3/M4/M14 | Complete. Replayed Priority 0 chat-quality prompts from the remote-clone path with blind-baseline comparison, repaired chat-visible endpoint/schema evidence gaps, and passed gateway plus AnythingLLM replay with 14/14 cases and no high/critical findings. |
 | Phase 240 | M5/M14 | Approved. Replay non-Coinbase generalization from the remote-clone path. |
 | Phase 241 | M6/M8/M16/M14 | Approved. Replay large-context strategy and safety behavior from the release-candidate path. |
 | Phase 242 | M2/M3/M4/M9/M12 | Approved. Promote passing release-candidate prompt coverage into the governed baseline corpus. |
