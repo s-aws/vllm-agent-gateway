@@ -55,6 +55,16 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def local_path(path_value: str | Path) -> Path:
+    path_text = str(path_value)
+    if path_text.startswith("/mnt/") and len(path_text) > 7 and path_text[6] == "/":
+        drive = path_text[5].upper()
+        translated = Path(f"{drive}:/" + path_text[7:])
+        if translated.exists() or os.name == "nt":
+            return translated
+    return Path(path_text)
+
+
 def git_metadata(path: Path) -> dict[str, Any]:
     def git_output(*args: str) -> str | None:
         try:
@@ -101,7 +111,7 @@ def run_id_from_text(text: str) -> str:
 def read_json_artifact(path_value: Any) -> dict[str, Any]:
     if not isinstance(path_value, str) or not path_value:
         raise RuntimeError(f"artifact path was not a string: {path_value!r}")
-    path = Path(path_value)
+    path = local_path(path_value)
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise RuntimeError(f"artifact did not contain an object: {path}")
@@ -279,15 +289,16 @@ def main() -> int:
 
     target_roots = sorted({case.target_root for case in cases})
     runtime_before = watched_hashes(config_root, WATCHED_RUNTIME_FILES)
-    target_watch_files = {root: watched_files_for_root(Path(root)) for root in target_roots}
-    target_before = {root: watched_hashes(Path(root), target_watch_files[root]) for root in target_roots}
-    target_git_before = {root: git_status(Path(root)) for root in target_roots}
+    target_local_roots = {root: local_path(root) for root in target_roots}
+    target_watch_files = {root: watched_files_for_root(target_local_roots[root]) for root in target_roots}
+    target_before = {root: watched_hashes(target_local_roots[root], target_watch_files[root]) for root in target_roots}
+    target_git_before = {root: git_status(target_local_roots[root]) for root in target_roots}
 
     report_cases: list[dict[str, Any]] = []
     for case in cases:
         case_report = run_case(args, case, api_key)
         validate_no_target_mutation(
-            Path(case.target_root),
+            target_local_roots[case.target_root],
             target_watch_files[case.target_root],
             target_before[case.target_root],
             target_git_before[case.target_root],
@@ -298,13 +309,13 @@ def main() -> int:
 
     runtime_changed = changed_hashes(runtime_before, watched_hashes(config_root, WATCHED_RUNTIME_FILES))
     target_changed_files = {
-        root: changed_hashes(target_before[root], watched_hashes(Path(root), target_watch_files[root]))
+        root: changed_hashes(target_before[root], watched_hashes(target_local_roots[root], target_watch_files[root]))
         for root in target_roots
     }
     target_git_changed = {
-        root: git_status(Path(root))
+        root: git_status(target_local_roots[root])
         for root in target_roots
-        if target_git_before[root] is not None and git_status(Path(root)) != target_git_before[root]
+        if target_git_before[root] is not None and git_status(target_local_roots[root]) != target_git_before[root]
     }
     report = {
         "kind": "founder_feedback_loop_live_report",
