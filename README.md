@@ -167,6 +167,7 @@ Feature docs:
 - [README.release-candidate-baseline-corpus-promotion.md](README.release-candidate-baseline-corpus-promotion.md): promoted release-candidate chat-quality cases in the governed baseline corpus
 - [README.external-tester-feedback-loop-from-clone.md](README.external-tester-feedback-loop-from-clone.md): release-candidate clone feedback proof for positive and defect tester records
 - [README.v1-release-candidate-decision-gate.md](README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate
+- [README.release-candidate-runtime-health-restoration.md](README.release-candidate-runtime-health-restoration.md): Phase 245 post-restart runtime health proof before rerunning the release decision
 - [README.failure-to-roadmap.md](README.failure-to-roadmap.md): failure-to-roadmap proposal gate for failed release proof artifacts
 - [README.contextless-audit-scorecard.md](README.contextless-audit-scorecard.md): contextless audit and blind-baseline evidence scorecard
 - [README.multi-fixture-prompt-parity.md](README.multi-fixture-prompt-parity.md): multi-fixture prompt parity across gateway and AnythingLLM

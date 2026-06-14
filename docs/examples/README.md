@@ -101,6 +101,7 @@ Examples are grouped by feature so the root README can stay small.
 - [Remote-Clone Priority 0 Chat-Quality Replay](remote-clone-priority0-chat-quality-replay.md): replay representative Priority 0 prompts through gateway and AnythingLLM from the release-candidate clone.
 - [Remote-Clone Non-Coinbase Generalization Replay](remote-clone-non-coinbase-generalization-replay.md): replay Python-service and Staterail non-Coinbase prompts through gateway and AnythingLLM from the release-candidate clone.
 - [Release-Candidate Large-Context Strategy Replay](release-candidate-large-context-strategy-replay.md): replay large-context strategy behavior through gateway and AnythingLLM from the release-candidate path.
+- [Release-Candidate Runtime Health Restoration](release-candidate-runtime-health-restoration.md): verify post-restart runtime health, AnythingLLM target settings, and a minimal read-only workflow-router prompt before rerunning the release decision.
 - [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.
 - [Stable Chat Quality Release](stable-chat-quality-release.md): consolidated release-readiness command, blocker review, and ready-state shape.
 - [AnythingLLM Founder Smoke](anythingllm-founder-smoke.md): curated four-prompt smoke suite through the real AnythingLLM workspace.

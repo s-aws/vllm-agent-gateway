@@ -1,0 +1,120 @@
+{
+  "acceptance_marker": "PHASE245 RELEASE CANDIDATE RUNTIME HEALTH RESTORATION PASS",
+  "kind": "release_candidate_runtime_health_restoration_policy",
+  "milestone_ids": [
+    "M13",
+    "M14"
+  ],
+  "phase": 245,
+  "priority_backlog_id": "P0-M13-245",
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "model": "Qwen3-Coder-30B-A3B-Instruct",
+    "provider": "generic-openai",
+    "workflow_router_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace"
+  },
+  "required_case_markers": [
+    [
+      "workflow_router.plan completed"
+    ],
+    [
+      "run_id: workflow-router-"
+    ],
+    [
+      "Selected workflow: code_investigation.plan",
+      "selected_workflow: code_investigation.plan"
+    ],
+    [
+      "find_stealth_order_by_placed_order_id"
+    ],
+    [
+      "Inputs:"
+    ],
+    [
+      "Outputs:"
+    ],
+    [
+      "Source mutation: False",
+      "Source mutation: false"
+    ]
+  ],
+  "required_decision": "runtime_health_restored",
+  "required_runtime_health": [
+    {
+      "id": "localhost_model",
+      "required": true,
+      "url": "http://127.0.0.1:8000/v1/models"
+    },
+    {
+      "id": "llm_gateway",
+      "required": true,
+      "url": "http://127.0.0.1:8300/v1/models"
+    },
+    {
+      "id": "controller",
+      "required": true,
+      "url": "http://127.0.0.1:8400/health"
+    },
+    {
+      "id": "workflow_router_gateway",
+      "required": true,
+      "url": "http://127.0.0.1:8500/v1/models"
+    },
+    {
+      "id": "reviewer_code",
+      "required": true,
+      "url": "http://127.0.0.1:8101/v1/models"
+    },
+    {
+      "id": "tester_code",
+      "required": true,
+      "url": "http://127.0.0.1:8102/v1/models"
+    },
+    {
+      "id": "architect_default",
+      "required": true,
+      "url": "http://127.0.0.1:8201/v1/models"
+    },
+    {
+      "id": "dispatcher_default",
+      "required": true,
+      "url": "http://127.0.0.1:8202/v1/models"
+    },
+    {
+      "id": "implementer_default",
+      "required": true,
+      "url": "http://127.0.0.1:8203/v1/models"
+    },
+    {
+      "id": "researcher_default",
+      "required": true,
+      "url": "http://127.0.0.1:8204/v1/models"
+    },
+    {
+      "id": "documenter_default",
+      "required": true,
+      "url": "http://127.0.0.1:8205/v1/models"
+    },
+    {
+      "id": "anythingllm_api",
+      "required": true,
+      "url": "http://127.0.0.1:3001/api/docs/"
+    }
+  ],
+  "schema_version": 1,
+  "workflow_router_prompt": {
+    "gateway_model": "agentic-workflow-router",
+    "message": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests.",
+    "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  },
+  "protected_fixture_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "watched_relative_paths": [
+    "README.md",
+    "core/stealth_order_manager.py",
+    "tests/unit/test_order_id_and_followup_rules.py"
+  ]
+}
