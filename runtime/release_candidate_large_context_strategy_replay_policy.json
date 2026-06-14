@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "kind": "release_candidate_large_context_strategy_replay_policy",
+  "phase": 241,
+  "priority_backlog_id": "P0-M14-241",
+  "milestone_ids": [
+    "M6",
+    "M8",
+    "M16",
+    "M14"
+  ],
+  "required_decision": "release_candidate_large_context_strategy_ready",
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "workflow_router_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace",
+    "model": "Qwen3-Coder-30B-A3B-Instruct",
+    "provider": "generic-openai"
+  },
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_strategy_ids": [
+    "retrieval",
+    "artifact_paging",
+    "summarization",
+    "refusal",
+    "chunked_investigation"
+  ],
+  "required_bootstrap_reports": [
+    "large_corpus_context_budget_inventory",
+    "context_index_prototype"
+  ],
+  "required_live_reports": [
+    "large_context_usability_live_closeout",
+    "chunked_investigation_executor_implementation"
+  ],
+  "minimums": {
+    "phase221_response_count": 16,
+    "phase223_response_count": 2,
+    "anythingllm_response_count": 9,
+    "small_repo_regression_count": 8,
+    "large_corpus_estimated_tokens": 1000000
+  },
+  "safety_requirements": {
+    "raw_1m_prompt_support_proven": false,
+    "raw_prompt_stuffing_allowed": false,
+    "source_text_retention": "metadata_only",
+    "store_source_text": false,
+    "store_rejected_content": false,
+    "generated_corpus_unchanged_after_live_replay": true,
+    "artifact_only_answers_allowed": false
+  },
+  "blind_baseline_summary": {
+    "ideal_answer_shape": [
+      "Answer first, then strategy, evidence, limitations, safety markers, and run proof.",
+      "Expose source refs, line spans, hashes, freshness, and artifact page refs when evidence is too long for chat."
+    ],
+    "must_have_facts": [
+      "Large-context usability is retrieval, chunking, summarization, artifact paging, evidence selection, and strategy routing.",
+      "Raw 1M-token prompting is not proven unless a dedicated raw-context proof gate passes.",
+      "Release-candidate replay must include gateway and AnythingLLM proof plus small-repo non-regression."
+    ],
+    "hard_failures": [
+      "Claims raw 1M-token support without proof.",
+      "Uses raw prompt stuffing.",
+      "Leaks ignored, private, secret-like, or copied source text into chat or artifacts.",
+      "Accepts stale source hashes or stale index metadata.",
+      "Produces artifact-only answers.",
+      "Mutates protected frozen fixtures or generated corpus during live replay."
+    ]
+  },
+  "acceptance_marker": "RELEASE CANDIDATE LARGE CONTEXT STRATEGY REPLAY PASS"
+}
