@@ -163,6 +163,17 @@
       "live_suite": "workflow_router_l1_suite"
     },
     {
+      "id": "phase230_python_service_endpoint_route_lookup",
+      "prompt_family": "FX-001-python-service-endpoint-route-lookup",
+      "natural_prompt": "In <repo>, locate the order request message handler. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": [
+        "endpoint_route_lookup"
+      ],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "multi_repo_fixture_suite"
+    },
+    {
       "id": "l1_message_source_lookup",
       "prompt_family": "L1-message-source-lookup",
       "natural_prompt": "In <repo>, locate the source of a named error or log message. Read only.",
@@ -194,6 +205,17 @@
       ],
       "mutation_policy": "no_repository_mutation",
       "live_suite": "workflow_router_l1_suite"
+    },
+    {
+      "id": "phase230_python_service_data_model_lookup",
+      "prompt_family": "FX-001-python-service-data-model-lookup",
+      "natural_prompt": "In <repo>, find the orders table schema only. Read only.",
+      "expected_workflow": "code_investigation.plan",
+      "expected_artifacts": [
+        "data_model_lookup"
+      ],
+      "mutation_policy": "no_repository_mutation",
+      "live_suite": "multi_repo_fixture_suite"
     },
     {
       "id": "l1_dependency_lookup",

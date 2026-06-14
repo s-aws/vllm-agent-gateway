@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "kind": "multi_repo_baseline_comparison_policy",
+  "phase": 210,
+  "priority_backlog_id": "P0-M5-210",
+  "milestone_id": "M5",
+  "policy_version": "1.0.0",
+  "purpose": "Run the Phase 209 staterail prompt pack through the current local stack and classify answer gaps without repairs.",
+  "phase209_policy_path": "runtime/multi_repo_fixture_baseline_pack_policy.json",
+  "phase209_report_path": "runtime-state/phase209/phase209-multi-repo-fixture-baseline-pack-report.json",
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "minimum_case_count": 5,
+  "minimum_response_count": 10,
+  "minimum_score_for_pass": 80,
+  "allowed_gap_classes": [
+    "none",
+    "route_gap",
+    "evidence_gap",
+    "formatter_gap",
+    "missing_skill_tool",
+    "repo_shape_gap",
+    "model_capability_gap",
+    "unsupported_scope",
+    "runtime_surface_gap"
+  ],
+  "required_chat_markers": [
+    "Answer:",
+    "Source mutation: false"
+  ],
+  "required_no_repair_boundary": [
+    "do not change router/controller/workflow/skill/formatter behavior",
+    "do not commit or push to s-aws/staterail",
+    "classify misses before repairs"
+  ]
+}

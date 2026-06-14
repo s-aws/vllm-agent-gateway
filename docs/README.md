@@ -5,6 +5,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 ## 1. Project Entry
 
 - [Project README](../README.md): what this project is, tested setup, quick start, basic usage, and repository layout.
+- [Project Milestones](PROJECT_MILESTONES.md): approved product-state gates for reaching the local-model coding-agent objective, including large-context usability.
 - [Getting Started With AnythingLLM](../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup README](../README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
 - [External Tester Onboarding README](../README.external-tester-onboarding.md): contextless release-candidate tester path with curated read-only prompts and linked feedback capture.
@@ -29,6 +30,30 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [V1 Product Readiness Reassessment README](../README.v1-product-readiness-reassessment.md): Phase 196 current readiness reassessment for broader V1 founder beta after the Phase 191-195 proof chain.
 - [Founder Trial Execution Round README](../README.founder-trial-execution-round.md): Phase 197 live founder trial execution through AnythingLLM with run IDs, response artifacts, and quality classifications.
 - [Founder Feedback Intake And Repair README](../README.founder-feedback-intake-repair.md): Phase 198 deterministic intake for founder trial advisories, blockers, optional notes, and Phase 199 repair decisions.
+- [V1 Beta Release Closeout README](../README.v1-beta-release-closeout.md): Phase 199 closeout gate for the M1 V1 founder beta milestone.
+- [Chat-Visible Answer Contract Inventory README](../README.chat-visible-answer-contract-inventory.md): Phase 200 inventory of answer contracts for supported Priority 0 prompt families.
+- [Chat-Visible Answer Contract Enforcement README](../README.chat-visible-answer-contract-enforcement.md): Phase 201 deterministic fail-closed gate for chat-visible answer contracts.
+- [Chat-Visible Output Usefulness Refresh README](../README.chat-visible-output-usefulness-refresh.md): Phase 202 live gateway and AnythingLLM output-format/usefulness refresh.
+- [Workflow/Skill/Tool Selection Matrix README](../README.workflow-skill-tool-selection-matrix.md): Phase 203 deterministic selection matrix for M3 workflow, skill, and tool expectations.
+- [No Manual Skill Injection Explainability README](../README.no-manual-skill-injection-explainability.md): Phase 204 natural prompt selection explainability through gateway and AnythingLLM.
+- [Route Stability Holdout Replay README](../README.route-stability-holdout-replay.md): Phase 205 target and holdout route stability replay through gateway and AnythingLLM.
+- [Evidence Relevance Audit Pack README](../README.evidence-relevance-audit-pack.md): Phase 206 contextless evidence-quality audit pack for M4.
+- [Evidence Ranking Source Hash Gate README](../README.evidence-ranking-source-hash-gate.md): Phase 207 deterministic evidence ranking and source-hash proof gate for M4.
+- [Evidence Quality Live Rerun README](../README.evidence-quality-live-rerun.md): Phase 208 live gateway and AnythingLLM rerun of M4 evidence-quality prompts.
+- [Multi-Repo Fixture Baseline Pack README](../README.multi-repo-fixture-baseline-pack.md): Phase 209 `s-aws/staterail` fixture selection and blind-baseline prompt pack for M5.
+- [Multi-Repo Baseline Comparison README](../README.multi-repo-baseline-comparison.md): Phase 210 `s-aws/staterail` gateway and AnythingLLM baseline comparison dry run for M5.
+- [Multi-Repo Live Generalization Rerun README](../README.multi-repo-live-generalization-rerun.md): Phase 212 live M5 rerun across Staterail and Coinbase holdouts.
+- [M5 Generalization Closeout README](../README.m5-generalization-closeout.md): Phase 213 M5 closeout decision and next-scope boundary.
+- [Large-Corpus Context Budget Inventory README](../README.large-corpus-context-budget-inventory.md): Phase 214 generated large-corpus fixture and context-budget inventory for M6/M7.
+- [Retrieval-First Context Strategy Design README](../README.retrieval-first-context-strategy-design.md): Phase 215 retrieval-first context strategy contract for M6/M8 before indexing or retrieval-backed chat implementation.
+- [Corpus Index Safety Governance README](../README.corpus-index-safety-governance.md): Phase 216 M16 safety gate for allowed roots, ignore rules, secret-like content, stale metadata, and leak prevention before durable indexing.
+- [Context Index Prototype README](../README.context-index-prototype.md): Phase 217 metadata-first local index prototype with Phase 216 safety enforcement and query smoke proof.
+- [Retrieval-Backed Chat Answer Gate README](../README.retrieval-backed-chat-answer-gate.md): Phase 218 chat-visible retrieval-backed large-corpus answers through the existing workflow-router path.
+- [Artifact Paging And Long Answer Usability README](../README.artifact-paging-long-answer-usability.md): Phase 219 paged evidence artifacts with answer-first chat and output-format parity.
+- [Context Strategy Router README](../README.context-strategy-router.md): Phase 220 deterministic selection of direct context, retrieval, chunking, summarization, artifact paging, or refusal.
+- [Large-Context Usability Live Closeout README](../README.large-context-usability-live-closeout.md): Phase 221 live gateway and AnythingLLM closeout for M6/M8 large-context usability.
+- [Chunked Investigation Executor Contract README](../README.chunked-investigation-executor-contract.md): Phase 222 executable contract for selected chunked-investigation strategy before implementation.
+- [Chunked Investigation Executor Implementation README](../README.chunked-investigation-executor-implementation.md): Phase 223 read-only chunked-investigation executor with answer-first chat, traceable artifacts, gateway proof, and AnythingLLM proof.
 - [Current-Model Compatibility README](../README.current-model-compatibility.md): Phase 150 current localhost model support matrix, boundaries, and monitored risks.
 - [Model Swap Smoke Probe README](../README.model-swap-smoke-probe.md): Phase 154 localhost model-swap detector and next-gate decision for drift and portability.
 - [V1 Product Readiness Review README](../README.v1-product-readiness-review.md): Phase 155 go/no-go review for V1 founder-testing readiness.
@@ -58,6 +83,8 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Output Format Parity README](../README.output-format-parity.md): Priority 0 gate proving default chat and JSON preserve the same answer body, evidence markers, safety boundary, and run traceability.
 - [Natural Output Format Preference README](../README.natural-output-format-preference.md): Phase 144 gate proving natural FormatA and JSON requests route through the same chat-quality contract in gateway and AnythingLLM.
 - [Founder Feedback Loop README](../README.founder-feedback-loop.md): Priority 0 gate converting natural founder feedback into governed baseline, holdout, repair, or rejected-finding decisions.
+- [Founder Feedback Loop Rebaseline README](../README.founder-feedback-loop-rebaseline.md): Phase 227 M9 rebaseline for useful, advisory, repair-worthy, rejected, deferred, baseline, and holdout feedback outcomes.
+- [Founder Feedback Repair Rerun Gate README](../README.founder-feedback-repair-rerun-gate.md): Phase 228 gate that blocks accepted feedback repairs from closing without target, holdout, blind-baseline, mutation, and artifact proof.
 - [Engineering Tenet Coverage README](../README.engineering-tenets.md): Phase 112 measurable coverage matrix for the local-model engineering tenets.
 - [Security Policy README](../README.security-policy.md): release-candidate gate for secret exposure, filesystem boundaries, protected fixtures, command fragments, and onboarding prompt safety.
 - [Gateway Feature README](../README.gateway.md): runtime architecture, vLLM gateway behavior, role prompt proxies, ports, and client connection notes.
@@ -87,6 +114,13 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Fresh Local-Model Drift README](../README.fresh-local-model-drift.md): bounded Priority 0 live drift gate for the current localhost model, gateway, AnythingLLM, stable prompt families, and both frozen Coinbase fixtures.
 - [Prompt Tightening Recommendations README](../README.prompt-tightening-recommendations.md): Priority 0 review queue for prompt-tightening suggestions tied to baseline misses or low-confidence passes without automatic prompt rewrites.
 - [Skill/Tool Coverage Gap README](../README.skill-tool-coverage-gap.md): Priority 0 gate deciding whether current chat-quality misses require a missing deterministic skill or tool.
+- [Skill Library Scaling Readiness Inventory README](../README.skill-library-scaling-readiness-inventory.md): Phase 229 M12 inventory for current skill/tool coverage and safe Phase 230 candidate selection.
+- [Small Skill Admission Pilot README](../README.small-skill-admission-pilot.md): Phase 230 M12 admission gate for `FX-001` fixture/eval coverage through gateway and AnythingLLM.
+- [Runtime Recovery Reliability Rebaseline README](../README.runtime-recovery-reliability-rebaseline.md): Phase 231 M13 restart-and-resume proof for vLLM, gateway/proxies, controller, AnythingLLM, small-repo prompts, and large-context prompts.
+- [Onboarding And Release Handoff Refresh README](../README.onboarding-release-handoff-refresh.md): Phase 232 M14 docs freshness gate for contextless tester handoff.
+- [Contextless Handoff Dry Run README](../README.contextless-handoff-dry-run.md): Phase 233 M14 live proof that the refreshed handoff works without private chat context.
+- [Clean Clone Release Handoff README](../README.clean-clone-release-handoff.md): Phase 234 M14 disposable clean-snapshot proof that release handoff does not rely on private workspace state.
+- [Clone-Safe Model Capability Routing README](../README.clone-safe-model-capability-routing.md): Phase 235 M14 clone-safe routing profile path for clean checkout handoff.
 - [Stable Release Blocker Closure README](../README.stable-release-blocker-closure.md): Phase 131 closure gate for prompt-tightening and founder-feedback blockers before stable release readiness can pass.
 - [Stable Chat Quality Release README](../README.stable-chat-quality-release.md): Phase 130 release-readiness gate that consolidates Priority 0 proof and blocks founder testing on unresolved chat-quality items.
 - [AnythingLLM Founder Smoke README](../README.anythingllm-founder-smoke.md): Phase 134 live founder smoke suite through AnythingLLM for the current ready release path.
@@ -113,6 +147,30 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [V1 Product Readiness Reassessment README](../README.v1-product-readiness-reassessment.md): current V1 founder-beta readiness reassessment based on the Phase 191-195 proof chain.
 - [Founder Trial Execution Round README](../README.founder-trial-execution-round.md): live founder trial execution round for the release-candidate prompt pack.
 - [Founder Feedback Intake And Repair README](../README.founder-feedback-intake-repair.md): deterministic intake for founder trial advisories, blockers, optional notes, and Phase 199 repair decisions.
+- [V1 Beta Release Closeout README](../README.v1-beta-release-closeout.md): closeout gate for the M1 V1 founder beta milestone.
+- [Chat-Visible Answer Contract Inventory README](../README.chat-visible-answer-contract-inventory.md): inventory gate for supported Priority 0 answer contracts before enforcement.
+- [Chat-Visible Answer Contract Enforcement README](../README.chat-visible-answer-contract-enforcement.md): deterministic answer-contract enforcement before live output refresh.
+- [Chat-Visible Output Usefulness Refresh README](../README.chat-visible-output-usefulness-refresh.md): live proof that default and JSON answers remain useful through gateway and AnythingLLM.
+- [Workflow/Skill/Tool Selection Matrix README](../README.workflow-skill-tool-selection-matrix.md): current M3 matrix of expected workflows, skills, tools, surfaces, and proof gaps.
+- [No Manual Skill Injection Explainability README](../README.no-manual-skill-injection-explainability.md): current M3 live gate for natural-language prompt selector explanation without manual skill injection.
+- [Route Stability Holdout Replay README](../README.route-stability-holdout-replay.md): current M3 live gate for target and holdout route-signature stability.
+- [Evidence Relevance Audit Pack README](../README.evidence-relevance-audit-pack.md): current M4 contextless audit pack for evidence quality scoring.
+- [Evidence Ranking Source Hash Gate README](../README.evidence-ranking-source-hash-gate.md): current M4 deterministic source-proof gate for evidence ranking.
+- [Evidence Quality Live Rerun README](../README.evidence-quality-live-rerun.md): current M4 live rerun gate for evidence-quality prompts across gateway and AnythingLLM.
+- [Multi-Repo Fixture Baseline Pack README](../README.multi-repo-fixture-baseline-pack.md): current M5 fixture and blind-baseline gate for `s-aws/staterail`.
+- [Multi-Repo Baseline Comparison README](../README.multi-repo-baseline-comparison.md): current M5 no-repair comparison gate for `s-aws/staterail`.
+- [Multi-Repo Live Generalization Rerun README](../README.multi-repo-live-generalization-rerun.md): current M5 live rerun gate across Staterail and Coinbase holdouts.
+- [M5 Generalization Closeout README](../README.m5-generalization-closeout.md): current M5 decision gate and next-scope boundary.
+- [Large-Corpus Context Budget Inventory README](../README.large-corpus-context-budget-inventory.md): current M6/M7 large-corpus facts and budget assumptions.
+- [Retrieval-First Context Strategy Design README](../README.retrieval-first-context-strategy-design.md): current M6/M8 strategy-selection contract and phase boundaries before retrieval implementation.
+- [Corpus Index Safety Governance README](../README.corpus-index-safety-governance.md): current M16 fail-closed safety policy before durable index prototypes.
+- [Context Index Prototype README](../README.context-index-prototype.md): current M6/M16 metadata-first index artifact and safety-enforced query smoke gate.
+- [Retrieval-Backed Chat Answer Gate README](../README.retrieval-backed-chat-answer-gate.md): current M6 retrieval-backed chat answer gate with source refs, hash proof, and limitations.
+- [Artifact Paging And Long Answer Usability README](../README.artifact-paging-long-answer-usability.md): current M6/M8 artifact paging gate for long evidence details.
+- [Context Strategy Router README](../README.context-strategy-router.md): current M8 deterministic context strategy selector and audit contract.
+- [Large-Context Usability Live Closeout README](../README.large-context-usability-live-closeout.md): current M6/M8 live proof through gateway and AnythingLLM.
+- [Chunked Investigation Executor Contract README](../README.chunked-investigation-executor-contract.md): current M6/M8 contract for moving chunked investigation from selected-but-blocked to implementable.
+- [Chunked Investigation Executor Implementation README](../README.chunked-investigation-executor-implementation.md): current M6/M8 implementation for selected chunked-investigation prompts through the existing workflow-router path.
 - [Skill Regression Tiers README](../README.skill-regression-tiers.md): explicit offline, controller, gateway, AnythingLLM, UI, fixture-mutation, and release-candidate proof tiers.
 - [Skill Packaging README](../README.skill-packaging.md): governed skill-pack layout, namespace ownership, dependency policy, versioning, import/export, and retirement rules.
 - [L1 Coding Agent Prompt Backlog](L1_CODING_AGENT_PROMPTS.md): validated simple prompt/skill/tool targets, full L1 suite proof boundaries, and gates before advanced refactor work resumes.
@@ -161,10 +219,19 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Output Format Parity README](../README.output-format-parity.md): stable corpus output-format parity across gateway and AnythingLLM default/JSON responses.
 - [Natural Output Format Preference README](../README.natural-output-format-preference.md): natural-language selector proof for governed `format_a` and `json` responses across gateway and AnythingLLM.
 - [Founder Feedback Loop README](../README.founder-feedback-loop.md): governed feedback decisions for baseline candidates, holdout candidates, repair follow-ups, and rejected findings.
+- [Founder Feedback Loop Rebaseline README](../README.founder-feedback-loop-rebaseline.md): current M9 feedback-loop rebaseline and live report gate.
+- [Founder Feedback Repair Rerun Gate README](../README.founder-feedback-repair-rerun-gate.md): current M9 repair rerun proof gate for accepted feedback repairs.
 - [AnythingLLM UI E2E README](../README.anythingllm-ui-e2e.md): Desktop UI bundle rendering and chat submission proof through the real AnythingLLM backend.
 - [Fresh Local-Model Drift README](../README.fresh-local-model-drift.md): fresh stable-corpus rerun proof against the current localhost model and AnythingLLM path.
 - [Prompt Tightening Recommendations README](../README.prompt-tightening-recommendations.md): governed recommendation records for prompt clarification candidates, approval decisions, and rerun-proof requirements.
 - [Skill/Tool Coverage Gap README](../README.skill-tool-coverage-gap.md): current evidence classifier for missing deterministic skill/tool capability proposals.
+- [Skill Library Scaling Readiness Inventory README](../README.skill-library-scaling-readiness-inventory.md): current M12 skill-library coverage inventory and Phase 230 pilot recommendation.
+- [Small Skill Admission Pilot README](../README.small-skill-admission-pilot.md): current M12 pilot proving `FX-001` with no manual skill injection.
+- [Runtime Recovery Reliability Rebaseline README](../README.runtime-recovery-reliability-rebaseline.md): current M13 recovery proof that restarts the local stack and resumes gateway plus AnythingLLM chat-quality validation.
+- [Onboarding And Release Handoff Refresh README](../README.onboarding-release-handoff-refresh.md): current M14 first-time tester handoff refresh and stale-doc gate.
+- [Contextless Handoff Dry Run README](../README.contextless-handoff-dry-run.md): current M14 live dry-run proof over setup, prompts, and feedback capture.
+- [Clean Clone Release Handoff README](../README.clean-clone-release-handoff.md): current M14 disposable clean-snapshot proof over release handoff docs, validators, runtime restart, and live AnythingLLM onboarding.
+- [Clone-Safe Model Capability Routing README](../README.clone-safe-model-capability-routing.md): current M14 routing profile proof that clean checkouts do not need runtime-state profile seeding.
 - [Stable Release Blocker Closure README](../README.stable-release-blocker-closure.md): governed closure evidence for stable release blockers.
 - [Stable Chat Quality Release README](../README.stable-chat-quality-release.md): consolidated release-readiness report with artifact hashes, blockers, and founder-testing readiness.
 - [Model Swap Smoke Probe README](../README.model-swap-smoke-probe.md): live localhost model metadata, generation, harness, compatibility, and drift-required decision gate.
@@ -280,6 +347,8 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Output Format Parity Examples](examples/output-format-parity.md)
 - [Natural Output Format Preference Examples](examples/natural-output-format-preference.md)
 - [Founder Feedback Loop Examples](examples/founder-feedback-loop.md)
+- [Founder Feedback Loop Rebaseline Examples](examples/founder-feedback-loop-rebaseline.md)
+- [Founder Feedback Repair Rerun Gate Examples](examples/founder-feedback-repair-rerun-gate.md)
 - [Engineering Tenet Coverage Examples](examples/engineering-tenets.md)
 - [Security Policy Examples](examples/security-policy.md)
 - [Controller Service Examples](examples/controller-service.md)
@@ -308,6 +377,13 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Fresh Local-Model Drift Examples](examples/fresh-local-model-drift.md)
 - [Prompt Tightening Recommendation Examples](examples/prompt-tightening-recommendations.md)
 - [Skill/Tool Coverage Gap Examples](examples/skill-tool-coverage-gap.md)
+- [Skill Library Scaling Readiness Inventory Examples](examples/skill-library-scaling-readiness-inventory.md)
+- [Small Skill Admission Pilot Examples](examples/small-skill-admission-pilot.md)
+- [Runtime Recovery Reliability Rebaseline Examples](examples/runtime-recovery-reliability-rebaseline.md)
+- [Onboarding And Release Handoff Refresh Examples](examples/onboarding-release-handoff-refresh.md)
+- [Contextless Handoff Dry Run Examples](examples/contextless-handoff-dry-run.md)
+- [Clean Clone Release Handoff Examples](examples/clean-clone-release-handoff.md)
+- [Clone-Safe Model Capability Routing Examples](examples/clone-safe-model-capability-routing.md)
 - [Stable Release Blocker Closure Examples](examples/stable-release-blocker-closure.md)
 - [Stable Chat Quality Release Examples](examples/stable-chat-quality-release.md)
 - [AnythingLLM Founder Smoke Examples](examples/anythingllm-founder-smoke.md)
@@ -343,6 +419,30 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [V1 Product Readiness Reassessment Examples](examples/v1-product-readiness-reassessment.md)
 - [Founder Trial Execution Round Examples](examples/founder-trial-execution-round.md)
 - [Founder Feedback Intake And Repair Examples](examples/founder-feedback-intake-repair.md)
+- [V1 Beta Release Closeout Examples](examples/v1-beta-release-closeout.md)
+- [Chat-Visible Answer Contract Inventory Examples](examples/chat-visible-answer-contract-inventory.md)
+- [Chat-Visible Answer Contract Enforcement Examples](examples/chat-visible-answer-contract-enforcement.md)
+- [Chat-Visible Output Usefulness Refresh Examples](examples/chat-visible-output-usefulness-refresh.md)
+- [Workflow/Skill/Tool Selection Matrix Examples](examples/workflow-skill-tool-selection-matrix.md)
+- [No Manual Skill Injection Explainability Examples](examples/no-manual-skill-injection-explainability.md)
+- [Route Stability Holdout Replay Examples](examples/route-stability-holdout-replay.md)
+- [Evidence Relevance Audit Pack Examples](examples/evidence-relevance-audit-pack.md)
+- [Evidence Ranking Source Hash Gate Examples](examples/evidence-ranking-source-hash-gate.md)
+- [Evidence Quality Live Rerun Examples](examples/evidence-quality-live-rerun.md)
+- [Multi-Repo Fixture Baseline Pack Examples](examples/multi-repo-fixture-baseline-pack.md)
+- [Multi-Repo Baseline Comparison Examples](examples/multi-repo-baseline-comparison.md)
+- [Multi-Repo Live Generalization Rerun Examples](examples/multi-repo-live-generalization-rerun.md)
+- [M5 Generalization Closeout Examples](examples/m5-generalization-closeout.md)
+- [Large-Corpus Context Budget Inventory Examples](examples/large-corpus-context-budget-inventory.md)
+- [Retrieval-First Context Strategy Design Examples](examples/retrieval-first-context-strategy-design.md)
+- [Corpus Index Safety Governance Examples](examples/corpus-index-safety-governance.md)
+- [Context Index Prototype Examples](examples/context-index-prototype.md)
+- [Retrieval-Backed Chat Answer Gate Examples](examples/retrieval-backed-chat-answer-gate.md)
+- [Artifact Paging And Long Answer Usability Examples](examples/artifact-paging-long-answer-usability.md)
+- [Context Strategy Router Examples](examples/context-strategy-router.md)
+- [Large-Context Usability Live Closeout Examples](examples/large-context-usability-live-closeout.md)
+- [Chunked Investigation Executor Contract Examples](examples/chunked-investigation-executor-contract.md)
+- [Chunked Investigation Executor Implementation Examples](examples/chunked-investigation-executor-implementation.md)
 - [Skill Regression Tier Examples](examples/skill-regression-tiers.md)
 - [Skill Packaging Examples](examples/skill-packaging.md)
 - [Documenter Examples](examples/documenter.md)
@@ -383,6 +483,13 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Fresh Local-Model Drift README](../README.fresh-local-model-drift.md): Phase 127 gate for fresh current-local-model drift proof across stable Priority 0 prompt families.
 - [Prompt Tightening Recommendations README](../README.prompt-tightening-recommendations.md): Phase 128 gate for prompt-tightening review candidates and approval/rerun rules.
 - [Skill/Tool Coverage Gap README](../README.skill-tool-coverage-gap.md): Phase 129 gate for missing deterministic skill/tool proposals from current Priority 0 evidence.
+- [Skill Library Scaling Readiness Inventory README](../README.skill-library-scaling-readiness-inventory.md): Phase 229 gate for scaling readiness and next pilot selection.
+- [Small Skill Admission Pilot README](../README.small-skill-admission-pilot.md): Phase 230 gate for the first admitted M12 fixture/eval coverage candidate.
+- [Runtime Recovery Reliability Rebaseline README](../README.runtime-recovery-reliability-rebaseline.md): Phase 231 gate for restart evidence plus post-recovery small-repo and large-context chat proof.
+- [Onboarding And Release Handoff Refresh README](../README.onboarding-release-handoff-refresh.md): Phase 232 gate for current handoff docs and known limits.
+- [Contextless Handoff Dry Run README](../README.contextless-handoff-dry-run.md): Phase 233 gate for a contextless handoff dry run.
+- [Clean Clone Release Handoff README](../README.clean-clone-release-handoff.md): Phase 234 gate for clean-snapshot release handoff proof.
+- [Clone-Safe Model Capability Routing README](../README.clone-safe-model-capability-routing.md): Phase 235 gate for routing without runtime-state profile seeding.
 - [Phase 94 Runtime Skill Selection Hardening](PHASE94_RUNTIME_SKILL_SELECTION_HARDENING.md): selector contract, case catalog, live validation, and closeout proof requirements.
 - [Phase 95 Context Retrieval Upgrade](PHASE95_CONTEXT_RETRIEVAL_UPGRADE.md): context-source audit contract, unsupported layout blocking, and live validation proof.
 - [Phase 96 Implementation-Prep Workflow Expansion](PHASE96_IMPLEMENTATION_PREP_EXPANSION.md): draft-only packet proposal expansion, validation reports, fixture mutation proof, and known limits.

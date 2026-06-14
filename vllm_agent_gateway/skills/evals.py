@@ -24,6 +24,7 @@ from vllm_agent_gateway.skills.registry import (
 SKILL_EVALS_PATH = Path("runtime") / "skill_evals.json"
 DEFAULT_REPORT_DIR = Path("runtime-state") / "skill-evals"
 ALLOWED_LIVE_SUITES = {
+    "multi_repo_fixture_suite",
     "skill_registry_contract",
     "workflow_router_l1_suite",
     "workflow_router_l2_suite",
@@ -136,6 +137,13 @@ def live_mapping_for_case(case: dict[str, Any]) -> dict[str, Any]:
             "status": "metadata_only",
             "live_suite": live_suite,
             "reason": "case is validated by catalog and registry contract checks",
+        }
+    if live_suite == "multi_repo_fixture_suite":
+        return {
+            "status": "external_validator",
+            "live_suite": live_suite,
+            "script": "scripts/validate_multi_repo_fixtures_live.py",
+            "reason": "case is validated by the multi-repo fixture live gate, which has a suite-specific CLI contract",
         }
     case_map = LIVE_SUITE_CASE_MAP.get(live_suite)
     if not case_map:

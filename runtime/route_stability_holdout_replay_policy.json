@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "kind": "route_stability_holdout_replay_policy",
+  "phase": 205,
+  "priority_backlog_id": "P0-M3-205",
+  "policy_version": "0.1.0",
+  "purpose": "Replay target and holdout natural prompts through gateway and AnythingLLM to prove workflow, skill, and tool selection remains stable after Phase 204 hardening.",
+  "phase204_report_path": "runtime-state/phase204/phase204-no-manual-skill-injection-explainability-report.json",
+  "selector_contract_policy_path": "runtime/no_manual_skill_injection_explainability_policy.json",
+  "source_matrix_report_path": "runtime-state/phase203/phase203-workflow-skill-tool-selection-matrix-report.json",
+  "target_prompt_catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+  "holdout_prompt_catalog_path": "runtime/prompt_catalogs/semi_well_defined_v1.json",
+  "target_case_ids_from_phase204": true,
+  "holdout_case_ids": [
+    "P13",
+    "P14",
+    "P15",
+    "P16"
+  ],
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "minimum_target_case_count": 30,
+  "required_target_case_count": 33,
+  "minimum_holdout_case_count": 4,
+  "required_holdout_case_count": 4,
+  "required_live_response_count": 74,
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_status": "passed",
+  "compare_target_to_phase204": true,
+  "compare_holdout_to_matrix": true,
+  "holdout_exact_signature_required": true,
+  "holdout_expected_signatures": {
+    "P13": {
+      "selected_workflow": "code_investigation.plan",
+      "route_rules": [
+        "l1_coverage_gap_summary_terms"
+      ],
+      "selected_skills": [
+        "coverage-gap-summarizer",
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder"
+      ],
+      "selected_tools": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ]
+    },
+    "P14": {
+      "selected_workflow": "code_investigation.plan",
+      "route_rules": [
+        "l1_documentation_lookup_terms"
+      ],
+      "selected_skills": [
+        "documentation-locator",
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder"
+      ],
+      "selected_tools": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ]
+    },
+    "P15": {
+      "selected_workflow": "code_investigation.plan",
+      "route_rules": [
+        "l1_cli_entrypoint_lookup_terms"
+      ],
+      "selected_skills": [
+        "cli-entrypoint-locator",
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder",
+        "context-plan-builder"
+      ],
+      "selected_tools": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ]
+    },
+    "P16": {
+      "selected_workflow": "code_investigation.plan",
+      "route_rules": [
+        "l1_configuration_effect_summary_terms"
+      ],
+      "selected_skills": [
+        "configuration-effect-summarizer",
+        "code-explanation-summarizer",
+        "request-triage",
+        "scope-and-assumptions",
+        "entrypoint-finder"
+      ],
+      "selected_tools": [
+        "structure_index",
+        "git_grep",
+        "read_file"
+      ]
+    }
+  },
+  "forbidden_drift_classes": [
+    "workflow_drift",
+    "route_rule_drift",
+    "skill_selection_drift",
+    "tool_selection_drift",
+    "manual_skill_injection_dependency",
+    "missing_run_id",
+    "fixture_mutation"
+  ],
+  "notes": [
+    "Phase 205 does not introduce a new selector. It reuses the Phase 204 response path and adds route-signature stability checks.",
+    "Phase 205 closes M3 only when target and holdout route signatures are stable on gateway and AnythingLLM."
+  ]
+}

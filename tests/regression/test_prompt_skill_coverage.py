@@ -45,8 +45,14 @@ def test_prompt_skill_coverage_records_multi_repo_fixture_targets() -> None:
     manifest = json.loads((REPO_ROOT / "runtime" / "prompt_skill_coverage.json").read_text(encoding="utf-8"))
     entries = {item["id"]: item for item in manifest["entries"]}
 
-    assert entries["FX-001"]["status"] == "planned"
+    assert entries["FX-001"]["status"] == "implemented"
     assert entries["FX-001"]["fixture_targets"][0]["fixture_id"] == "python-service-generalization"
+    assert entries["FX-001"]["route_rule"] == "l1_endpoint_route_lookup_terms"
+    assert entries["FX-001"]["additional_route_rules"] == ["l1_data_model_lookup_terms"]
+    assert entries["FX-001"]["eval_case_ids"] == [
+        "phase230_python_service_endpoint_route_lookup",
+        "phase230_python_service_data_model_lookup",
+    ]
     assert entries["FX-002"]["status"] == "planned"
     assert entries["FX-002"]["fixture_targets"][0]["fixture_id"] == "node-cli-generalization"
     assert "hardcoded" in entries["FX-002"]["fixture_targets"][0]["behavior"]

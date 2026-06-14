@@ -57,6 +57,7 @@ class FixtureLiveCase:
     expected_route_hint: str
     expected_task_class: str
     expected_layout_status: str = "supported"
+    expected_artifact_markers: tuple[str, ...] = ()
 
 
 LIVE_CASES = [
@@ -100,6 +101,21 @@ LIVE_CASES = [
         expected_task_class="read_only_l1",
     ),
     FixtureLiveCase(
+        case_id="python-service-endpoint-route-lookup",
+        prompt_family="endpoint_route_lookup",
+        fixture_id="python-service-generalization",
+        prompt_template=(
+            "In {target_root}, locate the order request message handler. Read only. "
+            "Return handler file, handler symbol, route or message evidence, related tests, "
+            "and whether an HTTP method/path is present. Return JSON."
+        ),
+        expected_workflow="code_investigation.plan",
+        expected_artifact="downstream_endpoint_route_lookup",
+        expected_route_hint="l1_endpoint_route_lookup_terms",
+        expected_task_class="read_only_l1",
+        expected_artifact_markers=("service/api.py", "handle_create_order", "message.get", "read_only_no_source_mutation"),
+    ),
+    FixtureLiveCase(
         case_id="coinbase-schema-lookup",
         prompt_family="schema_lookup",
         fixture_id="coinbase-frozen",
@@ -137,6 +153,7 @@ LIVE_CASES = [
         expected_artifact="downstream_data_model_lookup",
         expected_route_hint="l1_data_model_lookup_terms",
         expected_task_class="read_only_l1",
+        expected_artifact_markers=("database/schema.py", "OrderRecord", "ORDERS_TABLE_SCHEMA", "item_count"),
     ),
     FixtureLiveCase(
         case_id="coinbase-request-flow",
@@ -399,6 +416,20 @@ def assert_parsed_content(parsed: dict[str, Any], *, case: FixtureLiveCase, labe
         raise RuntimeError(f"{label} selected wrong workflow: {contract.get('selected_workflow')!r}")
     if case.expected_artifact not in artifacts:
         raise RuntimeError(f"{label} missing expected artifact: {case.expected_artifact}")
+    artifact_markers = list(case.expected_artifact_markers)
+    artifact_marker_status = None
+    if artifact_markers:
+        artifact_path_value = artifacts.get(case.expected_artifact)
+        if not isinstance(artifact_path_value, str) or not artifact_path_value:
+            raise RuntimeError(f"{label} expected artifact path missing for marker validation")
+        artifact_path = Path(artifact_path_value)
+        if not artifact_path.is_file():
+            raise RuntimeError(f"{label} expected artifact path does not exist for marker validation: {artifact_path}")
+        artifact_text = artifact_path.read_text(encoding="utf-8")
+        missing_markers = [marker for marker in artifact_markers if marker not in artifact_text]
+        if missing_markers:
+            raise RuntimeError(f"{label} artifact missing marker(s): {json.dumps(missing_markers, ensure_ascii=True)}")
+        artifact_marker_status = {"required": artifact_markers, "missing": []}
     evidence_boundary_status = None
     evidence_boundary_errors: list[Any] = []
     if case.expected_artifact in EVIDENCE_BOUNDARY_ARTIFACTS:
@@ -434,6 +465,7 @@ def assert_parsed_content(parsed: dict[str, Any], *, case: FixtureLiveCase, labe
         "context_gaps": audit.get("gaps") if isinstance(audit.get("gaps"), list) else [],
         "evidence_boundary_status": evidence_boundary_status,
         "evidence_boundary_error_count": len(evidence_boundary_errors),
+        "artifact_marker_status": artifact_marker_status,
     }
 
 
@@ -526,6 +558,7 @@ def case_result(
         "context_gaps": proof["context_gaps"],
         "evidence_boundary_status": proof.get("evidence_boundary_status"),
         "evidence_boundary_error_count": proof.get("evidence_boundary_error_count"),
+        "artifact_marker_status": proof.get("artifact_marker_status"),
         "expected_route_hint": case.expected_route_hint,
         "expected_task_class": case.expected_task_class,
         "repo_layout_limitations": repo_layout_limitations(entry),

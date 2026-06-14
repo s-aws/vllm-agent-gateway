@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "kind": "corpus_index_safety_governance_policy",
+  "phase": 216,
+  "priority_backlog_id": "P0-M16-216",
+  "milestone_ids": [
+    "M16"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Define and validate corpus/index safety boundaries before any durable index can feed retrieval-backed chat.",
+  "phase215_precondition": {
+    "report_path": "runtime-state/phase215/phase215-retrieval-first-context-strategy-design-report.json",
+    "required_status": "passed",
+    "required_phase216_ready": true,
+    "retrieval_index_implementation_in_scope_must_be": false,
+    "retrieval_backed_chat_integration_in_scope_must_be": false
+  },
+  "negative_control_fixture": {
+    "root": "runtime-state/phase216/corpus-safety-negative-controls",
+    "profile": "index_safety_negative_controls",
+    "allowed_source_paths": [
+      "src/public_service.py",
+      "docs/public_notes.md"
+    ],
+    "stale_source_paths": [
+      "src/stale_source.py"
+    ],
+    "secret_fixture_value": "PHASE216_DUMMY_SECRET_DO_NOT_EXPOSE"
+  },
+  "root_policy": {
+    "allowed_roots": [
+      "runtime-state/phase214/generated-large-corpus",
+      "runtime-state/phase216/corpus-safety-negative-controls"
+    ],
+    "denied_root_values": [
+      "/",
+      "C:",
+      "C:/",
+      "/mnt/c",
+      "/mnt/c/Users"
+    ],
+    "unapproved_root_negative_control": "/mnt/c/phase216-unapproved-root"
+  },
+  "ignore_policy": {
+    "required_ignore_sources": [
+      ".gitignore",
+      ".cgcignore",
+      "policy_deny_patterns"
+    ],
+    "policy_deny_patterns": [
+      "private/",
+      "ignored/",
+      "runtime-state/",
+      "*.secret",
+      "*.bin"
+    ],
+    "must_apply_before_candidate_admission": true
+  },
+  "safety_rules": [
+    "reject_unapproved_roots",
+    "reject_path_traversal",
+    "reject_symlink_escape",
+    "reject_ignored_paths",
+    "reject_private_paths",
+    "reject_binary_text_content",
+    "reject_secret_like_content",
+    "reject_generated_runtime_artifacts",
+    "reject_stale_source_hashes",
+    "reject_changed_ignore_policy_hash",
+    "reject_changed_safety_policy_hash",
+    "reject_changed_context_strategy_id",
+    "preserve_source_hashes_for_admitted_sources",
+    "redact_secret_like_metadata",
+    "no_rejected_content_in_chat_visible_output",
+    "no_rejected_content_in_durable_artifacts",
+    "no_durable_index_before_phase217",
+    "no_retrieval_backed_chat_before_phase218"
+  ],
+  "secret_like_patterns": [
+    {
+      "pattern_id": "dummy_secret_fixture",
+      "contains": "PHASE216_DUMMY_SECRET_DO_NOT_EXPOSE",
+      "redaction": "REDACTED_SECRET_LIKE_VALUE"
+    },
+    {
+      "pattern_id": "private_key_block",
+      "contains": "BEGIN PRIVATE KEY",
+      "redaction": "REDACTED_PRIVATE_KEY"
+    },
+    {
+      "pattern_id": "bearer_token_assignment",
+      "contains": "Bearer ",
+      "redaction": "REDACTED_BEARER_TOKEN"
+    },
+    {
+      "pattern_id": "env_secret_assignment",
+      "contains": "SECRET=",
+      "redaction": "REDACTED_SECRET_ASSIGNMENT"
+    }
+  ],
+  "index_manifest_requirements": [
+    "manifest_schema_version",
+    "target_root",
+    "allowed_root_id",
+    "ignore_policy_fingerprint",
+    "source_path",
+    "source_sha256",
+    "chunk_id",
+    "chunk_sha256",
+    "model_id",
+    "context_strategy_id",
+    "created_at",
+    "source_mtime_ns",
+    "source_size",
+    "freshness_status",
+    "admission_decision",
+    "rejection_reasons"
+  ],
+  "retention_policy": {
+    "source_text_copy_allowed": false,
+    "chat_visible_rejected_content_allowed": false,
+    "artifact_rejected_content_allowed": false,
+    "delete_index_on_source_removal": true,
+    "stale_index_status": "rejected_until_refreshed",
+    "max_reported_excerpt_chars": 0
+  },
+  "negative_controls": [
+    {
+      "case_id": "P216-SAFE-001",
+      "path": "src/public_service.py",
+      "expected_decision": "admit",
+      "expected_reasons": []
+    },
+    {
+      "case_id": "P216-SAFE-002",
+      "path": "ignored/hidden_service.py",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "ignored_path"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-003",
+      "path": "private/operator_notes.md",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "ignored_path",
+        "private_path"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-004",
+      "path": "config/credential.secret",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "ignored_path",
+        "secret_like_content"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-005",
+      "path": "assets/blob.bin",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "ignored_path",
+        "binary_file"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-006",
+      "path": "runtime-state/generated-artifact.json",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "ignored_path",
+        "generated_artifact"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-007",
+      "path": "src/stale_source.py",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "stale_source_hash"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-008",
+      "path": "/mnt/c/phase216-unapproved-root/src/public_service.py",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "unapproved_root"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-009",
+      "path": "../phase216-path-traversal.txt",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "path_traversal"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-010",
+      "path": "links/escaped-secret.txt",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "symlink_escape"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-011",
+      "path": "src/public_service.py",
+      "metadata_mutation": "changed_ignore_policy_hash",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "changed_ignore_policy_hash"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-012",
+      "path": "src/public_service.py",
+      "metadata_mutation": "changed_safety_policy_hash",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "changed_safety_policy_hash"
+      ]
+    },
+    {
+      "case_id": "P216-SAFE-013",
+      "path": "src/public_service.py",
+      "metadata_mutation": "changed_context_strategy_id",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "changed_context_strategy_id"
+      ]
+    }
+  ],
+  "out_of_scope": [
+    "durable_index_implementation",
+    "embedding_model_selection",
+    "retrieval_backed_chat_integration",
+    "artifact_paging_implementation",
+    "raw_1m_context_benchmark",
+    "protected_fixture_mutation"
+  ],
+  "acceptance_marker": "PHASE216 CORPUS INDEX SAFETY GOVERNANCE PASS"
+}

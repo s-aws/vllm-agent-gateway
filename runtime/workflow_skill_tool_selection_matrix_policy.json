@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "workflow_skill_tool_selection_matrix_policy",
+  "phase": 203,
+  "priority_backlog_id": "P0-BB-067",
+  "milestone_id": "M3",
+  "goal": "Refresh the deterministic workflow, skill, and tool selection matrix for supported prompt families before live M3 explainability gates.",
+  "required_sources": {
+    "prompt_skill_coverage": {
+      "path": "runtime/prompt_skill_coverage.json",
+      "expected_kind": "prompt_skill_coverage_registry"
+    },
+    "workflows": {
+      "path": "runtime/workflows.json"
+    },
+    "skills": {
+      "path": "runtime/skills.json",
+      "expected_kind": "skill_registry"
+    },
+    "tools": {
+      "path": "runtime/tools.json"
+    },
+    "selection_explainability": {
+      "path": "runtime-state/skill-tool-selection-explainability-e2e/phase151/phase151-skill-tool-selection-explainability-e2e-report.json",
+      "expected_kind": "skill_tool_selection_explainability_e2e_report",
+      "expected_status": "passed"
+    },
+    "selection_cases": {
+      "path": "runtime/skill_selection_hardening_cases.json",
+      "expected_kind": "skill_selection_hardening_cases"
+    },
+    "multi_fixture_parity": {
+      "path": "runtime-state/multi-fixture-prompt-parity/phase187-anythingllm-report.json",
+      "expected_kind": "multi_repo_fixture_live_report",
+      "expected_status": "passed"
+    },
+    "holdout_prompt_bank": {
+      "path": "runtime/holdout_prompt_bank.json",
+      "expected_kind": "priority0_holdout_prompt_bank"
+    },
+    "phase202_refresh": {
+      "path": "runtime-state/phase202/phase202-chat-visible-output-usefulness-refresh-report.json",
+      "expected_kind": "chat_visible_output_usefulness_refresh_report",
+      "expected_status": "passed",
+      "expected_phase": 202
+    }
+  },
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_non_coinbase_roots": [
+    "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture"
+  ],
+  "minimum_matrix_record_count": 38,
+  "required_docs": [
+    "README.workflow-skill-tool-selection-matrix.md",
+    "docs/examples/workflow-skill-tool-selection-matrix.md",
+    "README.chat-visible-output-usefulness-refresh.md",
+    "README.skill-tool-selection-explainability-e2e.md",
+    "README.multi-fixture-prompt-parity.md",
+    "docs/PROJECT_MILESTONES.md"
+  ],
+  "acceptance_marker": "PHASE203 WORKFLOW SKILL TOOL SELECTION MATRIX PASS"
+}

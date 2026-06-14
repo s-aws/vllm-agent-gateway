@@ -836,7 +836,8 @@
         "approval_boundary": "none",
         "mutation_policy": "no_repository_mutation",
         "eval_case_ids": [
-          "l1_endpoint_route_lookup"
+          "l1_endpoint_route_lookup",
+          "phase230_python_service_endpoint_route_lookup"
         ]
       },
       "problem_solving_steps": [
@@ -1023,7 +1024,8 @@
         "approval_boundary": "none",
         "mutation_policy": "no_repository_mutation",
         "eval_case_ids": [
-          "l1_data_model_lookup"
+          "l1_data_model_lookup",
+          "phase230_python_service_data_model_lookup"
         ]
       },
       "problem_solving_steps": [

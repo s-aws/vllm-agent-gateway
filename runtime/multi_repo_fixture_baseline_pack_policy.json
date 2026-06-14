@@ -1,0 +1,391 @@
+{
+  "schema_version": 1,
+  "kind": "multi_repo_fixture_baseline_pack_policy",
+  "phase": 209,
+  "priority_backlog_id": "P0-M5-209",
+  "milestone_id": "M5",
+  "policy_version": "1.0.0",
+  "purpose": "Select s-aws/staterail as the first non-Coinbase M5 fixture and create a blind-baseline prompt pack before local-model comparison or repairs.",
+  "required_categories": [
+    "code_explanation",
+    "behavior_beginning_point",
+    "related_tests",
+    "change_surface",
+    "validation_commands"
+  ],
+  "fixture": {
+    "fixture_id": "staterail_git",
+    "name": "s-aws/staterail",
+    "repo_url": "https://github.com/s-aws/staterail.git",
+    "local_path": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+    "default_branch": "main",
+    "expected_commit": "d3cecac670e3dd185cd3289feecae6ec69bab0b3",
+    "primary_language": "Python",
+    "github_disk_usage_kb": 919,
+    "expected_file_count": 229,
+    "expected_python_file_count": 170,
+    "expected_test_file_count": 57,
+    "allowed_operations": [
+      "clone_or_refresh_local_fixture",
+      "freeze_local_copy",
+      "read_source_docs_tests",
+      "run_tests",
+      "create_disposable_mutation_copy",
+      "generate_controller_runtime_artifacts",
+      "gateway_validation",
+      "anythingllm_validation"
+    ],
+    "forbidden_operations": [
+      "commit_to_staterail",
+      "push_to_staterail",
+      "publish_staterail_branch",
+      "mutate_staterail_remote",
+      "treat_staterail_as_production_target"
+    ],
+    "mutation_policy": "read_only_fixture_disposable_copy_only"
+  },
+  "cases": [
+    {
+      "case_id": "P209-SR-001",
+      "category": "code_explanation",
+      "prompt_family": "code_explanation",
+      "target_root": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/staterail_testing_repo_frozen_tmp.github, explain what ActionGateway does in actions/gateway.py. Read only. Include key inputs, outputs, side effects, and tests.",
+      "expected_workflow": "code_investigation.plan",
+      "mutation_policy": "read_only_no_source_mutation",
+      "source_hints": [
+        "actions/gateway.py",
+        "actions/execution.py",
+        "risk/gate.py"
+      ],
+      "test_hints": [
+        "tests/regression/test_action_gateway.py",
+        "tests/regression/test_dry_run_executor.py",
+        "tests/regression/test_risk_gate.py"
+      ],
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Start with a concise description of ActionGateway's role in routing validated operator or strategy actions through risk checks, execution, and audit/projection updates.",
+          "Identify key input objects and payload types without claiming unsupported runtime behavior.",
+          "Separate outputs from side effects, including audit records, execution results, and projection updates.",
+          "List direct source files and related tests with confidence labels.",
+          "State that this is a read-only explanation and source mutation is false."
+        ],
+        "must_have_evidence": [
+          "Direct evidence from actions/gateway.py.",
+          "Supporting evidence from execution or risk modules when discussing execution or risk behavior.",
+          "Related regression tests that exercise gateway order placement, cancellation, dry-run execution, or risk rejection.",
+          "Explicit limitation if exact behavior requires deeper call-chain tracing in Phase 210."
+        ],
+        "safety_boundaries": [
+          "Do not propose code changes.",
+          "Do not run live exchange operations.",
+          "Do not commit or push to s-aws/staterail.",
+          "Do not expose secrets or values from .env.example as credentials."
+        ],
+        "output_format_expectations": [
+          "Default answer should be chat-visible FormatA with Answer, Evidence, Related tests, Verification, and Source mutation sections.",
+          "JSON output, if requested, must preserve the same facts, evidence refs, and source mutation boundary."
+        ],
+        "scoring_rubric": [
+          {
+            "dimension": "role_summary",
+            "points": 20
+          },
+          {
+            "dimension": "inputs_outputs_side_effects",
+            "points": 25
+          },
+          {
+            "dimension": "source_evidence_quality",
+            "points": 25
+          },
+          {
+            "dimension": "related_tests",
+            "points": 15
+          },
+          {
+            "dimension": "safety_and_limits",
+            "points": 15
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "P209-SR-002",
+      "category": "behavior_beginning_point",
+      "prompt_family": "behavior_start",
+      "target_root": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/staterail_testing_repo_frozen_tmp.github, find the likely logic beginning point for live no-order preflight enforcement. Read only. Include source refs, downstream files, and tests.",
+      "expected_workflow": "code_investigation.plan",
+      "mutation_policy": "read_only_no_source_mutation",
+      "source_hints": [
+        "app/live_preflight_gate.py",
+        "app/live_no_order_preflight.py",
+        "app/live_runtime_gate.py",
+        "core/enums.py"
+      ],
+      "test_hints": [
+        "tests/regression/test_live_no_order_preflight.py",
+        "tests/regression/test_live_runtime_gate.py"
+      ],
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Name the likely beginning-point file and function or class with confidence.",
+          "Explain why that source is the entry point for enforcement rather than only a data model or test helper.",
+          "List downstream files that consume or validate the preflight result.",
+          "List focused related tests and recommended validation commands.",
+          "Call out unknowns when exact line refs require Phase 210 source reading."
+        ],
+        "must_have_evidence": [
+          "Direct evidence from app/live_preflight_gate.py or app/live_no_order_preflight.py.",
+          "Downstream relationship to app/live_runtime_gate.py or ledger health/readiness checks when relevant.",
+          "Regression tests for no-order preflight and runtime gate behavior.",
+          "Clear confidence and no-mutation statement."
+        ],
+        "safety_boundaries": [
+          "Do not run live exchange or order tasks.",
+          "Do not modify fixture files.",
+          "Do not commit or push to s-aws/staterail."
+        ],
+        "output_format_expectations": [
+          "Answer should prioritize beginning point before downstream context.",
+          "Evidence refs should be visible in chat, not only in artifacts."
+        ],
+        "scoring_rubric": [
+          {
+            "dimension": "beginning_point_accuracy",
+            "points": 30
+          },
+          {
+            "dimension": "downstream_context",
+            "points": 20
+          },
+          {
+            "dimension": "source_and_test_evidence",
+            "points": 25
+          },
+          {
+            "dimension": "validation_commands",
+            "points": 10
+          },
+          {
+            "dimension": "safety_and_uncertainty",
+            "points": 15
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "P209-SR-003",
+      "category": "related_tests",
+      "prompt_family": "related_test_discovery",
+      "target_root": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/staterail_testing_repo_frozen_tmp.github, find the most relevant tests for RiskGate rejecting orders that exceed notional, leverage, product, or operator constraints. Read only. Include confidence and why each test is relevant.",
+      "expected_workflow": "code_investigation.plan",
+      "mutation_policy": "read_only_no_source_mutation",
+      "source_hints": [
+        "risk/gate.py",
+        "config/assembly.py",
+        "products/catalog.py"
+      ],
+      "test_hints": [
+        "tests/regression/test_risk_gate.py",
+        "tests/regression/test_product_catalog.py",
+        "tests/regression/test_config_assembly.py"
+      ],
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "List strongest direct tests first and explain the behavior each validates.",
+          "Separate direct tests from supporting configuration or product-catalog tests.",
+          "Tie each test to a source behavior or risk rule.",
+          "Provide focused pytest commands before broad commands.",
+          "Report bounded no-test-found only if direct tests are absent."
+        ],
+        "must_have_evidence": [
+          "Direct test evidence from tests/regression/test_risk_gate.py.",
+          "Supporting tests from product catalog or config assembly only when they validate risk inputs.",
+          "Source evidence from risk/gate.py.",
+          "Confidence labels for direct versus supporting tests."
+        ],
+        "safety_boundaries": [
+          "Do not edit tests or source.",
+          "Do not run live exchange operations.",
+          "Do not commit or push to s-aws/staterail."
+        ],
+        "output_format_expectations": [
+          "Related tests should be chat-visible and ordered by relevance.",
+          "Commands should be copyable and scoped."
+        ],
+        "scoring_rubric": [
+          {
+            "dimension": "direct_test_selection",
+            "points": 35
+          },
+          {
+            "dimension": "relevance_rationale",
+            "points": 25
+          },
+          {
+            "dimension": "source_linkage",
+            "points": 15
+          },
+          {
+            "dimension": "command_scope",
+            "points": 15
+          },
+          {
+            "dimension": "safety_boundary",
+            "points": 10
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "P209-SR-004",
+      "category": "change_surface",
+      "prompt_family": "change_surface",
+      "target_root": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/staterail_testing_repo_frozen_tmp.github, if we needed to change how order lineage validates manual association approval, what files would likely be in scope and out of scope? Read only. Include risks, unknowns, and verification commands.",
+      "expected_workflow": "code_investigation.plan",
+      "mutation_policy": "read_only_no_source_mutation",
+      "source_hints": [
+        "orders/lineage.py",
+        "orders/sizing.py",
+        "actions/gateway.py",
+        "core/enums.py"
+      ],
+      "test_hints": [
+        "tests/regression/test_order_lineage.py",
+        "tests/regression/test_action_gateway.py",
+        "tests/regression/test_strategy_harness.py"
+      ],
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Start with likely files to inspect or touch and why.",
+          "List files likely out of scope to avoid broad unrelated changes.",
+          "State risks around lineage ambiguity, manual approval metadata, sizing policy, and gateway validation.",
+          "Provide unknowns that require source reading before implementation planning.",
+          "Provide focused and broader verification commands."
+        ],
+        "must_have_evidence": [
+          "Direct evidence from orders/lineage.py for manual association validation.",
+          "Supporting evidence from actions/gateway.py if gateway validates lineage payloads.",
+          "Regression tests for order lineage and any supporting gateway behavior.",
+          "Explicit no-mutation and no-commit boundary."
+        ],
+        "safety_boundaries": [
+          "Do not propose implementation changes beyond a read-only surface map.",
+          "Do not mutate source files.",
+          "Do not commit or push to s-aws/staterail."
+        ],
+        "output_format_expectations": [
+          "Answer should clearly separate in-scope, out-of-scope, risks, unknowns, and verification.",
+          "JSON output, if requested, should retain the same boundary categories."
+        ],
+        "scoring_rubric": [
+          {
+            "dimension": "scope_boundary",
+            "points": 30
+          },
+          {
+            "dimension": "risk_and_unknowns",
+            "points": 20
+          },
+          {
+            "dimension": "evidence_refs",
+            "points": 25
+          },
+          {
+            "dimension": "verification_commands",
+            "points": 15
+          },
+          {
+            "dimension": "safety_boundary",
+            "points": 10
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "P209-SR-005",
+      "category": "validation_commands",
+      "prompt_family": "validation_command_selection",
+      "target_root": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+      "prompt": "In /mnt/c/staterail_testing_repo_frozen_tmp.github, recommend the smallest, medium, and broad pytest commands for validating changes around strategy simulation gates. Read only. Explain why each command belongs at that tier.",
+      "expected_workflow": "code_investigation.plan",
+      "mutation_policy": "read_only_no_source_mutation",
+      "source_hints": [
+        "app/strategy_simulation_gate.py",
+        "strategies/simulation.py",
+        "strategies/harness.py"
+      ],
+      "test_hints": [
+        "tests/regression/test_strategy_simulation.py",
+        "tests/regression/test_strategy_harness.py",
+        "tests/regression/test_strategy_scenario.py"
+      ],
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Start with the smallest focused command that directly targets strategy simulation gate behavior.",
+          "Add a medium command that includes adjacent strategy simulation or harness coverage.",
+          "Add a broad command that is still justified and not a default full suite unless warranted.",
+          "Explain what each tier catches and what it does not catch.",
+          "Include source refs and no-mutation status."
+        ],
+        "must_have_evidence": [
+          "Direct source evidence from app/strategy_simulation_gate.py.",
+          "Direct test evidence from tests/regression/test_strategy_simulation.py.",
+          "Supporting evidence from strategy harness or scenario tests only when justified.",
+          "Clear ordering from smallest to broadest command."
+        ],
+        "safety_boundaries": [
+          "Do not run tests unless explicitly asked in this prompt.",
+          "Do not edit files.",
+          "Do not commit or push to s-aws/staterail."
+        ],
+        "output_format_expectations": [
+          "Commands should be shell-copyable and ordered by blast radius.",
+          "Answer should explain why full regression is or is not necessary."
+        ],
+        "scoring_rubric": [
+          {
+            "dimension": "command_tiering",
+            "points": 30
+          },
+          {
+            "dimension": "direct_test_and_source_evidence",
+            "points": 25
+          },
+          {
+            "dimension": "blast_radius_reasoning",
+            "points": 20
+          },
+          {
+            "dimension": "chat_usability",
+            "points": 15
+          },
+          {
+            "dimension": "safety_boundary",
+            "points": 10
+          }
+        ]
+      }
+    }
+  ],
+  "phase210_ready_requirements": [
+    "fixture local path exists",
+    "fixture HEAD matches expected_commit",
+    "fixture worktree is clean",
+    "all required prompt categories are present",
+    "all blind-baseline rubrics total 100 points",
+    "all source_hints and test_hints exist in the fixture",
+    "no commit or push to s-aws/staterail is permitted"
+  ],
+  "current_phase_limitations": [
+    "Phase 209 does not run local-model comparison.",
+    "Phase 209 does not change router, controller, workflow, skill, or formatter behavior.",
+    "Phase 209 does not mutate or commit to s-aws/staterail.",
+    "Phase 210 is the first phase that compares local-model output against these blind baselines."
+  ]
+}

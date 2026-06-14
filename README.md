@@ -2,6 +2,8 @@
 
 `vllm-agent-gateway` is a Linux-first local runtime for putting stricter controls between agent clients and a vLLM-hosted model.
 
+The project objective is to make local-model coding-agent work reliable through natural-language requests: route the request, select deterministic skills and tools, gather bounded evidence, return useful chat-visible answers, preserve safety boundaries, and produce repeatable validation proof.
+
 It provides:
 
 - role-specific prompt proxy ports
@@ -13,6 +15,10 @@ It provides:
 - a tool catalog used by controllers and the tool mediator to authorize deterministic actions
 
 The project is intentionally conservative. It does not silently summarize, trim, rewrite, or forward unbounded context. When a request is too large, the gateway or controller rejects it so the caller has to delegate a smaller task or explicitly choose a reduction mode.
+
+Large-context support means making very large repositories and corpora, including 1M+ token projects, usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. It does not mean promising that the current local model can accept a raw 1M-token prompt. Raw 1M-token serving is experimental until model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality are proven.
+
+Current large-context preparation lives in [README.large-corpus-context-budget-inventory.md](README.large-corpus-context-budget-inventory.md), [README.retrieval-first-context-strategy-design.md](README.retrieval-first-context-strategy-design.md), [README.corpus-index-safety-governance.md](README.corpus-index-safety-governance.md), [README.context-index-prototype.md](README.context-index-prototype.md), [README.retrieval-backed-chat-answer-gate.md](README.retrieval-backed-chat-answer-gate.md), [README.artifact-paging-long-answer-usability.md](README.artifact-paging-long-answer-usability.md), [README.context-strategy-router.md](README.context-strategy-router.md), [README.large-context-usability-live-closeout.md](README.large-context-usability-live-closeout.md), [README.chunked-investigation-executor-contract.md](README.chunked-investigation-executor-contract.md), and [README.chunked-investigation-executor-implementation.md](README.chunked-investigation-executor-implementation.md).
 
 ## Quick Start
 
@@ -41,12 +47,31 @@ First-time AnythingLLM testers should start here:
 - [README.release-candidate-founder-trial-pack.md](README.release-candidate-founder-trial-pack.md): Phase 195 contextless founder trial pack with setup, prompts, answer-quality expectations, limits, and feedback capture.
 - [README.v1-product-readiness-reassessment.md](README.v1-product-readiness-reassessment.md): Phase 196 current readiness reassessment for broader V1 founder beta after the Phase 191-195 proof chain.
 - [README.founder-trial-execution-round.md](README.founder-trial-execution-round.md): Phase 197 live founder trial execution through AnythingLLM with run IDs, response artifacts, and quality classifications.
+- [README.v1-beta-release-closeout.md](README.v1-beta-release-closeout.md): Phase 199 closeout gate for the M1 V1 founder beta milestone.
+- [README.chat-visible-answer-contract-inventory.md](README.chat-visible-answer-contract-inventory.md): Phase 200 inventory of chat-visible answer contracts for supported Priority 0 prompt families.
+- [README.chat-visible-answer-contract-enforcement.md](README.chat-visible-answer-contract-enforcement.md): Phase 201 deterministic enforcement gate for chat-visible answer contracts.
+- [README.chat-visible-output-usefulness-refresh.md](README.chat-visible-output-usefulness-refresh.md): Phase 202 live gateway and AnythingLLM refresh for M2 answer usefulness.
+- [README.workflow-skill-tool-selection-matrix.md](README.workflow-skill-tool-selection-matrix.md): Phase 203 deterministic workflow/skill/tool selection matrix for M3.
+- [README.no-manual-skill-injection-explainability.md](README.no-manual-skill-injection-explainability.md): Phase 204 natural prompt selection explainability without manual skill injection.
+- [README.skill-library-scaling-readiness-inventory.md](README.skill-library-scaling-readiness-inventory.md): Phase 229 M12 inventory for current skill/tool coverage and the next small pilot candidate.
+- [README.small-skill-admission-pilot.md](README.small-skill-admission-pilot.md): Phase 230 admission gate for the first M12 fixture/eval coverage candidate.
+- [README.runtime-recovery-reliability-rebaseline.md](README.runtime-recovery-reliability-rebaseline.md): Phase 231 restart-and-resume proof for vLLM, gateway/proxies, controller, AnythingLLM, small-repo prompts, and large-context prompts.
+- [README.onboarding-release-handoff-refresh.md](README.onboarding-release-handoff-refresh.md): Phase 232 docs freshness gate for the contextless tester handoff path.
+- [README.contextless-handoff-dry-run.md](README.contextless-handoff-dry-run.md): Phase 233 live proof that a contextless tester can follow the refreshed handoff.
+- [README.clean-clone-release-handoff.md](README.clean-clone-release-handoff.md): Phase 234 disposable clean-snapshot proof for release handoff without private workspace state.
+- [README.clone-safe-model-capability-routing.md](README.clone-safe-model-capability-routing.md): Phase 235 clone-safe model capability profile path for clean checkout routing.
+- [README.route-stability-holdout-replay.md](README.route-stability-holdout-replay.md): Phase 205 target and holdout route stability replay through gateway and AnythingLLM.
+- [README.evidence-relevance-audit-pack.md](README.evidence-relevance-audit-pack.md): Phase 206 contextless evidence-quality audit pack for M4.
+- [README.evidence-ranking-source-hash-gate.md](README.evidence-ranking-source-hash-gate.md): Phase 207 deterministic evidence ranking and source-hash proof gate for M4.
+- [README.evidence-quality-live-rerun.md](README.evidence-quality-live-rerun.md): Phase 208 live gateway and AnythingLLM rerun of M4 evidence-quality prompts.
 - [README.current-model-compatibility.md](README.current-model-compatibility.md): Phase 150 matrix for current localhost model support, boundaries, and monitored risks.
 - [README.model-swap-smoke-probe.md](README.model-swap-smoke-probe.md): Phase 154 smoke probe that detects localhost model swaps and decides whether drift gates are required.
 - [README.v1-product-readiness-review.md](README.v1-product-readiness-review.md): Phase 155 go/no-go review for V1 founder-testing readiness.
 - [README.v1-stable-release-decision.md](README.v1-stable-release-decision.md): Phase 156 final release decision, scope, limitations, rollback path, and next roadmap batch.
 - [README.founder-field-round1.md](README.founder-field-round1.md): Phase 157 founder field-test round through AnythingLLM with advisory/blocker routing into feedback intake.
 - [README.founder-field-round2.md](README.founder-field-round2.md): Phase 164 blind-baseline-first founder field round with full response artifacts and route proof.
+- [README.founder-feedback-loop-rebaseline.md](README.founder-feedback-loop-rebaseline.md): Phase 227 rebaseline for governed useful, advisory, repair, rejected, deferred, baseline, and holdout feedback outcomes.
+- [README.founder-feedback-repair-rerun-gate.md](README.founder-feedback-repair-rerun-gate.md): Phase 228 proof gate for accepted feedback repairs before they can be marked fixed.
 - [README.prompt-advisory-closure.md](README.prompt-advisory-closure.md): Phase 165 prompt-advisory closure using refined prompt candidates and holdout proof.
 - [README.generic-chat-vague-prompt-contract.md](README.generic-chat-vague-prompt-contract.md): Phase 166 contract for greetings, vague prompts, missing targets, and approval-bypass refusal.
 - [README.transcript-quality-feedback-intake.md](README.transcript-quality-feedback-intake.md): Phase 158 governed intake for Phase 157 advisory/blocker cases and founder notes.
@@ -144,6 +169,11 @@ Feature docs:
 - [README.multi-fixture-prompt-parity.md](README.multi-fixture-prompt-parity.md): multi-fixture prompt parity across gateway and AnythingLLM
 - [README.evidence-boundary-schema-gate.md](README.evidence-boundary-schema-gate.md): governed schema and change-boundary evidence validation before chat answers
 - [README.unsupported-scope-refusal-quality.md](README.unsupported-scope-refusal-quality.md): unsupported-scope refusal and clarification quality gate
+- [README.multi-repo-fixture-baseline-pack.md](README.multi-repo-fixture-baseline-pack.md): Phase 209 `s-aws/staterail` fixture selection and blind-baseline prompt pack
+- [README.multi-repo-baseline-comparison.md](README.multi-repo-baseline-comparison.md): Phase 210 `s-aws/staterail` gateway and AnythingLLM baseline comparison dry run
+- [README.multi-repo-live-generalization-rerun.md](README.multi-repo-live-generalization-rerun.md): Phase 212 live M5 rerun across Staterail and Coinbase holdouts
+- [README.m5-generalization-closeout.md](README.m5-generalization-closeout.md): Phase 213 M5 closeout decision and next-scope boundary
+- [README.large-corpus-context-budget-inventory.md](README.large-corpus-context-budget-inventory.md): Phase 214 large local corpus and context-budget inventory
 - [README.prompt-family-drift-detection.md](README.prompt-family-drift-detection.md): prompt-family drift classification against catalog, skill coverage, holdouts, and founder prompt pack
 - [README.chat-answer-scoring-v2.md](README.chat-answer-scoring-v2.md): repeatable chat-answer scoring, classification, and repair-target guidance
 - [README.skill-registry-readiness-review.md](README.skill-registry-readiness-review.md): keep, split, merge, retire, or defer review for current skills before scaling
@@ -158,12 +188,19 @@ Feature docs:
 - [README.v1-stable-release-decision.md](README.v1-stable-release-decision.md): final V1 founder-testing release decision with rollback and next-batch status
 - [README.founder-field-round1.md](README.founder-field-round1.md): founder field-test round 1 with AnythingLLM evidence, advisory cases, and Phase 158 routing
 - [README.founder-field-round2.md](README.founder-field-round2.md): founder field-test round 2 with blind baselines, full response artifacts, and route-surface proof
+- [README.founder-feedback-loop-rebaseline.md](README.founder-feedback-loop-rebaseline.md): current feedback-loop rebaseline for M9 founder feedback classification
+- [README.founder-feedback-repair-rerun-gate.md](README.founder-feedback-repair-rerun-gate.md): current feedback repair rerun proof gate
 - [README.prompt-advisory-closure.md](README.prompt-advisory-closure.md): prompt-advisory closure decisions with refined prompt candidate and holdout proof
 - [README.generic-chat-vague-prompt-contract.md](README.generic-chat-vague-prompt-contract.md): generic chat and vague prompt safety/usefulness contract
 - [README.transcript-quality-feedback-intake.md](README.transcript-quality-feedback-intake.md): governed transcript and founder-feedback intake after Phase 157
 - [README.priority0-repair-loop.md](README.priority0-repair-loop.md): Phase 159 no-repair-required or target-plus-holdout repair closure gate
 - [README.stable-release-refresh.md](README.stable-release-refresh.md): Phase 170 refreshed release proof floor and founder-testing decision
 - [README.skill-tool-gap-batch-proposal.md](README.skill-tool-gap-batch-proposal.md): Phase 161 proposal-only gate for evidence-backed deterministic skill/tool batches
+- [README.skill-library-scaling-readiness-inventory.md](README.skill-library-scaling-readiness-inventory.md): current skill-library scaling inventory and Phase 230 candidate selection
+- [README.small-skill-admission-pilot.md](README.small-skill-admission-pilot.md): current small skill admission pilot for `FX-001`
+- [README.runtime-recovery-reliability-rebaseline.md](README.runtime-recovery-reliability-rebaseline.md): current restart-and-resume proof for local runtime recovery
+- [README.onboarding-release-handoff-refresh.md](README.onboarding-release-handoff-refresh.md): current onboarding and release handoff docs freshness gate
+- [README.contextless-handoff-dry-run.md](README.contextless-handoff-dry-run.md): current contextless handoff live dry-run gate
 - [README.post-restart-runtime-readiness.md](README.post-restart-runtime-readiness.md): Phase 163 post-restart readiness gate over doctor, health drift, and AnythingLLM greeting/session recovery
 - [README.skill-tool-selection-explainability-e2e.md](README.skill-tool-selection-explainability-e2e.md): live chat-visible selected/rejected skill and tool explanation gate
 - [README.anythingllm-conversation-state-isolation.md](README.anythingllm-conversation-state-isolation.md): stale-history isolation gate for reused AnythingLLM sessions

@@ -58,6 +58,8 @@ Examples are grouped by feature so the root README can stay small.
 - [Output Format Parity](output-format-parity.md): compare default chat and JSON output across stable Priority 0 gateway and AnythingLLM responses.
 - [Natural Output Format Preference](natural-output-format-preference.md): prove natural FormatA and JSON requests through gateway and AnythingLLM without explicit selector fields.
 - [Founder Feedback Loop](founder-feedback-loop.md): convert natural feedback records into governed baseline, holdout, repair, or rejected-finding decisions.
+- [Founder Feedback Loop Rebaseline](founder-feedback-loop-rebaseline.md): validate Phase 227 feedback classification across useful, advisory, repair-worthy, rejected, deferred, baseline, and holdout outcomes.
+- [Founder Feedback Repair Rerun Gate](founder-feedback-repair-rerun-gate.md): validate the Phase 228 proof gate for accepted feedback repairs.
 - [Engineering Tenet Coverage](engineering-tenets.md): Phase 112 tenet matrix validation and review workflow.
 - [Security Policy](security-policy.md): release-candidate secret, root, fixture, command, and onboarding prompt safety gate examples.
 - [Gateway](gateway.md): startup, shutdown, budget overrides, client URLs, and role ports.
@@ -87,6 +89,13 @@ Examples are grouped by feature so the root README can stay small.
 - [Fresh Local-Model Drift](fresh-local-model-drift.md): live bounded drift gate for stable Priority 0 prompt families through gateway and AnythingLLM.
 - [Prompt Tightening Recommendations](prompt-tightening-recommendations.md): recommendation-gate command, candidate inspection, and acceptance-proof rules.
 - [Skill/Tool Coverage Gap](skill-tool-coverage-gap.md): source-input refresh, current no-gap proof, and required proposal fields for future gaps.
+- [Skill Library Scaling Readiness Inventory](skill-library-scaling-readiness-inventory.md): inspect current skill/tool coverage and the Phase 230 pilot recommendation.
+- [Small Skill Admission Pilot](small-skill-admission-pilot.md): validate `FX-001` through gateway and AnythingLLM with blind-baseline proof.
+- [Runtime Recovery Reliability Rebaseline](runtime-recovery-reliability-rebaseline.md): restart vLLM and the repo-managed stack, then prove small-repo and large-context prompts through gateway and AnythingLLM.
+- [Onboarding And Release Handoff Refresh](onboarding-release-handoff-refresh.md): validate the current first-time tester handoff docs and stale-marker guard.
+- [Contextless Handoff Dry Run](contextless-handoff-dry-run.md): validate the live contextless handoff package after Phase 232.
+- [Clean Clone Release Handoff](clean-clone-release-handoff.md): validate the Phase 234 disposable clean-snapshot handoff package outside the active workspace.
+- [Clone-Safe Model Capability Routing](clone-safe-model-capability-routing.md): validate that clean checkout routing no longer depends on runtime-state profile seeding.
 - [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.
 - [Stable Chat Quality Release](stable-chat-quality-release.md): consolidated release-readiness command, blocker review, and ready-state shape.
 - [AnythingLLM Founder Smoke](anythingllm-founder-smoke.md): curated four-prompt smoke suite through the real AnythingLLM workspace.
@@ -113,6 +122,30 @@ Examples are grouped by feature so the root README can stay small.
 - [V1 Product Readiness Reassessment](v1-product-readiness-reassessment.md): reassessment command, blocker/advisory inspection, and next unapproved phase candidates.
 - [Founder Trial Execution Round](founder-trial-execution-round.md): live run command, report inspection, and response artifact review.
 - [Founder Feedback Intake And Repair](founder-feedback-intake-repair.md): convert trial advisories, blockers, and founder notes into accepted or rejected repair decisions.
+- [V1 Beta Release Closeout](v1-beta-release-closeout.md): validate the Phase 195-198 proof chain and close the M1 founder beta milestone.
+- [Chat-Visible Answer Contract Inventory](chat-visible-answer-contract-inventory.md): inspect the contract inventory before Phase 201 enforcement.
+- [Chat-Visible Answer Contract Enforcement](chat-visible-answer-contract-enforcement.md): run the deterministic answer-contract enforcement gate before live output refresh.
+- [Chat-Visible Output Usefulness Refresh](chat-visible-output-usefulness-refresh.md): run the live gateway and AnythingLLM refresh for M2 answer usefulness.
+- [Workflow/Skill/Tool Selection Matrix](workflow-skill-tool-selection-matrix.md): inspect the M3 selection matrix and Phase 204 explainability gaps.
+- [No Manual Skill Injection Explainability](no-manual-skill-injection-explainability.md): run natural prompt selection explainability through gateway and AnythingLLM.
+- [Route Stability Holdout Replay](route-stability-holdout-replay.md): replay target and holdout prompt routes through gateway and AnythingLLM.
+- [Evidence Relevance Audit Pack](evidence-relevance-audit-pack.md): validate the M4 evidence-quality audit cases and scoring rubrics.
+- [Evidence Ranking Source Hash Gate](evidence-ranking-source-hash-gate.md): validate direct evidence ordering and source-hash proof for M4.
+- [Evidence Quality Live Rerun](evidence-quality-live-rerun.md): rerun M4 evidence-quality prompts live through gateway and AnythingLLM.
+- [Multi-Repo Fixture Baseline Pack](multi-repo-fixture-baseline-pack.md): validate the Phase 209 `s-aws/staterail` fixture and blind-baseline prompt pack.
+- [Multi-Repo Baseline Comparison](multi-repo-baseline-comparison.md): run the Phase 210 `s-aws/staterail` gateway and AnythingLLM comparison dry run.
+- [Multi-Repo Live Generalization Rerun](multi-repo-live-generalization-rerun.md): run the Phase 212 live M5 rerun across Staterail and Coinbase holdouts.
+- [M5 Generalization Closeout](m5-generalization-closeout.md): close or repeat M5 using the Phase 209-212 proof chain.
+- [Large-Corpus Context Budget Inventory](large-corpus-context-budget-inventory.md): generate and validate the Phase 214 large-corpus fixture and budget facts.
+- [Retrieval-First Context Strategy Design](retrieval-first-context-strategy-design.md): validate the Phase 215 strategy labels, routing inputs, refusal behavior, and implementation boundaries.
+- [Corpus Index Safety Governance](corpus-index-safety-governance.md): validate the Phase 216 safety policy and negative controls before durable indexing.
+- [Context Index Prototype](context-index-prototype.md): validate the Phase 217 metadata-first index artifact, query smokes, and safety negative controls.
+- [Retrieval-Backed Chat Answer Gate](retrieval-backed-chat-answer-gate.md): validate Phase 218 answer-first retrieval-backed chat output over the large-corpus index.
+- [Artifact Paging And Long Answer Usability](artifact-paging-long-answer-usability.md): validate Phase 219 paged evidence artifacts, answer-first chat, and JSON/default parity.
+- [Context Strategy Router](context-strategy-router.md): validate Phase 220 deterministic context strategy selection and chat-visible strategy metadata.
+- [Large-Context Usability Live Closeout](large-context-usability-live-closeout.md): run the Phase 221 gateway and AnythingLLM closeout for M6/M8 large-context usability.
+- [Chunked Investigation Executor Contract](chunked-investigation-executor-contract.md): validate the Phase 222 executor contract before implementing selected chunked-investigation strategy.
+- [Chunked Investigation Executor Implementation](chunked-investigation-executor-implementation.md): validate the Phase 223 executor through offline preflight, gateway, AnythingLLM, and small-repo non-regression.
 - [Skill Regression Tiers](skill-regression-tiers.md): tier catalog validation and minimum commands for offline, controller, gateway, AnythingLLM, UI, mutation, and release-candidate proof.
 - [Skill Packaging](skill-packaging.md): packaging policy validation, pack validation, approval-gated install shape, and review order.
 - [Documenter](documenter.md): dry runs, full review, all-file scans, follow-ups, drafts, and resume.

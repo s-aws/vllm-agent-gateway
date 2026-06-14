@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "kind": "contextless_handoff_dry_run_blind_audit",
+  "phase": 233,
+  "status": "passed",
+  "auditor": "contextless_subagent",
+  "created_from": "blind audit before judging local Phase 233 output",
+  "must_have_commands": [
+    "python3 scripts/validate_onboarding_release_handoff_refresh.py",
+    "python3 scripts/validate_release_channels.py --output-path runtime-state/release-channels/phase233.json",
+    "python3 scripts/validate_security_policy.py --output-path runtime-state/security-policy/phase233.json",
+    "python3 scripts/run_first_time_user_doctor.py --output-path runtime-state/phase233/phase233-first-time-user-doctor.json",
+    "python3 scripts/validate_runtime_recovery_reliability_rebaseline.py --restart-managed-stack --restart-vllm-container vllm-qwen3 --timeout-seconds 900",
+    "python3 scripts/validate_external_tester_dry_run.py --live-runtime --include-feedback --output-path runtime-state/phase233/phase233-external-tester-dry-run.json",
+    "python3 scripts/validate_external_tester_onboarding.py --output-path runtime-state/external-tester-onboarding/phase233-static.json",
+    "python3 scripts/validate_external_tester_onboarding.py --live-anythingllm --include-feedback --case-id ONB-001 --output-path runtime-state/external-tester-onboarding/phase233-live-onb-001.json",
+    "python3 scripts/validate_large_context_usability_live_closeout.py --live --case-id P221-LC-001 --allow-partial --timeout-seconds 900",
+    "python3 scripts/validate_multi_repo_fixtures_live.py --case-id python-service-code-explanation --case-id python-service-endpoint-route-lookup --case-id python-service-schema-lookup --live-anythingllm --port-health",
+    "python3 scripts/validate_small_skill_admission_pilot.py"
+  ],
+  "required_anythingllm": {
+    "base_url": "http://127.0.0.1:8500/v1",
+    "backend_api": "http://127.0.0.1:3001",
+    "workspace": "my-workspace",
+    "model": "Qwen3-Coder-30B-A3B-Instruct"
+  },
+  "required_prompt_surfaces": [
+    "ONB-001 through AnythingLLM",
+    "Python-service code explanation through gateway and AnythingLLM",
+    "Python-service endpoint route lookup through gateway and AnythingLLM",
+    "Python-service schema lookup through gateway and AnythingLLM",
+    "P221-LC-001 large-context proof through gateway and AnythingLLM",
+    "workflow_feedback.record linked to workflow-router target run"
+  ],
+  "required_fixture_boundaries": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+    "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture"
+  ],
+  "common_false_positives": [
+    "AnythingLLM pointed at 8300/v1 or 8400",
+    "gateway-only proof without AnythingLLM proof",
+    "static onboarding proof without live AnythingLLM",
+    "reusing stale reports without fresh run IDs or hashes",
+    "claiming raw 1M-token support",
+    "using broad refactor or mutation prompts in first-test onboarding",
+    "feedback recorded without a target_run_id link",
+    "small-repo proof passing while large-context strategy proof is absent"
+  ],
+  "hard_failures": [
+    "wrong AnythingLLM target",
+    "missing live AnythingLLM run",
+    "protected fixture mutation",
+    "missing workflow-router run ID",
+    "missing feedback link",
+    "raw 1M-token support claim",
+    "advanced refactor or mutation prompt used in first-test onboarding"
+  ],
+  "scoring_rubric": {
+    "phase232_docs_handoff_gate": 15,
+    "runtime_health_and_phase231_recovery": 15,
+    "external_tester_dry_run_onb001": 20,
+    "large_context_live_strategy_proof": 15,
+    "small_skill_admission_python_service": 10,
+    "fixture_mutation_proof": 10,
+    "feedback_capture_linked": 10,
+    "contextless_package_completeness": 5
+  },
+  "summary": {
+    "contextless": true,
+    "must_have_command_count": 11,
+    "required_prompt_surface_count": 6,
+    "hard_failure_count": 7
+  }
+}

@@ -186,6 +186,40 @@ def test_validate_text_against_route_rejects_raw_internal_json() -> None:
     assert any('exposed raw internal marker "selection_audit"' in error for error in errors)
 
 
+def test_validate_text_against_route_rejects_selected_skill_missing_from_registry_snapshot() -> None:
+    snapshot = registry_snapshot()
+    snapshot["skills"] = {}
+
+    errors = validate_text_against_route(
+        policy=policy(),
+        case=case(),
+        target_root="/mnt/c/coinbase_testing_repo_frozen_tmp",
+        surface="gateway",
+        text=valid_text(),
+        route_decision=route_decision(),
+        registry_snapshot=snapshot,
+    )
+
+    assert any("registry_snapshot.skills missing selected skill related-test-discovery" in error for error in errors)
+
+
+def test_validate_text_against_route_rejects_selected_tool_missing_from_registry_snapshot() -> None:
+    snapshot = registry_snapshot()
+    snapshot["tools"] = {"read_file": snapshot["tools"]["read_file"]}
+
+    errors = validate_text_against_route(
+        policy=policy(),
+        case=case(),
+        target_root="/mnt/c/coinbase_testing_repo_frozen_tmp",
+        surface="gateway",
+        text=valid_text(),
+        route_decision=route_decision(),
+        registry_snapshot=snapshot,
+    )
+
+    assert any("registry_snapshot.tools missing selected tool git_grep" in error for error in errors)
+
+
 def test_phase151_report_fails_when_required_live_surfaces_are_skipped(tmp_path: Path) -> None:
     report = run_skill_tool_selection_explainability_e2e(
         SkillToolSelectionExplainabilityE2EConfig(
@@ -202,4 +236,3 @@ def test_phase151_report_fails_when_required_live_surfaces_are_skipped(tmp_path:
     assert "gateway validation is required by policy" in report["errors"]
     assert "AnythingLLM validation is required by policy" in report["errors"]
     assert (tmp_path / "phase151-report.md").exists()
-

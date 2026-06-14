@@ -155,6 +155,7 @@ from vllm_agent_gateway.controllers.workflow_router.plan import (
     is_l1_simple_failing_test_fix_request,
     is_l1_small_unit_test_request,
     is_l1_small_text_edit_request,
+    is_large_context_read_only_request,
     is_task_decomposition_request,
     is_skill_batch_proposal_request,
     invoke_workflow_router_plan,
@@ -584,6 +585,31 @@ FORMAT_A_SUMMARY_KEY_PRIORITY = (
     "downstream_status",
     "next_action",
     "answer",
+    "retrieval_status",
+    "retrieval_category",
+    "retrieval_evidence_count",
+    "retrieval_artifact_page_count",
+    "retrieval_artifact_source_ref_count",
+    "retrieval_first_page_id",
+    "retrieval_continuation_hint",
+    "chunked_status",
+    "chunked_stage_count",
+    "chunked_completed_stage_count",
+    "chunked_evidence_count",
+    "chunked_claim_count",
+    "chunked_artifact_page_count",
+    "chunked_artifact_source_ref_count",
+    "chunked_first_page_id",
+    "phase222_contract_satisfied",
+    "selected_context_strategy",
+    "context_strategy_status",
+    "context_strategy_execution_path",
+    "context_strategy_reason",
+    "context_strategy_prompt_class",
+    "context_strategy_rationale",
+    "context_strategy_blocker_count",
+    "raw_prompt_stuffing",
+    "source_text_retention",
     "blocker_reasons",
     "blocker_messages",
     "missing_information",
@@ -2149,6 +2175,32 @@ def side_effect_summary(records: Any) -> str:
     return limited_join(values)
 
 
+def related_test_path_with_line(record: dict[str, Any]) -> str:
+    path = record.get("path")
+    if not isinstance(path, str) or not path:
+        return ""
+    direct = path_with_line(record)
+    if direct != path:
+        return direct
+    evidence_refs = record.get("evidence_refs")
+    if isinstance(evidence_refs, list):
+        for ref in evidence_refs:
+            if not isinstance(ref, dict):
+                continue
+            if ref.get("path") == path and isinstance(ref.get("line"), int):
+                return f"{path}:{ref['line']}"
+    source_refs = record.get("source_refs")
+    if isinstance(source_refs, list):
+        prefix = f"{path}:"
+        for ref in source_refs:
+            if not isinstance(ref, str) or not ref.startswith(prefix):
+                continue
+            tail = ref[len(prefix) :].split(":", 1)[0]
+            if tail.isdigit():
+                return f"{path}:{tail}"
+    return path
+
+
 def related_tests_summary(records: Any) -> str:
     if not isinstance(records, list):
         return ""
@@ -2156,7 +2208,7 @@ def related_tests_summary(records: Any) -> str:
     for record in records:
         if not isinstance(record, dict):
             continue
-        path = path_with_line(record)
+        path = related_test_path_with_line(record)
         if not path:
             continue
         suffix_parts: list[str] = []
@@ -3366,6 +3418,10 @@ def append_multi_file_behavior_investigation_answer(lines: list[str], artifact: 
     if related_tests:
         lines.append(f"- Related tests: {related_tests}")
         added = True
+    source_refs = source_refs_summary(artifact.get("source_refs"), limit=20)
+    if source_refs:
+        lines.append(f"- Source refs: {source_refs}")
+        added = True
     risks = risks_summary(artifact.get("risks"))
     if risks:
         lines.append(f"- Risks: {risks}")
@@ -3468,6 +3524,10 @@ def append_test_selection_plan_answer(lines: list[str], artifact: dict[str, Any]
         if risks:
             lines.append(f"- Covered risks: {risks}")
             added = True
+    source_refs = source_refs_summary(artifact.get("source_refs"), limit=20)
+    if source_refs:
+        lines.append(f"- Source refs: {source_refs}")
+        added = True
     confidence = artifact.get("confidence")
     if isinstance(confidence, str) and confidence:
         lines.append(f"- Confidence: {confidence}")
@@ -3527,6 +3587,10 @@ def append_runtime_error_diagnosis_answer(lines: list[str], artifact: dict[str, 
         added = True
     else:
         lines.append("- Verification: no bounded command found")
+        added = True
+    source_refs = source_refs_summary(artifact.get("source_refs"), limit=20)
+    if source_refs:
+        lines.append(f"- Source refs: {source_refs}")
         added = True
     if artifact.get("mutation_policy") == "read_only_no_source_mutation":
         lines.append("- Source mutation: false")
@@ -3736,6 +3800,10 @@ def append_change_surface_summary_answer(lines: list[str], artifact: dict[str, A
     if isinstance(implementation_status, str) and implementation_status:
         lines.append(f"- Implementation status: {implementation_status}")
         added = True
+    source_refs = source_refs_summary(artifact.get("source_refs"), limit=20)
+    if source_refs:
+        lines.append(f"- Source refs: {source_refs}")
+        added = True
     risks = risks_summary(artifact.get("risks"))
     if risks:
         lines.append(f"- Risks: {risks}")
@@ -3773,6 +3841,10 @@ def append_investigation_plan_answer(lines: list[str], artifact: dict[str, Any])
     if related_tests:
         lines.append(f"- Related tests: {related_tests}")
         added = True
+    evidence_files = participating_files_summary(artifact.get("participating_files"))
+    if evidence_files:
+        lines.append(f"- Evidence files: {evidence_files}")
+        added = True
     verification_plan = artifact.get("verification_plan")
     if isinstance(verification_plan, dict):
         commands = verification_plan.get("verification_commands")
@@ -3787,6 +3859,14 @@ def append_investigation_plan_answer(lines: list[str], artifact: dict[str, Any])
             if joined:
                 lines.append(f"- Recommended commands: {joined}")
                 added = True
+    source_refs = source_refs_summary(artifact.get("source_refs"), limit=20)
+    if source_refs:
+        lines.append(f"- Source refs: {source_refs}")
+        added = True
+    gaps = gaps_summary(artifact.get("gaps"))
+    if gaps:
+        lines.append(f"- Gaps: {gaps}")
+        added = True
     if artifact.get("mutation_policy") == "read_only_no_source_mutation":
         lines.append("- Source mutation: false")
         added = True
@@ -5447,6 +5527,8 @@ def infer_workflow_router_mode(user_request: str) -> str:
     if is_skill_batch_proposal_request(text):
         return "execute_read_only"
     if is_task_decomposition_request(text):
+        return "execute_read_only"
+    if is_large_context_read_only_request(text):
         return "execute_read_only"
     if (
         is_l1_simple_failing_test_fix_request(text)
@@ -7351,6 +7433,8 @@ def natural_workflow_router_payload(payload: dict[str, Any], config: ControllerS
         "mode": infer_workflow_router_mode(user_request),
         "budgets": budgets,
     }
+    if isinstance(payload.get("context"), dict):
+        request["context"] = payload["context"]
     role_base_url = payload.get("role_base_url")
     if isinstance(role_base_url, str) and role_base_url.strip():
         request["role_base_url"] = role_base_url

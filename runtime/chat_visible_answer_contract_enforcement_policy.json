@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "kind": "chat_visible_answer_contract_enforcement_policy",
+  "phase": 201,
+  "priority_backlog_id": "P0-BB-065",
+  "milestone_id": "M2",
+  "goal": "Turn the Phase 200 chat-visible answer contract inventory into deterministic pass/fail validation.",
+  "required_phase200_report": {
+    "path": "runtime-state/phase200/phase200-chat-visible-answer-contract-inventory-report.json",
+    "expected_kind": "chat_visible_answer_contract_inventory_report",
+    "expected_status": "passed",
+    "expected_phase": 200
+  },
+  "required_output_formats": [
+    "format_a",
+    "json"
+  ],
+  "required_negative_controls": [
+    "artifact_only",
+    "missing_evidence",
+    "missing_safety_boundary",
+    "unsupported_mutation_claim"
+  ],
+  "required_failure_reasons": [
+    "missing_answer",
+    "artifact_only",
+    "missing_output_format",
+    "missing_contract_detail",
+    "missing_evidence",
+    "missing_safety_boundary",
+    "missing_run_traceability",
+    "unsupported_mutation_claim"
+  ],
+  "required_docs": [
+    "README.chat-visible-answer-contract-enforcement.md",
+    "docs/examples/chat-visible-answer-contract-enforcement.md",
+    "README.chat-visible-answer-contract-inventory.md",
+    "README.chat-answer-contract-hardening.md",
+    "docs/PROJECT_MILESTONES.md"
+  ],
+  "acceptance_marker": "PHASE201 CHAT VISIBLE ANSWER CONTRACT ENFORCEMENT PASS"
+}

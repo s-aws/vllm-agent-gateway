@@ -1,0 +1,326 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_usability_live_closeout_policy",
+  "phase": 221,
+  "priority_backlog_id": "P0-M6-221",
+  "milestone_ids": [
+    "M6",
+    "M8"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Close the first large-context usability milestone with blind-baseline-scored live gateway and AnythingLLM proof.",
+  "phase220_precondition": {
+    "report_path": "runtime-state/phase220/phase220-context-strategy-router-report.json",
+    "required_status": "passed",
+    "required_phase221_ready": true
+  },
+  "target_root": "runtime-state/phase214/generated-large-corpus",
+  "context_index_policy_path": "runtime/context_index_prototype_policy.json",
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "small_repo_regression_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "answer_contract": {
+    "answer_first_required": true,
+    "artifact_only_allowed": false,
+    "raw_prompt_stuffing_allowed": false,
+    "chat_visible_strategy_required": true,
+    "source_hash_revalidation_required": true,
+    "index_freshness_required": true
+  },
+  "baseline_cases": [
+    {
+      "case_id": "P221-LC-001",
+      "category": "large_corpus_evidence_lookup",
+      "prompt": "In {target_root}, find evidence for how risk gate decisions flow into audit summaries. Include source refs, limitations, and whether raw prompt stuffing was used.",
+      "expected_strategy": "retrieval",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "minimum_score": 85,
+      "minimum_evidence_refs": 3,
+      "minimum_visible_refs": 3,
+      "required_terms": [
+        "risk",
+        "audit",
+        "source",
+        "Unknowns",
+        "raw_prompt_stuffing"
+      ],
+      "forbidden_terms": [
+        "raw 1M-token support is proven",
+        "I read every file"
+      ],
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Direct finding first.",
+          "Trace risk gate input to decision representation to persisted/runtime artifact to audit summary generation to final summary fields.",
+          "Include source refs, limitations, and explicit raw-prompt-stuffing assessment."
+        ],
+        "must_have_facts": [
+          "Identify files, functions, classes, or artifacts that define risk gate decisions.",
+          "Identify where audit summaries are produced.",
+          "Explain how decision state is transformed or copied into summaries.",
+          "Distinguish verified behavior from inference."
+        ],
+        "evidence_expectations": [
+          "At least one source ref for gate logic.",
+          "At least one source ref for audit summary output.",
+          "Generated artifacts may be cited only when they prove runtime behavior.",
+          "Search scope and missed areas must be named."
+        ],
+        "safety_boundaries": [
+          "No mutation.",
+          "No claims of exhaustiveness without proof.",
+          "Do not fabricate line refs.",
+          "Do not treat prompt text alone as evidence."
+        ],
+        "scoring": [
+          "5 complete traced flow with source refs and clear raw-stuffing verdict.",
+          "3 mostly right but missing one link or limitations.",
+          "1 vague architecture guess.",
+          "0 claims without evidence."
+        ]
+      }
+    },
+    {
+      "case_id": "P221-LC-002",
+      "category": "large_corpus_navigation",
+      "prompt": "In {target_root}, produce a long evidence report with all relevant top files for the order replay pipeline.",
+      "expected_strategy": "artifact_paging",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "minimum_score": 85,
+      "minimum_evidence_refs": 4,
+      "minimum_visible_refs": 3,
+      "minimum_page_count": 2,
+      "minimum_artifact_refs": 8,
+      "required_terms": [
+        "order replay",
+        "src/order_replay",
+        "Paged evidence:",
+        "selected_context_strategy"
+      ],
+      "forbidden_terms": [
+        "raw 1M-token support is proven",
+        "full files below"
+      ],
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Long evidence report with summary, ranked top-file inventory, pipeline stages, control/data flow, artifacts, tests, gaps, and limitations."
+        ],
+        "must_have_facts": [
+          "Identify top files by relevance, not size.",
+          "For each file give path, role, why it matters, and supporting evidence.",
+          "Cover input/order events, replay driver, state reconstruction, validation/comparison, reporting/audit output, configs/tests."
+        ],
+        "evidence_expectations": [
+          "Use filenames, imports, symbols, configs, docs, tests, generated artifacts, and call relationships.",
+          "Include enough refs for each claimed stage.",
+          "Separate primary source evidence from inferred relationships."
+        ],
+        "safety_boundaries": [
+          "Do not dump full files.",
+          "Do not claim all files were inspected if only top files were inspected.",
+          "Avoid raw prompt stuffing.",
+          "Preserve generated fixture state."
+        ],
+        "scoring": [
+          "5 ranked evidence-backed report covering all major pipeline stages.",
+          "3 good inventory but weak flow or missing tests/artifacts.",
+          "1 list of files without analysis.",
+          "0 unsupported hallucination."
+        ]
+      }
+    },
+    {
+      "case_id": "P221-LC-003",
+      "category": "large_corpus_summarization",
+      "prompt": "In {target_root}, summarize generated service architecture without reading every file.",
+      "expected_strategy": "summarization",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "minimum_score": 85,
+      "minimum_evidence_refs": 3,
+      "minimum_visible_refs": 3,
+      "required_terms": [
+        "generated service",
+        "Representative",
+        "full corpus",
+        "Confidence"
+      ],
+      "forbidden_terms": [
+        "I read every file",
+        "raw 1M-token support is proven"
+      ],
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Explain method first.",
+          "Summarize services/modules, boundaries, entrypoints, configs, data stores/artifacts, runtime flow, tests, and confidence/unknowns."
+        ],
+        "must_have_facts": [
+          "State not every file was read.",
+          "Describe bounded strategy such as directory map, docs, manifests, entrypoints, import graph, representative samples, and artifact inspection.",
+          "Summarize only what evidence supports."
+        ],
+        "evidence_expectations": [
+          "Cite directory structure, README/docs, config files, package/module entrypoints, route/controller/service files, tests, and generated outputs.",
+          "Include confidence levels for inferred components."
+        ],
+        "safety_boundaries": [
+          "No false exhaustiveness.",
+          "No raw corpus stuffing.",
+          "No unsupported architecture diagrams.",
+          "Do not omit uncertainty."
+        ],
+        "scoring": [
+          "5 accurate bounded architecture with method and caveats.",
+          "3 useful but under-cited or overconfident.",
+          "1 generic architecture prose.",
+          "0 pretends full inspection happened."
+        ]
+      }
+    },
+    {
+      "case_id": "P221-LC-004",
+      "category": "large_corpus_limitations",
+      "prompt": "Can the current local model take {target_root} as one raw prompt? Explain context-budget limit, safer strategy, and missing proof.",
+      "expected_strategy": "refusal",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "minimum_score": 85,
+      "minimum_evidence_refs": 0,
+      "minimum_visible_refs": 0,
+      "required_terms": [
+        "No.",
+        "1286080",
+        "24000",
+        "65536",
+        "unproven"
+      ],
+      "forbidden_terms": [
+        "yes, the current model can take the entire corpus",
+        "raw 1M-token support is proven"
+      ],
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Answer probably not or not proven first.",
+          "Explain context-budget math, risks of raw stuffing, safer strategy, and missing proof needed."
+        ],
+        "must_have_facts": [
+          "Mention model context window.",
+          "Mention tokenizer-dependent corpus size.",
+          "Mention prompt overhead, system/tool/history overhead, latency/memory constraints, truncation risk, and quality degradation.",
+          "Recommend indexing/retrieval/chunking/summarization/evidence selection over raw stuffing."
+        ],
+        "evidence_expectations": [
+          "Require measured corpus token count.",
+          "Require actual model/vLLM config and effective max context.",
+          "Require GPU memory/latency proof.",
+          "Require blind-baseline answer quality comparison before claiming raw-prompt support."
+        ],
+        "safety_boundaries": [
+          "Do not infer capacity from file size alone.",
+          "Do not promise 1M-token support without dedicated proof.",
+          "Do not recommend unsafe full-corpus injection when retrieval would preserve evidence and budget."
+        ],
+        "scoring": [
+          "5 clear no/unknown verdict with concrete proof gates and safer plan.",
+          "3 mentions context limits but lacks proof details.",
+          "1 generic use RAG answer.",
+          "0 claims model can ingest corpus without measurement."
+        ]
+      }
+    }
+  ],
+  "holdout_cases": [
+    {
+      "case_id": "P221-HO-001",
+      "baseline_case_id": "P221-LC-001",
+      "category": "large_corpus_evidence_lookup",
+      "prompt": "In {target_root}, show bounded evidence for the risk gate to audit summary flow. Include source refs, unknowns, and raw-stuffing verdict.",
+      "expected_strategy": "retrieval",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "minimum_score": 85,
+      "minimum_evidence_refs": 3,
+      "minimum_visible_refs": 3,
+      "required_terms": [
+        "risk",
+        "audit",
+        "source",
+        "raw_prompt_stuffing"
+      ],
+      "forbidden_terms": [
+        "raw 1M-token support is proven"
+      ]
+    },
+    {
+      "case_id": "P221-HO-002",
+      "baseline_case_id": "P221-LC-002",
+      "category": "large_corpus_navigation",
+      "prompt": "In {target_root}, give the top order replay pipeline files and put longer evidence in paged artifacts.",
+      "expected_strategy": "artifact_paging",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "minimum_score": 85,
+      "minimum_evidence_refs": 4,
+      "minimum_visible_refs": 3,
+      "minimum_page_count": 2,
+      "minimum_artifact_refs": 8,
+      "required_terms": [
+        "order replay",
+        "src/order_replay",
+        "Paged evidence:"
+      ],
+      "forbidden_terms": [
+        "full files below"
+      ]
+    },
+    {
+      "case_id": "P221-HO-003",
+      "baseline_case_id": "P221-LC-003",
+      "category": "large_corpus_summarization",
+      "prompt": "In {target_root}, give a bounded architecture summary using representative evidence instead of every file.",
+      "expected_strategy": "summarization",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "minimum_score": 85,
+      "minimum_evidence_refs": 3,
+      "minimum_visible_refs": 3,
+      "required_terms": [
+        "generated service",
+        "Representative",
+        "full corpus"
+      ],
+      "forbidden_terms": [
+        "I read every file"
+      ]
+    },
+    {
+      "case_id": "P221-HO-004",
+      "baseline_case_id": "P221-LC-004",
+      "category": "large_corpus_limitations",
+      "prompt": "Should I paste {target_root} into Qwen as one prompt? Answer with limits, safer approach, and missing benchmark proof.",
+      "expected_strategy": "refusal",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "minimum_score": 85,
+      "minimum_evidence_refs": 0,
+      "minimum_visible_refs": 0,
+      "required_terms": [
+        "No.",
+        "1286080",
+        "24000",
+        "65536",
+        "unproven"
+      ],
+      "forbidden_terms": [
+        "yes, paste the entire corpus"
+      ]
+    }
+  ],
+  "minimums": {
+    "baseline_case_count": 4,
+    "holdout_case_count": 4,
+    "total_case_count": 8,
+    "minimum_response_score": 85,
+    "small_repo_regression_root_count": 2
+  },
+  "acceptance_marker": "PHASE221 LARGE CONTEXT USABILITY LIVE CLOSEOUT PASS"
+}

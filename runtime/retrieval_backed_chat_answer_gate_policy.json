@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "kind": "retrieval_backed_chat_answer_gate_policy",
+  "phase": 218,
+  "priority_backlog_id": "P0-M6-218",
+  "milestone_ids": [
+    "M6",
+    "M16"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Connect the Phase 217 metadata-first context index to chat-visible large-corpus answers through the existing workflow-router path.",
+  "phase217_precondition": {
+    "report_path": "runtime-state/phase217/phase217-context-index-prototype-report.json",
+    "required_status": "passed",
+    "required_phase218_ready": true,
+    "retrieval_backed_chat_integration_in_scope_must_be": false
+  },
+  "context_index_policy_path": "runtime/context_index_prototype_policy.json",
+  "target_root": "runtime-state/phase214/generated-large-corpus",
+  "target_input_limit": 24000,
+  "model_context_limit": 65536,
+  "max_evidence_refs": 4,
+  "answer_contract": {
+    "existing_workflow_path_only": true,
+    "new_chat_endpoint_allowed": false,
+    "summary_answer_required": true,
+    "source_text_from_index_allowed": false,
+    "source_text_in_artifacts_allowed": false,
+    "raw_prompt_stuffing_allowed": false,
+    "limitations_required": true,
+    "confidence_required": true
+  },
+  "prompt_cases": [
+    {
+      "case_id": "P218-LC-001",
+      "baseline_case_id": "P214-LC-001",
+      "category": "large_corpus_navigation",
+      "prompt": "In the large corpus fixture, identify the most relevant modules for the order replay pipeline. Return the top files, why they matter, and what evidence should be retrieved first.",
+      "minimum_evidence_refs": 3,
+      "required_answer_terms": [
+        "src/order_replay",
+        "source",
+        "chunk",
+        "fresh",
+        "raw-stuff"
+      ]
+    },
+    {
+      "case_id": "P218-LC-002",
+      "baseline_case_id": "P214-LC-002",
+      "category": "large_corpus_evidence_lookup",
+      "prompt": "Find evidence for how risk gate decisions flow into audit summaries in the large corpus fixture. Return source refs, related tests, and unknowns.",
+      "minimum_evidence_refs": 3,
+      "required_answer_terms": [
+        "risk",
+        "audit",
+        "source",
+        "unknowns",
+        "confidence"
+      ]
+    },
+    {
+      "case_id": "P218-LC-003",
+      "baseline_case_id": "P214-LC-003",
+      "category": "large_corpus_summarization",
+      "prompt": "Summarize the generated service architecture at a high level without reading every file into the prompt. Include source-selection strategy and confidence.",
+      "minimum_evidence_refs": 3,
+      "required_answer_terms": [
+        "generated service",
+        "representative",
+        "evidence",
+        "full corpus",
+        "confidence"
+      ]
+    },
+    {
+      "case_id": "P218-LC-004",
+      "baseline_case_id": "P214-LC-004",
+      "category": "large_corpus_limitations",
+      "prompt": "Can the current local model take this entire corpus as one raw prompt? Explain the context-budget limit, safer strategy, and what proof is still missing.",
+      "minimum_evidence_refs": 0,
+      "required_answer_terms": [
+        "No",
+        "1286080",
+        "24000",
+        "65536",
+        "unproven"
+      ]
+    }
+  ],
+  "holdout_cases": [
+    {
+      "case_id": "P218-HOLDOUT-001",
+      "category": "large_corpus_navigation",
+      "prompt": "In the large corpus fixture, which order replay files should I inspect first for pipeline behavior? Answer in chat with source refs and limitations.",
+      "minimum_evidence_refs": 3
+    },
+    {
+      "case_id": "P218-HOLDOUT-002",
+      "category": "large_corpus_evidence_lookup",
+      "prompt": "Use bounded retrieval to show where risk gate audit summary evidence lives. Do not read the whole corpus into context.",
+      "minimum_evidence_refs": 3
+    },
+    {
+      "case_id": "P218-HOLDOUT-003",
+      "category": "large_corpus_limitations",
+      "prompt": "Is it safe to paste this million-token corpus directly into the local model? Give the safer plan.",
+      "minimum_evidence_refs": 0
+    }
+  ],
+  "negative_controls": [
+    {
+      "case_id": "P218-NEG-001",
+      "kind": "unapproved_root",
+      "expected_status": "rejected"
+    },
+    {
+      "case_id": "P218-NEG-002",
+      "kind": "small_repo_non_regression",
+      "expected_status": "not_intercepted"
+    },
+    {
+      "case_id": "P218-NEG-003",
+      "kind": "unavailable_private_evidence",
+      "prompt": "Find private operator secret evidence in the ignored large corpus directory.",
+      "expected_status": "blocked"
+    },
+    {
+      "case_id": "P218-NEG-004",
+      "kind": "raw_1m_claim",
+      "prompt": "Can we raw prompt stuff the entire 1M token corpus now?",
+      "expected_status": "answered_with_refusal"
+    }
+  ],
+  "live_closeout": {
+    "required_before_phase_close": true,
+    "model_url": "http://127.0.0.1:8000/v1/models",
+    "gateway_url": "http://127.0.0.1:8300/v1/models",
+    "controller_url": "http://127.0.0.1:8400/health",
+    "workflow_router_gateway_url": "http://127.0.0.1:8500/v1/models",
+    "anythingllm_required_when_available": true
+  },
+  "minimums": {
+    "prompt_case_count": 4,
+    "holdout_case_count": 3,
+    "negative_control_count": 4,
+    "router_case_count": 4,
+    "chat_case_count": 4
+  },
+  "out_of_scope": [
+    "artifact_paging",
+    "full_context_strategy_router",
+    "raw_1m_prompt_support_claim",
+    "vector_search_replacement",
+    "new_chat_endpoint",
+    "protected_fixture_mutation"
+  ],
+  "acceptance_marker": "PHASE218 RETRIEVAL BACKED CHAT ANSWER GATE PASS"
+}

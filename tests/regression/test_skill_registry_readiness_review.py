@@ -153,7 +153,7 @@ def test_project_skill_registry_readiness_review_passes_current_artifacts(tmp_pa
 
     assert report["status"] == "passed"
     assert report["summary"]["decision_counts"] == {"keep": 54}
-    assert report["summary"]["planned_or_deferred_coverage_count"] == 2
+    assert report["summary"]["planned_or_deferred_coverage_count"] == 1
     assert report["summary"]["semantic_conflict_count"] == 0
 
 

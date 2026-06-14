@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "kind": "m5_generalization_closeout_policy",
+  "phase": 213,
+  "priority_backlog_id": "P0-M5-213",
+  "milestone_id": "M5",
+  "policy_version": "0.1.0",
+  "purpose": "Close or repeat the M5 multi-repo generalization cycle based on the Phase 209-212 proof chain.",
+  "allowed_decisions": [
+    "close_m5_move_to_m6",
+    "repeat_m5_repair_cycle",
+    "blocked"
+  ],
+  "required_reports": [
+    {
+      "id": "phase209_fixture_baseline_pack",
+      "path": "runtime-state/phase209/phase209-multi-repo-fixture-baseline-pack-report.json",
+      "expected_kind": "multi_repo_fixture_baseline_pack_report",
+      "expected_phase": 209,
+      "expected_status": "passed"
+    },
+    {
+      "id": "phase211_repair_live_proof",
+      "path": "runtime-state/phase210/phase210-multi-repo-baseline-comparison-report.json",
+      "expected_kind": "multi_repo_baseline_comparison_report",
+      "expected_phase": 210,
+      "expected_status": "passed",
+      "expected_summary": {
+        "gap_response_count": 0,
+        "phase211_ready": true
+      }
+    },
+    {
+      "id": "phase212_live_generalization_rerun",
+      "path": "runtime-state/phase212/phase212-multi-repo-live-generalization-rerun-report.json",
+      "expected_kind": "multi_repo_live_generalization_rerun_report",
+      "expected_phase": 212,
+      "expected_status": "passed",
+      "expected_summary": {
+        "gap_response_count": 0,
+        "phase213_ready": true,
+        "repository_count": 3,
+        "response_count": 18
+      }
+    }
+  ],
+  "required_docs": [
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "docs/PROJECT_MILESTONES.md",
+    "README.multi-repo-fixture-baseline-pack.md",
+    "README.multi-repo-baseline-comparison.md",
+    "README.multi-repo-live-generalization-rerun.md"
+  ],
+  "required_doc_markers": {
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "Phase 209",
+      "Phase 210",
+      "Phase 211",
+      "Phase 212",
+      "Phase 213"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M5-209",
+      "P0-M5-210",
+      "P0-M5-211",
+      "P0-M5-212",
+      "P0-M5-213"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "M5",
+      "Phase 212",
+      "Phase 213"
+    ]
+  },
+  "accepted_findings": [
+    {
+      "id": "phase210_target_root_not_allowed",
+      "status": "fixed",
+      "proof": "Phase 211 live rerun passed with zero gap responses after adding the approved Staterail fixture root."
+    },
+    {
+      "id": "phase212_env_identifier_configuration_lookup_route",
+      "status": "fixed",
+      "proof": "Phase 212 live rerun passed with zero gap responses after routing key/secret/token/credential lookup prompts to code_investigation.plan."
+    }
+  ],
+  "known_limits": [
+    "M5 used one real non-Coinbase repository set, s-aws/staterail, plus the existing frozen Coinbase fixtures.",
+    "M5 did not prove large-context or 1M-token usability; that remains M6/M7/M8 scope.",
+    "M5 did not reactivate advanced broad refactor orchestration.",
+    "M5 did not authorize commits or pushes to s-aws/staterail.",
+    "M5 validated read-only chat quality and routing, not protected-fixture mutation workflows."
+  ],
+  "next_recommendation": "Proceed to approved Phase 214 for M6/M7 large-corpus fixture and context-budget inventory.",
+  "acceptance_marker": "PHASE213 M5 GENERALIZATION CLOSEOUT PASS"
+}

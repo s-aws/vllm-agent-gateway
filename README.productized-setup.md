@@ -10,6 +10,7 @@ It does not create a new runtime path. It plans or runs the existing scripts and
 - `scripts/validate_release_channels.py`
 - `scripts/validate_security_policy.py`
 - `scripts/validate_stable_handoff.py`
+- `scripts/validate_runtime_recovery_reliability_rebaseline.py`
 
 ## Actions
 
@@ -63,6 +64,17 @@ Then start again:
 ```bash
 python3 scripts/run_productized_setup.py start --execute
 ```
+
+For runtime recovery reliability after a reboot or gateway/model restart, run the Phase 231 gate:
+
+```bash
+python3 scripts/validate_runtime_recovery_reliability_rebaseline.py \
+  --restart-managed-stack \
+  --restart-vllm-container vllm-qwen3 \
+  --timeout-seconds 900
+```
+
+This proves the restart path and post-recovery chat validation, not just open ports.
 
 ## Reports
 

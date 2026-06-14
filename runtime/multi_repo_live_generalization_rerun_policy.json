@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "kind": "multi_repo_live_generalization_rerun_policy",
+  "phase": 212,
+  "priority_backlog_id": "P0-M5-212",
+  "milestone_id": "M5",
+  "policy_version": "0.1.0",
+  "purpose": "Rerun repaired M5 multi-repo chat-quality behavior through gateway and AnythingLLM across Coinbase and non-Coinbase fixtures with holdouts.",
+  "phase209_policy_path": "runtime/multi_repo_fixture_baseline_pack_policy.json",
+  "phase211_report_path": "runtime-state/phase210/phase210-multi-repo-baseline-comparison-report.json",
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_target_roots": [
+    "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp"
+  ],
+  "minimum_target_case_count": 5,
+  "minimum_holdout_case_count": 4,
+  "minimum_repository_count": 3,
+  "minimum_response_count": 18,
+  "minimum_score_for_pass": 80,
+  "required_chat_markers": [
+    "Answer:",
+    "Source mutation: false"
+  ],
+  "required_gap_classes_for_closeout": [
+    "none"
+  ],
+  "safety_boundaries": [
+    "do not commit or push to s-aws/staterail",
+    "do not mutate protected frozen fixture source files",
+    "hash non-git fixture source_hints and test_hints before and after live prompts",
+    "fail closeout on any route, evidence, formatter, runtime, model capability, unsupported scope, or fixture mutation gap"
+  ],
+  "holdout_cases": [
+    {
+      "case_id": "P212-HO-CB-GIT-001",
+      "category": "code_explanation_holdout",
+      "prompt_family": "code_explanation",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests.",
+      "source_hints": [
+        "core/stealth_order_manager.py",
+        "core/order_engine.py"
+      ],
+      "test_hints": [
+        "tests/unit/test_order_id_and_followup_rules.py",
+        "tests/regression/test_order_id_regression.py"
+      ]
+    },
+    {
+      "case_id": "P212-HO-CB-PLAIN-001",
+      "category": "behavior_beginning_point_holdout",
+      "prompt_family": "behavior_start",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, find where the placed_order_id stealth lookup begins. Read only. Return the entrypoint, evidence files, related tests, and confidence.",
+      "source_hints": [
+        "core/stealth_order_manager.py",
+        "core/order_engine.py"
+      ],
+      "test_hints": [
+        "tests/unit/test_order_id_and_followup_rules.py",
+        "tests/regression/test_order_id_regression.py"
+      ]
+    },
+    {
+      "case_id": "P212-HO-CB-GIT-002",
+      "category": "configuration_lookup_holdout",
+      "prompt_family": "configuration_lookup",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, find where COINBASE_API_KEY is defined or used. Read only. Return files, references, and the likely runtime effect.",
+      "source_hints": [
+        "configuration.py",
+        "docs/EXTERNAL_TESTING_RUNBOOK.md",
+        "tools/diagnostics/cli_parent_child_orders.py"
+      ],
+      "test_hints": [
+        "tests/external/conftest.py",
+        "tests/external/test_coinbase_api.py"
+      ]
+    },
+    {
+      "case_id": "P212-HO-SR-001",
+      "category": "validation_command_holdout",
+      "prompt_family": "validation_command_selection",
+      "target_root": "/mnt/c/staterail_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "prompt": "In /mnt/c/staterail_testing_repo_frozen_tmp.github, choose the smallest test command for live no-order preflight. Read only. Explain why the command is relevant and what gap remains.",
+      "source_hints": [
+        "app/live_no_order_preflight.py",
+        "app/main.py",
+        "app/operator_canary.py"
+      ],
+      "test_hints": [
+        "tests/regression/test_live_no_order_preflight.py",
+        "tests/regression/test_live_runtime_gate.py"
+      ]
+    }
+  ]
+}

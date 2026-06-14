@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "kind": "evidence_quality_live_rerun_policy",
+  "phase": 208,
+  "priority_backlog_id": "P0-M4-208",
+  "milestone_id": "M4",
+  "policy_version": "0.1.0",
+  "purpose": "Rerun Phase 206 evidence-quality prompts live through the workflow-router gateway and AnythingLLM, mirrored across both frozen repositories, then verify chat-visible answers against Phase 207 source proofs.",
+  "phase206_audit_pack_report_path": "runtime-state/phase206/phase206-evidence-relevance-audit-pack-report.json",
+  "phase207_source_hash_gate_report_path": "runtime-state/phase207/phase207-evidence-ranking-source-hash-gate-report.json",
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "mirror_phase206_prompts_to_required_roots": true,
+  "minimum_audit_case_count": 4,
+  "minimum_holdout_case_count": 4,
+  "minimum_live_response_count": 32,
+  "minimum_response_score": 85,
+  "minimum_baseline_score": 80,
+  "source_hash_revalidation_required": true,
+  "phase207_source_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+  "mirrored_root_line_hash_revalidation_required": true,
+  "target_root_artifact_proof_required": true,
+  "required_chat_markers": [
+    "Answer:",
+    "Skill Selection:",
+    "Context Sources:",
+    "Artifacts:",
+    "Source mutation: false"
+  ],
+  "required_summary": {
+    "selected_workflow": "code_investigation.plan",
+    "downstream_status": "completed",
+    "source_changed": false
+  },
+  "case_requirements": [
+    {
+      "audit_case_id": "P206-EV-001",
+      "route_rule": "l1_find_behavior_start_terms",
+      "required_markers": [
+        "Beginning point:",
+        "core/stealth_order_manager.py:4169",
+        "Related tests:",
+        "Recommended commands:",
+        "Source refs:",
+        "Confidence:"
+      ],
+      "minimum_expected_source_ref_hits": 1
+    },
+    {
+      "audit_case_id": "P206-EV-002",
+      "route_rule": "l1_find_related_tests_terms",
+      "required_markers": [
+        "Related tests:",
+        "tests/unit/test_order_id_and_followup_rules.py:8",
+        "Recommended commands:",
+        "Source refs:",
+        "Confidence:"
+      ],
+      "minimum_expected_source_ref_hits": 1
+    },
+    {
+      "audit_case_id": "P206-EV-003",
+      "route_rule": "l2_test_selection_terms",
+      "required_markers": [
+        "Smallest command:",
+        "Medium command:",
+        "Broad command:",
+        "Rationale:",
+        "Covered risks:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "minimum_expected_source_ref_hits": 1
+    },
+    {
+      "audit_case_id": "P206-EV-004",
+      "route_rule": "l2_change_surface_summary_terms",
+      "required_markers": [
+        "Files to touch:",
+        "Files not to touch:",
+        "Risk level:",
+        "Implementation status:",
+        "Verification:",
+        "Source refs:",
+        "Source mutation: false"
+      ],
+      "minimum_expected_source_ref_hits": 1
+    }
+  ],
+  "holdout_cases": [
+    {
+      "holdout_case_id": "P208-HO-001",
+      "audit_case_id": "P206-EV-001",
+      "route_rule": "l1_find_behavior_start_terms",
+      "prompt_template": "In {target_root}, find the beginning point for the placed_order_id stealth lookup. Read only. Include source refs, related tests, confidence, and the verification command."
+    },
+    {
+      "holdout_case_id": "P208-HO-002",
+      "audit_case_id": "P206-EV-002",
+      "route_rule": "l1_find_related_tests_terms",
+      "prompt_template": "In {target_root}, find related tests for the placed_order_id stealth lookup. Read only. Return exact test files, source refs, confidence, and the smallest pytest command."
+    },
+    {
+      "holdout_case_id": "P208-HO-003",
+      "audit_case_id": "P206-EV-003",
+      "route_rule": "l2_test_selection_terms",
+      "prompt_template": "In {target_root}, recommend smallest, medium, and broad pytest validation commands for placed_order_id stealth lookup. Read only. Include rationale, remaining risk, and source refs."
+    },
+    {
+      "holdout_case_id": "P208-HO-004",
+      "audit_case_id": "P206-EV-004",
+      "route_rule": "l2_change_surface_summary_terms",
+      "prompt_template": "In {target_root}, summarize the minimal safe change boundary for placed_order_id stealth lookup. Read only. Include files to touch, files not to touch, risks, gaps, verification commands, and source refs. Stop before implementation."
+    }
+  ]
+}

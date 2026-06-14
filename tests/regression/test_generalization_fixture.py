@@ -6,16 +6,20 @@ from pathlib import Path
 
 from vllm_agent_gateway.controllers.code_investigation.plan import (
     CodeInvestigationRequest,
+    build_data_model_lookup,
+    build_endpoint_route_lookup,
     build_table_read_write_lookup,
     data_model_target_from_request,
     evidence_file_records,
     is_endpoint_route_lookup_request,
     is_table_read_write_lookup_request,
+    likely_beginning_point,
     query_candidates,
     request_flow_steps_from_matches,
     table_schema_fields,
 )
 from vllm_agent_gateway.controllers.natural_query import change_subject_queries_from_request
+from vllm_agent_gateway.controllers.natural_query import natural_identifier_queries_from_request
 from vllm_agent_gateway.controllers.workflow_router.plan import (
     apply_router_rule_skill_overrides,
     extract_queries,
@@ -220,6 +224,41 @@ def test_generalization_fixture_schema_fields_are_extractable() -> None:
     assert {field["name"] for field in fields} == {"id", "status", "item_count", "created_at"}
 
 
+def test_data_model_lookup_preserves_schema_symbols_from_structure_and_ast() -> None:
+    prompt = (
+        "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, "
+        "find the orders table schema only. Read only. Return schema field names, model files, and source refs."
+    )
+    request = CodeInvestigationRequest(target_root=TEMPLATE_ROOT, user_request=prompt, behavior="JSON")
+    structure = {
+        "records": [
+            {
+                "record_type": "symbol",
+                "path": "database/schema.py",
+                "kind": "class",
+                "name": "OrderRecord",
+                "qualified_name": "database.schema.OrderRecord",
+                "line_range": [7, 11],
+            }
+        ]
+    }
+
+    artifact = build_data_model_lookup(
+        request,
+        target_root=TEMPLATE_ROOT,
+        queries=["order_table_schema"],
+        matches=[],
+        structure=structure,
+        warnings=[],
+    )
+
+    symbol_names = {symbol["name"] for symbol in artifact["model_symbols"]}
+    assert artifact["status"] == "ready"
+    assert "database.schema.OrderRecord" in symbol_names
+    assert "ORDERS_TABLE_SCHEMA" in symbol_names
+    assert "ORDERS_TABLE_SQL" in symbol_names
+
+
 def test_runtime_entrypoint_prompt_does_not_trigger_endpoint_route_lookup() -> None:
     prompt = (
         "locate the runtime entrypoint for the order worker, not the request handler. "
@@ -228,6 +267,43 @@ def test_runtime_entrypoint_prompt_does_not_trigger_endpoint_route_lookup() -> N
 
     assert not is_l1_endpoint_route_lookup_request(prompt)
     assert not is_endpoint_route_lookup_request(prompt)
+
+
+def test_endpoint_route_lookup_uses_structure_fallback_for_non_git_handler_fixture() -> None:
+    prompt = (
+        "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, "
+        "locate the order request message handler. Read only. Return handler file, handler symbol, "
+        "route or message evidence, related tests, and whether an HTTP method/path is present."
+    )
+    request = CodeInvestigationRequest(target_root=TEMPLATE_ROOT, user_request=prompt, behavior="HTTP")
+    structure = {
+        "records": [
+            {
+                "record_type": "symbol",
+                "path": "service/api.py",
+                "kind": "function",
+                "name": "handle_create_order",
+                "qualified_name": "service.api.handle_create_order",
+                "line_range": [6, 13],
+            }
+        ]
+    }
+
+    artifact = build_endpoint_route_lookup(
+        request,
+        target_root=TEMPLATE_ROOT,
+        queries=["HTTP", "order_request_message_handler"],
+        matches=[],
+        structure=structure,
+        related_tests=[],
+        warnings=[{"query": "HTTP", "source": "git_grep", "reason": "target_not_git_toplevel"}],
+    )
+
+    assert artifact["status"] == "ready"
+    assert artifact["handlers"][0]["path"] == "service/api.py"
+    assert artifact["handlers"][0]["symbol"] == "service.api.handle_create_order"
+    assert "message.get" in artifact["handlers"][0]["evidence"]
+    assert artifact["source_refs"][0]["source"] == "structure_index"
 
 
 def test_change_boundary_prompt_extracts_concrete_behavior_subject() -> None:
@@ -300,6 +376,51 @@ def test_files_to_touch_prompt_extracts_change_subject_without_change_surface_ph
     ]
 
 
+def test_staterail_natural_phrases_expand_to_searchable_identifier_queries() -> None:
+    prompts = {
+        "live no-order preflight": (
+            "In /mnt/c/staterail_testing_repo_frozen_tmp.github, find the likely logic beginning point "
+            "for live no-order preflight enforcement. Read only. Include source refs, downstream files, and tests."
+        ),
+        "manual association approval": (
+            "In /mnt/c/staterail_testing_repo_frozen_tmp.github, if we needed to change how order lineage validates "
+            "manual association approval, what files would likely be in scope and out of scope? Read only. "
+            "Include risks, unknowns, and verification commands."
+        ),
+        "strategy simulation gates": (
+            "In /mnt/c/staterail_testing_repo_frozen_tmp.github, recommend the smallest, medium, and broad pytest "
+            "commands for validating changes around strategy simulation gates. Read only. Explain why each command "
+            "belongs at that tier."
+        ),
+    }
+
+    live_queries = natural_identifier_queries_from_request(prompts["live no-order preflight"], limit=8)
+    assert "live_no_order_preflight" in live_queries
+    assert "no_order_preflight" in live_queries
+
+    lineage_queries = natural_identifier_queries_from_request(prompts["manual association approval"], limit=8)
+    assert "manual_association_approval" in lineage_queries
+    assert "order_lineage_manual_association" in lineage_queries
+
+    simulation_queries = natural_identifier_queries_from_request(prompts["strategy simulation gates"], limit=8)
+    assert "strategy_simulation" in simulation_queries
+    assert "strategy_simulation_gate" in simulation_queries
+
+    assert "live_no_order_preflight" in extract_queries(prompts["live no-order preflight"], limit=8)
+    assert "manual_association_approval" in extract_queries(prompts["manual association approval"], limit=8)
+    assert "strategy_simulation" in extract_queries(prompts["strategy simulation gates"], limit=8)
+
+    for prompt, expected in (
+        (prompts["live no-order preflight"], "live_no_order_preflight"),
+        (prompts["manual association approval"], "manual_association_approval"),
+        (prompts["strategy simulation gates"], "strategy_simulation"),
+    ):
+        request = CodeInvestigationRequest(user_request=prompt, behavior="")
+        candidates = query_candidates(request, [])
+        assert expected in candidates
+        assert "staterail_testing_repo_frozen_tmp" not in candidates
+
+
 def test_evidence_records_rank_exact_behavior_above_broad_source_match() -> None:
     records = evidence_file_records(
         ["core/stealth_order_manager.py", "tests/unit/test_order_id_and_followup_rules.py"],
@@ -331,6 +452,37 @@ def test_evidence_records_rank_exact_behavior_above_broad_source_match() -> None
     assert "exact_behavior_or_symbol_query" in records[0]["relevance"]["reasons"]
 
 
+def test_evidence_records_rank_exact_behavior_above_repeated_hinted_broad_match() -> None:
+    broad_matches = [
+        {
+            "path": "core/order_engine.py",
+            "line": line,
+            "query": "id",
+            "source": "git_grep",
+        }
+        for line in range(10, 22)
+    ]
+    records = evidence_file_records(
+        ["core/stealth_order_manager.py", "core/order_engine.py"],
+        [{"path": "core/order_engine.py", "symbol": "id", "reason": "broad hinted id context"}],
+        [
+            {
+                "path": "core/stealth_order_manager.py",
+                "line": 4169,
+                "query": "find_stealth_order_by_placed_order_id",
+                "source": "git_grep",
+            },
+            *broad_matches,
+        ],
+    )
+
+    assert records[0]["path"] == "core/stealth_order_manager.py"
+    assert records[0]["relevance"]["tier"] == "direct"
+    assert records[1]["path"] == "core/order_engine.py"
+    assert records[1]["relevance"]["tier"] == "strong"
+    assert "broad_query_match" in records[1]["relevance"]["reasons"]
+
+
 def test_evidence_line_refs_rank_exact_symbol_before_broad_keyword() -> None:
     records = evidence_file_records(
         ["core/stealth_order_manager.py"],
@@ -353,6 +505,41 @@ def test_evidence_line_refs_rank_exact_symbol_before_broad_keyword() -> None:
 
     assert records[0]["line_refs"][0]["query"] == "placed_order_id"
     assert records[0]["line_refs"][0]["relevance"]["tier"] == "direct"
+
+
+def test_evidence_line_refs_prefer_definition_over_comment_or_call_for_exact_symbol() -> None:
+    records = evidence_file_records(
+        ["core/stealth_order_manager.py"],
+        [],
+        [
+            {
+                "path": "core/stealth_order_manager.py",
+                "line": 3783,
+                "query": "find_stealth_order_by_placed_order_id",
+                "text": "# Index the placed order for O(1) lookup in find_stealth_order_by_placed_order_id()",
+                "source": "git_grep",
+            },
+            {
+                "path": "core/stealth_order_manager.py",
+                "line": 4169,
+                "query": "find_stealth_order_by_placed_order_id",
+                "text": "    def find_stealth_order_by_placed_order_id(self, placed_order_id: str):",
+                "source": "git_grep",
+            },
+            {
+                "path": "core/stealth_order_manager.py",
+                "line": 4187,
+                "query": "find_stealth_order_by_placed_order_id",
+                "text": "        order = self.find_stealth_order_by_placed_order_id(placed_order_id)",
+                "source": "git_grep",
+            },
+        ],
+    )
+
+    assert records[0]["line_refs"][0]["line"] == 4169
+    beginning = likely_beginning_point(records, [])
+    assert beginning["path"] == "core/stealth_order_manager.py"
+    assert beginning["line"] == 4169
 
 
 def test_request_flow_steps_rank_direct_handler_branch_above_path_sorted_broad_match() -> None:

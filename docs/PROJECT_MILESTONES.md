@@ -1,0 +1,100 @@
+# Project Milestones
+
+Status: Approved.
+
+These milestones define the durable product checkpoints for the project objective. They are not implementation phases. A phase is a work unit; a milestone is a product state that can be tested, trusted, and used to make the next decision.
+
+The objective is to build a local-model coding-agent harness that can take semi-well-defined natural-language software engineering requests, route them through the gateway/controller, select deterministic skills and tools without manual prompt injection, gather bounded evidence, return useful chat-visible answers, preserve safety boundaries, and produce repeatable validation proof.
+
+The objective also includes large-context usability. Very large repositories and corpora, including 1M+ token projects, should become usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Raw 1M-token prompts are experimental until a dedicated proof gate validates model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality.
+
+## Milestone Gates
+
+| Milestone | Product State | Done Means | Required Proof |
+| --- | --- | --- | --- |
+| M1: V1 Founder Beta Closeout | Complete. Current approved read-only chat workflows are ready for broader founder testing. | Phase 199 passes and the current release candidate can be tested by a contextless founder/tester. | Phase 195-198 proof chain valid, Phase 199 closeout valid, full regression green, AnythingLLM path verified, frozen fixtures clean. |
+| M2: Chat-Visible Answer Contract | Supported prompts return useful information directly in chat. | Answers are not artifact-only and preserve default and requested output formats. | Blind-baseline comparison, output-format parity, JSON/default parity, no unresolved critical or high findings. |
+| M3: Workflow/Skill/Tool Selection Reliability | Natural prompts route correctly without manual skill injection. | The router selects the right workflow, skills, and tools and explains selected/rejected candidates where required. | Prompt matrix across L1/L2 families, selected/rejected skill/tool explanation, holdout reruns, route-surface proof. |
+| M4: Evidence Quality And Relevance | Answers cite the right files, tests, artifacts, and limitations. | Evidence is relevant, confidence-labeled, and not padded with weak or unrelated references. | Evidence relevance scoring, source hash proof, contextless audits, local-model reruns. |
+| M5: Multi-Repo Generalization | The harness works beyond the original Coinbase fixtures. | Representative prompts pass across different repository structures and languages. | Coinbase git and non-git fixtures plus at least 2-3 structurally different repos passing representative prompts. |
+| M6: Large-Context Usability Baseline | 1M+ token projects are usable without raw prompt stuffing. | The framework can answer useful questions over a very large corpus through context strategy. | Corpus index, retrieval-first answers, chunked investigation, artifact paging, answer-quality proof over a 1M+ token fixture. |
+| M7: Context Ceiling Benchmark | The real local-model context limits are known. | The project records measured prompt limits, latency, memory, and failure modes. | Benchmarks at 32K, 64K, 128K, and 256K with quality scores and failure classification. |
+| M8: Context Strategy Router | The controller chooses the right context strategy. | Requests route to direct context, retrieval, chunking, summarization, artifact paging, or refusal based on size and task. | Deterministic routing tests for small, medium, huge, ambiguous, and unsupported context requests. |
+| M9: Founder Feedback Repair Loop | Field feedback reliably becomes accepted, rejected, deferred, or blocking work. | Founder notes and trial misses become traceable decisions with owner paths and rerun gates. | Feedback intake reports, rejected-note proof, rerun gates, no untracked advisory drift. |
+| M10: Safe Implementation Prep | The agent can create bounded implementation plans without protected-source mutation. | Plans identify exact scope, operations, approval gates, and verification before mutation. | Approval gates, disposable-copy proof, exact operation validation, rollback proof. |
+| M11: Controlled Apply Pilot | Small approved changes can be applied safely outside protected fixtures. | The framework can mutate permitted targets with diff proof and rollback. | Mutation sandbox, structured diff proof, tests, rollback, no parallel implementation paths. |
+| M12: Skill Library Scaling Gate | New small skills can be admitted, tested, versioned, and retired without destabilizing routing. | Skill growth remains deterministic and governed. | Skill authoring pipeline, registry readiness, eval gates, conflict detection, prompt coverage map. |
+| M13: Runtime Reliability And Recovery | Restarted vLLM, gateway, controller, and AnythingLLM recover predictably. | A tester can restart the stack and continue normal chat workflow testing. | Post-restart readiness, health drift, greeting path, AnythingLLM session isolation, port checks. |
+| M14: Release Packaging And Onboarding | A contextless tester can install, start, test, and provide feedback without session history. | The project can be handed to a new tester without private chat context. | Getting-started docs, doctor command, release notes, setup validation, clean-clone proof. |
+| M15: Experimental Raw 1M Context Gate | Raw 1M-token prompts are either proven or explicitly rejected as unsupported. | The project has an evidence-backed decision on raw 1M serving. | vLLM reports at least 1M context, memory/latency benchmark, 1M smoke prompt, blind-baseline quality pass. |
+| M16: Corpus And Index Safety Governance | Large-corpus indexing and retrieval do not leak ignored, private, secret-like, stale, or unapproved content into chat or artifacts. | Any durable corpus index enforces ignore rules, allowed roots, secret-like content handling, source freshness, retention/deletion, and proof-artifact boundaries before retrieval is connected to chat. | Index safety policy, negative controls for ignored/private/secret-like files, stale-index rejection, source-hash proof, artifact retention/deletion proof, and no sensitive values in chat-visible output. |
+
+## Critical Path
+
+The primary product path is:
+
+```text
+M1 -> M2 -> M3 -> M4 -> M5 -> M16 -> M6 -> M8 -> M9 -> M12 -> M14
+```
+
+M7 supports M6 and M8 by measuring the real context ceiling. M16 is required before any durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M10 and M11 are implementation-safety milestones that should not outrank Priority 0 chat quality unless the roadmap explicitly returns to safe mutation. M13 supports every runtime-facing milestone.
+
+M15 is experimental and must not block the main objective. The product value is making 1M+ token projects usable, not proving that every request should be sent as a raw 1M-token prompt.
+
+## Added Milestone Rationale
+
+M16 was added because M6/M8 large-context work requires durable indexing and retrieval. That creates persistent derived copies of repository content and can leak ignored files, private paths, secret-like strings, stale chunks, or unapproved roots into chat and artifacts if governance is only handled inside implementation details. M16 is therefore a prerequisite safety milestone for context-index and retrieval-backed chat work, not a separate product expansion.
+
+## Initial Roadmap Mapping
+
+The first proposed milestone-aligned phase set is:
+
+| Phase | Milestone | Purpose |
+| --- | --- | --- |
+| Phase 199 | M1 | Complete. Closed the V1 founder beta release package from the Phase 195-198 proof chain. |
+| Phase 200 | M2 | Complete. Inventoried the chat-visible answer contract for every supported Priority 0 workflow. |
+| Phase 201 | M2 | Complete. Added deterministic fail-closed validation for the chat-visible answer contract. |
+| Phase 202 | M2 | Complete. Refreshed live default/JSON/AnythingLLM proof for answer usefulness and marked M2 ready. |
+| Phase 203 | M3 | Complete. Refreshed the workflow, skill, and tool selection matrix and queued Phase 204 explainability gaps. |
+| Phase 204 | M3 | Approved. Prove natural prompts work without manual skill injection and explain selection. |
+| Phase 205 | M3 | Approved. Replay route-stability holdouts after selection hardening. |
+| Phase 206 | M4 | Approved. Build the evidence relevance audit pack with blind baselines and scoring rules. |
+| Phase 207 | M4 | Approved. Add deterministic evidence ranking and source hash gates. |
+| Phase 208 | M4 | Approved. Rerun evidence-quality prompts live through gateway and AnythingLLM with holdouts. |
+| Phase 209 | M5 | Complete. Selected `s-aws/staterail` as the first non-Coinbase fixture and created the governed blind-baseline prompt pack without committing or pushing to that repository. |
+| Phase 210 | M5 | Complete. Ran multi-repo baseline comparison without repairs and classified the accepted `target_root_not_allowed` runtime-surface gap for `s-aws/staterail`. |
+| Phase 211 | M5 | Complete. Repaired accepted multi-repo generalization blockers through the existing single paths, including startup allowed-root coverage, generalized natural query expansion, related-test discovery term selection, and code-investigation test-reference accounting; live proof passed with zero gaps and full regression passed without committing or pushing to `s-aws/staterail`. |
+| Phase 212 | M5 | Complete. Reran multi-repo live proof through gateway and AnythingLLM across Staterail and Coinbase holdouts, repaired the discovered configuration-identifier route gap, and passed final live proof with zero gaps plus full regression. |
+| Phase 213 | M5 | Complete. Closed M5 for the current selected repository set with accepted findings fixed, known limits recorded, and Phase 214 approved as the next large-context preparation phase. |
+| Phase 214 | M6/M7 | Complete. Inventoried a deterministic local large-corpus fixture and real context-budget constraints with `248` files, `1286080` estimated tokens, current model/router limits, raw 1M prompt support explicitly unproven, and `phase215_ready=true`. |
+| Phase 215 | M6/M8 | Complete. Designed and validated the retrieval-first context strategy contract with six enum-backed strategies, routing inputs, failure behaviors, negative controls, out-of-scope boundaries, and `phase216_ready=true`. |
+| Phase 216 | M16 | Complete. Defined and validated corpus/index safety governance with 13 negative controls, sanitized reports, no source-text retention, no rejected-content leakage, and `phase217_ready=true`. |
+| Phase 217 | M6/M16 | Complete. Added a metadata-first local context index prototype with Phase 216 safety enforcement, `241` indexed files, `457` chunks, query smoke proof, no source-text retention, and `phase218_ready=true`. |
+| Phase 218 | M6 | Complete. Connected retrieval-backed evidence to chat-visible answers through the existing workflow-router path with source refs, hash proof, limitations, holdouts, and negative controls. |
+| Phase 219 | M6/M8 | Complete. Added artifact paging and long-answer usability validation with answer-first chat, JSON/default parity, source continuity, fail-closed controls, and full regression proof. |
+| Phase 220 | M8 | Complete. Implemented deterministic context strategy routing with all six strategies covered, chat-visible strategy metadata and rationale, fail-closed negative controls, live gateway proof, AnythingLLM proof, small-repo non-regression, contextless-audit blocker repair, and full regression proof. |
+| Phase 221 | M6/M8 | Complete. Closed the first large-context usability live proof through gateway and AnythingLLM with baseline and holdout prompts, source-hash and paging proof, small-repo non-regression, repaired holdout routing gaps, and full regression proof. |
+| Phase 222 | M6/M8 | Complete. Defined the executable chunked-investigation contract with strategy-only entry, bounded decomposition, metadata-first retrieval reuse, canonical report fields, claim mapping, source/hash proof, negative controls, gateway/AnythingLLM validation surfaces, and Phase 223 readiness. |
+| Phase 223 | M6/M8 | Complete. Implemented the smallest read-only chunked-investigation executor inside the existing large-context workflow-router path with answer-first chat, Phase 222-compliant artifacts, gateway proof, AnythingLLM proof, small-repo non-regression, docs proof, and full regression proof. |
+| Phase 224 | M6/M8 | Complete. Improved chunked-investigation evidence diversity and claim readability so live answers cite stage-diverse source and verification evidence while preserving the existing retrieval/index/router path, safety boundaries, gateway proof, AnythingLLM proof, small-repo non-regression, and full regression proof. |
+| Phase 225 | M6/M8 | Complete. Improved chunked-investigation answer synthesis so selected stage evidence renders as a bounded flow narrative with scope limits, evidence metadata, unverified edges, blind-baseline proof, gateway/AnythingLLM proof, small-repo non-regression, docs proof, and full regression proof. |
+| Phase 226 | M6/M8 | Complete. Closed the current large-context strategy matrix with fresh live proof for retrieval, artifact paging, summarization, refusal, chunked investigation, direct-context small-repo non-regression, gateway/AnythingLLM surfaces, and M6/M8 release-usability. |
+| Phase 227 | M9 | Complete. Rebaseline founder feedback intake against current large-context and chunked-investigation chat behavior with deterministic baseline, holdout, repair, rejected, advisory, and deferred classification, live gateway/AnythingLLM proof, no mutation, and full regression proof. |
+| Phase 228 | M9 | Complete. Added rerun proof gates for accepted feedback repairs so target prompts, holdouts, blind baseline, fixture mutation checks, rejected explanations, and artifact traceability are required before closure. |
+| Phase 229 | M12 | Complete. Inventoried current skill/tool coverage after M6/M8/M9, confirmed no active new runtime skill gap, kept advanced refactor deferred, and selected `FX-001` as the Phase 230 fixture/eval pilot candidate. |
+| Phase 230 | M12 | Complete. Admitted `FX-001` through the existing skill/eval path with endpoint and schema lookup prompt coverage, schema-symbol artifact proof, owning skill eval-contract links, gateway and AnythingLLM live validation, admission validator proof, and full regression proof. |
+| Phase 231 | M13 | Complete. Rebaselined runtime restart and recovery reliability for vLLM, gateway/proxies, controller, role ports, workflow routing, AnythingLLM, small-repo prompts, and large-context prompts. |
+| Phase 232 | M14 | Complete. Refreshed onboarding and release handoff docs, added a stale-doc freshness gate, and incorporated contextless audit findings. |
+| Phase 233 | M14 | Complete. Passed a contextless handoff dry run through setup validation, representative prompts, feedback capture, current proof gates, and AnythingLLM/gateway live evidence. |
+| Phase 234 | M14 | Complete. Produced a disposable clean-snapshot release handoff proof with managed stack restarted from the snapshot, live AnythingLLM onboarding, fixture mutation proof, and full regression. |
+| Phase 235 | M14 | Complete. Made model-capability routing clone-safe by moving the active routing profile dependency out of `runtime-state/` and proving clean handoff with `runtime_seed_count=0`. |
+| Phase 236 | M14 | Approved. Prove the release candidate can be committed, pushed, cloned, started, and tested from a remote branch without active-workspace state. |
+
+## Usage Rules
+
+- New roadmap phases should map to one or more milestones.
+- Phases mapped to approved milestones are automatically approved unless the roadmap entry, founder, or current session explicitly marks them as proposed, not approved, blocked, deferred, or approval-required.
+- Automatic phase approval only applies inside the mapped milestone's product state, done criteria, and required proof. It does not approve new milestones, milestone changes, unrelated features, or expanded product scope.
+- A milestone is complete only when its required proof exists and can be validated by a contextless agent.
+- If a proposed phase does not move a milestone forward, raise the mismatch before implementation.
+- Large-context work should prefer retrieval-first and evidence-selection designs unless M15 has passed.

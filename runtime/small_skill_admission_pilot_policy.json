@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "kind": "small_skill_admission_pilot_policy",
+  "phase": 230,
+  "priority_backlog_id": "P0-M12-230",
+  "milestone_ids": ["M12"],
+  "phase229_precondition": {
+    "report_path": "runtime-state/skill-library-scaling/phase229/phase229-skill-library-scaling-readiness-inventory-report.json",
+    "required_status": "passed",
+    "required_phase230_ready": true,
+    "required_candidate_id": "FX-001"
+  },
+  "candidate": {
+    "id": "FX-001",
+    "required_status": "implemented",
+    "expected_level": "fixture",
+    "expected_selected_workflow": "code_investigation.plan",
+    "expected_route_rule": "l1_endpoint_route_lookup_terms",
+    "expected_additional_route_rules": ["l1_data_model_lookup_terms"],
+    "expected_skill_ids": ["endpoint-route-locator", "data-model-schema-locator"],
+    "expected_tool_ids": ["git_grep", "read_file", "structure_index"],
+    "expected_eval_case_ids": [
+      "phase230_python_service_endpoint_route_lookup",
+      "phase230_python_service_data_model_lookup"
+    ],
+    "expected_validation_suites": ["multi_repo_fixture_suite", "small_skill_admission_pilot_suite"],
+    "expected_fixture_id": "python-service-generalization",
+    "expected_live_case_ids": ["python-service-endpoint-route-lookup", "python-service-schema-lookup"],
+    "no_new_runtime_skill_required": true,
+    "manual_skill_injection_allowed": false,
+    "mutation_policy": "read_only_no_source_mutation"
+  },
+  "blind_baseline": {
+    "path": "runtime/phase230_small_skill_admission_blind_baseline.json",
+    "required_status": "accepted",
+    "required_prompts": [
+      "python-service-endpoint-route-lookup",
+      "python-service-schema-lookup"
+    ]
+  },
+  "live_proof": {
+    "report_path": "runtime-state/skill-library-scaling/phase230/phase230-small-skill-admission-pilot-live.json",
+    "required_status": "passed",
+    "required_clients": ["gateway", "anythingllm"],
+    "required_case_ids": ["python-service-endpoint-route-lookup", "python-service-schema-lookup"],
+    "expected_artifacts": {
+      "python-service-endpoint-route-lookup": "downstream_endpoint_route_lookup",
+      "python-service-schema-lookup": "downstream_data_model_lookup"
+    },
+    "expected_route_hints": {
+      "python-service-endpoint-route-lookup": "l1_endpoint_route_lookup_terms",
+      "python-service-schema-lookup": "l1_data_model_lookup_terms"
+    },
+    "expected_artifact_markers": {
+      "python-service-endpoint-route-lookup": ["service/api.py", "handle_create_order"],
+      "python-service-schema-lookup": ["database/schema.py", "OrderRecord", "ORDERS_TABLE_SCHEMA"]
+    }
+  },
+  "acceptance_marker": "PHASE230 SMALL SKILL ADMISSION PILOT PASS"
+}

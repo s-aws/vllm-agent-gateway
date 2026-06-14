@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "kind": "founder_feedback_repair_rerun_gate_policy",
+  "phase": 228,
+  "priority_backlog_id": "P0-M9-228",
+  "milestone_ids": [
+    "M9"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Define the rerun proof required before accepted founder feedback repairs can be marked fixed.",
+  "phase227_precondition": {
+    "report_path": "runtime-state/founder-feedback-loop/phase227/phase227-founder-feedback-loop-rebaseline-report.json",
+    "required_status": "passed",
+    "required_phase228_ready": true
+  },
+  "live_feedback_report_path": "runtime-state/founder-feedback-loop/phase227/phase227-founder-feedback-loop-live.json",
+  "accepted_repair_decision_kinds": [
+    "repair_followup"
+  ],
+  "rerun_gate_contract": {
+    "blind_baseline_first_required": true,
+    "target_prompt_rerun_required": true,
+    "holdout_prompt_rerun_required": true,
+    "gateway_surface_required": true,
+    "anythingllm_surface_required": true,
+    "fixture_mutation_check_required": true,
+    "rejected_explanations_required": true,
+    "gap_class_comparison_required": true,
+    "artifact_trace_required": true,
+    "manual_success_without_rerun_allowed": false
+  },
+  "repair_cases": [
+    {
+      "source_case_id": "FL227-003",
+      "expected_decision_kind": "repair_followup",
+      "expected_gap_class": "model_capability",
+      "target_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, diagnose this issue: a tester says the stealth lookup answer missed the likely root cause. Read only.",
+      "holdout_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, diagnose why a placed_order_id lookup answer might miss the likely root cause. Read only. Include evidence and uncertainty.",
+      "required_surfaces": [
+        "gateway",
+        "anythingllm"
+      ],
+      "required_fixture_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "minimum_rerun_records": 2,
+      "closure_status_before_rerun": "open_pending_repair"
+    }
+  ],
+  "negative_controls": [
+    "missing_blind_baseline",
+    "missing_target_rerun",
+    "missing_holdout_rerun",
+    "missing_anythingllm_surface",
+    "missing_fixture_mutation_check",
+    "missing_rejected_explanations",
+    "manual_success_without_rerun"
+  ],
+  "acceptance_marker": "PHASE228 FOUNDER FEEDBACK REPAIR RERUN GATE PASS"
+}

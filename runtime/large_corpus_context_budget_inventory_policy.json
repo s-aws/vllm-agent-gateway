@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "kind": "large_corpus_context_budget_inventory_policy",
+  "phase": 214,
+  "priority_backlog_id": "P0-M6-214",
+  "milestone_ids": [
+    "M6",
+    "M7"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Establish measured large-corpus and context-budget facts before retrieval, indexing, routing, or paging implementation begins.",
+  "generated_fixture": {
+    "root": "runtime-state/phase214/generated-large-corpus",
+    "profile": "deterministic_multi_language_service_corpus",
+    "module_count": 96,
+    "doc_count": 48,
+    "test_count": 48,
+    "config_count": 24,
+    "json_case_count": 24,
+    "filler_lines_per_file": 96,
+    "line_width": 220
+  },
+  "inventory_minimums": {
+    "file_count": 220,
+    "estimated_token_count": 1000000,
+    "language_count": 5,
+    "binary_path_count": 2,
+    "ignored_path_count": 3,
+    "blind_baseline_prompt_count": 4
+  },
+  "token_estimation": {
+    "method": "character_count_divided_by_chars_per_token",
+    "chars_per_token": 4.0,
+    "purpose": "planning estimate only; not tokenizer-authoritative"
+  },
+  "context_budget_sources": {
+    "vllm_host_notes": "VLLM_AGENT_HOST.md",
+    "gateway_start_script": "start-agent-prompt-proxies.sh",
+    "expected_model": "Qwen3-Coder-30B-A3B-Instruct",
+    "expected_model_limit": 65536,
+    "expected_target_input_limit": 24000,
+    "expected_default_max_output": 4000,
+    "runtime_probe_required": false,
+    "runtime_probe_urls": {
+      "model_models_url": "http://127.0.0.1:8000/v1/models",
+      "gateway_health_url": "http://127.0.0.1:8300/__gateway/health",
+      "controller_health_url": "http://127.0.0.1:8400/health",
+      "workflow_router_models_url": "http://127.0.0.1:8500/v1/models"
+    }
+  },
+  "required_claim_boundaries": [
+    "usable_large_corpus_investigation_not_raw_prompt_stuffing",
+    "raw_1m_token_prompt_support_not_claimed",
+    "retrieval_first_design_required_before_chat_integration",
+    "safety_governance_required_before_durable_indexing",
+    "generated_fixture_not_production_source"
+  ],
+  "blind_baseline_prompt_cases": [
+    {
+      "case_id": "P214-LC-001",
+      "category": "large_corpus_navigation",
+      "prompt": "In the large corpus fixture, identify the most relevant modules for the order replay pipeline. Return the top files, why they matter, and what evidence should be retrieved first.",
+      "ideal_answer_shape": [
+        "Start with the likely module cluster and confidence.",
+        "List exact source files and evidence categories before summarizing.",
+        "Call out that retrieval/index evidence is required before detailed claims."
+      ],
+      "must_have_evidence": [
+        "source file path candidates",
+        "module naming evidence",
+        "limitations caused by large corpus size"
+      ]
+    },
+    {
+      "case_id": "P214-LC-002",
+      "category": "large_corpus_evidence_lookup",
+      "prompt": "Find evidence for how risk gate decisions flow into audit summaries in the large corpus fixture. Return source refs, related tests, and unknowns.",
+      "ideal_answer_shape": [
+        "Separate direct evidence from supporting evidence.",
+        "Include related test files when available.",
+        "Name missing retrieval or call-chain proof."
+      ],
+      "must_have_evidence": [
+        "risk gate source candidates",
+        "audit summary source candidates",
+        "test path candidates"
+      ]
+    },
+    {
+      "case_id": "P214-LC-003",
+      "category": "large_corpus_summarization",
+      "prompt": "Summarize the generated service architecture at a high level without reading every file into the prompt. Include source-selection strategy and confidence.",
+      "ideal_answer_shape": [
+        "Give an answer-first architecture summary.",
+        "Explain the evidence-selection strategy.",
+        "Avoid claiming full-corpus coverage without an index."
+      ],
+      "must_have_evidence": [
+        "directory layout",
+        "representative sampled files",
+        "explicit sampling limitations"
+      ]
+    },
+    {
+      "case_id": "P214-LC-004",
+      "category": "large_corpus_limitations",
+      "prompt": "Can the current local model take this entire corpus as one raw prompt? Explain the context-budget limit, safer strategy, and what proof is still missing.",
+      "ideal_answer_shape": [
+        "Say no if estimated corpus tokens exceed the current gateway/model budget.",
+        "Recommend retrieval/chunking/paging instead of raw prompt stuffing.",
+        "List the exact runtime proof still required."
+      ],
+      "must_have_evidence": [
+        "estimated corpus token count",
+        "gateway target input limit",
+        "model context assumption",
+        "raw 1M support not proven"
+      ]
+    }
+  ],
+  "acceptance_marker": "PHASE214 LARGE CORPUS CONTEXT BUDGET INVENTORY PASS"
+}

@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "kind": "context_strategy_router_policy",
+  "phase": 220,
+  "priority_backlog_id": "P0-M8-220",
+  "milestone_ids": [
+    "M8"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Validate deterministic context strategy routing through the existing workflow-router path before large-context live closeout.",
+  "phase215_policy_path": "runtime/retrieval_first_context_strategy_design_policy.json",
+  "phase219_precondition": {
+    "report_path": "runtime-state/phase219/phase219-artifact-paging-long-answer-usability-report.json",
+    "required_status": "passed",
+    "required_phase220_ready": true
+  },
+  "target_root": "runtime-state/phase214/generated-large-corpus",
+  "context_index_policy_path": "runtime/context_index_prototype_policy.json",
+  "required_strategy_ids": [
+    "direct_context",
+    "retrieval",
+    "chunked_investigation",
+    "summarization",
+    "artifact_paging",
+    "refusal"
+  ],
+  "required_routing_inputs": [
+    "prompt_intent",
+    "target_root",
+    "estimated_corpus_tokens",
+    "file_count",
+    "requested_specificity",
+    "output_format",
+    "mutation_intent",
+    "allowed_root_status",
+    "ignore_policy_status",
+    "index_safety_status",
+    "source_freshness_status",
+    "context_budget",
+    "ambiguity_level"
+  ],
+  "decision_cases": [
+    {
+      "case_id": "P220-STRAT-001",
+      "target_root_kind": "config_root",
+      "mode": "execute_read_only",
+      "prompt": "Explain what README.md is for. Read only. Include key sections and source refs.",
+      "expected_strategy": "direct_context",
+      "expected_strategy_status": "selected",
+      "expected_execution_path": "existing_read_only_workflow",
+      "expected_route_status": "ready",
+      "expect_downstream": true
+    },
+    {
+      "case_id": "P220-STRAT-002",
+      "target_root_kind": "large_corpus",
+      "mode": "execute_read_only",
+      "prompt": "In the large corpus fixture, find evidence for how risk gate decisions flow into audit summaries.",
+      "expected_strategy": "retrieval",
+      "expected_strategy_status": "selected",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "expected_route_status": "ready",
+      "expect_downstream": true
+    },
+    {
+      "case_id": "P220-STRAT-003",
+      "target_root_kind": "large_corpus",
+      "mode": "execute_read_only",
+      "prompt": "In the large corpus fixture, summarize the generated service architecture without reading every file.",
+      "expected_strategy": "summarization",
+      "expected_strategy_status": "selected",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "expected_route_status": "ready",
+      "expect_downstream": true
+    },
+    {
+      "case_id": "P220-STRAT-004",
+      "target_root_kind": "large_corpus",
+      "mode": "execute_read_only",
+      "prompt": "In the large corpus fixture, produce a long evidence report with all relevant top files for the order replay pipeline.",
+      "expected_strategy": "artifact_paging",
+      "expected_strategy_status": "selected",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "expected_route_status": "ready",
+      "expect_downstream": true
+    },
+    {
+      "case_id": "P220-STRAT-005",
+      "target_root_kind": "large_corpus",
+      "mode": "execute_read_only",
+      "prompt": "In the large corpus fixture, trace the end-to-end cross-file flow across the whole corpus from risk gate to audit summary.",
+      "expected_strategy": "chunked_investigation",
+      "expected_strategy_status": "selected",
+      "expected_execution_path": "large_context.chunked_investigation",
+      "expected_route_status": "ready",
+      "expect_downstream": true
+    },
+    {
+      "case_id": "P220-STRAT-006",
+      "target_root_kind": "large_corpus",
+      "mode": "execute_read_only",
+      "prompt": "Can the current local model take this entire corpus as one raw prompt? Explain the context-budget limit and safe alternative.",
+      "expected_strategy": "refusal",
+      "expected_strategy_status": "selected",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "expected_route_status": "ready",
+      "expect_downstream": true
+    }
+  ],
+  "negative_controls": [
+    {
+      "case_id": "P220-NEG-001",
+      "kind": "ambiguous_large_context_request",
+      "target_root_kind": "large_corpus",
+      "mode": "execute_read_only",
+      "prompt": "Inspect the large corpus.",
+      "expected_strategy": "refusal",
+      "expected_strategy_status": "blocked",
+      "expected_execution_path": "none",
+      "expected_route_status": "blocked"
+    },
+    {
+      "case_id": "P220-NEG-002",
+      "kind": "unindexed_target_request",
+      "target_root_kind": "config_root",
+      "mode": "execute_read_only",
+      "prompt": "In this large corpus, find evidence for how risk gate decisions flow into audit summaries.",
+      "expected_strategy": "refusal",
+      "expected_strategy_status": "blocked",
+      "expected_execution_path": "none",
+      "expected_route_status": "blocked"
+    },
+    {
+      "case_id": "P220-NEG-003",
+      "kind": "mutation_risk_request",
+      "target_root_kind": "large_corpus",
+      "mode": "plan_only",
+      "prompt": "Refactor the large corpus order replay pipeline and change the files now.",
+      "expected_strategy": "refusal",
+      "expected_strategy_status": "blocked",
+      "expected_execution_path": "none",
+      "expected_route_status": "blocked"
+    },
+    {
+      "case_id": "P220-NEG-004",
+      "kind": "stale_index_or_source_hash",
+      "target_root_kind": "large_corpus",
+      "mode": "execute_read_only",
+      "prompt": "In the large corpus fixture, find evidence for how risk gate decisions flow into audit summaries.",
+      "expected_strategy": "refusal",
+      "expected_strategy_status": "blocked",
+      "expected_execution_path": "none",
+      "expected_route_status": "blocked"
+    }
+  ],
+  "answer_contract": {
+    "answer_first_required": true,
+    "artifact_only_allowed": false,
+    "new_chat_endpoint_allowed": false,
+    "raw_prompt_stuffing_allowed": false,
+    "chat_visible_strategy_required": true
+  },
+  "out_of_scope": [
+    "new_chat_endpoint",
+    "raw_1m_prompt_support_claim",
+    "second_large_context_router",
+    "vector_search_replacement",
+    "protected_fixture_mutation",
+    "advanced_refactor_reactivation"
+  ],
+  "acceptance_marker": "PHASE220 CONTEXT STRATEGY ROUTER PASS"
+}

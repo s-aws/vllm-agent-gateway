@@ -125,6 +125,57 @@ def test_feedback_decision_maps_useful_only_to_rejected_finding() -> None:
     assert validate_feedback_record_decision(test_case, test_record, decision) == []
 
 
+def test_feedback_decision_maps_advisory_text_to_advisory_finding() -> None:
+    test_case = case(
+        expected_classifications=("useful",),
+        expected_decision_kind="advisory_finding",
+        expected_gap_class="documentation",
+    )
+    test_record = record(
+        classifications=["useful"],
+        feedback={"useful": ["answer is acceptable"], "notes": "advisory only: monitor if repeated"},
+    )
+    decision = feedback_decision_for_record(test_record, test_case)
+
+    assert decision["kind"] == "advisory_finding"
+    assert decision["decision_status"] == "advisory"
+    assert decision["validation_result"]["required_gate"] == "repeat_feedback_or_release_review"
+    assert validate_feedback_record_decision(test_case, test_record, decision) == []
+
+
+def test_feedback_decision_maps_deferred_scope_text_to_deferred_finding() -> None:
+    test_case = case(
+        expected_classifications=("useful",),
+        expected_decision_kind="deferred_finding",
+        expected_gap_class="scope_deferred",
+    )
+    test_record = record(
+        classifications=["useful"],
+        feedback={"useful": ["answer correctly avoided mutation"], "notes": "advanced refactor remains deferred"},
+    )
+    decision = feedback_decision_for_record(test_record, test_case)
+
+    assert decision["kind"] == "deferred_finding"
+    assert decision["decision_status"] == "deferred"
+    assert decision["validation_result"]["required_gate"] == "roadmap_reactivation_approval"
+    assert validate_feedback_record_decision(test_case, test_record, decision) == []
+
+
+def test_feedback_decision_rejects_notes_only_without_actionable_evidence() -> None:
+    test_case = case(
+        expected_classifications=("notes",),
+        expected_decision_kind="rejected_finding",
+        expected_gap_class="none",
+    )
+    test_record = record(classifications=["notes"], feedback={"notes": "too vague to act on"})
+    decision = feedback_decision_for_record(test_record, test_case)
+
+    assert decision["kind"] == "rejected_finding"
+    assert decision["decision_status"] == "rejected"
+    assert decision["validation_result"]["reason"] == "notes-only feedback did not include actionable evidence"
+    assert validate_feedback_record_decision(test_case, test_record, decision) == []
+
+
 def test_founder_feedback_loop_report_rejects_missing_decision_coverage() -> None:
     report = {
         "kind": "founder_feedback_loop_live_report",

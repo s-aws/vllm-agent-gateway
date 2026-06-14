@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "kind": "chunked_investigation_executor_implementation_policy",
+  "phase": 223,
+  "priority_backlog_id": "P0-M6-223",
+  "milestone_ids": [
+    "M6",
+    "M8"
+  ],
+  "target_root": "runtime-state/phase214/generated-large-corpus",
+  "context_index_policy_path": "runtime/context_index_prototype_policy.json",
+  "phase222_precondition": {
+    "report_path": "runtime-state/phase222/phase222-chunked-investigation-executor-contract-report.json",
+    "required_status": "passed",
+    "required_phase223_ready": true
+  },
+  "chunked_prompt": "In {target_root}, trace the end-to-end cross-file flow across the whole corpus from risk gate to audit summary.",
+  "expected_strategy": "chunked_investigation",
+  "expected_execution_path": "large_context.chunked_investigation",
+  "expected_downstream_workflow": "large_context.chunked_investigation",
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "small_repo_regression_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "minimums": {
+    "stage_count": 3,
+    "completed_stage_count": 3,
+    "evidence_ref_count": 3,
+    "claim_count": 3,
+    "artifact_page_count": 1
+  },
+  "answer_contract": {
+    "answer_first_required": true,
+    "artifact_only_allowed": false,
+    "raw_prompt_stuffing_allowed": false,
+    "phase222_contract_satisfied_required": true,
+    "chat_visible_chunked_metadata_required": true,
+    "source_text_retention": "metadata_only"
+  },
+  "negative_controls": [
+    "single_step_prompt_not_chunked",
+    "stale_index_or_source_hash",
+    "ignored_private_or_secret_like_evidence",
+    "large_context_mutation_risk",
+    "raw_context_capacity_claim",
+    "artifact_only_chat_answer",
+    "protected_fixture_mutation"
+  ],
+  "acceptance_marker": "PHASE223 CHUNKED INVESTIGATION EXECUTOR IMPLEMENTATION PASS"
+}

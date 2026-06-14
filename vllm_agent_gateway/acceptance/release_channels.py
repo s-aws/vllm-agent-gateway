@@ -51,6 +51,7 @@ class ReleaseChannelValidationConfig:
     output_path: Path | None = None
     channel: str | None = None
     release_candidate_report_path: Path | None = None
+    skip_runtime_state_hygiene: bool = False
 
 
 def utc_timestamp() -> str:
@@ -431,6 +432,17 @@ def runtime_state_hygiene_release_check(config_root: Path) -> dict[str, Any]:
     )
 
 
+def skipped_runtime_state_hygiene_release_check() -> dict[str, Any]:
+    return check(
+        "runtime_state.hygiene",
+        ReleaseChannelCheckStatus.SKIPPED,
+        "Runtime-state hygiene was skipped for a non-git clean snapshot.",
+        category="runtime_state",
+        details={"reason": "clean_snapshot_without_git_metadata"},
+        next_action="Run full release-channel validation in a git checkout before final external release.",
+    )
+
+
 def validate_release_channels(config: ReleaseChannelValidationConfig) -> dict[str, Any]:
     config_root = config.config_root.resolve()
     manifest_path = resolve_manifest_path(config_root, config.manifest_path)
@@ -464,7 +476,9 @@ def validate_release_channels(config: ReleaseChannelValidationConfig) -> dict[st
                 release_candidate_report_path=config.release_candidate_report_path,
                 channel=config.channel,
             ),
-            runtime_state_hygiene_release_check(config_root),
+            skipped_runtime_state_hygiene_release_check()
+            if config.skip_runtime_state_hygiene
+            else runtime_state_hygiene_release_check(config_root),
         ]
     except Exception as exc:  # noqa: BLE001
         checks = [

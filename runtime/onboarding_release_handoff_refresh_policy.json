@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "kind": "onboarding_release_handoff_refresh_policy",
+  "phase": 232,
+  "priority_backlog_id": "P0-M14-232",
+  "milestone_id": "M14",
+  "required_decision": "handoff_ready",
+  "required_docs": [
+    "README.md",
+    "README.getting-started.md",
+    "README.external-tester-onboarding.md",
+    "README.stable-handoff.md",
+    "README.release-notes.md",
+    "README.productized-setup.md",
+    "README.runtime-recovery-reliability-rebaseline.md",
+    "README.large-context-usability-live-closeout.md",
+    "README.founder-feedback-loop-rebaseline.md",
+    "README.founder-feedback-repair-rerun-gate.md",
+    "README.small-skill-admission-pilot.md",
+    "README.onboarding-release-handoff-refresh.md",
+    "docs/examples/onboarding-release-handoff-refresh.md",
+    "docs/README.md",
+    "docs/examples/README.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md"
+  ],
+  "required_doc_markers": {
+    "README.md": [
+      "README.runtime-recovery-reliability-rebaseline.md",
+      "README.onboarding-release-handoff-refresh.md",
+      "Large-context support means"
+    ],
+    "README.getting-started.md": [
+      "Phase 232",
+      "Phase 226",
+      "scripts/validate_runtime_recovery_reliability_rebaseline.py",
+      "http://127.0.0.1:8500/v1",
+      "python-service-code-explanation",
+      "P221-LC-001",
+      "Record feedback for run workflow-router",
+      "Advanced broad refactor orchestration is not released"
+    ],
+    "README.external-tester-onboarding.md": [
+      "Phase 231",
+      "http://127.0.0.1:8500/v1",
+      "workflow_feedback.record",
+      "ONB-001"
+    ],
+    "README.stable-handoff.md": [
+      "Phase 226",
+      "Phase 231",
+      "http://127.0.0.1:8500/v1",
+      "runtime recovery reliability",
+      "workflow_feedback.record"
+    ],
+    "README.release-notes.md": [
+      "Phase 226",
+      "Phase 231",
+      "runtime-state/phase231/phase231-runtime-recovery-reliability-rebaseline-report.json",
+      "large-context usability",
+      "Small skill admission",
+      "Founder feedback"
+    ],
+    "README.productized-setup.md": [
+      "validate_runtime_recovery_reliability_rebaseline.py",
+      "runtime recovery reliability"
+    ],
+    "README.onboarding-release-handoff-refresh.md": [
+      "Phase 232",
+      "handoff_ready",
+      "validate_onboarding_release_handoff_refresh.py"
+    ],
+    "docs/examples/onboarding-release-handoff-refresh.md": [
+      "PHASE232 ONBOARDING RELEASE HANDOFF REFRESH PASS",
+      "validate_runtime_recovery_reliability_rebaseline.py"
+    ],
+    "docs/README.md": [
+      "Onboarding And Release Handoff Refresh README",
+      "Onboarding And Release Handoff Refresh Examples"
+    ],
+    "docs/examples/README.md": [
+      "Onboarding And Release Handoff Refresh"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "Phase 232",
+      "M14"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M14-232",
+      "Onboarding and release handoff refresh"
+    ]
+  },
+  "forbidden_doc_markers": {
+    "README.getting-started.md": [
+      "Phase 186 is the active",
+      "Phase 231 Runtime Recovery Reliability Rebaseline is the active next Priority 0 action"
+    ],
+    "README.release-notes.md": [
+      "Phase 186 is the active"
+    ],
+    "README.stable-handoff.md": [
+      "The latest Phase 170 refresh",
+      "Phase 161 proposal gate reports `no_new_batch_justified`"
+    ]
+  },
+  "required_commands": [
+    "python3 scripts/validate_runtime_recovery_reliability_rebaseline.py",
+    "python3 scripts/run_first_time_user_doctor.py",
+    "python3 scripts/validate_external_tester_dry_run.py",
+    "python3 scripts/validate_large_context_usability_live_closeout.py",
+    "python3 scripts/validate_small_skill_admission_pilot.py"
+  ],
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "workflow_router_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace"
+  },
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "acceptance_marker": "PHASE232 ONBOARDING RELEASE HANDOFF REFRESH PASS"
+}

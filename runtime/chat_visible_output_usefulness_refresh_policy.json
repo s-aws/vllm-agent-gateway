@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "kind": "chat_visible_output_usefulness_refresh_policy",
+  "phase": 202,
+  "priority_backlog_id": "P0-BB-066",
+  "milestone_id": "M2",
+  "goal": "Prove the enforced answer contract survives live default chat output, JSON output, gateway usage, and AnythingLLM usage.",
+  "required_phase201_report": {
+    "path": "runtime-state/phase201/phase201-chat-visible-answer-contract-enforcement-report.json",
+    "expected_kind": "chat_visible_answer_contract_enforcement_report",
+    "expected_status": "passed",
+    "expected_phase": 201
+  },
+  "required_live_reports": {
+    "output_format_parity": {
+      "path": "runtime-state/phase202/phase202-output-format-parity-live.json",
+      "expected_kind": "output_format_parity_live_report",
+      "expected_status": "passed"
+    },
+    "answer_usefulness": {
+      "path": "runtime-state/phase202/phase202-answer-usefulness-report.json",
+      "expected_kind": "anythingllm_answer_usefulness_report",
+      "expected_status": "passed"
+    }
+  },
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_output_formats": [
+    "format_a",
+    "json"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_port_health_probes": [
+    {
+      "label": "localhost-model",
+      "url": "http://127.0.0.1:8000/v1/models"
+    },
+    {
+      "label": "llm-gateway",
+      "url": "http://127.0.0.1:8300/v1/models"
+    },
+    {
+      "label": "controller",
+      "url": "http://127.0.0.1:8400/health"
+    },
+    {
+      "label": "workflow-router-gateway",
+      "url": "http://127.0.0.1:8500/v1/models"
+    },
+    {
+      "label": "reviewer-code",
+      "url": "http://127.0.0.1:8101/v1/models"
+    },
+    {
+      "label": "tester-code",
+      "url": "http://127.0.0.1:8102/v1/models"
+    },
+    {
+      "label": "architect-default",
+      "url": "http://127.0.0.1:8201/v1/models"
+    },
+    {
+      "label": "dispatcher-default",
+      "url": "http://127.0.0.1:8202/v1/models"
+    },
+    {
+      "label": "implementer-default",
+      "url": "http://127.0.0.1:8203/v1/models"
+    },
+    {
+      "label": "researcher-default",
+      "url": "http://127.0.0.1:8204/v1/models"
+    },
+    {
+      "label": "documenter-default",
+      "url": "http://127.0.0.1:8205/v1/models"
+    }
+  ],
+  "minimum_live_case_count": 8,
+  "minimum_usefulness_checked_case_count": 40,
+  "required_docs": [
+    "README.chat-visible-output-usefulness-refresh.md",
+    "docs/examples/chat-visible-output-usefulness-refresh.md",
+    "README.chat-visible-answer-contract-enforcement.md",
+    "README.chat-visible-answer-contract-inventory.md",
+    "README.output-format-parity.md",
+    "README.anythingllm-answer-usefulness.md",
+    "docs/PROJECT_MILESTONES.md"
+  ],
+  "acceptance_marker": "PHASE202 CHAT VISIBLE OUTPUT USEFULNESS REFRESH PASS"
+}

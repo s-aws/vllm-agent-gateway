@@ -10052,6 +10052,44 @@ def test_workflow_router_plan_routes_l1_configuration_lookup_without_repo_reads(
     assert decision["controller_request_preview"]["queries"][0] == "COINBASE_API_KEY"
 
 
+def test_workflow_router_plan_routes_l1_configuration_lookup_from_env_identifier_without_env_phrase(
+    tmp_path: Path,
+) -> None:
+    target = make_config_lookup_repo(tmp_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/plans",
+            {
+                "workflow": "workflow_router.plan",
+                "target_root": str(target),
+                "user_request": (
+                    "In this repo, find where COINBASE_API_KEY is defined or used. "
+                    "Read only. Return files, references, and likely runtime effect."
+                ),
+                "mode": "plan_only",
+            },
+        )
+
+    assert status == 200
+    assert body["summary"]["route_status"] == "ready"
+    assert body["summary"]["selected_workflow"] == "code_investigation.plan"
+    assert body["summary"]["target_repo_read"] is False
+
+    decision = json.loads(Path(body["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert any(item.get("rule") == "l1_configuration_lookup_terms" for item in decision["evidence"])
+    assert decision["controller_request_preview"]["queries"][0] == "COINBASE_API_KEY"
+
+
 def test_workflow_router_plan_routes_l1_test_failure_summary_without_repo_reads(tmp_path: Path) -> None:
     target = make_execution_planning_tree(tmp_path)
     failure_text = (

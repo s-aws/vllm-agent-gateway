@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "kind": "chunked_investigation_executor_contract_policy",
+  "phase": 222,
+  "priority_backlog_id": "P0-M6-222",
+  "milestone_ids": [
+    "M6",
+    "M8"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Define the executable chunked-investigation contract before implementing multi-step large-corpus investigation.",
+  "phase221_precondition": {
+    "report_path": "runtime-state/phase221/phase221-large-context-usability-live-closeout-report.json",
+    "required_status": "passed",
+    "required_m6_ready": true,
+    "required_m8_ready": true
+  },
+  "executor_contract": {
+    "executor_id": "large_context.chunked_investigation",
+    "strategy_id": "chunked_investigation",
+    "entry_path": "workflow_router.execute_read_only.large_context_chunked_investigation",
+    "new_chat_endpoint_allowed": false,
+    "raw_prompt_stuffing_allowed": false,
+    "source_text_retention": "metadata_only",
+    "maximum_stage_count": 6,
+    "minimum_stage_count": 3
+  },
+  "stage_contracts": [
+    {
+      "stage_id": "request_intake",
+      "purpose": [
+        "Classify the prompt as a multi-step large-corpus investigation and preserve the user-visible objective."
+      ],
+      "input_contract": [
+        "user_request",
+        "target_root",
+        "context_strategy_decision",
+        "context_index_policy_path"
+      ],
+      "output_contract": [
+        "normalized_objective",
+        "prompt_class",
+        "target_root",
+        "strategy_id"
+      ],
+      "stop_condition": [
+        "Stop if the selected strategy is not chunked_investigation.",
+        "Stop if target root does not match the approved indexed corpus."
+      ],
+      "max_selected_tokens": "within_phase214_target_input_limit"
+    },
+    {
+      "stage_id": "flow_decomposition",
+      "purpose": [
+        "Break the cross-file question into bounded evidence stages that can be answered independently."
+      ],
+      "input_contract": [
+        "normalized_objective",
+        "prompt_class",
+        "routing_terms"
+      ],
+      "output_contract": [
+        "stage_plan",
+        "stage_queries",
+        "stage_stop_conditions",
+        "stage_dependencies"
+      ],
+      "stop_condition": [
+        "Stop if decomposition cannot produce at least two bounded evidence stages.",
+        "Stop if the user request remains ambiguous after safe recovery guidance."
+      ],
+      "max_selected_tokens": "within_phase214_target_input_limit"
+    },
+    {
+      "stage_id": "bounded_retrieval",
+      "purpose": [
+        "Use the existing metadata-first index and retrieval evidence validation to gather per-stage evidence."
+      ],
+      "input_contract": [
+        "stage_queries",
+        "context_index_policy_path",
+        "phase216_safety_policy",
+        "source_freshness_status"
+      ],
+      "output_contract": [
+        "stage_evidence_refs",
+        "stage_safety_decisions",
+        "stage_missing_evidence",
+        "selected_token_estimate"
+      ],
+      "stop_condition": [
+        "Stop if any stage would exceed the Phase 214 target input limit.",
+        "Stop if admitted evidence cannot pass source freshness validation."
+      ],
+      "max_selected_tokens": "within_phase214_target_input_limit"
+    },
+    {
+      "stage_id": "stage_synthesis",
+      "purpose": [
+        "Summarize each completed evidence stage without claiming full-corpus coverage."
+      ],
+      "input_contract": [
+        "stage_plan",
+        "stage_evidence_refs",
+        "stage_missing_evidence"
+      ],
+      "output_contract": [
+        "stage_findings",
+        "stage_confidence",
+        "stage_unknowns",
+        "stage_limitations"
+      ],
+      "stop_condition": [
+        "Stop if no stage has enough evidence for a bounded finding."
+      ],
+      "max_selected_tokens": "within_phase214_target_input_limit"
+    },
+    {
+      "stage_id": "source_verification",
+      "purpose": [
+        "Revalidate source refs, hashes, freshness, allowed roots, and retention boundaries before answering."
+      ],
+      "input_contract": [
+        "stage_evidence_refs",
+        "phase216_safety_policy",
+        "target_root"
+      ],
+      "output_contract": [
+        "verified_source_refs",
+        "source_hash_revalidation",
+        "freshness_status",
+        "rejected_ref_reasons"
+      ],
+      "stop_condition": [
+        "Stop if any answer-critical source ref is stale, unsafe, ignored, private, or missing."
+      ],
+      "max_selected_tokens": "within_phase214_target_input_limit"
+    },
+    {
+      "stage_id": "artifact_paging",
+      "purpose": [
+        "Page long stage evidence into traceable artifacts while keeping the chat answer useful."
+      ],
+      "input_contract": [
+        "verified_source_refs",
+        "stage_findings",
+        "stage_unknowns"
+      ],
+      "output_contract": [
+        "page_manifest",
+        "page_ids",
+        "continuation_hints",
+        "artifact_source_ref_count"
+      ],
+      "stop_condition": [
+        "Stop if page refs cannot trace back to verified source refs."
+      ],
+      "max_selected_tokens": "within_phase214_target_input_limit"
+    },
+    {
+      "stage_id": "final_answer",
+      "purpose": [
+        "Return an answer-first chat response with completed stages, unresolved stages, source refs, confidence, limitations, and artifact pointers."
+      ],
+      "input_contract": [
+        "stage_findings",
+        "verified_source_refs",
+        "page_manifest",
+        "stage_unknowns"
+      ],
+      "output_contract": [
+        "answer",
+        "completed_stage_summary",
+        "unresolved_steps",
+        "source_refs",
+        "claim_map",
+        "limitations",
+        "artifact_refs"
+      ],
+      "stop_condition": [
+        "Stop if the answer would be artifact-only or imply full-corpus exhaustive proof."
+      ],
+      "max_selected_tokens": "within_phase214_target_input_limit"
+    }
+  ],
+  "artifact_contracts": [
+    {
+      "artifact_id": "chunked_investigation_report",
+      "required_fields": [
+        "request_id",
+        "strategy",
+        "executor_contract_version",
+        "input_summary",
+        "corpus_snapshot",
+        "plan",
+        "steps",
+        "retrievals",
+        "evidence",
+        "claim_map",
+        "final_answer",
+        "limits",
+        "safety",
+        "validation",
+        "status"
+      ],
+      "stores_source_text": false,
+      "traceable_to_source_refs": true
+    },
+    {
+      "artifact_id": "chunked_investigation_plan",
+      "required_fields": [
+        "schema_version",
+        "kind",
+        "run_id",
+        "target_root",
+        "user_request",
+        "strategy_id",
+        "stage_plan",
+        "stage_dependencies",
+        "budget"
+      ],
+      "stores_source_text": false,
+      "traceable_to_source_refs": true
+    },
+    {
+      "artifact_id": "chunk_stage_records",
+      "required_fields": [
+        "stage_id",
+        "stage_query",
+        "stage_status",
+        "selected_token_estimate",
+        "evidence_ref_ids",
+        "missing_evidence",
+        "confidence",
+        "limitations"
+      ],
+      "stores_source_text": false,
+      "traceable_to_source_refs": true
+    },
+    {
+      "artifact_id": "chunk_evidence_refs",
+      "required_fields": [
+        "evidence_ref_id",
+        "retrieval_stage_id",
+        "claim_ids",
+        "source_path",
+        "line_start",
+        "line_end",
+        "source_sha256",
+        "chunk_sha256",
+        "freshness_status",
+        "source_type",
+        "retrieval_rank",
+        "retrieval_score",
+        "query_terms"
+      ],
+      "stores_source_text": false,
+      "traceable_to_source_refs": true
+    },
+    {
+      "artifact_id": "chunk_page_manifest",
+      "required_fields": [
+        "page_id",
+        "page_index",
+        "source_refs",
+        "continuation_hint",
+        "source_text_retention",
+        "store_source_text"
+      ],
+      "stores_source_text": false,
+      "traceable_to_source_refs": true
+    },
+    {
+      "artifact_id": "chunk_final_answer",
+      "required_fields": [
+        "answer",
+        "completed_stage_summary",
+        "unresolved_steps",
+        "claim_map",
+        "confidence",
+        "limitations",
+        "artifact_refs",
+        "raw_prompt_stuffing"
+      ],
+      "stores_source_text": false,
+      "traceable_to_source_refs": true
+    }
+  ],
+  "source_proof_fields": [
+    "evidence_ref_id",
+    "source_path",
+    "line_start",
+    "line_end",
+    "source_sha256",
+    "chunk_sha256",
+    "freshness_status",
+    "retrieval_stage_id",
+    "query_terms",
+    "source_type",
+    "retrieval_rank",
+    "retrieval_score",
+    "claim_ids"
+  ],
+  "answer_contract": {
+    "answer_first_required": true,
+    "artifact_only_allowed": false,
+    "stage_summary_required": true,
+    "unresolved_steps_required": true,
+    "source_refs_required": true,
+    "claim_map_required": true,
+    "raw_prompt_stuffing_allowed": false,
+    "format_a_and_json_parity_required": true
+  },
+  "decision_cases": [
+    {
+      "case_id": "P222-DEC-001",
+      "prompt": "In the large corpus fixture, trace the end-to-end cross-file flow across the whole corpus from risk gate to audit summary.",
+      "expected_strategy": "chunked_investigation",
+      "expected_executor_status": "executable_after_phase223",
+      "minimum_stage_count": 3
+    },
+    {
+      "case_id": "P222-DEC-002",
+      "prompt": "In the large corpus fixture, map dependencies from replay input to audit output and list unresolved evidence steps.",
+      "expected_strategy": "chunked_investigation",
+      "expected_executor_status": "executable_after_phase223",
+      "minimum_stage_count": 3
+    }
+  ],
+  "negative_controls": [
+    "single_step_prompt_not_chunked",
+    "stale_index_or_source_hash",
+    "ignored_private_or_secret_like_evidence",
+    "large_context_mutation_risk",
+    "ambiguous_multi_step_prompt",
+    "contradictory_evidence_uncertainty",
+    "raw_context_capacity_claim",
+    "artifact_only_chat_answer",
+    "new_index_or_vector_search_path",
+    "protected_fixture_mutation"
+  ],
+  "live_validation_surfaces": [
+    "workflow_router_gateway",
+    "anythingllm"
+  ],
+  "implementation_boundaries": [
+    "reuse_metadata_first_index",
+    "reuse_retrieval_evidence_validation",
+    "reuse_artifact_paging_contract",
+    "no_second_large_context_router",
+    "no_vector_search_replacement",
+    "no_raw_1m_prompt_claim"
+  ],
+  "acceptance_marker": "PHASE222 CHUNKED INVESTIGATION EXECUTOR CONTRACT PASS"
+}

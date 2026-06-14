@@ -17,9 +17,30 @@ Read `docs/ACTIONABLE_WORKFLOW_ROADMAP.md` first. It is the source of truth when
 
 Always work the lowest-numbered incomplete roadmap phase unless the user explicitly changes scope. Scope expansion requires founder approval and a roadmap update before implementation.
 
+## Milestone-Aligned Planning
+
+Read `docs/PROJECT_MILESTONES.md` before adding, approving, or implementing roadmap phases. Phases are valid only when they map directly to one or more approved milestones and advance the durable product objective.
+
+Do not extend the roadmap just to keep work going. Add a new milestone only when all are true:
+
+1. An existing milestone cannot cleanly contain the work without weakening its acceptance proof.
+2. The gap is tied to current architecture, runtime behavior, validation, safety, or planning needed for the durable objective.
+3. The gap would materially block or distort completion of Priority 0 chat quality, large-context usability, deterministic skill/tool routing, safe mutation, release handoff, or validated runtime operation.
+4. The milestone has concrete done criteria and required proof that a contextless agent can audit.
+
+Phases that directly map to an approved milestone are approved by default unless the roadmap entry, founder, or current session explicitly marks them as proposed, not approved, blocked, deferred, or approval-required. This automatic approval does not authorize scope creep: the phase must stay inside the approved milestone's product state, done criteria, and required proof.
+
+Adding or changing a milestone still requires explicit founder approval. If a requested phase does not move an approved milestone forward, or if it expands a milestone's intended product state, raise the mismatch before implementation.
+
+## Standing Fixture Approvals
+
+`s-aws/staterail` is approved as the first non-Coinbase M5 generalization fixture for all future scoped project work. Do not stop to ask for approval to use this repository again when the work stays inside the approved fixture/testing scope and does not commit or push to `s-aws/staterail`. Approved operations include cloning or refreshing a local fixture, freezing a local copy, reading source/docs/tests, running tests, creating disposable mutation copies, generating controller/runtime artifacts, and using it in gateway/AnythingLLM validation. Any change that would commit to or push to `s-aws/staterail`, alter its remote repository, publish a branch, or treat it as a production target requires separate explicit approval.
+
 ## Persistent Project Memory
 
 Priority 0 is chat quality development and testing. All other work is secondary unless it directly supports improving or validating chat quality against the current local model, skills, and tools.
+
+The product objective includes large-context usability, not a raw context-size guarantee. Very large repositories and corpora, including 1M+ token projects, should become usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Do not assume the current local model can accept raw 1M-token prompts unless a dedicated proof gate validates model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality.
 
 Priority 0 chat-quality testing uses a blind-baseline-first process by default:
 

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "skill_library_scaling_readiness_inventory_policy",
+  "phase": 229,
+  "priority_backlog_id": "P0-M12-229",
+  "milestone_ids": [
+    "M12"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Inventory current skill/tool coverage and select evidence-backed small candidates for the next skill-library scaling pilot.",
+  "phase228_precondition": {
+    "report_path": "runtime-state/founder-feedback-loop/phase228/phase228-founder-feedback-repair-rerun-gate-report.json",
+    "required_status": "passed",
+    "required_phase229_ready": true
+  },
+  "source_prompt_coverage_path": "runtime/prompt_skill_coverage.json",
+  "source_gap_intake_policy_path": "runtime/skill_tool_gap_proposal_intake_policy.json",
+  "selection_rules": {
+    "advanced_refactor_allowed": false,
+    "missing_skill_gap_required_for_new_skill": true,
+    "planned_fixture_coverage_allowed": true,
+    "prompt_tightening_only_is_not_skill_gap": true,
+    "mutation_capable_skill_allowed": false,
+    "manual_skill_injection_allowed": false
+  },
+  "candidate_status_order": [
+    "implemented",
+    "planned",
+    "deferred"
+  ],
+  "phase230_recommended_candidate_id": "FX-001",
+  "acceptance_marker": "PHASE229 SKILL LIBRARY SCALING READINESS INVENTORY PASS"
+}

@@ -2,7 +2,7 @@
 
 Stable is the external-tester channel promoted from the passed V1.1 release-candidate proof.
 
-Use this handoff only for the current product surface: natural-language L1/L2 read-only prompts, draft-only small implementation plans, approved disposable-copy apply proof, feedback capture, setup validation, security policy validation, and run observability. Advanced broad refactor orchestration remains deferred.
+Use this handoff only for the current product surface: natural-language L1/L2 read-only prompts, draft-only small implementation plans, approved disposable-copy apply proof, feedback capture, setup validation, security policy validation, large-context usability, runtime recovery reliability, and run observability. Advanced broad refactor orchestration remains deferred.
 
 ## What Stable Means
 
@@ -12,9 +12,10 @@ Use this handoff only for the current product surface: natural-language L1/L2 re
 - The activation report is a passed `v1_acceptance_report` with profile `v1.1-release-candidate`.
 - First-time testers still use AnythingLLM pointed at `http://127.0.0.1:8500/v1`.
 - The stable smoke command reruns setup, release-channel validation, security policy, one live onboarding prompt, feedback capture, and protected-fixture checks.
-- The latest Phase 170 refresh keeps the release at `release_for_founder_testing`.
-- The latest Phase 161 proposal gate reports `no_new_batch_justified`; the current field-test misses are prompt wording advisories, not new skill/tool implementation work.
-- The Phase 169 proposal pass records six product-gap candidates approved for Phases 171-176; they are not part of the stable tester path until those phases pass.
+- Phase 226 makes the current M6/M8 large-context strategy set release-usable through retrieval, artifact paging, summarization, chunked investigation, and refusal routing.
+- Phase 230 admits the first M12 small skill-library fixture/eval coverage candidate without manual skill injection.
+- Phase 231 proves runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack.
+- Feedback still records through `workflow_feedback.record`; Phase 227 classifies feedback outcomes and Phase 228 prevents accepted repairs from closing without target and holdout rerun proof.
 
 Stable does not mean every coding-agent task is supported. It means the current documented tester path is ready for external use under the stated boundaries.
 
@@ -74,6 +75,10 @@ python3 scripts/validate_stable_release_refresh.py \
 python3 scripts/validate_skill_tool_gap_batch_proposal.py \
   --output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.json \
   --markdown-output-path runtime-state/skill-tool-gap-batch-proposal/phase161/phase161-skill-tool-gap-batch-proposal-report.md
+python3 scripts/validate_runtime_recovery_reliability_rebaseline.py \
+  --restart-managed-stack \
+  --restart-vllm-container vllm-qwen3 \
+  --timeout-seconds 900
 ```
 
 Expected current decisions:
@@ -84,7 +89,7 @@ release_for_founder_testing
 no_new_batch_justified
 ```
 
-The Phase 170 report should also show `source_report_count=17`, `phase169_proposal_count=6`, `phase169_release_blocker_count=0`, and `validation_error_count=0`.
+The Phase 231 report should show `decision=ready_after_recovery`, `covered_surface_count=7`, and `missing_required_surface_count=0`.
 
 If Phase 161 ever returns `propose_batch_for_founder_approval`, or a later failure-to-roadmap pass produces approved implementation candidates, stop founder handoff expansion and review the proposals before implementing anything.
 
@@ -119,7 +124,7 @@ Example:
 Record feedback for run workflow-router-REPLACE_ME: useful: the answer was visible in chat. missing: the related tests section was too vague.
 ```
 
-Feedback artifacts are written through `workflow_feedback.record` and should be reviewed before planning the next roadmap phase.
+Feedback artifacts are written through `workflow_feedback.record`. Phase 227 classifies them as useful, advisory, repair-worthy, rejected, deferred, baseline, or holdout outcomes. Phase 228 requires accepted repairs to pass target, holdout, blind-baseline, mutation, and artifact proof before any item is marked fixed.
 
 ## Rollback
 

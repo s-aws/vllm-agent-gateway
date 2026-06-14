@@ -44,9 +44,9 @@
   "expected_counts": {
     "deprecated_skill_count": 0,
     "do_not_admit_count": 0,
-    "eval_case_count": 53,
-    "implemented_prompt_coverage_count": 38,
-    "planned_prompt_coverage_count": 2,
+    "eval_case_count": 55,
+    "implemented_prompt_coverage_count": 39,
+    "planned_prompt_coverage_count": 1,
     "prompt_coverage_entry_count": 40,
     "route_key_count": 54,
     "skill_count": 54

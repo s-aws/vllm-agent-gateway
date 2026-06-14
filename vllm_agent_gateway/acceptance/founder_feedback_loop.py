@@ -23,7 +23,13 @@ REQUIRED_DECISIONS = {
     "repair_followup",
     "rejected_finding",
 }
+SUPPORTED_DECISIONS = REQUIRED_DECISIONS | {
+    "advisory_finding",
+    "deferred_finding",
+}
 ACCEPTED_DECISIONS = {"baseline_prompt_candidate", "holdout_prompt_candidate", "repair_followup"}
+ADVISORY_DECISIONS = {"advisory_finding"}
+DEFERRED_DECISIONS = {"deferred_finding"}
 REJECTED_DECISIONS = {"rejected_finding"}
 GAP_CLASSES = {
     "routing",
@@ -34,6 +40,7 @@ GAP_CLASSES = {
     "safety_boundary",
     "documentation",
     "test_coverage",
+    "scope_deferred",
     "none",
 }
 
@@ -91,7 +98,7 @@ def load_founder_feedback_loop_cases(cases_path: Path = DEFAULT_CASES_PATH) -> l
             raise ValueError(f"duplicate founder feedback case_id: {case_id}")
         seen.add(case_id)
         expected_decision_kind = _required_string(item, "expected_decision_kind", case_id)
-        if expected_decision_kind not in REQUIRED_DECISIONS:
+        if expected_decision_kind not in SUPPORTED_DECISIONS:
             raise ValueError(f"{case_id} unsupported expected_decision_kind: {expected_decision_kind}")
         expected_gap_class = _required_string(item, "expected_gap_class", case_id)
         if expected_gap_class not in GAP_CLASSES:
@@ -114,7 +121,11 @@ def load_founder_feedback_loop_cases(cases_path: Path = DEFAULT_CASES_PATH) -> l
     return cases
 
 
-def validate_case_catalog(cases: list[FounderFeedbackLoopCase]) -> list[str]:
+def validate_case_catalog(
+    cases: list[FounderFeedbackLoopCase],
+    *,
+    required_decisions: set[str] | None = None,
+) -> list[str]:
     errors: list[str] = []
     if not cases:
         return ["founder feedback loop catalog has no cases"]
@@ -127,7 +138,8 @@ def validate_case_catalog(cases: list[FounderFeedbackLoopCase]) -> list[str]:
     if missing_surfaces:
         errors.append(f"missing required surfaces: {', '.join(missing_surfaces)}")
     decisions = {case.expected_decision_kind for case in cases}
-    missing_decisions = sorted(REQUIRED_DECISIONS - decisions)
+    expected_decisions = required_decisions or REQUIRED_DECISIONS
+    missing_decisions = sorted(expected_decisions - decisions)
     if missing_decisions:
         errors.append(f"missing required decision kinds: {', '.join(missing_decisions)}")
     return errors
@@ -186,6 +198,10 @@ def validate_feedback_record_decision(
         )
     if case.expected_decision_kind in ACCEPTED_DECISIONS and decision.get("decision_status") != "accepted":
         errors.append(f"{case.case_id} accepted decision had status {decision.get('decision_status')!r}")
+    if case.expected_decision_kind in ADVISORY_DECISIONS and decision.get("decision_status") != "advisory":
+        errors.append(f"{case.case_id} advisory decision had status {decision.get('decision_status')!r}")
+    if case.expected_decision_kind in DEFERRED_DECISIONS and decision.get("decision_status") != "deferred":
+        errors.append(f"{case.case_id} deferred decision had status {decision.get('decision_status')!r}")
     if case.expected_decision_kind in REJECTED_DECISIONS and decision.get("decision_status") != "rejected":
         errors.append(f"{case.case_id} rejected decision had status {decision.get('decision_status')!r}")
     if decision.get("mutation_policy") != "controller_artifacts_only":
@@ -220,6 +236,8 @@ def validate_feedback_record_decision(
 def validate_founder_feedback_loop_report(
     report: dict[str, Any],
     expected_cases: list[FounderFeedbackLoopCase] | None = None,
+    *,
+    required_decisions: set[str] | None = None,
 ) -> list[str]:
     if report.get("kind") != "founder_feedback_loop_live_report":
         return ["report kind must be founder_feedback_loop_live_report"]
@@ -262,7 +280,8 @@ def validate_founder_feedback_loop_report(
         case_errors = case_report.get("errors")
         if isinstance(case_errors, list):
             errors.extend(str(error) for error in case_errors if error)
-    missing_decisions = sorted(REQUIRED_DECISIONS - decisions)
+    expected_decisions = required_decisions or REQUIRED_DECISIONS
+    missing_decisions = sorted(expected_decisions - decisions)
     if missing_decisions:
         errors.append(f"missing decision coverage: {', '.join(missing_decisions)}")
     missing_surfaces = sorted(REQUIRED_SURFACES - surfaces)

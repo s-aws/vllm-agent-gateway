@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "kind": "v1_beta_release_closeout_policy",
+  "phase": 199,
+  "priority_backlog_id": "P0-BB-063",
+  "milestone_id": "M1",
+  "goal": "Close the V1 founder beta release package from the Phase 195-198 proof chain.",
+  "allowed_decisions": [
+    "release_for_founder_beta",
+    "blocked"
+  ],
+  "required_reports": [
+    {
+      "id": "release_candidate_founder_trial_pack",
+      "path": "runtime-state/phase195/phase195-release-candidate-founder-trial-pack-fixture-state-report.json",
+      "expected_kind": "release_candidate_founder_trial_pack_report",
+      "expected_status": "passed",
+      "expected_phase": 195
+    },
+    {
+      "id": "v1_product_readiness_reassessment",
+      "path": "runtime-state/phase196/phase196-v1-product-readiness-reassessment-report.json",
+      "expected_kind": "v1_product_readiness_reassessment_report",
+      "expected_status": "passed",
+      "expected_phase": 196,
+      "expected_recommendation": "release_for_broader_founder_beta"
+    },
+    {
+      "id": "v1_product_readiness_live_proof",
+      "path": "runtime-state/phase196/phase196-v1-product-readiness-live-proof.json",
+      "expected_kind": "v1_product_readiness_reassessment_live_proof",
+      "expected_status": "passed",
+      "expected_phase": 196
+    },
+    {
+      "id": "founder_trial_execution_round",
+      "path": "runtime-state/phase197/phase197-founder-trial-execution-round-report.json",
+      "expected_kind": "founder_trial_execution_round_report",
+      "expected_status": "passed",
+      "expected_phase": 197
+    },
+    {
+      "id": "founder_feedback_intake_repair",
+      "path": "runtime-state/phase198/phase198-founder-feedback-intake-repair-report.json",
+      "expected_kind": "founder_feedback_intake_repair_report",
+      "expected_status": "passed",
+      "expected_phase": 198
+    }
+  ],
+  "required_docs": [
+    "README.v1-beta-release-closeout.md",
+    "docs/examples/v1-beta-release-closeout.md",
+    "README.getting-started.md",
+    "README.release-notes.md",
+    "README.release-candidate-founder-trial-pack.md",
+    "README.v1-product-readiness-reassessment.md",
+    "README.founder-trial-execution-round.md",
+    "README.founder-feedback-intake-repair.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md"
+  ],
+  "required_doc_markers": {
+    "README.v1-beta-release-closeout.md": [
+      "Phase 199",
+      "release_for_broader_founder_beta",
+      "raw 1M-token prompt support"
+    ],
+    "README.getting-started.md": [
+      "http://127.0.0.1:8500/v1",
+      "AnythingLLM",
+      "workflow-router",
+      "do not mutate"
+    ],
+    "README.release-notes.md": [
+      "Known Limitations",
+      "http://127.0.0.1:8500/v1",
+      "not a production deployment"
+    ],
+    "README.release-candidate-founder-trial-pack.md": [
+      "founder",
+      "feedback",
+      "workflow-router-"
+    ],
+    "README.founder-feedback-intake-repair.md": [
+      "Phase 199",
+      "rejected_records",
+      "response artifact"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "M1: V1 Founder Beta Closeout",
+      "Phase 195-198 proof chain",
+      "AnythingLLM path verified"
+    ]
+  },
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "workflow_router_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace"
+  },
+  "release_scope": [
+    "local_founder_beta",
+    "anythingllm_workflow_router_path",
+    "current_localhost_model",
+    "two_frozen_coinbase_fixtures",
+    "format_a_and_json_output",
+    "read_only_l1_l2_chat_quality",
+    "draft_only_skill_authoring_packets",
+    "structured_founder_feedback_capture"
+  ],
+  "release_limitations": [
+    "not_production_deployment",
+    "not_advanced_broad_refactor_orchestration",
+    "not_mutation_capable_founder_prompt_pack",
+    "not_every_repository_language_or_coding_task",
+    "not_direct_mutation_of_protected_fixtures",
+    "not_automatic_model_selection",
+    "not_unbounded_skill_library_scale",
+    "raw_1m_context_not_yet_supported"
+  ],
+  "next_milestone_phase_candidates": [
+    "Phase 200: Chat-Visible Answer Contract Inventory",
+    "Phase 201: Chat-Visible Answer Contract Enforcement Gate",
+    "Phase 202: Output Format And Usefulness Refresh"
+  ],
+  "acceptance_marker": "PHASE199 V1 BETA RELEASE CLOSEOUT PASS"
+}

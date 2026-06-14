@@ -6,21 +6,51 @@ import re
 from pathlib import Path
 from typing import Any
 
+from vllm_agent_gateway.controllers.natural_query import (
+    natural_identifier_queries_from_request,
+    strip_filesystem_paths,
+)
+
 
 PYTHON_TEST_RUNNER = "pytest"
 
 
+def camel_to_snake_identifier(value: str) -> str:
+    first_pass = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", value)
+    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", first_pass).lower()
+
+
 def salient_search_terms(*values: str) -> list[str]:
-    terms: set[str] = set()
+    terms: dict[str, tuple[int, str]] = {}
+
+    def add_term(term: str, *, priority: int) -> None:
+        cleaned = term.strip()
+        if not cleaned:
+            return
+        existing = terms.get(cleaned)
+        if existing is None or priority < existing[0]:
+            terms[cleaned] = (priority, cleaned)
+
     for value in values:
-        for match in re.findall(r"`([^`]{3,80})`", value):
+        query_source = strip_filesystem_paths(value)
+        for match in re.findall(r"`([^`]{3,80})`", query_source):
             if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*", match):
-                terms.add(match)
-        for match in re.findall(r"\b[A-Z][A-Za-z0-9]+(?:[A-Z][A-Za-z0-9]+)+\b", value):
-            terms.add(match)
-        for match in re.findall(r"\b[a-zA-Z_][A-Za-z0-9_]*_[A-Za-z0-9_]+\b", value):
-            terms.add(match)
-    return sorted(terms, key=lambda item: (-len(item), item.lower()))[:8]
+                add_term(match, priority=0)
+        for match in re.findall(r"\b[A-Z][A-Za-z0-9]+(?:[A-Z][A-Za-z0-9]+)+\b", query_source):
+            add_term(match, priority=1)
+            add_term(camel_to_snake_identifier(match), priority=1)
+        for match in re.findall(r"\b[a-zA-Z_][A-Za-z0-9_]*_[A-Za-z0-9_]+\b", query_source):
+            priority = 2 if match.count("_") <= 3 else 3
+            add_term(match, priority=priority)
+        for match in natural_identifier_queries_from_request(query_source, limit=12):
+            add_term(match, priority=3)
+    return [
+        term
+        for _priority, term in sorted(
+            terms.values(),
+            key=lambda item: (item[0], item[1].count("_"), len(item[1]), item[1].lower()),
+        )[:12]
+    ]
 
 
 def related_test_candidate_paths(root: Path) -> list[Path]:

@@ -11,4 +11,5 @@ llm-gateway*.log
 llm-gateway*.pid
 .agentic_reports/
 .tmp_pytest/
+.tmp_phase223_debug/
 runtime-state/

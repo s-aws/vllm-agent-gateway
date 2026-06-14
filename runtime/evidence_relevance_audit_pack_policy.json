@@ -1,0 +1,287 @@
+{
+  "schema_version": 1,
+  "kind": "evidence_relevance_audit_pack_policy",
+  "phase": 206,
+  "priority_backlog_id": "P0-M4-206",
+  "milestone_id": "M4",
+  "policy_version": "0.1.0",
+  "purpose": "Define a repeatable contextless evidence-quality audit pack before changing evidence ranking or retrieval behavior.",
+  "required_categories": [
+    "code_investigation",
+    "related_test_discovery",
+    "validation_command_selection",
+    "change_boundary_analysis"
+  ],
+  "minimum_case_count": 4,
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_source_reports": [
+    {
+      "id": "phase182_evidence_relevance_ranking_live",
+      "path": "runtime-state/evidence-relevance-ranking/phase182-live-report.json",
+      "required_status": "passed",
+      "required_phase": "182",
+      "required_live": true
+    },
+    {
+      "id": "phase205_route_stability_holdout_replay",
+      "path": "runtime-state/phase205/phase205-route-stability-holdout-replay-report.json",
+      "required_status": "passed",
+      "required_phase": 205,
+      "required_phase206_ready": true
+    }
+  ],
+  "required_evidence_tiers": [
+    "direct",
+    "strong",
+    "supporting",
+    "weak",
+    "irrelevant"
+  ],
+  "required_scoring_dimensions": [
+    "beginning_point_or_target_fit",
+    "directness",
+    "call_chain_or_behavior_link",
+    "relevance_ordering",
+    "source_specificity",
+    "test_or_validation_fit",
+    "gap_and_risk_labeling",
+    "chat_usefulness"
+  ],
+  "allowed_gap_classes": [
+    "no_current_blocker_known",
+    "needs_live_evidence_score",
+    "weak_evidence_risk",
+    "missing_source_hash_gate",
+    "pending_holdout_confirmation"
+  ],
+  "cases": [
+    {
+      "case_id": "P206-EV-001",
+      "category": "code_investigation",
+      "source_catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+      "source_catalog_case_id": "P01",
+      "prompt_family": "L1-find-behavior-start",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "expected_route_rule": "l1_find_behavior_start_terms",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, where does the placed_order_id stealth lookup start? Read only and give me the beginning point, evidence files, related tests, and confidence.",
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Begin with the likely beginning point and confidence.",
+          "Include exact path, line, and symbol references where bounded evidence allows.",
+          "Sketch the call chain or data flow that proves the answer starts upstream of the lookup.",
+          "List direct source evidence before supporting files.",
+          "Separate related tests from implementation evidence.",
+          "Name gaps, unknowns, and bounded next inspection steps."
+        ],
+        "must_have_evidence": [
+          "The first function, handler, or lookup entry point tied to placed_order_id.",
+          "Exact implementation file path and line reference for the beginning point.",
+          "Evidence that this is the start, not just a downstream use.",
+          "At least one source file reference that contains the lookup behavior.",
+          "Search, symbol, or call-chain evidence explaining how the start point was found.",
+          "Exact related test files and test names if found, or a clear statement that no bounded related test was found.",
+          "Confidence label tied to evidence strength rather than assertion."
+        ],
+        "evidence_tier_definitions": {
+          "direct": "Function, branch, or lookup code that actually starts the placed_order_id stealth lookup.",
+          "strong": "Focused tests, callers, or nearby source that directly exercise or invoke the lookup.",
+          "supporting": "Related module summaries, imports, or adjacent behavior that helps orient the investigation.",
+          "weak": "Broad keyword matches or files that mention order ids without proving lookup start.",
+          "irrelevant": "Unrelated order paths, docs, or config that do not affect the requested lookup."
+        },
+        "safety_boundaries": [
+          "Read only; do not propose applied code changes as completed.",
+          "Do not claim a full call graph unless bounded evidence supports it.",
+          "Do not expose secrets or environment values."
+        ],
+        "scoring_rubric": [
+          {"dimension": "beginning_point_or_target_fit", "points": 25},
+          {"dimension": "call_chain_or_behavior_link", "points": 20},
+          {"dimension": "source_specificity", "points": 15},
+          {"dimension": "directness", "points": 15},
+          {"dimension": "test_or_validation_fit", "points": 15},
+          {"dimension": "gap_and_risk_labeling", "points": 10}
+        ],
+        "red_flags": [
+          "Broad keyword matches outrank the actual lookup entry point.",
+          "The answer omits related tests or confidence.",
+          "The answer says implementation was changed."
+        ]
+      },
+      "current_gap_classifications": [
+        {"gap_class": "needs_live_evidence_score", "severity": "monitoring", "reason": "Phase 206 defines the audit baseline; Phase 208 must score live local answers."}
+      ]
+    },
+    {
+      "case_id": "P206-EV-002",
+      "category": "related_test_discovery",
+      "source_catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+      "source_catalog_case_id": "P03",
+      "prompt_family": "L1-related-tests",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "expected_route_rule": "l1_find_related_tests_terms",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, what tests should I look at for placed_order_id stealth lookup? Read only. Include exact test files and the smallest useful pytest command.",
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Start with the highest-confidence related tests.",
+          "Explain why each test is related to placed_order_id lookup behavior.",
+          "Separate direct tests from adjacent or no-test-found evidence.",
+          "Suggest the next bounded inspection command if evidence is incomplete."
+        ],
+        "must_have_evidence": [
+          "Exact test file paths and test names or line numbers, or explicit no-bounded-test-found statement.",
+          "Reason each test maps to the requested behavior.",
+          "Distinction between direct tests, adjacent tests, and broad keyword matches.",
+          "A safe verification command or reason no command can be selected yet."
+        ],
+        "evidence_tier_definitions": {
+          "direct": "A test that asserts placed_order_id lookup, exchange order id sync, or the specific stealth lookup function.",
+          "strong": "A test covering the same manager behavior or request path with nearby assertions.",
+          "supporting": "Fixtures, helper tests, or broader order-manager tests that may guide inspection.",
+          "weak": "A test that only contains a broad order id term without behavior linkage.",
+          "irrelevant": "Tests for unrelated dashboard, config, or order flows."
+        },
+        "safety_boundaries": [
+          "Read only; do not write new tests.",
+          "Do not claim test coverage exists without file-level evidence.",
+          "Do not turn a broad grep hit into a direct test claim."
+        ],
+        "scoring_rubric": [
+          {"dimension": "directness", "points": 25},
+          {"dimension": "relevance_ordering", "points": 15},
+          {"dimension": "source_specificity", "points": 20},
+          {"dimension": "test_or_validation_fit", "points": 20},
+          {"dimension": "gap_and_risk_labeling", "points": 10},
+          {"dimension": "call_chain_or_behavior_link", "points": 5},
+          {"dimension": "chat_usefulness", "points": 5}
+        ],
+        "red_flags": [
+          "The answer lists tests without explaining relevance.",
+          "The answer hides that only adjacent tests were found.",
+          "The answer recommends broad regression first without a focused test rationale."
+        ]
+      },
+      "current_gap_classifications": [
+        {"gap_class": "needs_live_evidence_score", "severity": "monitoring", "reason": "The related-test answer must be rescored against this blind baseline in Phase 208."}
+      ]
+    },
+    {
+      "case_id": "P206-EV-003",
+      "category": "validation_command_selection",
+      "source_catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+      "source_catalog_case_id": "P17",
+      "prompt_family": "L2-test-selection-rationale",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "expected_route_rule": "l2_test_selection_terms",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, choose the smallest, medium, and broad validation commands for placed_order_id stealth lookup. Read only. Explain why each command matters and what risk remains.",
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Return three validation tiers: smallest, medium, and broad.",
+          "Tie each command to the source/test evidence that justifies its scope.",
+          "Explain what each tier proves and does not prove.",
+          "Mention missing evidence or assumptions that could change command choice."
+        ],
+        "must_have_evidence": [
+          "A focused unit-test or exact-test command when bounded tests are found.",
+          "Exact source or test file and line references that justify the command tiers.",
+          "A medium command covering related module or manager behavior.",
+          "A broad command for regression only after focused evidence.",
+          "Scope rationale for each command.",
+          "Working-directory assumptions and command syntax that match the repository."
+        ],
+        "evidence_tier_definitions": {
+          "direct": "A command that runs tests directly tied to placed_order_id lookup behavior.",
+          "strong": "A command covering the containing manager/module and closely related order-id behavior.",
+          "supporting": "A broader package or regression command that can catch integration fallout.",
+          "weak": "A generic full-suite command with no evidence-based reason.",
+          "irrelevant": "Commands unrelated to the target repository, language, or behavior."
+        },
+        "safety_boundaries": [
+          "Read only; do not run or edit tests as part of the answer.",
+          "Do not invent command paths.",
+          "Do not represent broad regression as a substitute for focused evidence."
+        ],
+        "scoring_rubric": [
+          {"dimension": "directness", "points": 20},
+          {"dimension": "relevance_ordering", "points": 20},
+          {"dimension": "source_specificity", "points": 15},
+          {"dimension": "test_or_validation_fit", "points": 25},
+          {"dimension": "gap_and_risk_labeling", "points": 10},
+          {"dimension": "chat_usefulness", "points": 10}
+        ],
+        "red_flags": [
+          "The answer only gives full regression.",
+          "Commands are not tied to evidence.",
+          "The answer implies tests were executed when the prompt asked read only."
+        ]
+      },
+      "current_gap_classifications": [
+        {"gap_class": "needs_live_evidence_score", "severity": "monitoring", "reason": "Phase 206 does not execute commands; it defines how to judge command-evidence fit."}
+      ]
+    },
+    {
+      "case_id": "P206-EV-004",
+      "category": "change_boundary_analysis",
+      "source_catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+      "source_catalog_case_id": "P33",
+      "prompt_family": "L2-change-surface-summary",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "expected_workflow": "code_investigation.plan",
+      "expected_route_rule": "l2_change_surface_summary_terms",
+      "prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, identify files to touch and files not to touch for the minimal safe change surface and change boundary for placed_order_id stealth lookup behavior. Read only and stop before implementation. Return risks, gaps, and verification commands.",
+      "blind_baseline": {
+        "ideal_answer_shape": [
+          "Start with files to touch and files not to touch.",
+          "For each file, explain direct, strong, supporting, or weak evidence.",
+          "List risks and unknowns separately from confirmed boundaries.",
+          "End with verification commands tied to the proposed boundary."
+        ],
+        "must_have_evidence": [
+          "Direct evidence for the primary file to touch.",
+          "Exact source or test file and line references that support touch and no-touch decisions.",
+          "Boundary evidence for files not to touch.",
+          "Evidence-based exclusion list for downstream consumers, generated files, unrelated routers/controllers, and protected fixtures when applicable.",
+          "A clear single-code-path recommendation.",
+          "At least one related test or verification command.",
+          "Explicit unknowns where the bounded investigation cannot prove a boundary."
+        ],
+        "evidence_tier_definitions": {
+          "direct": "The source file that owns the lookup behavior or exact change location.",
+          "strong": "Callers, tests, or schema files that constrain the safe change boundary.",
+          "supporting": "Adjacent files that explain context but are not likely edit targets.",
+          "weak": "Broad keyword matches that cannot prove touch/no-touch status.",
+          "irrelevant": "Files outside the behavior path or unrelated docs/config."
+        },
+        "safety_boundaries": [
+          "Read only; stop before implementation.",
+          "Do not overclaim no-touch files without evidence.",
+          "Do not recommend editing frozen fixture sources.",
+          "Do not propose parallel implementations or bypass locks/thread-safety boundaries.",
+          "Do not omit risks or unknowns when evidence is bounded."
+        ],
+        "scoring_rubric": [
+          {"dimension": "directness", "points": 25},
+          {"dimension": "relevance_ordering", "points": 20},
+          {"dimension": "source_specificity", "points": 20},
+          {"dimension": "test_or_validation_fit", "points": 15},
+          {"dimension": "gap_and_risk_labeling", "points": 15},
+          {"dimension": "chat_usefulness", "points": 5}
+        ],
+        "red_flags": [
+          "The answer lists files without touch/no-touch rationale.",
+          "Weak keyword matches are treated as edit targets.",
+          "Risks, unknowns, or verification commands are missing."
+        ]
+      },
+      "current_gap_classifications": [
+        {"gap_class": "needs_live_evidence_score", "severity": "monitoring", "reason": "Phase 208 must prove live answers rank direct boundary evidence ahead of weak context."},
+        {"gap_class": "missing_source_hash_gate", "severity": "advisory", "reason": "Phase 207 is expected to add deterministic source-hash proof for cited evidence."}
+      ]
+    }
+  ]
+}

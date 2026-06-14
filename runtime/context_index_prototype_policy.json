@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "kind": "context_index_prototype_policy",
+  "phase": 217,
+  "priority_backlog_id": "P0-M6-217",
+  "milestone_ids": [
+    "M6",
+    "M16"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Build a deterministic metadata-first local context index prototype with Phase 216 safety enforcement before retrieval-backed chat is attempted.",
+  "phase216_precondition": {
+    "report_path": "runtime-state/phase216/phase216-corpus-index-safety-governance-report.json",
+    "required_status": "passed",
+    "required_phase217_ready": true,
+    "durable_index_implementation_in_scope_must_be": false,
+    "retrieval_backed_chat_integration_in_scope_must_be": false
+  },
+  "phase216_policy_path": "runtime/corpus_index_safety_governance_policy.json",
+  "source_corpus": {
+    "root": "runtime-state/phase214/generated-large-corpus",
+    "allowed_suffixes": [
+      ".py",
+      ".md",
+      ".yaml",
+      ".json"
+    ],
+    "max_files": 260,
+    "chunk_line_count": 80,
+    "chars_per_token": 4.0,
+    "source_text_retention": "metadata_only"
+  },
+  "index_artifact": {
+    "path": "runtime-state/phase217/phase217-context-index.json",
+    "markdown_summary_path": "runtime-state/phase217/phase217-context-index-summary.md",
+    "store_source_text": false,
+    "store_rejected_content": false,
+    "term_limit_per_chunk": 24
+  },
+  "required_index_metadata": [
+    "schema_version",
+    "index_schema_version",
+    "target_root",
+    "source_path",
+    "relative_path",
+    "source_sha256",
+    "source_size",
+    "source_mtime_ns",
+    "ignore_policy_fingerprint",
+    "safety_policy_fingerprint",
+    "language",
+    "chunk_id",
+    "chunk_index",
+    "start_line",
+    "end_line",
+    "line_start",
+    "line_end",
+    "chunk_sha256",
+    "chunk_char_count",
+    "estimated_tokens",
+    "chunk_token_estimate",
+    "search_terms",
+    "search_terms_hash",
+    "admission_decision",
+    "rejection_reasons",
+    "phase",
+    "allowed_root_id",
+    "context_strategy_id",
+    "index_created_at",
+    "freshness_status"
+  ],
+  "query_smoke_cases": [
+    {
+      "case_id": "P217-QUERY-001",
+      "query": "risk gate audit summary",
+      "minimum_matches": 5,
+      "required_terms": [
+        "risk",
+        "gate",
+        "audit",
+        "summary"
+      ]
+    },
+    {
+      "case_id": "P217-QUERY-002",
+      "query": "order replay pipeline",
+      "minimum_matches": 5,
+      "required_terms": [
+        "order",
+        "replay",
+        "pipeline"
+      ]
+    },
+    {
+      "case_id": "P217-QUERY-003",
+      "query": "generated design architecture",
+      "minimum_matches": 3,
+      "required_terms": [
+        "generated",
+        "design"
+      ]
+    }
+  ],
+  "negative_controls": [
+    {
+      "case_id": "P217-SAFE-001",
+      "path": "src/order_replay/module_0000.py",
+      "expected_decision": "admit",
+      "expected_reasons": []
+    },
+    {
+      "case_id": "P217-SAFE-002",
+      "path": "ignored/ignored_notes.txt",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "ignored_path"
+      ]
+    },
+    {
+      "case_id": "P217-SAFE-003",
+      "path": "private/operator.secret",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "ignored_path",
+        "private_path",
+        "secret_like_content"
+      ]
+    },
+    {
+      "case_id": "P217-SAFE-004",
+      "path": "assets/binary_blob.bin",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "ignored_path",
+        "binary_file"
+      ]
+    },
+    {
+      "case_id": "P217-SAFE-005",
+      "path": "runtime-state/local_artifact.txt",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "ignored_path",
+        "generated_artifact"
+      ]
+    },
+    {
+      "case_id": "P217-SAFE-006",
+      "path": "src/order_replay/module_0001.py",
+      "metadata_mutation": "stale_source_hash",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "stale_source_hash"
+      ]
+    },
+    {
+      "case_id": "P217-SAFE-007",
+      "path": "/mnt/c/phase217-unapproved-root/src/service.py",
+      "expected_decision": "reject",
+      "expected_reasons": [
+        "unapproved_root"
+      ]
+    }
+  ],
+  "minimums": {
+    "indexed_file_count": 220,
+    "chunk_count": 220,
+    "estimated_indexed_token_count": 1000000,
+    "rejected_negative_control_count": 6,
+    "query_smoke_case_count": 3,
+    "max_search_term_length": 32
+  },
+  "out_of_scope": [
+    "retrieval_backed_chat_integration",
+    "embedding_model_selection",
+    "vector_search",
+    "artifact_paging_implementation",
+    "raw_1m_context_benchmark",
+    "protected_fixture_mutation"
+  ],
+  "acceptance_marker": "PHASE217 CONTEXT INDEX PROTOTYPE PASS"
+}

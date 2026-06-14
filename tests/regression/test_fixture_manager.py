@@ -85,18 +85,23 @@ def test_multi_repo_live_case_catalog_covers_coinbase_node_and_go_fixtures() -> 
     assert go_cases["go-http-table-read-write"].expected_artifact == "downstream_table_read_write_lookup"
     assert {case.case_id for case in by_fixture["python-service-generalization"]} == {
         "python-service-code-explanation",
+        "python-service-endpoint-route-lookup",
         "python-service-schema-lookup",
         "python-service-request-flow",
         "python-service-change-surface",
     }
     assert {case.prompt_family for case in LIVE_CASES} >= {
         "code_explanation",
+        "endpoint_route_lookup",
         "schema_lookup",
         "request_flow",
         "change_surface",
         "configuration_lookup",
         "table_read_write",
     }
+    python_cases = {case.case_id: case for case in by_fixture["python-service-generalization"]}
+    assert python_cases["python-service-endpoint-route-lookup"].expected_artifact == "downstream_endpoint_route_lookup"
+    assert "service/api.py" in python_cases["python-service-endpoint-route-lookup"].expected_artifact_markers
     coinbase_cases = {case.case_id for case in by_fixture["coinbase-frozen"]}
     assert {
         "coinbase-code-explanation",

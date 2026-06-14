@@ -41,6 +41,23 @@ from vllm_agent_gateway.controllers.execution_planning.workflow import (
     ExecutionPlanningWorkflowError,
     invoke_execution_planning,
 )
+from vllm_agent_gateway.controllers.large_context.retrieval_answer import (
+    WORKFLOW_ID as LARGE_CONTEXT_RETRIEVAL_WORKFLOW_ID,
+    DEFAULT_CONTEXT_INDEX_POLICY_PATH,
+    RetrievalBackedChatAnswerRequest,
+    invoke_retrieval_backed_chat_answer,
+    target_matches_indexed_corpus,
+)
+from vllm_agent_gateway.controllers.large_context.chunked_investigation import (
+    WORKFLOW_ID as LARGE_CONTEXT_CHUNKED_WORKFLOW_ID,
+    ChunkedInvestigationRequest,
+    invoke_chunked_investigation,
+)
+from vllm_agent_gateway.controllers.large_context.context_strategy import (
+    ContextStrategyExecutionPath,
+    context_strategy_blockers,
+    select_context_strategy,
+)
 from vllm_agent_gateway.controllers.refactor.single_path import (
     RefactorSinglePathError,
     RefactorSinglePathRequest,
@@ -72,6 +89,7 @@ from vllm_agent_gateway.model_capability_routing import (
 from vllm_agent_gateway.controllers.natural_query import (
     change_subject_queries_from_request,
     configuration_queries_from_request,
+    natural_identifier_queries_from_request,
     strip_filesystem_paths,
 )
 from vllm_agent_gateway.skills.registry import (
@@ -164,6 +182,38 @@ UNSUPPORTED_NON_DEV_TERMS = {
     "calendar invite",
     "send email",
     "stock price",
+}
+LARGE_CONTEXT_READ_ONLY_TERMS = {
+    "large corpus",
+    "large-corpus",
+    "whole corpus",
+    "entire corpus",
+    "1m token",
+    "1 million token",
+    "million-token",
+    "context budget",
+    "context-budget",
+    "raw prompt",
+    "as one prompt",
+    "without reading every file",
+    "every file",
+    "order replay pipeline",
+    "risk gate",
+    "audit summar",
+    "architecture summary",
+    "generated service architecture",
+    "representative evidence",
+}
+LARGE_CONTEXT_MUTATION_TERMS = {
+    "apply",
+    "change",
+    "commit",
+    "edit",
+    "fix",
+    "implement",
+    "mutate",
+    "refactor",
+    "rewrite",
 }
 TEXT_EDIT_FILE_EXTENSIONS = {".md", ".rst", ".txt"}
 CONTEXT_LAYOUT_SUPPORTED_EXTENSIONS = {
@@ -597,6 +647,17 @@ def contains_any(text: str, terms: set[str]) -> list[str]:
     return sorted(term for term in terms if term in text)
 
 
+def contains_any_word(text: str, terms: set[str]) -> list[str]:
+    return sorted(term for term in terms if re.search(rf"(?<![a-z0-9_]){re.escape(term)}(?![a-z0-9_])", text))
+
+
+def is_large_context_read_only_request(text: str) -> bool:
+    compact = lower_request(strip_filesystem_paths(text))
+    if contains_any_word(compact, LARGE_CONTEXT_MUTATION_TERMS):
+        return False
+    return bool(contains_any(compact, LARGE_CONTEXT_READ_ONLY_TERMS))
+
+
 def is_ambiguous_request(text: str) -> bool:
     compact = text.strip().lower()
     stripped = lower_request(strip_filesystem_paths(text))
@@ -794,8 +855,19 @@ def is_l1_configuration_lookup_request(text: str) -> bool:
         "environment variable",
         "environment setting",
     )
+    config_identifier_terms = (
+        "api_key",
+        "api_secret",
+        "access_key",
+        "secret_key",
+        "token",
+        "credential",
+        "credentials",
+    )
     lookup_terms = ("defined", "used", "where", "locate", "runtime effect", "current value", "override")
-    return any(term in text for term in config_terms) and any(term in text for term in lookup_terms)
+    return (any(term in text for term in config_terms) or any(term in text for term in config_identifier_terms)) and any(
+        term in text for term in lookup_terms
+    )
 
 
 def is_l1_endpoint_route_lookup_request(text: str) -> bool:
@@ -1645,6 +1717,10 @@ def extract_queries(user_request: str, limit: int = 5) -> list[str]:
             append_unique(queries, token, limit=limit)
             if len(queries) >= limit:
                 return queries
+    for value in natural_identifier_queries_from_request(user_request, limit=limit):
+        append_unique(queries, value, limit=limit)
+        if len(queries) >= limit:
+            return queries
     normalized = re.sub(r"[^a-zA-Z0-9_ ]+", " ", query_source)
     words = [word for word in normalized.split() if len(word) > 3]
     if words and not queries:
@@ -1722,6 +1798,20 @@ def workflow_kind_for_request(user_request: str) -> tuple[str | None, str, list[
         evidence.append({"source": "router_rule", "rule": "ambiguous_request"})
         return None, "ambiguous", evidence
 
+    large_context_terms = contains_any(text, LARGE_CONTEXT_READ_ONLY_TERMS)
+    large_context_mutation_terms = contains_any_word(text, LARGE_CONTEXT_MUTATION_TERMS)
+    if large_context_terms and large_context_mutation_terms:
+        evidence.append(
+            {
+                "source": "router_rule",
+                "rule": "large_context_mutation_risk",
+                "matched_terms": sorted(set(large_context_terms + large_context_mutation_terms)),
+            }
+        )
+        return None, "blocked_large_context_mutation_risk", evidence
+    if is_large_context_read_only_request(text):
+        evidence.append({"source": "router_rule", "rule": "large_context_read_only_terms"})
+        return "code_investigation.plan", "ready", evidence
     if is_skill_batch_proposal_request(text):
         evidence.append({"source": "router_rule", "rule": "skill_batch_proposal_terms"})
         return "skill_batch.propose", "ready", evidence
@@ -1969,6 +2059,95 @@ def apply_router_rule_skill_overrides(
     return adjusted[:limit]
 
 
+def load_prompt_skill_coverage_entries(config_root: Path) -> list[dict[str, Any]]:
+    coverage_path = config_root / PROMPT_SKILL_COVERAGE_PATH
+    if not coverage_path.exists():
+        return []
+    try:
+        coverage = json.loads(coverage_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    entries = coverage.get("entries") if isinstance(coverage, dict) else None
+    return [entry for entry in entries if isinstance(entry, dict)] if isinstance(entries, list) else []
+
+
+def prompt_skill_coverage_entries_for_route(
+    config_root: Path,
+    *,
+    route_evidence: list[dict[str, Any]],
+    selected_workflow: str | None,
+) -> list[dict[str, Any]]:
+    if selected_workflow is None:
+        return []
+    route_rules = set(route_rules_from_evidence(route_evidence))
+    if not route_rules:
+        return []
+    matches: list[dict[str, Any]] = []
+    for entry in load_prompt_skill_coverage_entries(config_root):
+        if entry.get("status") != "implemented":
+            continue
+        route_rule = entry.get("route_rule")
+        if not isinstance(route_rule, str) or route_rule not in route_rules:
+            continue
+        if entry.get("selected_workflow") != selected_workflow:
+            continue
+        matches.append(entry)
+    return matches
+
+
+def coverage_skill_can_run(
+    skill_registry: dict[str, dict[str, Any]],
+    *,
+    skill_id: str,
+    workflow_id: str,
+) -> bool:
+    return skill_can_run_workflow(skill_registry, skill_id, workflow_id)
+
+
+def apply_prompt_coverage_selection_overrides(
+    *,
+    config_root: Path,
+    selected_workflow: str | None,
+    route_evidence: list[dict[str, Any]],
+    selected_skills: list[str],
+    selected_tools: list[str],
+    skill_registry: dict[str, dict[str, Any]],
+    tool_registry: dict[str, dict[str, Any]],
+    skill_limit: int,
+    tool_limit: int,
+) -> tuple[list[str], list[str]]:
+    if selected_workflow is None:
+        return selected_skills[:skill_limit], selected_tools[:tool_limit]
+    coverage_entries = prompt_skill_coverage_entries_for_route(
+        config_root,
+        route_evidence=route_evidence,
+        selected_workflow=selected_workflow,
+    )
+    if not coverage_entries:
+        return selected_skills[:skill_limit], selected_tools[:tool_limit]
+
+    coverage_skills: list[str] = []
+    for entry in coverage_entries:
+        for skill_id in entry.get("skill_ids", []):
+            if isinstance(skill_id, str) and coverage_skill_can_run(
+                skill_registry,
+                skill_id=skill_id,
+                workflow_id=selected_workflow,
+            ):
+                append_unique(coverage_skills, skill_id)
+
+    core_skills = [skill_id for skill_id in selected_skills if skill_id in CORE_INVESTIGATION_SKILLS]
+    non_core_skills = [
+        skill_id
+        for skill_id in selected_skills
+        if skill_id not in CORE_INVESTIGATION_SKILLS and skill_id not in coverage_skills
+    ]
+    adjusted_skills: list[str] = []
+    for skill_id in [*coverage_skills, *non_core_skills, *core_skills]:
+        append_unique(adjusted_skills, skill_id, limit=skill_limit)
+    return adjusted_skills, selected_tools[:tool_limit]
+
+
 def tools_for_workflow(workflow_id: str, workflow_registry: dict[str, dict[str, Any]], limit: int) -> list[str]:
     workflow = workflow_registry.get(workflow_id, {})
     tool_ids = workflow.get("controller_tool_ids", [])
@@ -2191,6 +2370,113 @@ def resolve_downstream_tool_policy(
             status=HTTPStatus.UNPROCESSABLE_ENTITY,
         ) from exc
     return policy.audit_record()
+
+
+def should_invoke_large_context_retrieval(request: WorkflowRouterPlanRequest, decision: dict[str, Any]) -> bool:
+    context_strategy = decision.get("context_strategy") if isinstance(decision.get("context_strategy"), dict) else {}
+    if context_strategy:
+        if context_strategy.get("execution_path") != ContextStrategyExecutionPath.LARGE_CONTEXT_RETRIEVAL_ANSWER.value:
+            return False
+        if context_strategy.get("status") != "selected":
+            return False
+    if not route_has_rule(decision.get("evidence", []), "large_context_read_only_terms"):
+        return False
+    context_index_policy_path = (
+        request.context.get("context_index_policy_path")
+        if isinstance(request.context, dict) and isinstance(request.context.get("context_index_policy_path"), str)
+        else None
+    )
+    if not target_matches_indexed_corpus(
+        Path(request.config_root).resolve(),
+        Path(request.target_root).resolve(),
+        context_index_policy_path or DEFAULT_CONTEXT_INDEX_POLICY_PATH,
+    ):
+        return False
+    return decision.get("selected_workflow") in READ_ONLY_WORKFLOWS
+
+
+def should_invoke_large_context_chunked_investigation(request: WorkflowRouterPlanRequest, decision: dict[str, Any]) -> bool:
+    context_strategy = decision.get("context_strategy") if isinstance(decision.get("context_strategy"), dict) else {}
+    if not context_strategy:
+        return False
+    if context_strategy.get("execution_path") != ContextStrategyExecutionPath.LARGE_CONTEXT_CHUNKED_INVESTIGATION.value:
+        return False
+    if context_strategy.get("status") != "selected":
+        return False
+    if not route_has_rule(decision.get("evidence", []), "large_context_read_only_terms"):
+        return False
+    context_index_policy_path = (
+        request.context.get("context_index_policy_path")
+        if isinstance(request.context, dict) and isinstance(request.context.get("context_index_policy_path"), str)
+        else None
+    )
+    if not target_matches_indexed_corpus(
+        Path(request.config_root).resolve(),
+        Path(request.target_root).resolve(),
+        context_index_policy_path or DEFAULT_CONTEXT_INDEX_POLICY_PATH,
+    ):
+        return False
+    return decision.get("selected_workflow") in READ_ONLY_WORKFLOWS
+
+
+def invoke_large_context_retrieval_answer(
+    request: WorkflowRouterPlanRequest,
+    run_dir: Path,
+) -> tuple[InvocationResult, dict[str, Any]]:
+    config_root = Path(request.config_root).resolve()
+    target_root = Path(request.target_root).resolve()
+    tool_policy = resolve_downstream_tool_policy(
+        config_root=config_root,
+        workflow_id="code_investigation.plan",
+        request_context={"large_context_retrieval": True},
+    )
+    result = invoke_retrieval_backed_chat_answer(
+        RetrievalBackedChatAnswerRequest(
+            config_root=config_root,
+            target_root=target_root,
+            output_root=run_dir,
+            user_request=request.user_request,
+            context_index_policy_path=(
+                request.context.get("context_index_policy_path")
+                if isinstance(request.context, dict) and isinstance(request.context.get("context_index_policy_path"), str)
+                else DEFAULT_CONTEXT_INDEX_POLICY_PATH
+            ),
+        )
+    )
+    audit_record = dict(tool_policy)
+    audit_record["resolved_workflow"] = LARGE_CONTEXT_RETRIEVAL_WORKFLOW_ID
+    audit_record["controller_path"] = "workflow_router.execute_read_only.large_context_retrieval"
+    return result, audit_record
+
+
+def invoke_large_context_chunked_investigation(
+    request: WorkflowRouterPlanRequest,
+    run_dir: Path,
+) -> tuple[InvocationResult, dict[str, Any]]:
+    config_root = Path(request.config_root).resolve()
+    target_root = Path(request.target_root).resolve()
+    tool_policy = resolve_downstream_tool_policy(
+        config_root=config_root,
+        workflow_id="code_investigation.plan",
+        request_context={"large_context_chunked_investigation": True},
+    )
+    result = invoke_chunked_investigation(
+        ChunkedInvestigationRequest(
+            config_root=config_root,
+            target_root=target_root,
+            output_root=run_dir,
+            user_request=request.user_request,
+            context_index_policy_path=(
+                request.context.get("context_index_policy_path")
+                if isinstance(request.context, dict) and isinstance(request.context.get("context_index_policy_path"), str)
+                else DEFAULT_CONTEXT_INDEX_POLICY_PATH
+            ),
+        )
+    )
+    audit_record = dict(tool_policy)
+    audit_record["resolved_workflow"] = LARGE_CONTEXT_CHUNKED_WORKFLOW_ID
+    audit_record["controller_path"] = "workflow_router.execute_read_only.large_context_chunked_investigation"
+    return result, audit_record
 
 
 def invoke_downstream_read_only(
@@ -4387,6 +4673,24 @@ def blocked_decision(
         selected_tools=selected_tools,
         query_text=request.user_request,
     )
+    context_strategy = select_context_strategy(
+        config_root=request.config_root,
+        target_root=request.target_root,
+        user_request=request.user_request,
+        route_evidence=evidence,
+        selected_workflow=selected_workflow,
+        request_context=request.context,
+    )
+    evidence = evidence + [
+        {
+            "source": "context_strategy_router",
+            "status": context_strategy.get("status"),
+            "selected_strategy": context_strategy.get("selected_strategy"),
+            "execution_path": context_strategy.get("execution_path"),
+            "reason": context_strategy.get("reason"),
+        }
+    ]
+    blockers.extend(context_strategy_blockers(context_strategy))
     return {
         "workflow": WORKFLOW_ID,
         "schema_version": SCHEMA_VERSION,
@@ -4411,6 +4715,7 @@ def blocked_decision(
         ),
         "context_source_audit": context_audit,
         "selected_context_sources": context_audit["selected_source_ids"],
+        "context_strategy": context_strategy,
         "approval_required_before": [],
         "controller_request_preview": {},
         "evidence": registry_evidence(workflow_registry, skill_registry, tool_registry) + evidence,
@@ -4424,6 +4729,7 @@ def blocker_message(reason: str) -> str:
         "ambiguous": "The request does not name enough behavior, workflow, symbol, or file context to route safely.",
         "blocked_approval_bypass": "The request asks to bypass or skip approval before mutation.",
         "blocked_raw_context": "The request asks for raw CodeGraphContext, MCP, or Cypher operations that are not model-visible.",
+        "blocked_large_context_mutation_risk": "Large-context mutation is not supported by the read-only context strategy router.",
         "unsupported": "The request does not match a supported local development workflow.",
     }
     return messages.get(reason, "The request cannot be routed safely.")
@@ -5077,6 +5383,14 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
             selected_tools=selected_tools,
             query_text=request.user_request,
         )
+        context_strategy = select_context_strategy(
+            config_root=config_root,
+            target_root=request.target_root,
+            user_request=request.user_request,
+            route_evidence=route_evidence,
+            selected_workflow=workflow_id,
+            request_context=request.context,
+        )
         evidence = registry_evidence(workflow_registry, skill_registry, tool_registry) + route_evidence
         evidence.extend(
             [
@@ -5086,6 +5400,13 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
                     "description": workflow_registry[workflow_id].get("description"),
                 },
                 capability_evidence,
+                {
+                    "source": "context_strategy_router",
+                    "status": context_strategy.get("status"),
+                    "selected_strategy": context_strategy.get("selected_strategy"),
+                    "execution_path": context_strategy.get("execution_path"),
+                    "reason": context_strategy.get("reason"),
+                },
             ]
         )
         return {
@@ -5113,6 +5434,7 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
             ),
             "context_source_audit": context_audit,
             "selected_context_sources": context_audit["selected_source_ids"],
+            "context_strategy": context_strategy,
             "approval_required_before": approval_required_before(workflow_id),
             "controller_request_preview": {},
             "evidence": evidence,
@@ -5151,6 +5473,17 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
         skill_registry=skill_registry,
         route_evidence=route_evidence,
         limit=budgets["max_selected_skills"],
+    )
+    selected_skills, selected_tools = apply_prompt_coverage_selection_overrides(
+        config_root=config_root,
+        selected_workflow=workflow_id,
+        route_evidence=route_evidence,
+        selected_skills=selected_skills,
+        selected_tools=selected_tools,
+        skill_registry=skill_registry,
+        tool_registry=tool_registry,
+        skill_limit=budgets["max_selected_skills"],
+        tool_limit=budgets["max_selected_tools"],
     )
     evidence = registry_evidence(workflow_registry, skill_registry, tool_registry) + route_evidence
     evidence.append(
@@ -5201,7 +5534,25 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
         selected_tools=selected_tools,
         query_text=request.user_request,
     )
+    context_strategy = select_context_strategy(
+        config_root=config_root,
+        target_root=request.target_root,
+        user_request=request.user_request,
+        route_evidence=route_evidence,
+        selected_workflow=workflow_id,
+        request_context=request.context,
+    )
+    evidence.append(
+        {
+            "source": "context_strategy_router",
+            "status": context_strategy.get("status"),
+            "selected_strategy": context_strategy.get("selected_strategy"),
+            "execution_path": context_strategy.get("execution_path"),
+            "reason": context_strategy.get("reason"),
+        }
+    )
     blockers.extend(unsupported_context_layout_blockers(context_audit, workflow_id))
+    blockers.extend(context_strategy_blockers(context_strategy))
     if blockers:
         status = "blocked"
         next_action = "none" if readiness_blocker is not None else "ask_blocking_question"
@@ -5240,6 +5591,7 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
         ),
         "context_source_audit": context_audit,
         "selected_context_sources": context_audit["selected_source_ids"],
+        "context_strategy": context_strategy,
         "approval_required_before": approval_requirements,
         "controller_request_preview": (
             request_preview(workflow_id, request, selected_tools, context_audit["selected_source_ids"])
@@ -5318,7 +5670,22 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
             decision["next_action"] = "request_approval" if selected_workflow == "execution_planning.plan" else "none"
         else:
             try:
-                downstream_result, downstream_tool_policy = invoke_downstream_read_only(request, decision, run_dir)
+                if should_invoke_large_context_chunked_investigation(request, decision):
+                    downstream_result, downstream_tool_policy = invoke_large_context_chunked_investigation(request, run_dir)
+                    decision["large_context_chunked_investigation"] = {
+                        "status": "invoked",
+                        "workflow": LARGE_CONTEXT_CHUNKED_WORKFLOW_ID,
+                        "reason": "chunked_investigation_strategy_selected",
+                    }
+                elif should_invoke_large_context_retrieval(request, decision):
+                    downstream_result, downstream_tool_policy = invoke_large_context_retrieval_answer(request, run_dir)
+                    decision["large_context_retrieval"] = {
+                        "status": "invoked",
+                        "workflow": LARGE_CONTEXT_RETRIEVAL_WORKFLOW_ID,
+                        "reason": "target_root_matches_phase217_indexed_corpus",
+                    }
+                else:
+                    downstream_result, downstream_tool_policy = invoke_downstream_read_only(request, decision, run_dir)
             except (
                 CodeContextLookupError,
                 CodeInvestigationError,
@@ -5670,6 +6037,7 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         if isinstance(context_source_audit_summary.get("layout"), dict)
         else {}
     )
+    context_strategy_summary = decision.get("context_strategy") if isinstance(decision.get("context_strategy"), dict) else {}
     summary = {
         "target_root": str(target_root),
         "route_status": decision["status"],
@@ -5681,6 +6049,21 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         "context_layout_status": context_layout_summary_record.get("status"),
         "context_gap_count": len(context_source_audit_summary.get("gaps", []))
         if isinstance(context_source_audit_summary.get("gaps"), list)
+        else 0,
+        "selected_context_strategy": context_strategy_summary.get("selected_strategy"),
+        "context_strategy_status": context_strategy_summary.get("status"),
+        "context_strategy_execution_path": context_strategy_summary.get("execution_path"),
+        "context_strategy_reason": context_strategy_summary.get("reason"),
+        "context_strategy_prompt_class": context_strategy_summary.get("prompt_class"),
+        "context_strategy_rationale": " | ".join(
+            str(item)
+            for item in context_strategy_summary.get("rationale", [])
+            if isinstance(item, str) and item.strip()
+        )[:500]
+        if isinstance(context_strategy_summary.get("rationale"), list)
+        else None,
+        "context_strategy_blocker_count": len(context_strategy_summary.get("blockers", []))
+        if isinstance(context_strategy_summary.get("blockers"), list)
         else 0,
         "next_action": decision["next_action"],
         "blocker_count": len(decision["blockers"]),
@@ -5732,6 +6115,39 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         "approval_state_next_action": approval_state.get("next_action_text"),
         "approval_type": approval_state.get("approval_type"),
     }
+    if isinstance(downstream_report_summary.get("answer"), str) and downstream_report_summary["answer"].strip():
+        summary["answer"] = downstream_report_summary["answer"].strip()
+    if isinstance(downstream_report_summary.get("retrieval_status"), str):
+        summary["retrieval_status"] = downstream_report_summary.get("retrieval_status")
+    if isinstance(downstream_report_summary.get("retrieval_category"), str):
+        summary["retrieval_category"] = downstream_report_summary.get("retrieval_category")
+    if isinstance(downstream_report_summary.get("retrieval_evidence_count"), int):
+        summary["retrieval_evidence_count"] = downstream_report_summary.get("retrieval_evidence_count")
+    if isinstance(downstream_report_summary.get("retrieval_artifact_page_count"), int):
+        summary["retrieval_artifact_page_count"] = downstream_report_summary.get("retrieval_artifact_page_count")
+    if isinstance(downstream_report_summary.get("retrieval_artifact_source_ref_count"), int):
+        summary["retrieval_artifact_source_ref_count"] = downstream_report_summary.get("retrieval_artifact_source_ref_count")
+    if isinstance(downstream_report_summary.get("retrieval_first_page_id"), str):
+        summary["retrieval_first_page_id"] = downstream_report_summary.get("retrieval_first_page_id")
+    if isinstance(downstream_report_summary.get("retrieval_continuation_hint"), str):
+        summary["retrieval_continuation_hint"] = downstream_report_summary.get("retrieval_continuation_hint")
+    for key in (
+        "chunked_status",
+        "chunked_stage_count",
+        "chunked_completed_stage_count",
+        "chunked_evidence_count",
+        "chunked_claim_count",
+        "chunked_artifact_page_count",
+        "chunked_artifact_source_ref_count",
+        "chunked_first_page_id",
+        "phase222_contract_satisfied",
+    ):
+        if key in downstream_report_summary:
+            summary[key] = downstream_report_summary.get(key)
+    if isinstance(downstream_report_summary.get("raw_prompt_stuffing"), bool):
+        summary["raw_prompt_stuffing"] = downstream_report_summary.get("raw_prompt_stuffing")
+    if isinstance(downstream_report_summary.get("source_text_retention"), str):
+        summary["source_text_retention"] = downstream_report_summary.get("source_text_retention")
     artifacts = {
         "request": str(run_dir / "request.json"),
         "registry_snapshot": str(run_dir / "registry-snapshot.json"),

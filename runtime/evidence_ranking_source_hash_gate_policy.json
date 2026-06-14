@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "kind": "evidence_ranking_source_hash_gate_policy",
+  "phase": 207,
+  "priority_backlog_id": "P0-M4-207",
+  "milestone_id": "M4",
+  "policy_version": "0.1.0",
+  "purpose": "Validate deterministic evidence ordering and source-hash proof before live evidence-quality reruns.",
+  "phase206_audit_pack_report_path": "runtime-state/phase206/phase206-evidence-relevance-audit-pack-report.json",
+  "phase182_evidence_ranking_report_path": "runtime-state/evidence-relevance-ranking/phase182-live-report.json",
+  "phase182_minimum_live_case_count": 4,
+  "phase182_required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+  "required_evidence_tiers": [
+    "direct",
+    "strong",
+    "supporting",
+    "weak"
+  ],
+  "minimum_case_count": 4,
+  "minimum_source_hash_count": 4,
+  "minimum_negative_control_count": 3,
+  "cases": [
+    {
+      "case_id": "P207-SH-001",
+      "audit_case_id": "P206-EV-001",
+      "category": "code_investigation",
+      "expected_top_tiers": [
+        "direct",
+        "strong"
+      ],
+      "phase206_required_terms": [
+        "placed_order_id",
+        "stealth"
+      ],
+      "direct_paths": [
+        "core/stealth_order_manager.py"
+      ],
+      "supporting_paths": [
+        "tests/unit/test_order_id_and_followup_rules.py",
+        "core/order_engine.py"
+      ],
+      "matches": [
+        {"path": "core/stealth_order_manager.py", "line": 4169, "query": "find_stealth_order_by_placed_order_id", "source": "phase207_synthetic"},
+        {"path": "tests/unit/test_order_id_and_followup_rules.py", "line": 8, "query": "placed_order_id", "source": "phase207_synthetic"},
+        {"path": "core/order_engine.py", "line": 18, "query": "order_id", "source": "phase207_synthetic"}
+      ]
+    },
+    {
+      "case_id": "P207-SH-002",
+      "audit_case_id": "P206-EV-002",
+      "category": "related_test_discovery",
+      "expected_top_tiers": [
+        "direct",
+        "strong"
+      ],
+      "phase206_required_terms": [
+        "placed_order_id",
+        "test"
+      ],
+      "direct_paths": [
+        "tests/unit/test_order_id_and_followup_rules.py"
+      ],
+      "supporting_paths": [
+        "tests/unit/test_stealth_order_manager.py",
+        "core/stealth_order_manager.py"
+      ],
+      "matches": [
+        {"path": "tests/unit/test_order_id_and_followup_rules.py", "line": 8, "query": "find_stealth_order_by_placed_order_id", "source": "phase207_synthetic"},
+        {"path": "tests/unit/test_stealth_order_manager.py", "line": 633, "query": "stealth_order", "source": "phase207_synthetic"},
+        {"path": "core/stealth_order_manager.py", "line": 4169, "query": "placed_order_id", "source": "phase207_synthetic"}
+      ]
+    },
+    {
+      "case_id": "P207-SH-003",
+      "audit_case_id": "P206-EV-003",
+      "category": "validation_command_selection",
+      "expected_top_tiers": [
+        "direct",
+        "strong"
+      ],
+      "phase206_required_terms": [
+        "placed_order_id",
+        "test"
+      ],
+      "direct_paths": [
+        "tests/unit/test_order_id_and_followup_rules.py"
+      ],
+      "supporting_paths": [
+        "tests/unit/test_stealth_order_manager.py",
+        "tests/regression/test_order_span_builder_ui.py"
+      ],
+      "matches": [
+        {"path": "tests/unit/test_order_id_and_followup_rules.py", "line": 8, "query": "find_stealth_order_by_placed_order_id", "source": "phase207_synthetic"},
+        {"path": "tests/unit/test_stealth_order_manager.py", "line": 633, "query": "stealth_order", "source": "phase207_synthetic"},
+        {"path": "tests/regression/test_order_span_builder_ui.py", "line": 5, "query": "order", "source": "phase207_synthetic"}
+      ]
+    },
+    {
+      "case_id": "P207-SH-004",
+      "audit_case_id": "P206-EV-004",
+      "category": "change_boundary_analysis",
+      "expected_top_tiers": [
+        "direct",
+        "strong"
+      ],
+      "phase206_required_terms": [
+        "placed_order_id",
+        "stealth"
+      ],
+      "direct_paths": [
+        "core/stealth_order_manager.py"
+      ],
+      "supporting_paths": [
+        "tests/unit/test_order_id_and_followup_rules.py",
+        "database/order.py"
+      ],
+      "matches": [
+        {"path": "core/stealth_order_manager.py", "line": 4169, "query": "find_stealth_order_by_placed_order_id", "source": "phase207_synthetic"},
+        {"path": "database/order.py", "line": 177, "query": "stealth_orders", "source": "phase207_synthetic"},
+        {"path": "tests/unit/test_order_id_and_followup_rules.py", "line": 8, "query": "placed_order_id", "source": "phase207_synthetic"}
+      ]
+    }
+  ],
+  "negative_controls": [
+    {
+      "control_id": "P207-NC-001",
+      "reason": "Weak broad supporting evidence must not outrank direct behavior evidence.",
+      "direct_paths": [
+        "core/stealth_order_manager.py"
+      ],
+      "supporting_paths": [
+        "core/order_engine.py"
+      ],
+      "matches": [
+        {"path": "core/stealth_order_manager.py", "line": 4169, "query": "find_stealth_order_by_placed_order_id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 18, "query": "id", "source": "phase207_negative_control"}
+      ]
+    },
+    {
+      "control_id": "P207-NC-002",
+      "reason": "A weak hinted path must not outrank stronger unhinted direct evidence.",
+      "direct_paths": [
+        "core/stealth_order_manager.py"
+      ],
+      "supporting_paths": [
+        "core/order_engine.py"
+      ],
+      "hints": [
+        {"path": "core/order_engine.py", "symbol": "id", "reason": "weak hinted broad order id context"}
+      ],
+      "matches": [
+        {"path": "core/stealth_order_manager.py", "line": 4169, "query": "find_stealth_order_by_placed_order_id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 18, "query": "id", "source": "phase207_negative_control"}
+      ]
+    },
+    {
+      "control_id": "P207-NC-003",
+      "reason": "Repeated weak hinted matches must not promote broad source evidence above exact direct behavior evidence.",
+      "direct_paths": [
+        "core/stealth_order_manager.py"
+      ],
+      "supporting_paths": [
+        "core/order_engine.py"
+      ],
+      "hints": [
+        {"path": "core/order_engine.py", "symbol": "id", "reason": "repeated weak hinted broad order id context"}
+      ],
+      "matches": [
+        {"path": "core/stealth_order_manager.py", "line": 4169, "query": "find_stealth_order_by_placed_order_id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 17, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 18, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 47, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 48, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 290, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 291, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 566, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 645, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 765, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 795, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 808, "query": "id", "source": "phase207_negative_control"},
+        {"path": "core/order_engine.py", "line": 852, "query": "id", "source": "phase207_negative_control"}
+      ]
+    }
+  ]
+}

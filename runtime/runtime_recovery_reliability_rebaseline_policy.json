@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "runtime_recovery_reliability_rebaseline_policy",
+  "phase": 231,
+  "priority_backlog_id": "P0-M13-231",
+  "milestone_ids": ["M13"],
+  "required_decision": "ready_after_recovery",
+  "required_source_reports": [
+    "runtime_recovery_restart_evidence",
+    "post_restart_runtime_readiness_report",
+    "multi_repo_fixture_live_report",
+    "large_context_usability_live_closeout_report"
+  ],
+  "restart_requirements": {
+    "repo_managed_stack_restart_required": true,
+    "vllm_restart_required_when_container_available": true,
+    "anythingllm_restart_is_operator_owned": true,
+    "anythingllm_new_session_required": true
+  },
+  "required_surfaces": [
+    "restart.managed_stack",
+    "restart.vllm_model",
+    "post_restart.readiness",
+    "small_repo.gateway",
+    "small_repo.anythingllm",
+    "large_context.gateway",
+    "large_context.anythingllm"
+  ],
+  "small_repo_live_case_ids": ["python-service-code-explanation"],
+  "large_context_live_case_ids": ["P221-LC-001"],
+  "single_path_rule": "Phase 231 must compose the existing post-restart readiness, multi-repo fixture live, and large-context live validators. It must not create a parallel port checker, duplicate AnythingLLM chat runner, or bypass the workflow-router gateway.",
+  "acceptance_marker": "PHASE231 RUNTIME RECOVERY RELIABILITY REBASELINE PASS"
+}

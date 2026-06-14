@@ -288,6 +288,29 @@ def feedback_governance_decision(
             "reason": "feedback classifications did not map to a governed decision",
         },
     }
+    if any(marker in text for marker in ("advanced refactor", "defer", "deferred", "future phase", "not in current scope")):
+        return {
+            **base,
+            "kind": "deferred_finding",
+            "decision_status": "deferred",
+            "gap_class": "scope_deferred",
+            "validation_result": {
+                "status": "deferred_nonblocking",
+                "required_gate": "roadmap_reactivation_approval",
+                "reason": "feedback names out-of-scope or deferred work",
+            },
+        }
+    if any(marker in text for marker in ("advisory", "monitor", "nonblocking", "non-blocking")):
+        return {
+            **base,
+            "kind": "advisory_finding",
+            "decision_status": "advisory",
+            "gap_class": "documentation",
+            "validation_result": {
+                "status": "recorded_monitoring",
+                "required_gate": "repeat_feedback_or_release_review",
+            },
+        }
     if "unsafe" in normalized:
         return {
             **base,
@@ -343,6 +366,14 @@ def feedback_governance_decision(
             "decision_status": "rejected",
             "gap_class": "none",
             "validation_result": {"status": "passed", "reason": "useful-only feedback does not create repair work"},
+        }
+    if normalized == ["notes"]:
+        return {
+            **base,
+            "kind": "rejected_finding",
+            "decision_status": "rejected",
+            "gap_class": "none",
+            "validation_result": {"status": "passed", "reason": "notes-only feedback did not include actionable evidence"},
         }
     return base
 

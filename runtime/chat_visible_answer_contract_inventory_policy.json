@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "kind": "chat_visible_answer_contract_inventory_policy",
+  "phase": 200,
+  "priority_backlog_id": "P0-BB-064",
+  "milestone_id": "M2",
+  "goal": "Inventory the chat-visible answer contract for every currently supported Priority 0 workflow and prompt family.",
+  "required_sources": {
+    "prompt_skill_coverage": {
+      "path": "runtime/prompt_skill_coverage.json",
+      "expected_kind": "prompt_skill_coverage_registry"
+    },
+    "baseline_corpus": {
+      "path": "runtime/baseline_corpus.json",
+      "expected_kind": "priority0_baseline_corpus"
+    },
+    "founder_field_catalog": {
+      "path": "runtime/prompt_catalogs/founder_field_v1.json"
+    }
+  },
+  "required_workflows": [
+    "code_context.lookup",
+    "code_investigation.plan",
+    "execution_planning.plan",
+    "task.decompose"
+  ],
+  "required_contract_fields": [
+    "answer_heading",
+    "required_sections",
+    "evidence_expectations",
+    "safety_boundaries",
+    "run_traceability",
+    "output_format_behavior"
+  ],
+  "required_output_formats": [
+    "format_a",
+    "json"
+  ],
+  "required_safety_boundaries": [
+    "no_unsupported_mutation_claims",
+    "source_mutation_status",
+    "unsupported_scope_recovery"
+  ],
+  "required_docs": [
+    "README.chat-visible-answer-contract-inventory.md",
+    "docs/examples/chat-visible-answer-contract-inventory.md",
+    "README.chat-answer-contract-hardening.md",
+    "README.anythingllm-answer-usefulness.md",
+    "README.output-format-parity.md",
+    "README.natural-output-format-preference.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "docs/PROJECT_MILESTONES.md"
+  ],
+  "acceptance_marker": "PHASE200 CHAT VISIBLE ANSWER CONTRACT INVENTORY PASS"
+}

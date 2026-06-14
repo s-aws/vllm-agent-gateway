@@ -4,7 +4,7 @@ This is the contextless tester path for the Current stable external tester path.
 
 It is intentionally smaller than the founder field suite. It uses a curated set of read-only L1 prompts so a tester can prove the harness works through AnythingLLM before trying broader workflows.
 
-The prompt pack has release-candidate origin because it was first introduced during release-candidate validation. For the current founder-testing release, validate it through the `stable` channel and the Phase 147 dry-run gate.
+The prompt pack has release-candidate origin because it was first introduced during release-candidate validation. For the current founder-testing release, validate it through the `stable` channel, the Phase 147 dry-run gate, and the Phase 231 recovery gate when the stack has been restarted.
 
 ## Minimum External Tester Dry Run
 
@@ -64,6 +64,10 @@ cd /mnt/c/agentic_agents
 export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
 python3 scripts/validate_release_channels.py
 python3 scripts/run_first_time_user_doctor.py
+python3 scripts/validate_runtime_recovery_reliability_rebaseline.py \
+  --restart-managed-stack \
+  --restart-vllm-container vllm-qwen3 \
+  --timeout-seconds 900
 ```
 
 AnythingLLM must point at:
@@ -73,6 +77,8 @@ http://127.0.0.1:8500/v1
 ```
 
 The default AnythingLLM workspace used by automated validation is `my-workspace`. `WSLENV` is only needed if you want to pass Windows environment variables into WSL automatically; the command above reads `ANYTHINGLLM_API_KEY` directly from the Windows user environment.
+
+Phase 231 proves the restarted runtime can still complete the documented AnythingLLM path, including greeting/session recovery plus post-restart small-repo and large-context prompts.
 
 ## Static Onboarding Validation
 

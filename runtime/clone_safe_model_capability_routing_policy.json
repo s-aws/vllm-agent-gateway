@@ -1,0 +1,22 @@
+{
+  "clean_handoff_report_path": "runtime-state/phase235/phase235-clean-clone-release-handoff-report.json",
+  "forbidden_profile_path_fragments": [
+    "runtime-state"
+  ],
+  "kind": "clone_safe_model_capability_routing_policy",
+  "milestone_id": "M14",
+  "phase": 235,
+  "priority_backlog_id": "P0-M14-235",
+  "profile_path_prefix": "runtime/model_capability_profiles/",
+  "required_default_profile_id": "localhost-8000-phase100-current",
+  "required_routing_policy_path": "runtime/model_capability_routing.json",
+  "required_task_policies": {
+    "apply_prep": "conditional",
+    "approval_gated_l1": "conditional",
+    "draft_only_l1": "approved",
+    "l2_read_only": "approved",
+    "read_only_l1": "approved",
+    "real_apply": "not_approved"
+  },
+  "schema_version": 1
+}

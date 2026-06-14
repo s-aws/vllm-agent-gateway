@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "kind": "founder_feedback_loop_cases",
+  "priority_backlog_id": "P0-M9-227",
+  "description": "Phase 227 founder-feedback rebaseline cases for current large-context, chunked-investigation, advisory, deferred, rejected, and repair-worthy feedback classification.",
+  "cases": [
+    {
+      "case_id": "FL227-001",
+      "surface": "gateway",
+      "target_root": "/mnt/c/agentic_agents/runtime-state/phase214/generated-large-corpus",
+      "seed_prompt": "In /mnt/c/agentic_agents/runtime-state/phase214/generated-large-corpus, trace the end-to-end cross-file flow across the whole corpus from risk gate to audit summary. Read only.",
+      "feedback_template": "Record feedback for run {run_id}: missing: this current chunked investigation response should become a baseline prompt because future answers must keep scope limits, evidence metadata, and unverified-edge caveats. useful: the response stayed read only.",
+      "expected_classifications": [
+        "useful",
+        "missing"
+      ],
+      "expected_decision_kind": "baseline_prompt_candidate",
+      "expected_gap_class": "deterministic_formatter"
+    },
+    {
+      "case_id": "FL227-002",
+      "surface": "anythingllm",
+      "target_root": "/mnt/c/agentic_agents/runtime-state/phase214/generated-large-corpus",
+      "seed_prompt": "In /mnt/c/agentic_agents/runtime-state/phase214/generated-large-corpus, produce a long evidence report with all relevant top files for the order replay pipeline. Read only.",
+      "feedback_template": "Record feedback for run {run_id}: missing: add this as a holdout prompt so future large-context repairs do not overfit the chunked investigation prompt. useful: the answer included evidence and stayed read only.",
+      "expected_classifications": [
+        "useful",
+        "missing"
+      ],
+      "expected_decision_kind": "holdout_prompt_candidate",
+      "expected_gap_class": "test_coverage"
+    },
+    {
+      "case_id": "FL227-003",
+      "surface": "gateway",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "seed_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, diagnose this issue: a tester says the stealth lookup answer missed the likely root cause. Read only.",
+      "feedback_template": "Record feedback for run {run_id}: wrong: the answer missed the likely root cause and needs a repair follow-up before this prompt family can be trusted.",
+      "expected_classifications": [
+        "wrong"
+      ],
+      "expected_decision_kind": "repair_followup",
+      "expected_gap_class": "model_capability"
+    },
+    {
+      "case_id": "FL227-004",
+      "surface": "anythingllm",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "seed_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests.",
+      "feedback_template": "Record feedback for run {run_id}: useful: the answer was clear, chat-visible, and does not need a new baseline or repair.",
+      "expected_classifications": [
+        "useful"
+      ],
+      "expected_decision_kind": "rejected_finding",
+      "expected_gap_class": "none"
+    },
+    {
+      "case_id": "FL227-005",
+      "surface": "gateway",
+      "target_root": "/mnt/c/agentic_agents/runtime-state/phase214/generated-large-corpus",
+      "seed_prompt": "In /mnt/c/agentic_agents/runtime-state/phase214/generated-large-corpus, summarize generated service architecture without reading every file. Read only.",
+      "feedback_template": "Record feedback for run {run_id}: useful: the answer was acceptable. notes: advisory only, monitor whether future answers make the evidence table easier to skim; this is nonblocking.",
+      "expected_classifications": [
+        "useful"
+      ],
+      "expected_decision_kind": "advisory_finding",
+      "expected_gap_class": "documentation"
+    },
+    {
+      "case_id": "FL227-006",
+      "surface": "anythingllm",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+      "seed_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, review core/stealth_order_manager.py for duplicated placed_order_id lookup risks. Read only.",
+      "feedback_template": "Record feedback for run {run_id}: useful: the answer correctly stayed read only. notes: advanced refactor remains deferred to a future phase and is not in current scope.",
+      "expected_classifications": [
+        "useful"
+      ],
+      "expected_decision_kind": "deferred_finding",
+      "expected_gap_class": "scope_deferred"
+    }
+  ]
+}

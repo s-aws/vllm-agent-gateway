@@ -1,0 +1,517 @@
+{
+  "schema_version": 1,
+  "kind": "retrieval_first_context_strategy_design_policy",
+  "phase": 215,
+  "priority_backlog_id": "P0-M6-215",
+  "milestone_ids": [
+    "M6",
+    "M8"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Define the retrieval-first context strategy contract before indexing, retrieval-backed chat, artifact paging, or context-strategy routing implementation begins.",
+  "phase214_precondition": {
+    "report_path": "runtime-state/phase214/phase214-large-corpus-context-budget-inventory-report.json",
+    "required_status": "passed",
+    "required_phase215_ready": true,
+    "minimum_estimated_token_count": 1000000,
+    "raw_1m_prompt_support_proven_must_be": false
+  },
+  "required_strategy_ids": [
+    "direct_context",
+    "retrieval",
+    "chunked_investigation",
+    "summarization",
+    "artifact_paging",
+    "refusal"
+  ],
+  "strategy_definitions": [
+    {
+      "strategy_id": "direct_context",
+      "purpose": "Use only when the selected evidence can fit inside the current target input budget without unsafe trimming.",
+      "use_when": [
+        "target evidence is small and bounded",
+        "estimated selected input tokens are within the gateway target input limit",
+        "no durable index is required"
+      ],
+      "forbidden_when": [
+        "estimated corpus tokens exceed the target input limit and no evidence subset has been selected",
+        "the request asks to stuff the full corpus into one prompt",
+        "target root is unapproved"
+      ],
+      "budget_rule": "selected_input_tokens <= Phase 214 target input limit",
+      "evidence_requirements": [
+        "source_refs",
+        "source_hashes",
+        "confidence",
+        "limitations"
+      ],
+      "output_contract": [
+        "answer first",
+        "cite selected files",
+        "state that only selected context was read"
+      ]
+    },
+    {
+      "strategy_id": "retrieval",
+      "purpose": "Use when a large corpus needs targeted evidence lookup through an approved safe index or equivalent bounded retrieval path.",
+      "use_when": [
+        "prompt asks for specific symbols, identifiers, routes, configuration values, or source evidence",
+        "corpus exceeds direct prompt budget",
+        "index safety governance has passed"
+      ],
+      "forbidden_when": [
+        "index safety governance has not passed",
+        "source hashes are stale",
+        "retrieved chunks lack source references"
+      ],
+      "budget_rule": "retrieved_chunks + answer_budget <= phase214.target_input_limit",
+      "evidence_requirements": [
+        "retrieval_query",
+        "chunk_refs",
+        "source_refs",
+        "source_hashes",
+        "confidence",
+        "missing_context",
+        "limitations"
+      ],
+      "output_contract": [
+        "separate direct retrieved evidence from inferred summary",
+        "include missing-context caveats",
+        "do not claim full-corpus coverage"
+      ]
+    },
+    {
+      "strategy_id": "chunked_investigation",
+      "purpose": "Use when a task needs multi-step traversal over a corpus that cannot be answered from one retrieval pass.",
+      "use_when": [
+        "prompt asks for a flow, dependency chain, or cross-cutting behavior",
+        "multiple bounded retrieval or scan steps are needed",
+        "intermediate findings must be persisted as artifacts"
+      ],
+      "forbidden_when": [
+        "request can be answered by a single exact lookup",
+        "the plan would mutate protected source",
+        "the plan lacks stop conditions"
+      ],
+      "budget_rule": "each chunk step must fit phase214.target_input_limit independently",
+      "evidence_requirements": [
+        "step_plan",
+        "chunk_refs",
+        "source_refs",
+        "source_hashes",
+        "confidence",
+        "unknowns",
+        "limitations"
+      ],
+      "output_contract": [
+        "show investigation steps",
+        "summarize each completed chunk",
+        "state next unresolved evidence step"
+      ]
+    },
+    {
+      "strategy_id": "summarization",
+      "purpose": "Use for high-level corpus orientation where representative source selection is acceptable and full coverage is not claimed.",
+      "use_when": [
+        "prompt asks for architecture overview, map, or summary",
+        "representative sampling is acceptable",
+        "answer can disclose selection method and confidence"
+      ],
+      "forbidden_when": [
+        "prompt asks for exhaustive proof",
+        "prompt asks for exact implementation details without evidence lookup",
+        "summary would hide missing source coverage"
+      ],
+      "budget_rule": "sampled evidence + summary budget <= phase214.target_input_limit",
+      "evidence_requirements": [
+        "selection_strategy",
+        "source_refs",
+        "representative_source_refs",
+        "source_hashes",
+        "confidence",
+        "limitations",
+        "sampling_limitations"
+      ],
+      "output_contract": [
+        "answer first",
+        "show source-selection strategy",
+        "label sampled versus exhaustive evidence"
+      ]
+    },
+    {
+      "strategy_id": "artifact_paging",
+      "purpose": "Use when the user needs a long answer, large evidence list, or multi-part report that should stay useful in chat while detailed evidence is paged to artifacts.",
+      "use_when": [
+        "answer would exceed chat-usefulness limits",
+        "many source refs or chunks must remain traceable",
+        "chat should show a concise summary plus artifact pointers"
+      ],
+      "forbidden_when": [
+        "chat response would become artifact-only",
+        "artifact pages omit source continuity",
+        "output format parity cannot be preserved"
+      ],
+      "budget_rule": "chat summary must fit answer budget; artifact pages must carry source continuity",
+      "evidence_requirements": [
+        "page_manifest",
+        "source_refs",
+        "source_hashes",
+        "continuation_markers",
+        "confidence",
+        "limitations"
+      ],
+      "output_contract": [
+        "chat-visible answer remains useful",
+        "artifact pages are traceable",
+        "default and JSON formats preserve the same answer contract"
+      ]
+    },
+    {
+      "strategy_id": "refusal",
+      "purpose": "Use when the request is unsafe, unsupported, unapproved, stale, under-specified, or attempts raw prompt stuffing.",
+      "use_when": [
+        "target root is missing or unapproved",
+        "request asks for raw 1M prompt stuffing",
+        "index safety is missing or stale",
+        "ignored, private, or secret-like content is requested"
+      ],
+      "forbidden_when": [
+        "a supported bounded strategy can safely answer the request"
+      ],
+      "budget_rule": "no repository content is loaded beyond the evidence needed to explain the refusal",
+      "evidence_requirements": [
+        "refusal_reason",
+        "safe_alternative",
+        "required_next_step"
+      ],
+      "output_contract": [
+        "state the refusal reason",
+        "give a safe recovery path",
+        "do not leak sensitive content"
+      ]
+    }
+  ],
+  "routing_inputs": [
+    {
+      "input_id": "prompt_intent",
+      "required": true,
+      "source": "natural-language request classification"
+    },
+    {
+      "input_id": "target_root",
+      "required": true,
+      "source": "allowed-root resolver"
+    },
+    {
+      "input_id": "estimated_corpus_tokens",
+      "required": true,
+      "source": "corpus inventory or index manifest"
+    },
+    {
+      "input_id": "file_count",
+      "required": true,
+      "source": "corpus inventory or index manifest"
+    },
+    {
+      "input_id": "requested_specificity",
+      "required": true,
+      "source": "prompt parser"
+    },
+    {
+      "input_id": "output_format",
+      "required": true,
+      "source": "output format selector"
+    },
+    {
+      "input_id": "mutation_intent",
+      "required": true,
+      "source": "safety classifier"
+    },
+    {
+      "input_id": "allowed_root_status",
+      "required": true,
+      "source": "controller root policy"
+    },
+    {
+      "input_id": "ignore_policy_status",
+      "required": true,
+      "source": ".gitignore/.cgcignore enforcement"
+    },
+    {
+      "input_id": "index_safety_status",
+      "required": true,
+      "source": "Phase 216 safety gate"
+    },
+    {
+      "input_id": "source_freshness_status",
+      "required": true,
+      "source": "source hash or index manifest"
+    },
+    {
+      "input_id": "context_budget",
+      "required": true,
+      "source": "Phase 214 budget report"
+    },
+    {
+      "input_id": "ambiguity_level",
+      "required": true,
+      "source": "prompt parser"
+    }
+  ],
+  "decision_cases": [
+    {
+      "case_id": "P215-STRAT-001",
+      "prompt_class": "small_exact_lookup",
+      "estimated_token_relation": "within_target_input_limit",
+      "requested_specificity": "exact",
+      "index_safety_status": "not_required",
+      "expected_strategy": "direct_context",
+      "required_rationale": [
+        "bounded selected evidence fits current target input limit",
+        "no full-corpus prompt stuffing"
+      ]
+    },
+    {
+      "case_id": "P215-STRAT-002",
+      "prompt_class": "large_specific_evidence_lookup",
+      "estimated_token_relation": "exceeds_target_input_limit",
+      "requested_specificity": "exact",
+      "index_safety_status": "passed",
+      "expected_strategy": "retrieval",
+      "required_rationale": [
+        "specific source evidence is needed",
+        "large corpus requires retrieved chunks instead of raw context"
+      ]
+    },
+    {
+      "case_id": "P215-STRAT-003",
+      "prompt_class": "large_cross_file_flow",
+      "estimated_token_relation": "exceeds_target_input_limit",
+      "requested_specificity": "flow",
+      "index_safety_status": "passed",
+      "expected_strategy": "chunked_investigation",
+      "required_rationale": [
+        "flow requires multiple bounded evidence steps",
+        "each step must fit the target input budget"
+      ]
+    },
+    {
+      "case_id": "P215-STRAT-004",
+      "prompt_class": "large_architecture_summary",
+      "estimated_token_relation": "exceeds_target_input_limit",
+      "requested_specificity": "overview",
+      "index_safety_status": "passed",
+      "expected_strategy": "summarization",
+      "required_rationale": [
+        "representative source selection is acceptable",
+        "full-corpus coverage must not be claimed"
+      ]
+    },
+    {
+      "case_id": "P215-STRAT-005",
+      "prompt_class": "long_evidence_report",
+      "estimated_token_relation": "exceeds_answer_budget",
+      "requested_specificity": "many_sources",
+      "index_safety_status": "passed",
+      "expected_strategy": "artifact_paging",
+      "required_rationale": [
+        "chat answer must remain useful",
+        "detailed evidence needs page continuity"
+      ]
+    },
+    {
+      "case_id": "P215-STRAT-006",
+      "prompt_class": "raw_1m_prompt_request",
+      "estimated_token_relation": "exceeds_target_input_limit",
+      "requested_specificity": "full_corpus_raw",
+      "index_safety_status": "not_applicable",
+      "expected_strategy": "refusal",
+      "required_rationale": [
+        "raw 1M prompt support is not proven",
+        "safe alternative is retrieval or chunking"
+      ]
+    },
+    {
+      "case_id": "P215-STRAT-007",
+      "prompt_class": "unapproved_root_request",
+      "estimated_token_relation": "unknown",
+      "requested_specificity": "any",
+      "index_safety_status": "not_applicable",
+      "expected_strategy": "refusal",
+      "required_rationale": [
+        "target root is not approved",
+        "safe alternative is an approved target root"
+      ]
+    },
+    {
+      "case_id": "P215-STRAT-008",
+      "prompt_class": "large_lookup_before_safety_governance",
+      "estimated_token_relation": "exceeds_target_input_limit",
+      "requested_specificity": "exact",
+      "index_safety_status": "missing",
+      "expected_strategy": "refusal",
+      "required_rationale": [
+        "Phase 216 safety governance must pass before durable indexing",
+        "retrieval-backed chat is not implemented yet"
+      ]
+    }
+  ],
+  "evidence_requirements": [
+    {
+      "requirement_id": "source_refs",
+      "required_for": [
+        "direct_context",
+        "retrieval",
+        "chunked_investigation",
+        "summarization",
+        "artifact_paging"
+      ]
+    },
+    {
+      "requirement_id": "source_hashes",
+      "required_for": [
+        "direct_context",
+        "retrieval",
+        "chunked_investigation",
+        "summarization",
+        "artifact_paging"
+      ]
+    },
+    {
+      "requirement_id": "confidence",
+      "required_for": [
+        "direct_context",
+        "retrieval",
+        "chunked_investigation",
+        "summarization",
+        "artifact_paging"
+      ]
+    },
+    {
+      "requirement_id": "limitations",
+      "required_for": [
+        "direct_context",
+        "retrieval",
+        "chunked_investigation",
+        "summarization",
+        "artifact_paging"
+      ]
+    },
+    {
+      "requirement_id": "safe_alternative",
+      "required_for": [
+        "refusal"
+      ]
+    },
+    {
+      "requirement_id": "output_format_parity",
+      "required_for": [
+        "artifact_paging",
+        "retrieval",
+        "chunked_investigation"
+      ]
+    }
+  ],
+  "failure_behaviors": [
+    {
+      "failure_id": "raw_1m_prompt_stuffing_request",
+      "expected_strategy": "refusal",
+      "required_user_visible_recovery": "Offer retrieval, chunked investigation, or summarization instead."
+    },
+    {
+      "failure_id": "missing_target_root",
+      "expected_strategy": "refusal",
+      "required_user_visible_recovery": "Ask for an approved target root before reading source."
+    },
+    {
+      "failure_id": "unapproved_target_root",
+      "expected_strategy": "refusal",
+      "required_user_visible_recovery": "Name the root boundary and request an allowed root."
+    },
+    {
+      "failure_id": "ignored_or_private_path_requested",
+      "expected_strategy": "refusal",
+      "required_user_visible_recovery": "Explain that ignored/private paths cannot feed chat-visible answers."
+    },
+    {
+      "failure_id": "secret_like_content_requested",
+      "expected_strategy": "refusal",
+      "required_user_visible_recovery": "Do not reveal the value; offer structural or redacted guidance."
+    },
+    {
+      "failure_id": "stale_index_or_source_hash",
+      "expected_strategy": "refusal",
+      "required_user_visible_recovery": "Require index refresh before answering from stale chunks."
+    },
+    {
+      "failure_id": "no_relevant_evidence_found",
+      "expected_strategy": "refusal",
+      "required_user_visible_recovery": "State the searched scope and ask for a narrower target or alternate terms."
+    },
+    {
+      "failure_id": "ambiguous_large_context_request",
+      "expected_strategy": "refusal",
+      "required_user_visible_recovery": "Ask for the subsystem, symbol, file family, or output shape needed to choose a bounded strategy."
+    }
+  ],
+  "negative_controls": [
+    "no_raw_prompt_stuffing_claim",
+    "no_retrieval_backed_chat_before_phase218",
+    "no_durable_index_before_phase216",
+    "no_ignored_private_or_secret_like_content",
+    "no_unapproved_root_access",
+    "no_artifact_only_chat_answer",
+    "no_mutation_of_protected_fixtures"
+  ],
+  "implementation_sequence": [
+    {
+      "phase": 216,
+      "name": "corpus_safety_and_index_governance",
+      "must_precede": [
+        217,
+        218,
+        220,
+        221
+      ]
+    },
+    {
+      "phase": 217,
+      "name": "context_index_prototype_gate",
+      "must_precede": [
+        218,
+        220,
+        221
+      ]
+    },
+    {
+      "phase": 218,
+      "name": "retrieval_backed_chat_answer_gate",
+      "must_precede": [
+        221
+      ]
+    },
+    {
+      "phase": 219,
+      "name": "artifact_paging_long_answer_gate",
+      "must_precede": [
+        221
+      ]
+    },
+    {
+      "phase": 220,
+      "name": "context_strategy_router_implementation",
+      "must_precede": [
+        221
+      ]
+    }
+  ],
+  "out_of_scope": [
+    "retrieval_index_implementation",
+    "retrieval_backed_chat_integration",
+    "artifact_paging_implementation",
+    "raw_1m_context_benchmark",
+    "protected_fixture_mutation",
+    "advanced_refactor_reactivation"
+  ],
+  "acceptance_marker": "PHASE215 RETRIEVAL FIRST CONTEXT STRATEGY DESIGN PASS"
+}

@@ -228,6 +228,14 @@ def selection_has_registry_grounding(route_decision: dict[str, Any], registry_sn
         errors.append("registry_snapshot.skills missing or empty")
     if not dict_value(registry_snapshot.get("tools")):
         errors.append("registry_snapshot.tools missing or empty")
+    registry_skills = dict_value(registry_snapshot.get("skills"))
+    registry_tools = dict_value(registry_snapshot.get("tools"))
+    for skill_id in string_list(route_decision.get("selected_skills")):
+        if skill_id not in registry_skills:
+            errors.append(f"registry_snapshot.skills missing selected skill {skill_id}")
+    for tool_id in string_list(route_decision.get("selected_tools")):
+        if tool_id not in registry_tools:
+            errors.append(f"registry_snapshot.tools missing selected tool {tool_id}")
     return errors
 
 
@@ -679,4 +687,3 @@ def run_skill_tool_selection_explainability_e2e(
         report["markdown_report_path"] = str(config.markdown_output_path.resolve())
         write_json(output_path, report)
     return report
-

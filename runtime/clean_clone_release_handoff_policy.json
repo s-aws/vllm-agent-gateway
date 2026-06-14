@@ -1,0 +1,60 @@
+{
+  "allowed_source_modes": [
+    "git_clone",
+    "clean_snapshot"
+  ],
+  "forbidden_snapshot_entries": [
+    ".git",
+    "runtime-state",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".tmp_phase223_debug",
+    ".tmp_pytest",
+    "node_modules",
+    ".venv",
+    "venv"
+  ],
+  "kind": "clean_clone_release_handoff_policy",
+  "live_minimal_required": true,
+  "milestone_id": "M14",
+  "phase": 234,
+  "priority_backlog_id": "P0-M14-234",
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "workflow_router_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace"
+  },
+  "required_command_ids": [
+    "docs_index",
+    "phase232_handoff",
+    "release_channels",
+    "security_policy",
+    "managed_stack_restart_from_snapshot",
+    "first_time_user_doctor",
+    "external_onboarding_live"
+  ],
+  "required_files": [
+    "README.md",
+    "README.getting-started.md",
+    "README.external-tester-onboarding.md",
+    "README.contextless-handoff-dry-run.md",
+    "README.onboarding-release-handoff-refresh.md",
+    "docs/README.md",
+    "docs/examples/README.md",
+    "runtime/contextless_handoff_dry_run_policy.json",
+    "runtime/onboarding_release_handoff_refresh_policy.json",
+    "scripts/check_docs_index.py",
+    "scripts/validate_onboarding_release_handoff_refresh.py",
+    "scripts/validate_release_channels.py",
+    "scripts/validate_security_policy.py",
+    "scripts/run_first_time_user_doctor.py",
+    "scripts/validate_external_tester_onboarding.py"
+  ],
+  "required_runtime_seeds": [],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "schema_version": 1
+}

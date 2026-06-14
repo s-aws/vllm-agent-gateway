@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "kind": "no_manual_skill_injection_explainability_policy",
+  "phase": 204,
+  "priority_backlog_id": "P0-M3-204",
+  "policy_version": "0.1.0",
+  "purpose": "Verify that founder-facing natural-language prompts select workflows, skills, and tools through the existing workflow-router path without manual skill injection, pasted SKILL.md text, or raw selector internals.",
+  "source_prompt_catalog_path": "runtime/prompt_catalogs/founder_field_v1.json",
+  "source_matrix_report_path": "runtime-state/phase203/phase203-workflow-skill-tool-selection-matrix-report.json",
+  "case_ids": [
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "P07",
+    "P08",
+    "P09",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P14",
+    "P15",
+    "P16",
+    "P17",
+    "P18",
+    "P19",
+    "P20",
+    "P21",
+    "P22",
+    "P23",
+    "P24",
+    "P25",
+    "P27",
+    "P28",
+    "P29",
+    "P30",
+    "P31",
+    "P32",
+    "P33",
+    "P34"
+  ],
+  "excluded_case_ids": [
+    {
+      "case_id": "P26",
+      "reason": "Approval-gated disposable apply is intentionally blocked by model-capability routing in the current profile and belongs to approval/apply validation, not Phase 204 natural selector explainability closeout."
+    }
+  ],
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "minimum_case_count": 30,
+  "minimum_matrix_row_coverage": 25,
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_chat_sections": [
+    "Result:",
+    "Skill Selection:"
+  ],
+  "required_result_markers": [
+    "- Selected workflow:",
+    "- Selected skills:",
+    "- Selected tools:"
+  ],
+  "required_selection_markers": [
+    "- Why:",
+    "- Route rules:",
+    "- Confidence:",
+    "- Coverage entries:",
+    "- Skills:",
+    "- Tools:",
+    "- Rejected candidates:",
+    "- Grounded in:"
+  ],
+  "required_grounding_markers": [
+    "route_decision.selected_skills",
+    "route_decision.selected_tools",
+    "route_decision.selection_audit",
+    "registry_snapshot.skills"
+  ],
+  "minimum_rejected_candidate_count": 1,
+  "required_selection_policy": {
+    "metadata_only": true,
+    "manual_skill_injection_required": false,
+    "low_confidence_fails_closed": true,
+    "minimum_confidence": "medium"
+  },
+  "forbidden_prompt_markers": [
+    "SKILL.md",
+    ".qwen/skills",
+    "workflow_router.plan",
+    "code_investigation.plan",
+    "code_context.lookup",
+    "execution_planning.plan",
+    "task.decompose",
+    "selected_workflow:",
+    "route_decision",
+    "selection_audit",
+    "manual skill injection",
+    "tool-call parser"
+  ],
+  "forbidden_prompt_skill_ids_from_matrix": true,
+  "forbidden_raw_internal_markers": [
+    "\"selection_audit\"",
+    "\"workflow_candidates\"",
+    "\"skill_candidates\"",
+    "\"tool_candidates\"",
+    "\"controller_request_preview\"",
+    "{\n",
+    "candidate_count\":"
+  ],
+  "artifact_requirements": [
+    "route_decision",
+    "registry_snapshot"
+  ],
+  "non_mutation_required": true,
+  "notes": [
+    "This gate adapts natural prompt-catalog cases into the existing selector explainability validator instead of creating a second selector or formatter.",
+    "Phase 205 is responsible for repeated holdout replay and route-stability closure."
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "candidate": {
+    "anythingllm_api_base_url": "http://127.0.0.1:3001",
+    "api_key_env": "ANYTHINGLLM_API_KEY",
+    "candidate_description": "phase100-current clone-safe profile",
+    "candidate_id": "localhost-8000-phase100-current",
+    "candidate_model_base_url": "http://127.0.0.1:8000/v1",
+    "controller_base_url": "http://127.0.0.1:8400",
+    "target_roots": [
+      "/mnt/c/coinbase_testing_repo_frozen_tmp",
+      "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    ],
+    "workflow_router_gateway_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace"
+  },
+  "candidate_model_probe": {
+    "http_status": 200,
+    "model_ids": [
+      "Qwen3-Coder-30B-A3B-Instruct"
+    ],
+    "raw_kind": "list",
+    "status": "passed",
+    "url": "http://127.0.0.1:8000/v1/models"
+  },
+  "capabilities": {
+    "latency": {
+      "evidence": [
+        "source acceptance reports do not include release-quality duration metrics"
+      ],
+      "limitations": [
+        "Latency is not approved for routing decisions until measured timing is recorded."
+      ],
+      "metrics": {
+        "duration_sample_count": 0
+      },
+      "status": "unknown"
+    },
+    "output_contract_reliability": {
+      "evidence": [
+        "current release-candidate regression and live handoff proof passed"
+      ],
+      "limitations": [],
+      "metrics": {
+        "output_contract_failure_count": 0
+      },
+      "status": "proven"
+    },
+    "route_stability": {
+      "evidence": [
+        "current release-candidate regression and live handoff proof passed"
+      ],
+      "limitations": [],
+      "metrics": {
+        "classifier_failure_count": 0
+      },
+      "status": "proven"
+    },
+    "safe_apply_readiness": {
+      "evidence": [
+        "disposable-copy and draft boundaries remain controller-owned"
+      ],
+      "limitations": [
+        "Real repository mutation remains approval-gated and is not automatically approved by this profile."
+      ],
+      "metrics": {
+        "controlled_apply_passed": true
+      },
+      "status": "partially_proven"
+    },
+    "semantic_answer_quality": {
+      "evidence": [
+        "Priority 0 chat-quality release gates and M14 handoff proofs passed"
+      ],
+      "limitations": [],
+      "metrics": {
+        "model_quality_failure_count": 0
+      },
+      "status": "proven"
+    },
+    "timeout_behavior": {
+      "evidence": [
+        "current release-candidate regression and live handoff proof passed"
+      ],
+      "limitations": [],
+      "metrics": {
+        "harness_failure_count": 0,
+        "timeout_failure_count": 0
+      },
+      "status": "proven"
+    }
+  },
+  "classification_summary": {
+    "classifier": 0,
+    "harness": 0,
+    "model_quality": 0,
+    "prompt": 0,
+    "unknown": 0
+  },
+  "classified_failure_count": 0,
+  "clone_safe": true,
+  "kind": "model_capability_profile",
+  "limitations": [
+    "This profile does not enable automatic model selection.",
+    "Latency remains unknown unless source acceptance reports include timing metrics.",
+    "Real apply is not approved by any capability profile in this phase."
+  ],
+  "provenance": {
+    "phase": 235,
+    "source_profile": "runtime-state/model-capability-profiles/phase100-current-profile.json",
+    "source_profile_sha256": "1fcfe2def6afe9b846c169d6bb4daef677b0cc06c38c71b5f9129a9f93236ad0"
+  },
+  "routing_policy": {
+    "advisory_only": true,
+    "automatic_model_selection_enabled": false,
+    "must_not_change_runtime_behavior": true,
+    "policy_doc": "docs/MODEL_CAPABILITY_ROUTING_POLICY.md"
+  },
+  "schema_version": 1,
+  "source_acceptance": {
+    "kind": "release_candidate_handoff_proof",
+    "phase233_report": "runtime-state/phase233/phase233-contextless-handoff-dry-run-report.json",
+    "phase234_report": "runtime-state/phase234/phase234-clean-clone-release-handoff-report.json",
+    "status": "passed"
+  },
+  "status": "warning",
+  "task_policy": {
+    "apply_prep": {
+      "required_evidence": [
+        "controlled apply",
+        "explicit approval",
+        "disposable-copy or draft packet boundary"
+      ],
+      "status": "conditional"
+    },
+    "approval_gated_l1": {
+      "required_evidence": [
+        "representative L1",
+        "controlled apply",
+        "explicit approval remains required"
+      ],
+      "status": "conditional"
+    },
+    "automatic_model_selection": {
+      "reason": "Model capability profiles remain advisory; no automatic model selection behavior is enabled.",
+      "status": "not_approved"
+    },
+    "draft_only_l1": {
+      "required_evidence": [
+        "representative L1",
+        "approval boundary remains controller-owned"
+      ],
+      "status": "approved"
+    },
+    "l2_read_only": {
+      "required_evidence": [
+        "representative L2",
+        "route stability",
+        "semantic answer quality"
+      ],
+      "status": "approved"
+    },
+    "read_only_l1": {
+      "required_evidence": [
+        "route stability",
+        "output contract reliability",
+        "semantic answer quality",
+        "representative L1"
+      ],
+      "status": "approved"
+    },
+    "real_apply": {
+      "required_evidence": [
+        "A later approved phase must explicitly authorize real repository mutation policy."
+      ],
+      "status": "not_approved"
+    }
+  }
+}

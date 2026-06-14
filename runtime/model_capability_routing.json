@@ -8,8 +8,8 @@
       "profile_id": "localhost-8000-phase100-current",
       "status": "active",
       "candidate_model_base_url": "http://127.0.0.1:8000/v1",
-      "profile_path": "runtime-state/model-capability-profiles/phase100-current-profile.json",
-      "source": "phase100_current_profile"
+      "profile_path": "runtime/model_capability_profiles/phase100-current-profile.json",
+      "source": "phase235_clone_safe_profile"
     }
   ],
   "task_class_rules": {

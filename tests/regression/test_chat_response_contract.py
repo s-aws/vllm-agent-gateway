@@ -7,6 +7,7 @@ from typing import Any
 from vllm_agent_gateway.controller_service.server import (
     ControllerOutputFormat,
     assistant_content_for_controller_response,
+    related_tests_summary,
 )
 
 
@@ -290,6 +291,27 @@ def response_with_artifact(tmp_path: Path, key: str, artifact: dict[str, Any]) -
     }
 
 
+def test_related_tests_summary_uses_evidence_ref_line_when_top_level_line_missing() -> None:
+    rendered = related_tests_summary(
+        [
+            {
+                "path": "tests/unit/test_order_id_and_followup_rules.py",
+                "evidence_refs": [
+                    {
+                        "path": "tests/unit/test_order_id_and_followup_rules.py",
+                        "line": 8,
+                        "term": "find_stealth_order_by_placed_order_id",
+                    }
+                ],
+                "confidence": "high",
+                "evidence_kind": "direct",
+            }
+        ]
+    )
+
+    assert rendered.startswith("tests/unit/test_order_id_and_followup_rules.py:8")
+
+
 def test_format_a_contract_renders_result_answer_before_artifacts(tmp_path: Path) -> None:
     markers = required_markers()
     content = assistant_content_for_controller_response(
@@ -441,7 +463,20 @@ def test_format_a_behavior_start_prefers_investigation_plan_over_cli_lookup(tmp_
                 "line": 4169,
                 "reason": "First source point with bounded exact-text evidence.",
             },
+            "source_refs": [
+                {
+                    "path": "core/stealth_order_manager.py",
+                    "line": 4169,
+                    "query": "find_stealth_order_by_placed_order_id",
+                    "source": "git_grep",
+                }
+            ],
+            "mutation_policy": "read_only_no_source_mutation",
             "related_tests": [{"path": "tests/unit/test_order_id_and_followup_rules.py", "line": 8}],
+            "participating_files": [
+                {"path": "core/stealth_order_manager.py", "category": "source", "match_count": 2},
+                {"path": "tests/unit/test_order_id_and_followup_rules.py", "category": "test", "match_count": 1},
+            ],
             "verification_plan": {
                 "verification_commands": [
                     {
@@ -454,6 +489,7 @@ def test_format_a_behavior_start_prefers_investigation_plan_over_cli_lookup(tmp_
                     }
                 ]
             },
+            "gaps": [{"gap": "bounded_related_tests_only"}],
         },
     )
     response = {
@@ -475,8 +511,89 @@ def test_format_a_behavior_start_prefers_investigation_plan_over_cli_lookup(tmp_
     assert "Answer:" in content
     assert "- Beginning point: core/stealth_order_manager.py:4169" in content
     assert "- Related tests: tests/unit/test_order_id_and_followup_rules.py:8" in content
+    assert "- Evidence files: core/stealth_order_manager.py (source, 2 match(es))" in content
     assert "- Recommended commands: python -m pytest tests/unit/test_order_id_and_followup_rules.py" in content
+    assert "- Source refs: core/stealth_order_manager.py:4169" in content
+    assert "- Gaps: bounded_related_tests_only" in content
+    assert "- Source mutation: false" in content
     assert "- Entrypoints:" not in content
+
+
+def test_format_a_test_selection_plan_renders_source_refs(tmp_path: Path) -> None:
+    response = response_with_artifact(
+        tmp_path,
+        "downstream_test_selection_plan",
+        {
+            "kind": "test_selection_plan",
+            "schema_version": 1,
+            "status": "ready",
+            "target": "placed_order_id stealth lookup",
+            "related_tests": [{"path": "tests/unit/test_order_id_and_followup_rules.py", "line": 8}],
+            "command_tiers": [
+                {
+                    "tier": "smallest",
+                    "commands": [
+                        {"command": ["python", "-m", "pytest", "tests/unit/test_order_id_and_followup_rules.py"]}
+                    ],
+                    "rationale": "Covers the direct related test file first.",
+                    "covered_risk": "Lookup regression.",
+                }
+            ],
+            "source_refs": [{"path": "tests/unit/test_order_id_and_followup_rules.py", "line": 8}],
+            "confidence": "medium",
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": [],
+        },
+    )
+
+    content = assistant_content_for_controller_response(response, ControllerOutputFormat.FORMAT_A)
+
+    assert "Answer:" in content
+    assert "- Related tests: tests/unit/test_order_id_and_followup_rules.py:8" in content
+    assert "- Smallest command: python -m pytest tests/unit/test_order_id_and_followup_rules.py" in content
+    assert "- Source refs: tests/unit/test_order_id_and_followup_rules.py:8" in content
+    assert "- Source mutation: false" in content
+
+
+def test_format_a_change_surface_summary_renders_source_refs(tmp_path: Path) -> None:
+    response = response_with_artifact(
+        tmp_path,
+        "downstream_change_surface_summary",
+        {
+            "kind": "change_surface_summary",
+            "schema_version": 1,
+            "status": "ready",
+            "target": "placed_order_id stealth lookup",
+            "change_surface_files": [{"path": "core/stealth_order_manager.py", "category": "source"}],
+            "files_to_touch": [
+                {
+                    "path": "core/stealth_order_manager.py",
+                    "category": "source",
+                    "reason": "Contains the bounded lookup behavior under investigation.",
+                }
+            ],
+            "files_not_to_touch": [
+                {"path": "README.md", "category": "docs", "reason": "Documentation is outside the requested code change."}
+            ],
+            "unknowns": [],
+            "related_tests": [{"path": "tests/unit/test_order_id_and_followup_rules.py", "line": 8}],
+            "risk_level": "medium",
+            "risks": [{"risk": "lookup regression", "level": "medium", "reason": "The lookup path is shared by order tests."}],
+            "implementation_status": "not_ready_without_approval",
+            "verification_commands": [{"command": ["python", "-m", "pytest", "tests/unit/test_order_id_and_followup_rules.py"]}],
+            "source_refs": [{"path": "core/stealth_order_manager.py", "line": 4169}],
+            "mutation_policy": "read_only_no_source_mutation",
+            "gaps": [],
+        },
+    )
+
+    content = assistant_content_for_controller_response(response, ControllerOutputFormat.FORMAT_A)
+
+    assert "Answer:" in content
+    assert "- Files to touch: core/stealth_order_manager.py" in content
+    assert "- Files not to touch: README.md" in content
+    assert "- Source refs: core/stealth_order_manager.py:4169" in content
+    assert "- Source mutation: false" in content
 
 
 def test_json_output_includes_same_chat_contract(tmp_path: Path) -> None:

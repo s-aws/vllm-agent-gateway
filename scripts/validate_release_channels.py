@@ -37,6 +37,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Path to a passed v1_acceptance_report required only when stable is active.",
     )
+    parser.add_argument(
+        "--skip-runtime-state-hygiene",
+        action="store_true",
+        help="Skip Git-based runtime-state hygiene for non-git clean snapshots; do not use for final git checkout release proof.",
+    )
     return parser.parse_args()
 
 
@@ -49,6 +54,7 @@ def main() -> int:
             output_path=Path(args.output_path) if args.output_path else None,
             channel=args.channel,
             release_candidate_report_path=Path(args.release_candidate_report) if args.release_candidate_report else None,
+            skip_runtime_state_hygiene=args.skip_runtime_state_hygiene,
         )
     )
     print(f"RELEASE CHANNEL REPORT {report['report_path']}")

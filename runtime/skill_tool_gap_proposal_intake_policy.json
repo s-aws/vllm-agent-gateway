@@ -16,7 +16,7 @@
   },
   "source_prompt_coverage": {
     "path": "runtime/prompt_skill_coverage.json",
-    "sha256": "5f3288aae98f288dfd160ef0ae109bf679cbe887c16329245f5594f81d133c7b"
+    "sha256": "18d04fada9726eadd6ac2725145b4a57d1e296fd2d56d6ddd8713cc2760c8182"
   },
   "source_capability_backlog": {
     "path": "runtime/natural_language_capability_gap_backlog.json",

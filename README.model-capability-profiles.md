@@ -27,6 +27,14 @@ Profile JSON and Markdown reports are written under:
 runtime-state/model-capability-profiles/
 ```
 
+The active clone-safe routing profile for the current release candidate lives under:
+
+```text
+runtime/model_capability_profiles/phase100-current-profile.json
+```
+
+Generated `runtime-state/` profiles are source evidence. The router should use the committed clone-safe profile path when the release handoff needs to work from a clean checkout.
+
 The JSON artifact uses:
 
 ```text

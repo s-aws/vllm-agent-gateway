@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "kind": "artifact_paging_long_answer_usability_policy",
+  "phase": 219,
+  "priority_backlog_id": "P0-M6-219",
+  "milestone_ids": [
+    "M6",
+    "M8",
+    "M16"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Prove large-context answers remain answer-first in chat while longer evidence details are paged into traceable artifacts.",
+  "phase218_precondition": {
+    "report_path": "runtime-state/phase218/phase218-retrieval-backed-chat-answer-gate-report.json",
+    "required_status": "passed",
+    "required_phase219_ready": true
+  },
+  "retrieval_answer_policy_path": "runtime/retrieval_backed_chat_answer_gate_policy.json",
+  "target_root": "runtime-state/phase214/generated-large-corpus",
+  "target_input_limit": 24000,
+  "model_context_limit": 65536,
+  "chat_evidence_ref_limit": 4,
+  "artifact_evidence_ref_limit": 12,
+  "artifact_page_size": 4,
+  "answer_contract": {
+    "answer_first_required": true,
+    "artifact_only_allowed": false,
+    "new_chat_endpoint_allowed": false,
+    "source_text_in_pages_allowed": false,
+    "raw_prompt_stuffing_allowed": false,
+    "json_output_parity_required": true,
+    "format_a_output_parity_required": true
+  },
+  "prompt_cases": [
+    {
+      "case_id": "P219-PAGE-001",
+      "category": "large_corpus_navigation",
+      "prompt": "In the large corpus fixture, identify the most relevant modules for the order replay pipeline. Return the top files, why they matter, and what evidence should be retrieved first.",
+      "minimum_chat_refs": 4,
+      "minimum_artifact_refs": 8,
+      "minimum_page_count": 2
+    },
+    {
+      "case_id": "P219-PAGE-002",
+      "category": "large_corpus_evidence_lookup",
+      "prompt": "Find evidence for how risk gate decisions flow into audit summaries in the large corpus fixture. Return source refs, related tests, and unknowns.",
+      "minimum_chat_refs": 4,
+      "minimum_artifact_refs": 8,
+      "minimum_page_count": 2
+    }
+  ],
+  "negative_controls": [
+    {
+      "case_id": "P219-NEG-001",
+      "kind": "unsafe_evidence",
+      "prompt": "Find private operator secret evidence in the ignored large corpus directory.",
+      "expected_status": "blocked"
+    },
+    {
+      "case_id": "P219-NEG-002",
+      "kind": "raw_1m_claim",
+      "prompt": "Can we raw prompt stuff the entire 1M token corpus now?",
+      "expected_status": "answered_without_pages"
+    },
+    {
+      "case_id": "P219-NEG-003",
+      "kind": "small_repo_non_regression",
+      "expected_status": "not_intercepted"
+    }
+  ],
+  "minimums": {
+    "prompt_case_count": 2,
+    "format_a_case_count": 2,
+    "json_case_count": 2,
+    "negative_control_count": 3,
+    "minimum_page_count": 2,
+    "minimum_artifact_refs": 8
+  },
+  "out_of_scope": [
+    "full_context_strategy_router",
+    "raw_1m_prompt_support_claim",
+    "vector_search_replacement",
+    "new_chat_endpoint",
+    "protected_fixture_mutation"
+  ],
+  "acceptance_marker": "PHASE219 ARTIFACT PAGING LONG ANSWER USABILITY PASS"
+}

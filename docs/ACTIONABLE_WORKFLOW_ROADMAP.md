@@ -8,6 +8,8 @@ If this document conflicts with older skill, controller, gateway, or AnythingLLM
 
 The product is not "a folder of skills." The product is a local agent harness that can take a natural-language development request, select the right tools and skills without retraining, create an evidence-backed plan, execute only inside approved boundaries, verify the result, and record feedback.
 
+The product objective also includes large-context usability. Very large repositories and corpora, including 1M+ token projects, should be usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. This is not a promise that the current local model can accept a raw 1M-token prompt. Raw 1M-token serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
+
 Final destination:
 
 ```text
@@ -24,9 +26,23 @@ natural-language request
 
 The harness must route that request without the user injecting `SKILL.md` text, naming every skill, or pasting a controller JSON envelope.
 
+## Approved Product Milestones
+
+The approved milestone gates are maintained in [Project Milestones](PROJECT_MILESTONES.md).
+
+Milestones are durable product-state checkpoints. Roadmap phases should move one or more milestones forward, but a phase is not itself a milestone unless it proves a user-visible product state. The current critical path is:
+
+```text
+M1 -> M2 -> M3 -> M4 -> M5 -> M16 -> M6 -> M8 -> M9 -> M12 -> M14
+```
+
+M16 is required before durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M15, the raw 1M-context gate, is experimental and must not block the main objective. Large-context usability is achieved first through governed indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing.
+
 ## Persistent Product Priorities
 
 Priority 0 is chat quality development and testing. All other work is secondary unless it directly supports improving or validating chat quality against the current local model, skills, and tools.
+
+For large-context work, Priority 0 is satisfied by useful chat-visible answers over large corpora, not by maximum prompt stuffing. Prefer retrieval-first and evidence-selection designs unless a roadmap-approved raw long-context milestone proves the serving path.
 
 Priority 0 uses blind-baseline-first testing by default. For every chat-quality evaluation, ask a bounded contextless blind agent for the expected answer shape and scoring rubric before showing it any local-model output. Then run the same prompt through the local model via the workflow-router gateway and AnythingLLM when applicable, compare the local answer against the blind baseline, repair the smallest harness gap, and rerun the target prompt plus holdouts. Blind structural audits remain useful for code, roadmap, and artifact review, but they do not replace blind-baseline comparison for chat-answer quality.
 
@@ -126,13 +142,15 @@ Pause:
 
 ## Execution Rule
 
-Always work the lowest-numbered incomplete phase.
+Always work the lowest-numbered incomplete phase that is approved or automatically approved by milestone mapping.
+
+Phases mapped directly to approved milestones are automatically approved unless the phase entry, founder, or current session explicitly marks them as proposed, not approved, blocked, deferred, or approval-required. Automatic approval does not apply to new milestones, milestone changes, unrelated features, or work that expands a milestone beyond its documented product state, done criteria, and required proof.
 
 Do not move to the next phase because a demo is close. A phase is complete only when all required artifacts and tests pass.
 
 If a phase fails, fix that phase. Do not add another skill, adapter, route, or document to compensate for the failure.
 
-Any scope expansion requires explicit founder approval and must update this roadmap before implementation.
+Any scope expansion outside an approved milestone's boundaries requires explicit founder approval and must update this roadmap before implementation.
 
 ## Proposal And Tightening Rule
 
@@ -8684,11 +8702,16 @@ Decision:
 - The current product is ready for broader founder beta within the documented limits.
 - Advisories remain for Phase 192 prompt-quality monitoring, Phase 194 draft-only skill admission, and advanced-refactor deferral.
 
-Next unapproved phase candidates:
+Approved phase queue:
 
-- Phase 197: Founder Trial Execution Round.
-- Phase 198: Founder Feedback Intake And Repair Proposal.
-- Phase 199: V1 Beta Release Closeout.
+- Phase 201: Chat-Visible Answer Contract Enforcement Gate. Maps to M2.
+- Phase 202: Output Format And Usefulness Refresh. Maps to M2.
+- Phase 203: Workflow/Skill/Tool Selection Matrix Refresh. Maps to M3.
+- Phase 204: No Manual Skill Injection And Selection Explainability Gate. Maps to M3.
+- Phase 205: Route Stability Holdout Replay. Maps to M3.
+- Phase 206: Evidence Relevance Audit Pack. Maps to M4.
+- Phase 207: Evidence Ranking And Source Hash Gate. Maps to M4.
+- Phase 208: Evidence Quality Live Rerun. Maps to M4.
 
 ## Stop Conditions
 
@@ -8708,7 +8731,7 @@ Stop and fix the current phase if any of these happen:
 When a new Codex session starts, do this:
 
 1. Read this file first.
-2. Treat the lowest-numbered incomplete phase as the next task.
+2. Treat the lowest-numbered incomplete approved phase as the next task. A phase mapped to an approved milestone is automatically approved unless it is explicitly marked proposed, not approved, blocked, deferred, or approval-required.
 3. For chat-quality work, use the blind-baseline-first process from `docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md` before running the same prompt through the local model.
 4. Ignore older roadmaps when they conflict with this file.
 5. Do not add skills, examples, or integrations unless the active phase requires them.
@@ -8796,10 +8819,1447 @@ Decision:
 - The four Phase 197 advisory cases are nonblocking after intake because they are accepted as monitoring/documentation records with owner paths and target rerun gates.
 - Phase 199 can proceed after full regression for this phase passes.
 
-### Proposed Phase 199: V1 Beta Release Closeout
+### Approved Phase 199: V1 Beta Release Closeout
 
-Status: Proposed, not approved.
+Status: Complete.
+
+Milestone mapping: M1 V1 Founder Beta Closeout.
 
 Goal: close the V1 beta release package after Phase 197 execution and Phase 198 feedback intake are complete.
 
-Phases 43 through 198 are complete. Phase 199 is proposed but not approved.
+Scope:
+
+- Consume the Phase 195 release-candidate founder trial pack, Phase 196 readiness reassessment, Phase 197 live founder trial execution, and Phase 198 feedback intake reports.
+- Confirm the release candidate is still blocker-free and that Phase 198 does not block closeout.
+- Verify docs, release notes, getting-started path, AnythingLLM target guidance, and protected-fixture state.
+- Run the closeout verification tier required for a release-candidate milestone.
+
+Acceptance target: the project can be handed to a contextless founder/tester as a V1 founder beta candidate with current proof, clear limits, and a known feedback path.
+
+Implementation completed:
+
+- Added `runtime/v1_beta_release_closeout_policy.json`.
+- Added `vllm_agent_gateway/acceptance/v1_beta_release_closeout.py`.
+- Added `scripts/validate_v1_beta_release_closeout.py`.
+- Added `tests/regression/test_v1_beta_release_closeout.py`.
+- Added `README.v1-beta-release-closeout.md`.
+- Added `docs/examples/v1-beta-release-closeout.md`.
+- Linked Phase 199 docs through the root README, ordered docs index, and examples index.
+
+Validation proof:
+
+- Passed: `python3 scripts/validate_v1_beta_release_closeout.py` with `decision=release_for_founder_beta`, `5` required reports, `10` docs, `2` fixtures, and `0` validation errors.
+- Passed: `python3 -m pytest tests/regression/test_v1_beta_release_closeout.py -q` returned `8 passed`.
+- Passed: `python3 scripts/check_docs_index.py` returned `DOCS INDEX PASS` with `252` linked docs and no orphaned docs.
+- Passed: `python3 -m pytest tests/regression/ -q` returned `1276 passed`, `4 skipped`, and `23 deselected`.
+
+Decision:
+
+- M1 V1 Founder Beta Closeout is complete.
+- Phase 200 is the next approved phase.
+
+### Approved Phase 200: Chat-Visible Answer Contract Inventory
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract.
+
+Goal: inventory every currently supported Priority 0 workflow and define the chat-visible answer contract each one must satisfy.
+
+Scope:
+
+- List supported prompt families and workflows from the current Priority 0 corpus.
+- For each family, define required chat sections, evidence expectations, safety boundaries, run traceability, and output-format behavior.
+- Identify artifact-only, weak-answer, or ambiguous answer contracts before enforcement work begins.
+- Produce a gap matrix that separates current defects from future expansion.
+
+Acceptance target: every supported prompt family has an explicit answer contract or a documented reason it is outside the current supported scope.
+
+Implementation completed:
+
+- Added `runtime/chat_visible_answer_contract_inventory_policy.json`.
+- Added `vllm_agent_gateway/acceptance/chat_visible_answer_contract_inventory.py`.
+- Added `scripts/validate_chat_visible_answer_contract_inventory.py`.
+- Added `tests/regression/test_chat_visible_answer_contract_inventory.py`.
+- Added `README.chat-visible-answer-contract-inventory.md`.
+- Added `docs/examples/chat-visible-answer-contract-inventory.md`.
+- Linked Phase 200 docs through the root README, ordered docs index, and examples index.
+
+Validation proof:
+
+- Passed: `python3 scripts/validate_chat_visible_answer_contract_inventory.py` with `38` contract records, `4` stable baselines, `34` founder catalog cases, `0` validation errors, and `phase201_ready=true`.
+- Passed: `python3 -m pytest tests/regression/test_chat_visible_answer_contract_inventory.py -q` returned `8 passed`.
+- Passed: `python3 scripts/check_docs_index.py` returned `DOCS INDEX PASS` with `254` linked docs and no orphaned docs.
+- Passed: `python3 -m pytest tests/regression/ -q` returned `1284 passed`, `4 skipped`, and `23 deselected`.
+
+Decision:
+
+- M2 now has an explicit answer-contract inventory.
+- Phase 201 is the next approved phase and should turn this inventory into deterministic enforcement.
+
+### Approved Phase 201: Chat-Visible Answer Contract Enforcement Gate
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract.
+
+Goal: turn the Phase 200 inventory into deterministic validation so supported responses cannot pass as artifact-only or vague answers.
+
+Scope:
+
+- Add or extend acceptance validation for answer-first content, evidence markers, safety boundaries, unsupported-scope recovery guidance, and run traceability.
+- Include fail-closed fixtures for artifact-only answers, missing evidence, missing safety boundary, and unsupported implementation claims.
+- Keep validation tied to existing workflow output paths; do not create parallel response renderers.
+
+Acceptance target: supported Priority 0 workflows fail validation when chat output is not directly useful to the user.
+
+Completed in this phase:
+
+- Added `runtime/chat_visible_answer_contract_enforcement_policy.json`.
+- Added `vllm_agent_gateway/acceptance/chat_visible_answer_contract_enforcement.py`.
+- Added `scripts/validate_chat_visible_answer_contract_enforcement.py`.
+- Added `tests/regression/test_chat_visible_answer_contract_enforcement.py`.
+- Added `README.chat-visible-answer-contract-enforcement.md`.
+- Added `docs/examples/chat-visible-answer-contract-enforcement.md`.
+- Linked Phase 201 docs through the root README, ordered docs index, and examples index.
+- Corrected the gate to validate positive fixtures through the existing controller chat formatter instead of a parallel response renderer.
+- Strengthened negative controls so artifact-pointer answers, vague marker-only answers, missing embedded evidence, missing embedded safety boundaries, unsupported mutation claims, missing contract details, and missing output-format metadata fail closed.
+
+Validation:
+
+- Passed: `python3 scripts/validate_chat_visible_answer_contract_enforcement.py` with `38` contracts, `76` positive cases passing, `304` negative cases rejected, `0` validation errors, and `phase202_ready=true`.
+- Passed: `python3 -m pytest tests/regression/test_chat_visible_answer_contract_enforcement.py -q` returned `13 passed`.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1297 passed`, `4 skipped`, and `23 deselected`.
+
+Decision:
+
+- M2 now has deterministic contract enforcement.
+- Phase 202 is the next approved phase and should refresh live default, JSON, gateway, and AnythingLLM answer-usefulness proof.
+
+### Approved Phase 202: Output Format And Usefulness Refresh
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract.
+
+Goal: prove the enforced answer contract survives default chat output, JSON output, and AnythingLLM usage.
+
+Scope:
+
+- Rerun representative answer-contract prompts through the workflow-router gateway and AnythingLLM.
+- Compare default FormatA and JSON output for equivalent answer body, evidence, safety boundary, and run traceability.
+- Use blind-baseline-first comparison for any prompt whose quality is uncertain.
+- Record target and holdout proof so M2 can be marked complete or left open with specific blockers.
+
+Acceptance target: M2 has live proof that supported prompts return useful answers directly in chat across the supported output surfaces.
+
+Completed in this phase:
+
+- Ran live output-format parity through the workflow-router gateway and AnythingLLM for `8` representative cases.
+- Covered both frozen Coinbase target roots: `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Verified all featured port health probes from the live parity runner.
+- Ran the governed AnythingLLM answer-usefulness report with `40` checked cases and `0` errors.
+- Added `runtime/chat_visible_output_usefulness_refresh_policy.json`.
+- Added `vllm_agent_gateway/acceptance/chat_visible_output_usefulness_refresh.py`.
+- Added `scripts/validate_chat_visible_output_usefulness_refresh.py`.
+- Added `tests/regression/test_chat_visible_output_usefulness_refresh.py`.
+- Added `README.chat-visible-output-usefulness-refresh.md`.
+- Added `docs/examples/chat-visible-output-usefulness-refresh.md`.
+- Linked Phase 202 docs through the root README, ordered docs index, and examples index.
+- Tightened closeout validation so missing, failed, truncated, or substituted port-health proof fails M2 readiness.
+- Tightened answer-usefulness validation so stale shallow summaries, missing artifact verification, per-entry errors, and checked-case mismatches fail M2 readiness.
+
+Validation:
+
+- Passed: `python3 scripts/validate_output_format_parity_live.py --output-path runtime-state/phase202/phase202-output-format-parity-live.json --timeout-seconds 900` with `8/8` gateway cases passed, `8/8` AnythingLLM cases passed, both frozen roots covered, no mutation proof failures, and all port health probes passed.
+- Passed: `python3 scripts/validate_anythingllm_answer_usefulness.py --require-artifacts --output-path runtime-state/phase202/phase202-answer-usefulness-report.json` with `40` checked cases and `0` errors.
+- Passed: `python3 scripts/validate_chat_visible_output_usefulness_refresh.py` with `live_case_count=8`, `surface_pass_counts={"gateway": 8, "anythingllm": 8}`, `answer_usefulness_checked_case_count=40`, `m2_ready=true`, and `phase203_ready=true`.
+- Passed: `python3 -m pytest tests/regression/test_chat_visible_output_usefulness_refresh.py -q` returned `12 passed`.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1309 passed`, `4 skipped`, and `23 deselected`.
+
+Decision:
+
+- M2 Chat-Visible Answer Contract is ready.
+- Phase 203 is the next approved phase and starts M3 Workflow/Skill/Tool Selection Reliability.
+
+### Approved Phase 203: Workflow/Skill/Tool Selection Matrix Refresh
+
+Status: Complete.
+
+Milestone mapping: M3 Workflow/Skill/Tool Selection Reliability.
+
+Goal: refresh the routing, skill, and tool selection matrix against the current supported L1/L2 prompt families.
+
+Scope:
+
+- Build a current matrix of prompt family, expected workflow, selected skills, permitted tools, rejected candidates, route surface, and fixture target.
+- Include both Coinbase frozen fixtures and at least one non-Coinbase fixture where current support exists.
+- Identify families that route correctly but lack skill/tool explainability or holdout proof.
+
+Acceptance target: every supported prompt family has a current deterministic selection expectation before deeper stability testing.
+
+Completed in this phase:
+
+- Added `runtime/workflow_skill_tool_selection_matrix_policy.json`.
+- Added `vllm_agent_gateway/acceptance/workflow_skill_tool_selection_matrix.py`.
+- Added `scripts/validate_workflow_skill_tool_selection_matrix.py`.
+- Added `tests/regression/test_workflow_skill_tool_selection_matrix.py`.
+- Added `README.workflow-skill-tool-selection-matrix.md`.
+- Added `docs/examples/workflow-skill-tool-selection-matrix.md`.
+- Linked Phase 203 docs through the root README, ordered docs index, and examples index.
+
+Validation:
+
+- Passed: `python3 scripts/validate_workflow_skill_tool_selection_matrix.py` with `38` matrix records, workflow counts `{"code_context.lookup": 2, "code_investigation.plan": 28, "execution_planning.plan": 7, "task.decompose": 1}`, `0` registry gaps, `3` Phase 151 explainability-covered rows, `35` Phase 204 explainability-needed rows, `38` Phase 205 holdout-needed rows, `6` non-Coinbase proof rows, and `phase204_ready=true`.
+- Passed: `python3 -m pytest tests/regression/test_workflow_skill_tool_selection_matrix.py -q` returned `7 passed`.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1316 passed`, `4 skipped`, and `23 deselected`.
+
+Decision:
+
+- M3 now has a deterministic selection expectation matrix.
+- Phase 205 is the next approved phase and should run route-stability holdout replay against the Phase 204 selection-explainability proof.
+
+### Approved Phase 204: No Manual Skill Injection And Selection Explainability Gate
+
+Status: Complete.
+
+Milestone mapping: M3 Workflow/Skill/Tool Selection Reliability.
+
+Goal: prove natural prompts select skills and tools without the user naming skills or pasting `SKILL.md` text.
+
+Scope:
+
+- Test natural-language prompts that do not mention skill names, controller envelopes, or internal workflow IDs.
+- Require chat-visible selected workflow, selected skill/tool classes, and rejected-candidate counts where applicable.
+- Fail on manual skill injection dependency, hidden route fallback, or unexplained tool use.
+
+Acceptance target: supported user-facing prompts work through natural language alone and expose enough selection reasoning for review.
+
+Completed in this phase:
+
+- Added `runtime/no_manual_skill_injection_explainability_policy.json`.
+- Added `vllm_agent_gateway/acceptance/no_manual_skill_injection_explainability.py`.
+- Added `scripts/validate_no_manual_skill_injection_explainability.py`.
+- Added `tests/regression/test_no_manual_skill_injection_explainability.py`.
+- Added `README.no-manual-skill-injection-explainability.md`.
+- Added `docs/examples/no-manual-skill-injection-explainability.md`.
+- Linked Phase 204 docs through the root README, ordered docs index, and examples index.
+- Corrected `runtime/prompt_skill_coverage.json` where coverage entries advertised tools outside their selected workflow boundary.
+- Updated `runtime/skill_tool_gap_proposal_intake_policy.json` to the new prompt-coverage hash.
+- Updated workflow-router selection so implemented prompt-coverage entries promote matched route-rule skills without manual skill injection, while preserving workflow tool boundaries and specific triggered skills.
+- Tightened selector explainability validation so selected skills and tools must exist in the same registry snapshot and live closeout must cover every policy case on every required surface.
+
+Validation:
+
+- Passed: `python3 scripts/validate_prompt_skill_coverage.py` with `38` implemented entries, `26` founder-field covered rules, and `0` errors.
+- Passed: `python3 scripts/validate_workflow_skill_tool_selection_matrix.py` with `38` matrix records, `0` registry gaps, and `phase204_ready=true`.
+- Passed: `python3 scripts/validate_no_manual_skill_injection_explainability.py` as offline preflight; this writes a preflight artifact and is not closeout proof.
+- Passed: `python3 scripts/validate_no_manual_skill_injection_explainability.py --live --timeout-seconds 900` after restarting the Bash-hosted gateway/proxies. The live report covered `33` natural founder-field cases, `66/66` gateway plus AnythingLLM responses, both frozen Coinbase roots, `25` covered matrix rows, `0` failed responses, and `manual_skill_injection_required=false`.
+- Passed: `python3 -m pytest tests/regression/test_no_manual_skill_injection_explainability.py tests/regression/test_skill_tool_selection_explainability_e2e.py -q` returned `20 passed`.
+- Passed: failed-regression repair slice over controller routing and skill/tool gap proposal intake returned `22 passed`.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1330 passed`, `4 skipped`, and `23 deselected`.
+
+Decision:
+
+- Phase 204 proves the current natural-language selector path does not require manual skill injection for the supported closeout cases.
+- The approval-gated disposable apply case `P26` remains intentionally excluded from this phase because the active model-capability profile blocks that task class without explicit approval; it remains covered by approval/apply validation phases.
+- Phase 205 is the next approved phase and should replay target and holdout route selections for M3 stability closure.
+
+### Approved Phase 205: Route Stability Holdout Replay
+
+Status: Complete.
+
+Milestone mapping: M3 Workflow/Skill/Tool Selection Reliability.
+
+Goal: prove workflow, skill, and tool selection remains stable on holdout prompts after M3 hardening.
+
+Scope:
+
+- Select target and holdout prompts from the current L1/L2 catalog.
+- Rerun gateway and AnythingLLM route tests with current local model state.
+- Classify route drift as prompt issue, selector issue, model capability issue, unsupported scope, or missing skill/tool.
+- Produce repair proposals for any instability instead of silently broadening routing rules.
+
+Acceptance target: M3 can close only if target and holdout route selections are stable and no manual skill injection is required.
+
+Completed in this phase:
+
+- Added `runtime/route_stability_holdout_replay_policy.json`.
+- Added `vllm_agent_gateway/acceptance/route_stability_holdout_replay.py`.
+- Added `scripts/validate_route_stability_holdout_replay.py`.
+- Added `tests/regression/test_route_stability_holdout_replay.py`.
+- Added `README.route-stability-holdout-replay.md`.
+- Added `docs/examples/route-stability-holdout-replay.md`.
+- Linked Phase 205 docs through the root README, ordered docs index, and examples index.
+- Reused the Phase 204 gateway and AnythingLLM response path so Phase 205 does not introduce a parallel selector or formatter.
+- Hardened the gate after two contextless audits so it rejects mutable-catalog target replay, non-exact target route signatures, missing run IDs, malformed Phase 204 source reports, failed Phase 203 matrix reports, bogus holdout expected signatures, wrong live response cardinality, and incomplete case/surface coverage.
+
+Validation:
+
+- Passed: `python3 -m pytest tests/regression/test_route_stability_holdout_replay.py -q` returned `16 passed`.
+- Passed: `python3 scripts/validate_route_stability_holdout_replay.py` as offline preflight; this writes a preflight artifact and is not closeout proof.
+- Passed: `python3 scripts/validate_route_stability_holdout_replay.py --live --timeout-seconds 900` with `33` target cases, `4` holdout cases, `74/74` gateway plus AnythingLLM responses, both frozen Coinbase roots, `0` failed responses, `0` route drift, no unknown run IDs, and `phase206_ready=true`.
+- Passed: `python3 scripts/check_docs_index.py` with `264` linked docs and `0` orphaned docs.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1346 passed`, `4 skipped`, and `23 deselected`.
+
+Decision:
+
+- M3 workflow/skill/tool selection reliability is closed for the current supported natural-language prompt set.
+- Phase 206 is the next approved phase and should start M4 evidence relevance auditing.
+
+### Approved Phase 206: Evidence Relevance Audit Pack
+
+Status: Complete.
+
+Milestone mapping: M4 Evidence Quality And Relevance.
+
+Goal: create a contextless audit pack that judges whether answers cite the right evidence and avoid weak or unrelated references.
+
+Scope:
+
+- Select representative evidence-heavy prompts from code investigation, related-test discovery, validation-command selection, and change-boundary analysis.
+- For each prompt, ask a contextless blind agent for ideal evidence expectations before local output review.
+- Score direct, strong, supporting, weak, and irrelevant evidence separately.
+- Record current gaps without immediately changing retrieval or ranking behavior.
+
+Acceptance target: M4 has a repeatable evidence-quality audit pack with target prompts, blind baselines, scoring rules, and current gap classifications.
+
+Completed in this phase:
+
+- Added `runtime/evidence_relevance_audit_pack_policy.json`.
+- Added `vllm_agent_gateway/acceptance/evidence_relevance_audit_pack.py`.
+- Added `scripts/validate_evidence_relevance_audit_pack.py`.
+- Added `tests/regression/test_evidence_relevance_audit_pack.py`.
+- Added `README.evidence-relevance-audit-pack.md`.
+- Added `docs/examples/evidence-relevance-audit-pack.md`.
+- Linked Phase 206 docs through the root README, ordered docs index, and examples index.
+- Used a contextless blind baseline to strengthen evidence expectations for exact file/line/test references, call-chain proof, command-scope rationale, read-only safety, single-code-path discipline, and fail red flags.
+- Hardened the audit pack after contextless audit so source proof dependencies are identity-locked to Phase 182 and Phase 205, structured source errors fail, prompt-family labels must match Phase 205 replay proof, and generated reports include source proof details.
+
+Validation:
+
+- Passed: `python3 scripts/validate_evidence_relevance_audit_pack.py` with `4` audit cases, all `4` required categories, `2` source reports, `5` governed gap records, `0` blocking gaps, `0` errors, and `phase207_ready=true`.
+- Passed: `python3 -m pytest tests/regression/test_evidence_relevance_audit_pack.py -q` returned `12 passed`.
+- Passed: `python3 scripts/check_docs_index.py` with `266` linked docs and `0` orphaned docs.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1358 passed`, `4 skipped`, and `23 deselected`.
+
+Decision:
+
+- M4 now has the repeatable contextless evidence-quality audit pack needed before evidence ranking and source-hash enforcement.
+- Phase 207 is the next approved phase and should add deterministic evidence ranking and source proof gates using the Phase 206 audit pack.
+
+### Completed Phase 207: Evidence Ranking And Source Hash Gate
+
+Status: Complete.
+
+Milestone mapping: M4 Evidence Quality And Relevance.
+
+Goal: make evidence ordering and source proof deterministic enough that weak evidence cannot outrank direct evidence.
+
+Scope:
+
+- Extend existing evidence-ranking validation where possible instead of adding a parallel evidence path.
+- Require direct evidence before supporting evidence for supported workflows.
+- Verify cited source files, tests, response artifacts, and generated reports with hashes or stable source refs where applicable.
+- Fail on missing source proof, irrelevant top-ranked evidence, or unsupported confidence claims.
+
+Acceptance target: supported answers provide relevant, ordered, confidence-labeled evidence with verifiable source proof.
+
+Implemented:
+
+- Extended the existing `code_investigation.plan` evidence-ranking path instead of adding a parallel retrieval implementation.
+- Added `runtime/evidence_ranking_source_hash_gate_policy.json`.
+- Added `vllm_agent_gateway/acceptance/evidence_ranking_source_hash_gate.py`.
+- Added `scripts/validate_evidence_ranking_source_hash_gate.py`.
+- Added `tests/regression/test_evidence_ranking_source_hash_gate.py`.
+- Added `README.evidence-ranking-source-hash-gate.md`.
+- Added `docs/examples/evidence-ranking-source-hash-gate.md`.
+- Linked Phase 207 docs through the root README, ordered docs index, and examples index.
+- Repaired shared evidence ranking so exact behavior or symbol evidence sorts ahead of broad evidence and broad hinted evidence is capped below the direct tier.
+- Added line/query-level source proof using whole-file `sha256`, cited-line `line_sha256`, and `line_contains_query=true`.
+- Added Phase 206 semantic alignment checks for audit case category, target root, tier definitions, line/path evidence requirements, and required term overlap.
+- Added Phase 182 live prerequisite checks for live status, live case count, passed case count, no live-case errors, and both frozen target roots.
+- Added negative controls for weak broad evidence, weak hinted evidence, and repeated weak hinted evidence.
+
+Validation:
+
+- Passed: `python3 -m pytest tests/regression/test_evidence_ranking_source_hash_gate.py tests/regression/test_evidence_relevance_ranking.py tests/regression/test_generalization_fixture.py -q` returned `43 passed`.
+- Passed: `python3 scripts/validate_evidence_ranking_source_hash_gate.py` with `4` cases, `3` negative controls, `12` source hashes, `0` errors, and `phase208_ready=true`.
+- Passed: `python3 scripts/check_docs_index.py` with `268` linked docs and `0` orphaned docs.
+- Passed: contextless Phase 207 audit after hardening with no minimum fixes required before phase closeout.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1373 passed`, `4 skipped`, and `23 deselected`.
+
+Decision:
+
+- M4 now has deterministic evidence ordering, source-hash proof, and live evidence-quality rerun proof across gateway and AnythingLLM.
+
+### Approved Phase 208: Evidence Quality Live Rerun
+
+Status: Complete.
+
+Milestone mapping: M4 Evidence Quality And Relevance.
+
+Goal: prove the M4 evidence-quality gates against live local-model responses through the user-facing surfaces.
+
+Scope:
+
+- Rerun the Phase 206 evidence audit prompts through gateway and AnythingLLM.
+- Compare local responses against blind evidence baselines.
+- Confirm cited evidence remains relevant, ordered, confidence-labeled, and source-verifiable.
+- Run holdouts so evidence improvements do not overfit target prompts.
+
+Completed:
+
+- Added `runtime/evidence_quality_live_rerun_policy.json`.
+- Added `vllm_agent_gateway/acceptance/evidence_quality_live_rerun.py`.
+- Added `scripts/validate_evidence_quality_live_rerun.py`.
+- Added `tests/regression/test_evidence_quality_live_rerun.py`.
+- Added `README.evidence-quality-live-rerun.md`.
+- Added `docs/examples/evidence-quality-live-rerun.md`.
+- Linked Phase 208 docs through the root README, ordered docs index, and examples index.
+- Tightened live chat answer rendering so investigation-plan answers include evidence files, related-test line refs, gaps, source refs, and read-only source mutation status.
+- Added target-root artifact proof so each live response must prove the requested frozen repository root was used by the controller and downstream workflow.
+- Added Phase 207 source-proof revalidation against live fixture files. The Phase 207 source root requires whole-file and line-hash proof; mirrored roots require line-hash and query proof.
+- Added four Phase 208 holdout prompts that reuse the Phase 206 blind baselines to prevent target-prompt overfitting.
+- Added Phase 206 blind-baseline rubric scoring for every live response.
+- Split default offline preflight reports from live closeout reports so routine preflight validation cannot overwrite live release proof artifacts.
+
+Validation:
+
+- Passed: `python3 scripts/validate_evidence_quality_live_rerun.py` with `4` audit cases, `4` holdout cases, `2` target roots, `2` surfaces, and offline preflight pass.
+- Passed: `python3 scripts/validate_evidence_quality_live_rerun.py --live --timeout-seconds 900` with `32` live responses, `0` failures, `4` audit cases, `4` holdout cases, `8` gateway responses, `8` AnythingLLM audit responses, `8` gateway holdout responses, `8` AnythingLLM holdout responses, `96` source-proof revalidations, all baseline scores `100`, and `phase209_ready=true`.
+- Passed: `python3 -m pytest tests/regression/test_evidence_quality_live_rerun.py tests/regression/test_evidence_ranking_source_hash_gate.py tests/regression/test_generalization_fixture.py tests/regression/test_chat_response_contract.py -q` returned `58 passed`.
+- Passed: `python3 scripts/check_docs_index.py` with `270` linked docs and `0` orphaned docs.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1382 passed`, `4 skipped`, and `23 deselected`.
+- Passed: contextless Phase 208 re-audit after strengthening with no runtime release-blocking findings; only roadmap/backlog state remained stale before this closeout update.
+
+Residual risks:
+
+- Baseline comparison is deterministic rubric scoring against the Phase 206 blind-baseline dimensions, not a fresh semantic blind-agent judgment for every live response.
+- Mirrored root whole-file hashes may differ by design; mirrored roots enforce line-hash and query proof instead of whole-file identity.
+
+Decision:
+
+- M4 evidence quality and relevance is closed for the current local-model Priority 0 runway.
+
+Phases 43 through 208 are complete.
+
+### Approved Phase 209: Multi-Repo Fixture Selection And Baseline Pack
+
+Status: Complete.
+
+Milestone mapping: M5 Multi-Repo Generalization.
+
+Goal: select the smallest useful non-Coinbase repository set and create blind-baseline prompts before runtime repairs begin.
+
+Scope:
+
+- Use `s-aws/staterail` as the first non-Coinbase repository fixture unless a fresh metadata check shows it has become too large or unavailable.
+- Clone or prepare a local frozen fixture for `s-aws/staterail`; do not commit or push changes to the upstream `s-aws/staterail` repository.
+- Choose at least one additional structurally different local repository or generated disposable fixture beyond the current Coinbase frozen fixtures when Phase 209 evidence shows one is needed for M5 coverage.
+- Include different project shapes where available, such as Python package, JavaScript/TypeScript app, CLI/service, or documentation-heavy repository.
+- Create representative natural-language prompts for code explanation, behavior start, related tests, change surface, and validation commands.
+- Ask contextless blind agents for ideal answer shape, evidence requirements, safety boundaries, and scoring rubrics before showing local-model output.
+- Record fixture protection rules, mutation allowances, and reset strategy for each selected repo.
+
+Acceptance target: Phase 210 can run multi-repo local-model comparisons from a governed prompt/baseline pack without inventing scope during execution.
+
+Completed:
+
+- Added `runtime/multi_repo_fixture_baseline_pack_policy.json`.
+- Added `vllm_agent_gateway/acceptance/multi_repo_fixture_baseline_pack.py`.
+- Added `scripts/validate_multi_repo_fixture_baseline_pack.py`.
+- Added `tests/regression/test_multi_repo_fixture_baseline_pack.py`.
+- Added `README.multi-repo-fixture-baseline-pack.md`.
+- Added `docs/examples/multi-repo-fixture-baseline-pack.md`.
+- Linked Phase 209 docs through the root README, ordered docs index, and examples index.
+- Cloned the approved local `s-aws/staterail` fixture to `/mnt/c/staterail_testing_repo_frozen_tmp.github`.
+- Pinned fixture proof to commit `d3cecac670e3dd185cd3289feecae6ec69bab0b3` on branch `main`.
+- Validated fixture shape: `229` files, `170` Python files, `57` test files, clean git worktree.
+- Added five blind-baseline prompt cases covering code explanation, behavior beginning point, related tests, change surface, and validation commands.
+- Used a bounded contextless blind-baseline reviewer to check the prompt-family shape; the review confirmed the same five prompt categories and reinforced the no-mutation/no-production-operation boundaries.
+
+Validation:
+
+- Passed: `python3 scripts/validate_multi_repo_fixture_baseline_pack.py` with `5` cases, `5` categories, `fixture_clean=true`, and `phase210_ready=true`.
+- Passed: `python3 -m pytest tests/regression/test_multi_repo_fixture_baseline_pack.py -q` returned `7 passed`.
+- Passed: `python3 scripts/check_docs_index.py` with `272` linked docs and `0` orphaned docs.
+
+Decision:
+
+- Phase 209 is complete.
+- Phase 210 is the next approved M5 phase and should run the baseline comparison dry run without repairs.
+
+### Approved Phase 210: Multi-Repo Baseline Comparison Dry Run
+
+Status: Complete.
+
+Milestone mapping: M5 Multi-Repo Generalization.
+
+Goal: run the Phase 209 prompt pack through the current gateway path and compare local answers against blind baselines without making repairs.
+
+Scope:
+
+- Run each Phase 209 prompt through the workflow-router gateway.
+- Run AnythingLLM for user-facing cases where the stack is available.
+- Compare route selection, evidence quality, answer usefulness, output format, safety boundary, and fixture mutation status.
+- Classify misses as route gap, evidence gap, formatter gap, missing skill/tool, repo-shape gap, model capability gap, or unsupported scope.
+- Produce a repair proposal list without changing router, controller, skill, or formatter behavior.
+
+Acceptance target: M5 has a current gap map for non-Coinbase generalization, including which misses are product blockers and which are expected repo-specific limitations.
+
+Completed:
+
+- Added `runtime/multi_repo_baseline_comparison_policy.json`.
+- Added `vllm_agent_gateway/acceptance/multi_repo_baseline_comparison.py`.
+- Added `scripts/validate_multi_repo_baseline_comparison.py`.
+- Added `tests/regression/test_multi_repo_baseline_comparison.py`.
+- Added `README.multi-repo-baseline-comparison.md`.
+- Added `docs/examples/multi-repo-baseline-comparison.md`.
+- Linked Phase 210 docs through the root README, ordered docs index, and examples index.
+- Ran the Phase 209 `s-aws/staterail` prompt pack through the workflow-router gateway and AnythingLLM without making repairs.
+
+Validation:
+
+- Passed: `python3 scripts/validate_multi_repo_baseline_comparison.py` as offline preflight with `5` cases and `2` required surfaces.
+- Passed: `python3 scripts/validate_multi_repo_baseline_comparison.py --live --timeout-seconds 900` with `10` live responses, `5` gateway responses, `5` AnythingLLM responses, `10` classified gap responses, and `phase211_ready=true`.
+- Passed: `python3 -m pytest tests/regression/test_multi_repo_baseline_comparison.py -q` returned `7 passed`.
+
+Gap map:
+
+- All `10` live responses recorded `runtime_surface_gap`.
+- Root cause: the controller rejected `/mnt/c/staterail_testing_repo_frozen_tmp.github` because it is outside the allowed target roots. Current allowed roots are `/mnt/c/agentic_agents`, `/mnt/c/coinbase_testing_repo_frozen_tmp`, and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- No router/controller/formatter repair was made in Phase 210.
+- No commit or push was made to `s-aws/staterail`.
+
+Decision:
+
+- Phase 210 is complete.
+- Phase 211 is the next approved M5 phase and should repair the accepted allowed-root generalization blocker inside this project, then rerun the Phase 210 target cases.
+
+### Approved Phase 211: Multi-Repo Generalization Repair Batch
+
+Status: Complete.
+
+Milestone mapping: M5 Multi-Repo Generalization.
+
+Goal: repair the smallest controller, workflow, formatter, evidence, or skill/tool gaps found in Phase 210.
+
+Scope:
+
+- Preserve the single code path rule; do not add repo-specific parallel implementations.
+- Prefer generalized repository-shape handling over hardcoded fixture logic.
+- Add focused regression coverage for each accepted gap.
+- Keep unsupported or ambiguous cases as explicit limitations instead of silently broadening behavior.
+- Rerun target prompts and holdouts after each repair group.
+
+Acceptance target: accepted M5 blockers from Phase 210 are either fixed with proof or explicitly rejected/deferred with documented rationale.
+
+Completed:
+
+- Recorded the standing `s-aws/staterail` fixture-use approval in `AGENTS.md` so future scoped work does not stop for approval, while commit/push/publish operations against `s-aws/staterail` remain forbidden without separate approval.
+- Added `/mnt/c/staterail_testing_repo_frozen_tmp.github` to the Bash startup controller allowed roots in `start-agent-prompt-proxies.sh`.
+- Repaired the Phase 210 `target_root_not_allowed` blocker without changing the `s-aws/staterail` repository.
+- Added generalized natural-language identifier query expansion so phrases such as `live no-order preflight`, `manual association approval`, and `strategy simulation gates` become searchable snake_case evidence queries.
+- Stopped code-investigation query extraction from treating allowed target-root path segments as search terms.
+- Repaired related-test discovery term selection so explicit CamelCase symbols such as `RiskGate` survive alongside snake_case variants such as `risk_gate` instead of being crowded out by long generated phrases.
+- Repaired code-investigation summary and plan test-reference accounting so controller-discovered related tests are reflected in user-visible investigation artifacts.
+- Kept the repair inside existing workflow-router, code-investigation, and verification paths; no repo-specific parallel implementation was added.
+- Restarted the Bash-hosted gateway/controller stack after each runtime-facing repair.
+
+Validation:
+
+- Passed: `python3 -m pytest tests/regression/test_generalization_fixture.py tests/regression/test_multi_repo_baseline_comparison.py -q` returned `34 passed`.
+- Passed: `python3 -m pytest tests/regression/test_generalization_fixture.py tests/regression/test_related_test_discovery.py tests/regression/test_multi_repo_baseline_comparison.py -q` returned `38 passed`.
+- Passed: `python3 -m pytest tests/regression/test_controller_service.py::test_code_investigation_plan_returns_read_only_artifacts tests/regression/test_related_test_discovery.py tests/regression/test_generalization_fixture.py tests/regression/test_multi_repo_baseline_comparison.py -q` returned `40 passed`.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1400 passed`, `4 skipped`, and `23 deselected`.
+- Passed: `bash -n start-agent-prompt-proxies.sh`.
+- Passed: `./stop-agent-prompt-proxies.sh && ./start-agent-prompt-proxies.sh`; the controller reported `/mnt/c/staterail_testing_repo_frozen_tmp.github` in allowed roots and health checks passed for model `8000`, LLM gateway `8300`, workflow-router gateway `8500`, and controller `8400`.
+- Passed: `python3 scripts/validate_multi_repo_baseline_comparison.py --live --timeout-seconds 900` after the allowed-root repair with `10` responses and `6` evidence gaps, proving the original runtime-surface blocker was removed.
+- Passed: `python3 scripts/validate_multi_repo_baseline_comparison.py --live --timeout-seconds 900` after query and related-test repairs with `10` responses, `5` gateway responses, `5` AnythingLLM responses, `0` gap responses, `gap_classes=[]`, and no protected fixture mutation.
+
+Decision:
+
+- Phase 211 is complete.
+- Phase 212 is the next approved M5 phase and should rerun the live multi-repo proof across Coinbase and non-Coinbase fixtures with holdouts before M5 closeout.
+
+### Approved Phase 212: Multi-Repo Live Generalization Rerun
+
+Status: Complete.
+
+Milestone mapping: M5 Multi-Repo Generalization.
+
+Goal: prove the repaired M5 behavior live through gateway and AnythingLLM across Coinbase and non-Coinbase fixtures.
+
+Scope:
+
+- Rerun Phase 209 prompts plus holdouts through workflow-router gateway.
+- Rerun user-facing cases through AnythingLLM.
+- Require chat-visible evidence, source refs, route proof, target-root proof, output-format parity where applicable, and no protected source mutation.
+- Compare current responses against Phase 209 blind baselines and Phase 210 gap records.
+- Require focused tests, docs updates, and full regression if shared controller/router/formatter behavior changed.
+
+Acceptance target: M5 can close only if representative prompts pass across the selected repo set with no unresolved critical or high findings.
+
+Completed:
+
+- Added `runtime/multi_repo_live_generalization_rerun_policy.json`.
+- Added `vllm_agent_gateway/acceptance/multi_repo_live_generalization_rerun.py`.
+- Added `scripts/validate_multi_repo_live_generalization_rerun.py`.
+- Added `tests/regression/test_multi_repo_live_generalization_rerun.py`.
+- Added `README.multi-repo-live-generalization-rerun.md`.
+- Added `docs/examples/multi-repo-live-generalization-rerun.md`.
+- Linked Phase 212 docs through the root README, ordered docs index, and examples index.
+- Extended the shared multi-repo live-case runner so git-backed fixtures use `git status` while non-git fixtures hash bounded source/test hint files before and after live prompts.
+- Ran the Phase 209 `s-aws/staterail` target prompts plus four holdouts covering `/mnt/c/staterail_testing_repo_frozen_tmp.github`, `/mnt/c/coinbase_testing_repo_frozen_tmp.github`, and `/mnt/c/coinbase_testing_repo_frozen_tmp`.
+- Found a real L1 route gap for prompts that ask where an environment-style identifier such as `COINBASE_API_KEY` is defined or used without saying `env var`.
+- Repaired the existing workflow-router configuration lookup rule so key/secret/token/credential identifiers with lookup wording route to `code_investigation.plan` without adding a repo-specific path.
+
+Validation:
+
+- Passed: `python3 scripts/validate_multi_repo_live_generalization_rerun.py` as offline preflight with `9` cases, `4` holdouts, `3` repository roots, and `2` required surfaces.
+- Passed: `python3 -m pytest tests/regression/test_multi_repo_live_generalization_rerun.py tests/regression/test_multi_repo_baseline_comparison.py -q` returned `13 passed`.
+- Passed: `python3 scripts/check_docs_index.py` with `276` linked docs and `0` orphaned docs.
+- Passed: gateway-only smoke `python3 scripts/validate_multi_repo_live_generalization_rerun.py --live --allow-partial --skip-anythingllm --case-id P212-HO-CB-GIT-001 --timeout-seconds 900` with `1` response and `0` gaps.
+- Initial full live closeout found `2` gap responses for `P212-HO-CB-GIT-002`, both caused by the same unsupported configuration lookup route.
+- Passed after repair: `python3 -m pytest tests/regression/test_controller_service.py::test_workflow_router_plan_routes_l1_configuration_lookup_without_repo_reads tests/regression/test_controller_service.py::test_workflow_router_plan_routes_l1_configuration_lookup_from_env_identifier_without_env_phrase tests/regression/test_multi_repo_live_generalization_rerun.py tests/regression/test_multi_repo_baseline_comparison.py -q` returned `15 passed`.
+- Passed: `./stop-agent-prompt-proxies.sh && ./start-agent-prompt-proxies.sh`; health checks passed for model `8000`, LLM gateway `8300`, workflow-router gateway `8500`, and controller `8400`.
+- Passed: `python3 scripts/validate_multi_repo_live_generalization_rerun.py --live --timeout-seconds 900` with `18` responses, `9` cases, `4` holdouts, `3` repository roots, `2` surfaces, `0` gap responses, `gap_classes=[]`, and `phase213_ready=true`.
+- Passed: `python3 -m pytest tests/regression/ -q --tb=short` returned `1406 passed`, `4 skipped`, and `23 deselected`.
+- No commit or push was made to `s-aws/staterail`.
+
+Decision:
+
+- Phase 212 is complete.
+- Phase 213 is the next approved M5 phase and should decide whether M5 closes or repeats with another bounded repository-shape repair cycle.
+
+### Approved Phase 213: M5 Generalization Closeout And Next-Gap Decision
+
+Status: Complete.
+
+Milestone mapping: M5 Multi-Repo Generalization.
+
+Goal: decide whether multi-repo generalization is ready to close or whether another bounded repair cycle is required.
+
+Scope:
+
+- Review Phase 209-212 proof as a chain.
+- Reconcile accepted, rejected, deferred, and blocked findings.
+- Update founder-facing known limits.
+- Decide whether to move to M6 large-context usability, repeat M5 with more repo shapes, or add a missing skill/tool batch.
+
+Acceptance target: M5 has a durable release decision and the next milestone path is explicit.
+
+Completed:
+
+- Added `runtime/m5_generalization_closeout_policy.json`.
+- Added `vllm_agent_gateway/acceptance/m5_generalization_closeout.py`.
+- Added `scripts/validate_m5_generalization_closeout.py`.
+- Added `tests/regression/test_m5_generalization_closeout.py`.
+- Added `README.m5-generalization-closeout.md`.
+- Added `docs/examples/m5-generalization-closeout.md`.
+- Linked Phase 213 docs through the root README, ordered docs index, and examples index.
+- Reviewed the Phase 209 fixture baseline pack, Phase 211 repaired live proof, and Phase 212 live generalization rerun as the M5 proof chain.
+- Recorded accepted findings as fixed: `phase210_target_root_not_allowed` and `phase212_env_identifier_configuration_lookup_route`.
+- Recorded known limits: one real non-Coinbase repository set, no large-context proof, no advanced refactor reactivation, no commits/pushes to `s-aws/staterail`, and no protected-fixture mutation workflows.
+
+Validation:
+
+- Passed: `python3 scripts/validate_m5_generalization_closeout.py` with `m5_closed=true`, `validation_error_count=0`, `accepted_finding_count=2`, `known_limit_count=5`, and `phase214_approved=true`.
+- Passed: `python3 -m pytest tests/regression/test_m5_generalization_closeout.py tests/regression/test_multi_repo_live_generalization_rerun.py tests/regression/test_multi_repo_baseline_comparison.py -q` returned `18 passed`.
+- Passed: `python3 scripts/check_docs_index.py` with `278` linked docs and `0` orphaned docs.
+
+Decision:
+
+- M5 Multi-Repo Generalization is closed for the current selected repository set.
+- Phase 214 is approved and starts M6/M7 large-corpus fixture and context-budget inventory.
+- Do not restart advanced refactor work from this closeout. The next approved product direction is Phase 214 large-context usability preparation.
+
+### Approved Phase 214: Large-Corpus Fixture And Context Budget Inventory
+
+Status: Complete.
+
+Note: Phases 214-221 are approved by the founder. The `s-aws/staterail` standing fixture-use approval still does not authorize commits or pushes to `s-aws/staterail`.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M7 Context Ceiling Benchmark.
+
+Goal: define the first large-context usability fixture and record the actual context budget constraints before designing retrieval behavior.
+
+Scope:
+
+- Select or generate a large local corpus that can exceed normal prompt budgets without depending on public/private external access.
+- Measure approximate token volume, file count, language mix, binary/ignored paths, and expected useful questions.
+- Record current model, vLLM settings, max context assumptions, memory/latency risks, and failure modes.
+- Define what is and is not being claimed: usable large-corpus investigation, not raw 1M-token prompt support.
+- Create blind-baseline prompts for large-corpus navigation, evidence lookup, summarization, and limitations.
+
+Acceptance target: M6 work starts from measured corpus and context-budget facts, not assumptions about raw model context length.
+
+Completed:
+
+- Added `runtime/large_corpus_context_budget_inventory_policy.json`.
+- Added `vllm_agent_gateway/acceptance/large_corpus_context_budget_inventory.py`.
+- Added `scripts/validate_large_corpus_context_budget_inventory.py`.
+- Added `tests/regression/test_large_corpus_context_budget_inventory.py`.
+- Added `README.large-corpus-context-budget-inventory.md`.
+- Added `docs/examples/large-corpus-context-budget-inventory.md`.
+- Linked the feature README and example through the root README, ordered docs index, and examples index.
+- Generated a deterministic local large-corpus fixture under `runtime-state/phase214/generated-large-corpus`.
+- Recorded current context assumptions from `VLLM_AGENT_HOST.md` and `start-agent-prompt-proxies.sh`.
+- Recorded explicit claim boundaries: large-corpus usability is being prepared through retrieval, chunking, summarization, artifact paging, and evidence selection; raw 1M-token prompt support is not proven.
+- Created blind-baseline prompt definitions for large-corpus navigation, evidence lookup, summarization, and limitations.
+
+Validation:
+
+- Passed: `python3 scripts/validate_large_corpus_context_budget_inventory.py` with `file_count=248`, `directory_count=12`, `estimated_token_count=1286080`, `language_count=7`, `binary_path_count=2`, `ignored_path_count=5`, `blind_baseline_prompt_count=4`, `model_limit=65536`, `target_input_limit=24000`, `raw_1m_prompt_support_proven=false`, `phase215_ready=true`, and `validation_error_count=0`.
+- Passed: `python3 -m pytest tests/regression/test_large_corpus_context_budget_inventory.py -q` returned `5 passed`.
+- Passed: `python3 scripts/check_docs_index.py` with `280` linked docs and `0` orphaned docs.
+
+Decision:
+
+- Phase 214 is closed.
+- The next approved action is Phase 215, the retrieval-first context strategy design gate.
+- Do not implement a retrieval index or retrieval-backed chat path before Phase 216 safety governance and Phase 217 index prototype gates pass.
+
+### Approved Phase 215: Retrieval-First Context Strategy Design Gate
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M8 Context Strategy Router.
+
+Goal: design the smallest retrieval-first context strategy that can answer large-corpus prompts without stuffing the whole corpus into the model.
+
+Scope:
+
+- Define context strategy labels such as direct context, retrieval, chunked investigation, summarization, artifact paging, and refusal.
+- Define routing inputs: prompt type, target root size, file count, token estimate, requested specificity, and safety/mutation boundary.
+- Define evidence requirements for retrieved chunks, source refs, confidence labels, and missing-context limitations.
+- Define failure behavior for unsupported or ambiguous large-context requests.
+- Add proposed acceptance gates before implementation.
+
+Acceptance target: implementation can proceed only after the context strategy is explicit, testable, and compatible with the existing single workflow/router path.
+
+Completed:
+
+- Added `runtime/retrieval_first_context_strategy_design_policy.json`.
+- Added `vllm_agent_gateway/acceptance/retrieval_first_context_strategy_design.py`.
+- Added `scripts/validate_retrieval_first_context_strategy_design.py`.
+- Added `tests/regression/test_retrieval_first_context_strategy_design.py`.
+- Added `README.retrieval-first-context-strategy-design.md`.
+- Added `docs/examples/retrieval-first-context-strategy-design.md`.
+- Linked the feature README and example through the root README, ordered docs index, and examples index.
+- Incorporated a bounded contextless audit checklist for Phase 215 acceptance.
+- Defined closed enum-backed strategy labels: `direct_context`, `retrieval`, `chunked_investigation`, `summarization`, `artifact_paging`, and `refusal`.
+- Defined routing inputs, evidence requirements, refusal behavior, negative controls, implementation sequence, and out-of-scope boundaries.
+- Explicitly kept retrieval index implementation, retrieval-backed chat integration, artifact paging implementation, raw 1M benchmark claims, protected fixture mutation, and advanced refactor reactivation out of Phase 215 scope.
+
+Validation:
+
+- Passed: `python3 scripts/validate_retrieval_first_context_strategy_design.py` with `strategy_count=6`, `decision_case_count=8`, `routing_input_count=13`, `failure_behavior_count=8`, `negative_control_count=7`, `out_of_scope_count=6`, `phase214_estimated_token_count=1286080`, `phase214_model_limit=65536`, `phase214_target_input_limit=24000`, `raw_1m_prompt_support_proven=false`, `retrieval_index_implementation_in_scope=false`, `retrieval_backed_chat_integration_in_scope=false`, `phase216_ready=true`, and `validation_error_count=0`.
+- Passed: `python3 -m pytest tests/regression/test_retrieval_first_context_strategy_design.py -q` returned `6 passed`.
+- Passed: `python3 scripts/check_docs_index.py` with `282` linked docs and `0` orphaned docs.
+
+Decision:
+
+- Phase 215 is closed.
+- The next approved action is Phase 216, corpus safety and index governance.
+- Do not build an index, connect retrieval to chat, or implement artifact paging until the applicable Phase 216-219 gates pass.
+
+### Approved Phase 216: Corpus Safety And Index Governance Gate
+
+Status: Complete.
+
+Milestone mapping: M16 Corpus And Index Safety Governance.
+
+Goal: define and validate the safety boundaries for durable corpus indexes before any retrieval-backed chat path uses indexed content.
+
+Scope:
+
+- Define allowed roots, denied roots, ignored paths, binary-file handling, generated-artifact handling, and source-retention rules.
+- Require `.gitignore`, `.cgcignore`, and project-specific deny patterns to be enforced before indexing.
+- Define secret-like content handling for index input, index metadata, artifacts, and chat-visible output.
+- Define stale-index rejection using source hashes, index manifest metadata, and model/context strategy identifiers.
+- Add negative-control fixtures for ignored files, private files, secret-like strings, stale source hashes, and unapproved roots.
+- Do not implement retrieval-backed chat until this gate passes.
+
+Acceptance target: the project has a validated corpus/index safety policy that prevents ignored, private, secret-like, stale, or unapproved content from entering chat-visible answers or durable proof artifacts.
+
+Completed:
+
+- Added `runtime/corpus_index_safety_governance_policy.json`.
+- Added `vllm_agent_gateway/acceptance/corpus_index_safety_governance.py`.
+- Added `scripts/validate_corpus_index_safety_governance.py`.
+- Added `tests/regression/test_corpus_index_safety_governance.py`.
+- Added `README.corpus-index-safety-governance.md`.
+- Added `docs/examples/corpus-index-safety-governance.md`.
+- Linked the feature README and example through the root README, ordered docs index, and examples index.
+- Incorporated a bounded contextless audit checklist for Phase 216 acceptance.
+- Generated a local negative-control fixture under `runtime-state/phase216/corpus-safety-negative-controls`.
+- Validated fail-closed candidate admission for ignored files, `.cgcignore` private files, secret-like content, binary files, generated runtime artifacts, stale source hashes, unapproved roots, path traversal, symlink escape, changed ignore-policy hash, changed safety-policy hash, and changed context strategy ID.
+- Validated sanitized reporting so rejected source text and the dummy secret-like value do not enter the report.
+- Kept durable index implementation, embedding selection, retrieval-backed chat integration, artifact paging implementation, raw 1M benchmark claims, and protected fixture mutation out of scope.
+
+Validation:
+
+- Passed: `python3 scripts/validate_corpus_index_safety_governance.py` with `negative_control_count=13`, `negative_control_passed_count=13`, `admitted_count=1`, `rejected_count=12`, `safety_rule_count=18`, `manifest_requirement_count=16`, `retention_source_text_copy_allowed=false`, `chat_visible_rejected_content_allowed=false`, `artifact_rejected_content_allowed=false`, `durable_index_implementation_in_scope=false`, `retrieval_backed_chat_integration_in_scope=false`, `phase217_ready=true`, and `validation_error_count=0`.
+- Passed: `python3 -m pytest tests/regression/test_corpus_index_safety_governance.py -q` returned `6 passed`.
+- Passed: `python3 scripts/check_docs_index.py` with `284` linked docs and `0` orphaned docs.
+
+Decision:
+
+- Phase 216 is closed.
+- The next approved action is Phase 217, context index prototype gate.
+- Phase 217 must enforce this Phase 216 safety policy before any local index artifact can be treated as valid.
+
+### Approved Phase 217: Context Index Prototype Gate
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M16 Corpus And Index Safety Governance.
+
+Goal: implement or select the smallest local context index needed to retrieve evidence from the Phase 214 corpus.
+
+Scope:
+
+- Keep indexing local and deterministic.
+- Enforce the Phase 216 corpus/index safety policy.
+- Respect `.gitignore`, `.cgcignore`, binary-file filtering, fixture protection, and path privacy rules.
+- Store index metadata and source hashes so stale retrieval can be detected.
+- Add focused tests for indexing, ignored paths, stale hashes, chunk boundaries, source refs, and secret-like negative controls.
+- Do not change chat routing until the index passes its own gate.
+
+Acceptance target: the project has a validated local index artifact that can supply bounded evidence chunks with source-proof metadata without exposing ignored, private, secret-like, stale, or unapproved content.
+
+Completed:
+
+- Added `runtime/context_index_prototype_policy.json`.
+- Added `vllm_agent_gateway/acceptance/context_index_prototype.py`.
+- Added `scripts/validate_context_index_prototype.py`.
+- Added `tests/regression/test_context_index_prototype.py`.
+- Added `README.context-index-prototype.md`.
+- Added `docs/examples/context-index-prototype.md`.
+- Linked the feature README and example through the root README, ordered docs index, and examples index.
+- Incorporated a bounded contextless audit checklist for Phase 217 acceptance.
+- Built a deterministic metadata-first local context index at `runtime-state/phase217/phase217-context-index.json`.
+- Wrote a Markdown index summary at `runtime-state/phase217/phase217-context-index-summary.md`.
+- Enforced Phase 216 safety governance before candidate admission.
+- Stored source refs, hashes, line spans, token estimates, bounded normalized search terms, and search-term hashes without storing source text, snippets, excerpts, rejected content, or secret-like values.
+- Validated query smoke results that return only bounded refs, hashes, line spans, freshness status, matched terms, and scores.
+- Kept retrieval-backed chat integration, embedding selection, vector search, artifact paging implementation, raw 1M benchmark claims, and protected fixture mutation out of scope.
+
+Validation:
+
+- Passed: `python3 scripts/validate_context_index_prototype.py` with `indexed_file_count=241`, `chunk_count=457`, `estimated_indexed_token_count=1286132`, `query_smoke_case_count=3`, `query_smoke_passed_count=3`, `negative_control_count=7`, `negative_control_passed_count=7`, `rejected_negative_control_count=6`, `source_text_retention=metadata_only`, `store_source_text=false`, `store_rejected_content=false`, `retrieval_backed_chat_integration_in_scope=false`, `phase218_ready=true`, and `validation_error_count=0`.
+- Passed: `python3 -m pytest tests/regression/test_context_index_prototype.py -q` returned `6 passed`.
+- Passed: `python3 scripts/check_docs_index.py` with `286` linked docs and `0` orphaned docs.
+
+Decision:
+
+- Phase 217 is closed.
+- Phase 218 is closed.
+- Phase 219 is closed.
+- The next approved action is Phase 220, context strategy router implementation.
+- Phase 220 must preserve Phase 218 answer-first chat behavior and Phase 219 paged evidence continuity while adding deterministic strategy selection.
+
+### Approved Phase 218: Retrieval-Backed Chat Answer Gate
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline.
+
+Goal: connect the validated context index to a chat-visible answer path for large-corpus prompts.
+
+Scope:
+
+- Extend the existing controller/workflow path; do not add a separate large-context chat implementation.
+- Retrieve bounded evidence chunks, cite source refs, and expose limitations directly in chat.
+- Compare gateway and AnythingLLM responses against Phase 214 blind baselines.
+- Add holdouts that vary wording and target files to detect overfitting.
+- Fail if the answer hides retrieval uncertainty, invents unavailable evidence, or degrades small-repo behavior.
+
+Acceptance target: representative large-corpus prompts return useful evidence-backed answers without raw prompt stuffing.
+
+Closeout proof:
+
+- Added `vllm_agent_gateway/controllers/large_context/retrieval_answer.py` and routed large-corpus read-only prompts through the existing `workflow_router.plan` `execute_read_only` path.
+- Added `runtime/retrieval_backed_chat_answer_gate_policy.json`, `vllm_agent_gateway/acceptance/retrieval_backed_chat_answer_gate.py`, and `scripts/validate_retrieval_backed_chat_answer_gate.py`.
+- Added focused regression in `tests/regression/test_retrieval_backed_chat_answer_gate.py`.
+- The Phase 218 validator passed with `4/4` direct cases, `3/3` holdouts, `4/4` router cases, `4/4` chat cases, `4/4` negative controls, `raw_prompt_stuffing_allowed=false`, `new_chat_endpoint_allowed=false`, and `phase219_ready=true`.
+- Chat output now starts with `Answer:` for retrieval-backed large-corpus prompts and includes source refs, line spans, source hash, chunk hash, freshness, confidence, limitations, and no raw prompt stuffing.
+- Bash live port proof passed for localhost `8000`, `8300`, `8400`, `8500`, and role proxy `8205`.
+- Bash live workflow-router gateway proof passed through `8500` with run `workflow-router-20260613T200517524217Z`.
+- Bash live AnythingLLM workspace proof passed through `my-workspace` with run `workflow-router-20260613T200608917691Z`.
+- Bash live direct controller proof passed through `8400` with run `workflow-router-20260613T200616983508Z`.
+- Bash live workflow-router greeting recovery proof passed through `8500` with run `workflow-router-general-20260613T200624273375Z`.
+- Full Bash regression passed with `1440 passed`, `4 skipped`, and `23 deselected` in `18:56`.
+
+### Approved Phase 219: Artifact Paging And Long Answer Usability Gate
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M8 Context Strategy Router.
+
+Goal: make large-context answers usable when the evidence or plan is too long for a single chat response.
+
+Scope:
+
+- Define when chat should summarize and when artifacts should page details.
+- Add deterministic page metadata, source refs, continuation hints, and answer-first summaries.
+- Ensure AnythingLLM users still receive immediate useful information in chat.
+- Add tests for artifact paging, truncation resistance, source continuity, and JSON/default output parity.
+
+Acceptance target: large-corpus investigations can return bounded chat summaries plus traceable paged artifacts without becoming artifact-only responses.
+
+Closeout proof:
+
+- Added `runtime/artifact_paging_long_answer_usability_policy.json`, `vllm_agent_gateway/acceptance/artifact_paging_long_answer_usability.py`, and `scripts/validate_artifact_paging_long_answer_usability.py`.
+- Extended retrieval-backed answer artifacts with `artifact_pages` containing deterministic page IDs, source refs, line spans, source hashes, chunk hashes, freshness, and continuation hints.
+- Preserved answer-first chat while exposing `retrieval_artifact_page_count`, `retrieval_artifact_source_ref_count`, `retrieval_first_page_id`, and `retrieval_continuation_hint` in default and JSON output.
+- Added focused regression in `tests/regression/test_artifact_paging_long_answer_usability.py`.
+- The Phase 219 validator passed with `2/2` direct paging cases, `2/2` default `format_a` cases, `2/2` JSON parity cases, `3/3` negative controls, `artifact_only_allowed=false`, `raw_prompt_stuffing_allowed=false`, and `phase220_ready=true`.
+- Bash live workflow-router gateway default output proof passed through `8500` with run `workflow-router-20260613T205210886339Z`.
+- Bash live workflow-router gateway JSON output proof passed through `8500` with `page_count=3`, `ref_count=12`, `has_primary=true`, and `has_artifact=true`.
+- Bash live AnythingLLM workspace proof passed through `my-workspace` with run `workflow-router-20260613T205220223923Z`.
+- Full Bash regression passed with `1444 passed`, `4 skipped`, and `23 deselected` in `22:09`.
+
+### Approved Phase 220: Context Strategy Router Implementation
+
+Status: Complete.
+
+Milestone mapping: M8 Context Strategy Router.
+
+Goal: make the controller choose direct context, retrieval, chunking, summarization, artifact paging, or refusal based on task and repository size.
+
+Scope:
+
+- Implement deterministic strategy selection using the Phase 215 policy.
+- Preserve existing small-repo behavior for M2-M5 prompt families.
+- Add negative controls for ambiguous, unsupported, oversized, and mutation-risk requests.
+- Expose selected context strategy and rationale in chat-visible metadata.
+
+Acceptance target: the context strategy is selected deterministically and can be audited through artifacts and chat output.
+
+Closeout proof:
+
+- Added shared large-context strategy enums in `vllm_agent_gateway/controllers/large_context/strategy_types.py`.
+- Added deterministic strategy selection in `vllm_agent_gateway/controllers/large_context/context_strategy.py` for `direct_context`, `retrieval`, `chunked_investigation`, `summarization`, `artifact_paging`, and `refusal`.
+- Wired selected strategy, execution path, rationale, rejected strategies, routing inputs, source freshness, and safe alternatives into the existing `workflow_router.plan` decision and chat-visible summary metadata.
+- Preserved the existing retrieval-backed answer path; Phase 220 does not add a new chat endpoint or a second large-context implementation.
+- Added `runtime/context_strategy_router_policy.json`, `vllm_agent_gateway/acceptance/context_strategy_router.py`, and `scripts/validate_context_strategy_router.py`.
+- Added focused regression in `tests/regression/test_context_strategy_router.py`.
+- The Phase 220 validator passed with `6/6` decision cases, `4/4` negative controls, all six strategies covered, `chat_case_passed=true`, `raw_prompt_stuffing_allowed=false`, and `phase221_ready=true`.
+- Contextless verification found a high blocker where standalone `retrieval` in an ordinary small-repo prompt or temporary fixture path could trigger large-context refusal; Phase 220 now requires corpus/context-scale wording and adds regression coverage for small-repo retrieval-word prompts.
+- Contextless verification also found missing chat-visible rationale and weak mutation-risk status proof; Phase 220 now exposes `context_strategy_rationale` in chat-visible summary metadata and requires mutation-risk negative controls to return `blocked`.
+- Focused Phase 220/218/219 regression passed with `16 passed`.
+- Focused Phase 220 plus Phase 95 context retrieval regression passed with `9 passed`.
+- Docs index passed with `292` linked docs and no orphaned docs.
+- Bash live workflow-router gateway proof passed for `artifact_paging` with run `workflow-router-20260613T222119447464Z`.
+- Bash live workflow-router gateway proof passed for blocked mutation-risk `refusal` with run `workflow-router-20260613T222124329912Z`.
+- Bash live workflow-router gateway proof passed for small-repo retrieval-word non-regression with run `workflow-router-20260613T222128516241Z`.
+- Bash live workflow-router gateway JSON parity proof passed with run `workflow-router-20260613T214908204061Z`.
+- Bash live AnythingLLM workspace proof passed through `my-workspace`; the chat response included `selected_context_strategy`, `context_strategy_rationale`, `artifact_paging`, a workflow-router run ID, and `Paged evidence:`.
+- Bash live small-repo non-regression proof passed on `/mnt/c/coinbase_testing_repo_frozen_tmp` with run `workflow-router-20260613T214942304799Z` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github` with run `workflow-router-20260613T214954542201Z`; both selected `direct_context` and did not invoke retrieval.
+- Full Bash regression passed with `1450 passed`, `4 skipped`, and `23 deselected` in `24:17`.
+
+### Approved Phase 221: Large-Context Usability Live Closeout
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M8 Context Strategy Router.
+
+Goal: close the first large-context usability milestone with live gateway and AnythingLLM proof.
+
+Scope:
+
+- Run large-corpus target and holdout prompts through workflow-router gateway.
+- Run user-facing cases through AnythingLLM.
+- Compare answers against blind baselines for correctness, evidence, completeness, limitations, and output usability.
+- Verify source hashes, index freshness, artifact paging, no protected mutation, and small-repo regression safety.
+- Produce a closeout decision: M6 ready, M6 repair cycle required, M8 repair required, or raw-context experiment deferred.
+
+Acceptance target: the framework can demonstrate useful large-corpus chat behavior through the same user-facing stack used for smaller repositories.
+
+Closeout proof:
+
+- Used a bounded contextless blind-baseline agent before local-output review. The baseline required answer-first responses, evidence-backed source refs, limitations, no raw prompt stuffing, no false exhaustiveness, and proof gates before any raw 1M-token support claim.
+- Added `runtime/large_context_usability_live_closeout_policy.json`, `vllm_agent_gateway/acceptance/large_context_usability_live_closeout.py`, and `scripts/validate_large_context_usability_live_closeout.py`.
+- Added focused regression in `tests/regression/test_large_context_usability_live_closeout.py`.
+- Added docs in `README.large-context-usability-live-closeout.md` and `docs/examples/large-context-usability-live-closeout.md`.
+- Initial live closeout found two holdout route gaps: architecture-summary wording with `representative evidence instead of every file`, and raw-context wording with `paste into Qwen as one prompt`.
+- Repaired those gaps through the existing workflow-router/context-strategy/retrieval-answer classifier path and added regressions in `tests/regression/test_context_strategy_router.py`.
+- Phase 221 live closeout passed through the Bash-hosted workflow-router gateway and AnythingLLM with `16` large-context responses, `8` prompt cases, both `gateway` and `anythingllm` surfaces, `0` failed responses, `m6_ready=true`, `m8_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+- Live strategy proof covered `retrieval`, `artifact_paging`, `summarization`, and safe `refusal` across baseline and holdout prompts.
+- Small-repo non-regression passed on `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github` through both gateway and AnythingLLM; all four small-repo responses selected `direct_context` and did not invoke large-context retrieval.
+- Live report: `runtime-state/phase221/phase221-large-context-usability-live-closeout-report.json`.
+- Focused regression passed with `21 passed`.
+- Docs index passed with `294` linked docs and no orphaned docs.
+- Full Bash regression passed with `1459 passed`, `4 skipped`, and `23 deselected` in `21:17`.
+
+### Approved Phase 222: Chunked Investigation Executor Contract
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M8 Context Strategy Router.
+
+Goal: define the smallest executable chunked-investigation contract so large multi-step corpus questions no longer stop at a selected-but-blocked strategy.
+
+Scope:
+
+- Keep chunked investigation inside the existing workflow-router and large-context controller path.
+- Define when the strategy should run, block, or fall back to retrieval/summarization/refusal.
+- Define chunk plan artifacts, stage records, evidence selection, source-hash proof, paging, and answer-first chat summary requirements.
+- Reuse the metadata-first index and retrieval evidence validation instead of introducing a second indexing or search implementation.
+- Add negative controls for stale index, unsafe/private evidence, mutation-risk prompts, ambiguous multi-step prompts, and raw-context capacity claims.
+- Define live proof requirements for gateway, AnythingLLM, the generated large corpus, and small-repo non-regression.
+
+Acceptance target: Phase 223 implementation can proceed from a deterministic contract with no ambiguity about executor behavior, artifacts, safety boundaries, or validation gates.
+
+Closeout proof:
+
+- Added `runtime/chunked_investigation_executor_contract_policy.json`.
+- Added `vllm_agent_gateway/acceptance/chunked_investigation_executor_contract.py`.
+- Added `scripts/validate_chunked_investigation_executor_contract.py`.
+- Added `tests/regression/test_chunked_investigation_executor_contract.py`.
+- Added `README.chunked-investigation-executor-contract.md` and `docs/examples/chunked-investigation-executor-contract.md`.
+- Contextless baseline expectations were incorporated into the contract: strategy-only entry, bounded decomposition, metadata-first retrieval, canonical report fields, claim mapping, source/hash proof, negative controls, and gateway/AnythingLLM validation surfaces.
+- Validator proof: `PHASE222 CHUNKED INVESTIGATION EXECUTOR CONTRACT PASS` with `stage_count=7`, `artifact_contract_count=6`, `source_proof_field_count=13`, `negative_control_count=10`, `validation_error_count=0`, and `phase223_ready=true`.
+- Focused regression proof: `python -m pytest tests\regression\test_chunked_investigation_executor_contract.py -q` passed with `7 passed`.
+- Docs index proof: `python scripts\check_docs_index.py` passed with `linked_count=296` and no orphan docs.
+
+### Approved Phase 223: Chunked Investigation Executor Implementation
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M8 Context Strategy Router.
+
+Goal: implement the smallest read-only `large_context.chunked_investigation` executor that satisfies the Phase 222 contract and returns useful chat-visible answers for multi-step large-corpus prompts.
+
+Scope:
+
+- Keep the executor inside the existing workflow-router read-only large-context path; do not add a second chat endpoint or a second large-context router.
+- Reuse the Phase 217 metadata-first index, Phase 218 retrieval-backed answer gate, Phase 219 artifact paging contract, Phase 220 strategy router, and Phase 222 executor contract.
+- Generate a deterministic chunk plan, bounded stage records, evidence refs, source/hash proof, claim map, page manifest, final answer, limitations, and unresolved-step metadata.
+- Return an answer-first chat response by default, with artifact pointers as supporting detail rather than the only user-visible output.
+- Preserve protected fixture immutability and keep source text retention metadata-only unless existing retrieval answer contracts explicitly admit short source references.
+- Add negative controls for single-step over-routing, stale index/hash proof, mutation requests, ambiguous multi-step prompts, contradictory evidence, raw-context capacity claims, artifact-only answers, and private/secret-like evidence.
+
+Acceptance target: live gateway and AnythingLLM validation can execute chunked investigation on the generated large corpus, keep small-repo prompts on direct/retrieval paths, produce Phase 222-compliant artifacts, and pass focused regression without weakening raw 1M prompt refusal boundaries.
+
+Closeout proof:
+
+- Added `vllm_agent_gateway/controllers/large_context/chunked_investigation.py`.
+- Updated `vllm_agent_gateway/controllers/large_context/strategy_types.py`, `vllm_agent_gateway/controllers/large_context/context_strategy.py`, and `vllm_agent_gateway/controllers/workflow_router/plan.py` so selected `chunked_investigation` runs through the existing workflow-router read-only path.
+- Updated `vllm_agent_gateway/controller_service/server.py` so FormatA exposes chunked stage, evidence, claim, page, and contract metadata.
+- Added `runtime/chunked_investigation_executor_implementation_policy.json`.
+- Added `vllm_agent_gateway/acceptance/chunked_investigation_executor_implementation.py`.
+- Added `scripts/validate_chunked_investigation_executor_implementation.py`.
+- Added focused regression coverage in `tests/regression/test_chunked_investigation_executor.py` and `tests/regression/test_chunked_investigation_executor_implementation.py`.
+- Added `README.chunked-investigation-executor-implementation.md` and `docs/examples/chunked-investigation-executor-implementation.md`.
+- Contextless baseline expectations were incorporated: strategy-only invocation, existing-path reuse, metadata-only source retention, answer-first chat, claim mapping, source/hash proof, negative controls, gateway proof, AnythingLLM proof, and small-repo non-regression.
+- Live validator proof: `PHASE223 CHUNKED INVESTIGATION EXECUTOR PASS` with `response_count=2`, `failed_response_count=0`, `small_repo_regression_count=4`, `failed_small_repo_regression_count=0`, and `phase224_ready=true`.
+- Live gateway run: `workflow-router-20260614T032216241361Z`.
+- Live AnythingLLM run: `workflow-router-20260614T032220982984Z`.
+- Small-repo non-regression runs: gateway `/mnt/c/coinbase_testing_repo_frozen_tmp` `workflow-router-20260614T032228913533Z`, gateway `/mnt/c/coinbase_testing_repo_frozen_tmp.github` `workflow-router-20260614T032244835839Z`, AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp` `workflow-router-20260614T032253255403Z`, AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp.github` `workflow-router-20260614T032310284094Z`.
+- Focused proof: `python -m pytest tests\regression\test_chunked_investigation_executor.py tests\regression\test_chunked_investigation_executor_implementation.py tests\regression\test_context_strategy_router.py tests\regression\test_retrieval_backed_chat_answer_gate.py tests\regression\test_chunked_investigation_executor_contract.py -q` passed with `30 passed`.
+- Docs index proof: `python scripts\check_docs_index.py` passed with `linked_count=298` and no orphan docs.
+- Full Bash regression proof: `1474 passed`, `4 skipped`, `23 deselected`.
+
+### Approved Phase 224: Chunked Investigation Evidence Diversity And Claim Readability
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M8 Context Strategy Router.
+
+Goal: improve chunked-investigation chat quality so stage findings do not collapse onto the same top-ranked source ref when more diverse evidence is available.
+
+Scope:
+
+- Keep the Phase 223 executor and existing retrieval path; do not add a second index, search implementation, or router.
+- Prefer distinct source refs across stages when fresh admissible alternatives exist.
+- Prefer stage-appropriate source types: source modules for entry/flow stages, tests/docs/cases/configuration for verification stages.
+- Preserve Phase 214 selected-token limits, Phase 216 safety boundaries, Phase 217 metadata-only index behavior, Phase 219 paging, and Phase 222 artifact fields.
+- Add focused tests that prove visible refs are not unnecessarily duplicated and that the verification stage can cite non-source support when available.
+- Re-run Phase 223 offline and live validator to prove the improved answer remains gateway/AnythingLLM-compatible.
+
+Acceptance target: live chunked-investigation answers cite stage-diverse evidence without raw prompt stuffing, while small-repo non-regression and full regression remain green.
+
+Closeout proof:
+
+- Updated `vllm_agent_gateway/controllers/large_context/chunked_investigation.py` so chunked investigation retrieves a wider candidate pool but selects a budget-safe, stage-diverse evidence subset.
+- Added stage preferences so entry/flow stages prefer source modules and verification stages prefer test, doc, case, or config evidence when available.
+- Updated `tests/regression/test_chunked_investigation_executor.py` to require distinct visible source paths and non-source verification evidence.
+- Updated `vllm_agent_gateway/acceptance/chunked_investigation_executor_implementation.py` so the acceptance gate rejects duplicate visible evidence and verification-stage source-only collapse when alternatives exist.
+- Updated `README.chunked-investigation-executor-implementation.md` and `docs/examples/chunked-investigation-executor-implementation.md` with the stage-diverse evidence behavior.
+- Offline validator proof: `PHASE223 CHUNKED INVESTIGATION EXECUTOR OFFLINE PREFLIGHT PASS`.
+- Live validator proof: `PHASE223 CHUNKED INVESTIGATION EXECUTOR PASS` with `response_count=2`, `failed_response_count=0`, `small_repo_regression_count=4`, `failed_small_repo_regression_count=0`, and `phase224_ready=true`.
+- Live gateway run: `workflow-router-20260614T035242815097Z`.
+- Live AnythingLLM run: `workflow-router-20260614T035304742776Z`.
+- Small-repo non-regression runs: gateway `/mnt/c/coinbase_testing_repo_frozen_tmp` `workflow-router-20260614T035334889710Z`, gateway `/mnt/c/coinbase_testing_repo_frozen_tmp.github` `workflow-router-20260614T035350377270Z`, AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp` `workflow-router-20260614T035401760947Z`, AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp.github` `workflow-router-20260614T035421210230Z`.
+- Live answer evidence improved from repeated source refs to stage-diverse refs: `src/order_replay/module_0000.py`, `src/order_replay/module_0001.py`, and `tests/regression/test_replay_stage_0000.py`.
+- Focused proof: `python -m pytest tests\regression\test_chunked_investigation_executor.py tests\regression\test_chunked_investigation_executor_implementation.py -q` passed with `8 passed`.
+- Docs index proof: `python scripts\check_docs_index.py` passed with `linked_count=298` and no orphan docs.
+- Full Bash regression proof: `1474 passed`, `4 skipped`, `23 deselected`.
+
+### Approved Phase 225: Chunked Investigation Flow Narrative Synthesis
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M8 Context Strategy Router.
+
+Goal: improve chunked-investigation chat quality so selected stage evidence becomes a useful bounded flow explanation, not only a list of files and artifacts.
+
+Scope:
+
+- Keep the existing Phase 223 executor, Phase 224 evidence selection, context index, retrieval validator, artifact paging, and workflow-router path.
+- Add deterministic answer sections for scope and limits, evidence metadata, ordered flow narrative, and explicit gaps not proven by selected evidence.
+- Use only selected evidence metadata: stage id, path, lines, hashes, freshness, source type, and confidence. Do not store or quote source text.
+- Preserve answer-first chat behavior through gateway and AnythingLLM.
+- Preserve small-repo non-regression on both frozen Coinbase fixtures.
+- Add focused tests and acceptance checks so artifact-only answers, flat ref lists, false exhaustive wording, or missing flow caveats cannot pass.
+
+Acceptance target: live chunked-investigation answers explain a bounded cross-file path with evidence citations, scope limits, and unverified edges while preserving the existing large-context safety and routing contracts.
+
+Closeout proof:
+
+- Used a bounded contextless blind-baseline agent before local-output repair. The baseline required scope honesty, stage evidence metadata, ordered flow clarity, citation discipline, no hallucinated details, explicit gaps, and concise chat usability.
+- Updated `vllm_agent_gateway/controllers/large_context/chunked_investigation.py` so `final_answer` now includes `flow_narrative`, `evidence_table`, and `not_proven_by_selected_evidence`.
+- Chat-visible chunked-investigation answers now include `Scope and limits`, `Evidence table`, `Flow narrative`, and `Not proven by selected evidence` sections.
+- Updated `vllm_agent_gateway/acceptance/chunked_investigation_executor_implementation.py` so the acceptance gate rejects missing flow narrative, evidence table, hash/freshness citations, or unverified-edge caveats.
+- Updated focused regression in `tests/regression/test_chunked_investigation_executor.py`.
+- Updated `README.chunked-investigation-executor-implementation.md` and `docs/examples/chunked-investigation-executor-implementation.md` with the Phase 225 answer contract.
+- Offline validator proof: `PHASE223 CHUNKED INVESTIGATION EXECUTOR OFFLINE PREFLIGHT PASS`.
+- Live validator proof: `PHASE223 CHUNKED INVESTIGATION EXECUTOR PASS` with `response_count=2`, `failed_response_count=0`, `small_repo_regression_count=4`, `failed_small_repo_regression_count=0`, and `phase224_ready=true`.
+- Live gateway run: `workflow-router-20260614T060530271214Z`.
+- Live AnythingLLM run: `workflow-router-20260614T060556499588Z`.
+- Small-repo non-regression runs: gateway `/mnt/c/coinbase_testing_repo_frozen_tmp` `workflow-router-20260614T060621958978Z`, gateway `/mnt/c/coinbase_testing_repo_frozen_tmp.github` `workflow-router-20260614T060644432397Z`, AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp` `workflow-router-20260614T060657833466Z`, AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp.github` `workflow-router-20260614T060719758986Z`.
+- Focused proof: `python3 -m pytest tests/regression/test_chunked_investigation_executor.py tests/regression/test_chunked_investigation_executor_implementation.py tests/regression/test_context_strategy_router.py tests/regression/test_retrieval_backed_chat_answer_gate.py tests/regression/test_chunked_investigation_executor_contract.py -q` passed with `30 passed`.
+- Docs index proof: `python3 scripts/check_docs_index.py` passed with `linked_count=298` and no orphan docs.
+- Full Bash regression proof: `1474 passed`, `4 skipped`, `23 deselected`.
+
+### Approved Phase 226: Large-Context Strategy Matrix Closeout
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline and M8 Context Strategy Router.
+
+Goal: determine whether the current large-context stack is release-usable after the retrieval, artifact paging, context strategy routing, chunked investigation, evidence diversity, and flow narrative phases.
+
+Scope:
+
+- Reuse existing Phase 220, Phase 221, and Phase 223/225 validators; do not create a second strategy router, formatter, index, or live test harness.
+- Rerun the large-context live closeout through gateway and AnythingLLM after the Phase 225 formatter changes.
+- Confirm current live proof covers retrieval, artifact paging, summarization, safe refusal, and chunked investigation.
+- Confirm small-repo non-regression remains green on both frozen Coinbase fixtures through gateway and AnythingLLM.
+- Record whether M6/M8 are ready, need a bounded repair cycle, or should remain open with named blockers.
+
+Acceptance target: a contextless agent can inspect the proof chain and determine whether large-context chat quality is usable through the current local stack without relying on stale Phase 221 conclusions or manual session context.
+
+Closeout proof:
+
+- Reused the existing Phase 221 and Phase 223/225 validators; Phase 226 did not add a second strategy router, formatter, index, or live test harness.
+- Reran the Phase 221 large-context live closeout after Phase 225.
+- Phase 221 live validator proof: `PHASE221 LARGE CONTEXT LIVE CLOSEOUT PASS` with `response_count=16`, `failed_response_count=0`, `small_repo_regression_count=4`, `failed_small_repo_regression_count=0`, `m6_ready=true`, `m8_ready=true`, `phase222_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+- Live gateway strategy runs: retrieval `workflow-router-20260614T063853633100Z`, artifact paging `workflow-router-20260614T063900442848Z`, summarization `workflow-router-20260614T063906882281Z`, refusal `workflow-router-20260614T063913167098Z`, retrieval holdout `workflow-router-20260614T063919105198Z`, artifact-paging holdout `workflow-router-20260614T063925641589Z`, summarization holdout `workflow-router-20260614T063933316575Z`, and refusal holdout `workflow-router-20260614T063940966742Z`.
+- Live AnythingLLM strategy runs: retrieval `workflow-router-20260614T063949855454Z`, artifact paging `workflow-router-20260614T063957929514Z`, summarization `workflow-router-20260614T064004797070Z`, refusal `workflow-router-20260614T064011455804Z`, retrieval holdout `workflow-router-20260614T064017542644Z`, artifact-paging holdout `workflow-router-20260614T064024954649Z`, summarization holdout `workflow-router-20260614T064036771620Z`, and refusal holdout `workflow-router-20260614T064044805661Z`.
+- Small-repo non-regression runs: gateway `/mnt/c/coinbase_testing_repo_frozen_tmp` `workflow-router-20260614T064051517399Z`, gateway `/mnt/c/coinbase_testing_repo_frozen_tmp.github` `workflow-router-20260614T064111613664Z`, AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp` `workflow-router-20260614T064122385729Z`, and AnythingLLM `/mnt/c/coinbase_testing_repo_frozen_tmp.github` `workflow-router-20260614T064142160108Z`; all selected `direct_context`.
+- Phase 225 chunked-investigation proof remains current for the `chunked_investigation` strategy: gateway `workflow-router-20260614T060530271214Z`, AnythingLLM `workflow-router-20260614T060556499588Z`, `0` failed responses, `4` small-repo non-regression checks, focused regression `30 passed`, docs index `linked_count=298`, and full regression `1474 passed`, `4 skipped`, `23 deselected`.
+- Decision: M6 and M8 are release-usable for the current approved large-context strategy set. Future work should move to M9 founder feedback repair loop, M12 skill-library scaling, M13 runtime reliability, or M14 onboarding unless a new large-context blocker appears.
+
+### Approved Phase 227: Founder Feedback Loop Rebaseline
+
+Status: Complete.
+
+Milestone mapping: M9 Founder Feedback Repair Loop.
+
+Goal: rebaseline founder feedback intake now that the current large-context strategy matrix is release-usable.
+
+Scope:
+
+- Reuse existing founder feedback intake, field-test, and Priority 0 gap taxonomy paths.
+- Add current large-context and chunked-investigation prompt examples to the feedback loop only as field-test inputs, not as new runtime routes.
+- Prove a useful response, an advisory miss, a repair-worthy miss, a rejected vague note, and a deferred advanced-refactor note all classify deterministically.
+- Preserve live stack boundaries: gateway and AnythingLLM are validation surfaces; protected frozen fixtures remain read-only.
+- Do not add a second feedback database, issue tracker, or workflow status system.
+
+Acceptance target: founder feedback on the current local-model chat behavior becomes accepted, rejected, deferred, advisory, or repair-worthy with deterministic evidence and rerun instructions.
+
+Closeout proof:
+
+- Extended the existing `workflow_feedback.record` governance path with `advisory_finding` and `deferred_finding`; Phase 227 did not add a second feedback classifier or feedback database.
+- Added `runtime/founder_feedback_loop_phase227_cases.json` with six live feedback cases covering baseline prompt candidate, holdout prompt candidate, repair follow-up, rejected finding, advisory finding, and deferred finding.
+- Added `vllm_agent_gateway/acceptance/founder_feedback_loop_rebaseline.py` and `scripts/validate_founder_feedback_loop_rebaseline.py`.
+- Added regression coverage in `tests/regression/test_founder_feedback_loop.py` and `tests/regression/test_founder_feedback_loop_rebaseline.py`.
+- Added `README.founder-feedback-loop-rebaseline.md` and `docs/examples/founder-feedback-loop-rebaseline.md`, linked through the root README, docs index, and examples index.
+- Initial live run exposed that the running controller still had the old governance code; after restarting the gateway/controller stack, all Phase 227 live cases passed.
+- Live feedback loop proof: `runtime-state/founder-feedback-loop/phase227/phase227-founder-feedback-loop-live.json` passed with six cases and all featured port health checks.
+- Live decision proof: FL227-001 `baseline_prompt_candidate/accepted` target `workflow-router-20260614T065336709385Z` feedback `workflow-feedback-20260614T065401966130Z`; FL227-002 `holdout_prompt_candidate/accepted` target `workflow-router-20260614T065402184980Z` feedback `workflow-feedback-20260614T065408154335Z`; FL227-003 `repair_followup/accepted` target `workflow-router-20260614T065408450903Z` feedback `workflow-feedback-20260614T065427475611`; FL227-004 `rejected_finding/rejected` target `workflow-router-20260614T065427725839` feedback `workflow-feedback-20260614T065439743703`; FL227-005 `advisory_finding/advisory` target `workflow-router-20260614T065440864335` feedback `workflow-feedback-20260614T065447340448`; FL227-006 `deferred_finding/deferred` target `workflow-router-20260614T065447652392` feedback `workflow-feedback-20260614T065449830963`.
+- Phase 227 report gate proof: `PHASE227 FOUNDER FEEDBACK REBASELINE PASS` with `case_count=6`, all required decisions present, gateway and AnythingLLM surfaces present, generated large corpus plus both frozen Coinbase roots covered, no target mutation, and `phase228_ready=true`.
+- Focused proof: `python3 -m pytest tests/regression/test_founder_feedback_loop.py tests/regression/test_founder_feedback_loop_rebaseline.py -q` passed with `18 passed`; feedback-specific controller tests passed with `6 passed`; docs index passed with `linked_count=300`.
+- Full Bash regression proof: `1482 passed`, `4 skipped`, `23 deselected`.
+
+### Approved Phase 228: Founder Feedback Repair Rerun Gate
+
+Status: Complete.
+
+Milestone mapping: M9 Founder Feedback Repair Loop.
+
+Goal: ensure accepted feedback repairs have a deterministic rerun gate that proves the target prompt and holdouts improved without overfitting.
+
+Scope:
+
+- Reuse the blind-baseline-first process and existing live validator surfaces.
+- Require target prompt reruns, holdout prompts, source/fixture mutation checks, and gap-class comparison.
+- Record rejected explanations for false-positive feedback when applicable.
+- Do not implement new prompt families unless Phase 227 classifies them as repair-worthy and inside current supported scope.
+
+Acceptance target: a feedback item cannot be marked fixed unless the rerun gate proves the target issue is closed and holdouts remain green.
+
+Closeout proof:
+
+- Added `runtime/founder_feedback_repair_rerun_gate_policy.json`.
+- Added `vllm_agent_gateway/acceptance/founder_feedback_repair_rerun_gate.py`.
+- Added `scripts/validate_founder_feedback_repair_rerun_gate.py`.
+- Added `tests/regression/test_founder_feedback_repair_rerun_gate.py`.
+- Added `README.founder-feedback-repair-rerun-gate.md` and `docs/examples/founder-feedback-repair-rerun-gate.md`, linked through the root README, docs index, and examples index.
+- The gate requires blind-baseline-first comparison, target prompt rerun, holdout prompt rerun, gateway and AnythingLLM surfaces, fixture mutation checks, rejected explanations, gap-class comparison, and artifact traceability before a repair can close.
+- The gate explicitly blocks manual success without rerun proof.
+- The gate ties the current accepted repair case back to Phase 227 live feedback case `FL227-003`, which produced `repair_followup/accepted` for gap class `model_capability`.
+- Validator proof: `PHASE228 FOUNDER FEEDBACK REPAIR RERUN GATE PASS` with `repair_case_count=1`, `negative_control_count=7`, `requires_blind_baseline=true`, `requires_target_and_holdout=true`, `manual_success_without_rerun_allowed=false`, and `phase229_ready=true`.
+- Focused proof: `python3 -m pytest tests/regression/test_founder_feedback_repair_rerun_gate.py tests/regression/test_founder_feedback_loop_rebaseline.py tests/regression/test_founder_feedback_loop.py -q` passed with `25 passed`.
+- Docs index proof: `python3 scripts/check_docs_index.py` passed with `linked_count=302` and no orphan docs.
+
+### Approved Phase 229: Skill Library Scaling Readiness Inventory
+
+Status: Complete.
+
+Milestone mapping: M12 Skill Library Scaling Gate.
+
+Goal: inventory the current deterministic skill/tool coverage after the M6/M8 closeout and decide which small L1/L2 skills are safe to admit next.
+
+Scope:
+
+- Reuse existing prompt-skill coverage, skill/tool selection explainability, and skill-tool gap proposal intake artifacts.
+- Separate already-covered prompts, missing deterministic skills, missing tools, route-label issues, and prompt-tightening-only gaps.
+- Prefer small, deterministic L1/L2 skills with clear eval gates.
+- Keep advanced refactor and broad mutation skills deferred unless a current supported prompt proves they are blocking Priority 0 chat quality.
+
+Acceptance target: the next skill-admission work starts from an evidence-backed inventory, not a speculative skill list.
+
+Closeout proof:
+
+- Added `runtime/skill_library_scaling_readiness_inventory_policy.json`.
+- Added `vllm_agent_gateway/acceptance/skill_library_scaling_readiness_inventory.py`.
+- Added `scripts/validate_skill_library_scaling_readiness_inventory.py`.
+- Added `tests/regression/test_skill_library_scaling_readiness_inventory.py`.
+- Added `README.skill-library-scaling-readiness-inventory.md` and `docs/examples/skill-library-scaling-readiness-inventory.md`, linked through the root README, docs index, and examples index.
+- Inventory result: `40` prompt/skill coverage entries, `38` implemented entries, `2` planned entries, level counts `L1=21`, `L2=12`, `D1=3`, `workflow=2`, and `fixture=2`.
+- Existing skill/tool gap intake still reports `proposal_count=0` and `expected_new_capability_required=false`, so Phase 229 does not recommend inventing a new runtime skill.
+- Advanced refactor remains disallowed for this scaling phase.
+- Phase 230 recommended candidate: `FX-001`, a planned fixture/eval coverage candidate for Python-service generalization using existing `endpoint-route-locator` and `data-model-schema-locator` skills.
+- Validator proof: `PHASE229 SKILL LIBRARY SCALING READINESS INVENTORY PASS` with `phase230_ready=true`.
+- Focused proof: `python3 -m pytest tests/regression/test_skill_library_scaling_readiness_inventory.py tests/regression/test_skill_tool_coverage_gap.py tests/regression/test_skill_tool_gap_proposal_intake.py -q` passed with `25 passed`.
+- Docs index proof: `python3 scripts/check_docs_index.py` passed with `linked_count=304` and no orphan docs.
+
+### Approved Phase 230: Small Skill Admission Pilot
+
+Status: Complete.
+
+Milestone mapping: M12 Skill Library Scaling Gate.
+
+Goal: admit one small deterministic L1/L2 skill or skill-batch improvement through the existing registry/eval path.
+
+Scope:
+
+- Use Phase 229 inventory to select the smallest high-value candidate.
+- Add or update only the skill, registry metadata, prompt coverage, and eval gates needed for that candidate.
+- Prove natural-language routing through gateway and AnythingLLM without manual skill injection.
+- Keep mutation behavior read-only unless a later approved safe-apply milestone requires it.
+
+Acceptance target: one small skill-library expansion is admitted, routed, evaluated, and documented without destabilizing existing Priority 0 chat quality.
+
+Completion proof:
+
+- Admitted `FX-001` as an implemented Python-service generalization fixture/eval coverage candidate using existing `endpoint-route-locator` and `data-model-schema-locator` behavior, not a new runtime skill.
+- Added Phase 230 prompt coverage and skill eval cases for `python-service-endpoint-route-lookup` and `python-service-schema-lookup`.
+- Added schema-symbol preservation for data-model lookup artifacts so `OrderRecord`, `ORDERS_TABLE_SCHEMA`, and `ORDERS_TABLE_SQL` remain visible in chat-quality/eval proof.
+- Attached the Phase 230 fixture eval cases to the existing owning skill contracts, and registered `multi_repo_fixture_suite` as an externally validated skill-eval live suite so registry scale, lifecycle, and deprecation gates continue to fail closed on true orphan evals.
+- Live gateway and AnythingLLM proof passed for both Phase 230 cases:
+  - `python-service-endpoint-route-lookup`: gateway `workflow-router-20260614T081713795879Z`, AnythingLLM `workflow-router-20260614T081718088420Z`.
+  - `python-service-schema-lookup`: gateway `workflow-router-20260614T081722133717Z`, AnythingLLM `workflow-router-20260614T081726210541Z`.
+- Admission validator proof: `python3 scripts/validate_small_skill_admission_pilot.py` passed with `candidate_status=implemented`, `client_case_count=4`, and `phase231_ready=true`.
+- Focused regression proof: `python3 -m pytest tests/regression/test_generalization_fixture.py tests/regression/test_fixture_manager.py tests/regression/test_small_skill_admission_pilot.py tests/regression/test_prompt_skill_coverage.py tests/regression/test_skill_library_scaling_readiness_inventory.py -q` passed with `53 passed`.
+- Final full regression proof: `python3 -m pytest tests/regression/ -v` passed with `1502 passed`, `4 skipped`, and `23 deselected` in `1682.40s`.
+
+### Approved Phase 231: Runtime Recovery Reliability Rebaseline
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery.
+
+Goal: prove the tester can restart vLLM, gateway/proxies, controller, and AnythingLLM and resume current chat-quality validation.
+
+Scope:
+
+- Reuse existing start/stop scripts and health probes.
+- Validate model `8000`, LLM gateway `8300`, controller `8400`, workflow-router gateway `8500`, role ports, greeting behavior, workflow routing, and AnythingLLM session behavior.
+- Include a post-restart small-repo prompt and one large-context prompt.
+- Do not add a new supervisor or service manager unless the rebaseline finds a concrete restart blocker.
+
+Acceptance target: a contextless tester can recover the stack and continue testing without session-specific troubleshooting.
+
+Completion proof:
+
+- Added the Phase 231 runtime recovery reliability policy, acceptance gate, CLI wrapper, focused regression tests, and contextless tester documentation.
+- Live restart proof passed with `python3 scripts/validate_runtime_recovery_reliability_rebaseline.py --restart-managed-stack --restart-vllm-container vllm-qwen3 --timeout-seconds 900`.
+- Restart evidence passed for `vllm_model` via `docker restart vllm-qwen3` and `managed_stack` via `stop-agent-prompt-proxies.sh && start-agent-prompt-proxies.sh`.
+- Post-restart readiness passed with `missing_required_surface_count=0`, including model `8000`, LLM gateway `8300`, controller `8400`, workflow-router gateway `8500`, role ports, AnythingLLM target URL, and greeting/session behavior.
+- Small-repo post-recovery proof passed for `python-service-code-explanation`: gateway `workflow-router-20260614T110227117340Z`, AnythingLLM `workflow-router-20260614T110233546368Z`, both routed to `code_investigation.plan`.
+- Large-context post-recovery proof passed for `P221-LC-001`: gateway `workflow-router-20260614T110240178441Z`, AnythingLLM `workflow-router-20260614T110246887855Z`, both selected `retrieval` with score `100`.
+- Phase 231 report: `runtime-state/phase231/phase231-runtime-recovery-reliability-rebaseline-report.json` with `covered_surface_count=7`, `missing_required_surface_count=0`, and `phase232_ready=true`.
+- Focused proof: `python3 -m pytest tests/regression/test_runtime_recovery_reliability_rebaseline.py tests/regression/test_post_restart_runtime_readiness.py -q` passed with `14 passed`.
+- Docs proof: `python3 scripts/check_docs_index.py` passed with `linked_count=308` and no orphan docs.
+- Final full regression proof: `python3 -m pytest tests/regression/ -v` passed with `1510 passed`, `4 skipped`, and `23 deselected` in `1745.48s`.
+
+### Approved Phase 232: Onboarding And Release Handoff Refresh
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: refresh first-time tester docs after the M6/M8 large-context closeout and current M9/M12/M13 work.
+
+Scope:
+
+- Keep root `README.md` short and maintain ordered documentation through `docs/README.md`.
+- Update getting-started, AnythingLLM target guidance, live validation commands, known limits, and feedback submission workflow.
+- Add no new runtime behavior unless a doc dry-run finds a concrete setup blocker.
+
+Acceptance target: a contextless tester can install, start, validate, ask representative prompts, and report feedback without private chat history.
+
+Completion proof:
+
+- Added `runtime/onboarding_release_handoff_refresh_policy.json`, `vllm_agent_gateway/acceptance/onboarding_release_handoff_refresh.py`, `scripts/validate_onboarding_release_handoff_refresh.py`, and focused regression coverage.
+- Added `README.onboarding-release-handoff-refresh.md` and `docs/examples/onboarding-release-handoff-refresh.md`, linked through the root README, docs index, and examples index.
+- Refreshed `README.getting-started.md` with current Phase 232 status, Phase 226 large-context proof context, Phase 231 recovery proof, endpoint table, curated Coinbase/Python-service/large-context prompt trio, feedback marker, and advanced-refactor boundary.
+- Refreshed `README.external-tester-onboarding.md`, `README.stable-handoff.md`, `README.productized-setup.md`, and `README.release-notes.md` with current M6/M8, M9, M12, M13, and M14 handoff state.
+- Contextless subagent audit identified stale Phase 186/170 framing, missing Phase 232 handoff entry, scattered endpoint guidance, incomplete representative prompt set, release-note drift, missing feedback governance context, and large-context limit drift; those findings were incorporated into the Phase 232 docs and gate.
+- Validator proof: `python3 scripts/validate_onboarding_release_handoff_refresh.py` passed with `decision=handoff_ready`, `doc_count=17`, `missing_doc_count=0`, `docs_with_missing_marker_count=0`, `docs_with_forbidden_marker_count=0`, `missing_command_count=0`, and `phase233_ready=true`.
+- Focused proof: `python3 -m pytest tests/regression/test_onboarding_release_handoff_refresh.py tests/regression/test_runtime_recovery_reliability_rebaseline.py -q` passed with `14 passed`.
+- Docs proof: `python3 scripts/check_docs_index.py` passed with `linked_count=310` and no orphan docs.
+
+### Approved Phase 233: Contextless Handoff Dry Run
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the refreshed Phase 232 handoff can be followed by a contextless tester through setup validation, representative prompts, and feedback capture.
+
+Scope:
+
+- Reuse existing doctor, Phase 232 handoff gate, external tester dry run, small skill admission, large-context closeout, and feedback validators.
+- Include one contextless blind audit of the handoff path before judging local output.
+- Validate AnythingLLM target `http://127.0.0.1:8500/v1`, workspace `my-workspace`, and both frozen Coinbase fixtures.
+- Exercise the curated Phase 232 prompt trio: Coinbase L1, Python-service small-repo L1, and large-context `P221-LC-001`.
+- Do not add a new onboarding runtime or parallel test harness.
+
+Acceptance target: a future tester can follow the refreshed docs and produce a complete handoff proof package without private chat context.
+
+Completion proof:
+
+- Added the Phase 233 contextless handoff dry-run policy, acceptance gate, CLI wrapper, focused regression tests, contextless blind-audit artifact, and handoff documentation.
+- Contextless blind audit defined the required handoff answer shape, evidence expectations, hard-fail conditions, and scoring rubric before local-stack output was judged.
+- Phase 232 handoff gate passed with `decision=handoff_ready`, `phase233_ready=true`, and `validation_error_count=0`.
+- Release channel, security policy, and first-time user doctor gates passed for the Phase 233 handoff package.
+- Runtime recovery proof passed after restarting vLLM and the managed stack with `decision=ready_after_recovery`, `covered_surface_count=7`, and `missing_required_surface_count=0`.
+- External tester dry run passed against AnythingLLM target `http://127.0.0.1:8500/v1`, API `http://127.0.0.1:3001`, workspace `my-workspace`, manual prompt `ONB-001`, workflow-router run `workflow-router-20260614T115936858124Z`, and feedback run `workflow-feedback-20260614T115949039601Z`.
+- Small-repo handoff prompt proof passed through gateway and AnythingLLM for `python-service-code-explanation`, `python-service-endpoint-route-lookup`, and `python-service-schema-lookup`; run IDs were `workflow-router-20260614T120017354971Z`, `workflow-router-20260614T120021697695Z`, `workflow-router-20260614T120025797108Z`, `workflow-router-20260614T120029561115Z`, `workflow-router-20260614T120033216438Z`, and `workflow-router-20260614T120037811590Z`.
+- Large-context handoff proof passed for `P221-LC-001` through gateway `workflow-router-20260614T120054193654Z` and AnythingLLM `workflow-router-20260614T120100528580Z`.
+- Aggregate Phase 233 report passed with `decision=handoff_dry_run_passed`, `covered_surface_count=14`, `missing_required_surface_count=0`, and `handoff_ready=true`.
+- Focused regression passed: `python3 -m pytest tests/regression/test_contextless_handoff_dry_run.py tests/regression/test_small_skill_admission_pilot.py tests/regression/test_onboarding_release_handoff_refresh.py -q` with `19 passed`.
+- Final full Bash regression passed: `python3 -m pytest tests/regression/ -v` with `1523 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 234: Clean Clone Release Handoff Proof
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the current release handoff works from a fresh clone or equivalent disposable checkout without relying on dirty working-tree state or private session context.
+
+Scope:
+
+- Create or refresh a disposable clean-clone workspace outside the active repo, without committing or pushing to any remote.
+- Validate ordered docs navigation, setup doctor, release channels, security policy, Phase 232 handoff gate, and Phase 233 handoff package from the clean clone.
+- Run the smallest live proof needed to confirm the clean clone can talk to the existing localhost model, gateway/router, controller, AnythingLLM target, and approved fixtures.
+- Verify generated runtime artifacts stay local/ignored and that protected frozen fixtures remain unchanged.
+- Do not broaden product behavior, add new workflows, or reintroduce advanced refactor prompts.
+
+Acceptance target: a contextless tester can clone the project, follow the documented release handoff, produce the required proof artifacts, and identify the next action without reading private chat history or relying on uncommitted files in the active workspace.
+
+Completion proof:
+
+- Added the Phase 234 clean handoff policy, acceptance gate, CLI wrapper, focused regression tests, feature README, and examples.
+- Contextless blind audit identified the main hard-fail risk: validators could run from a clean snapshot while the live controller/gateway stack still served the dirty active repo. Phase 234 now requires restarting the managed stack from the disposable snapshot and verifies live process working directories.
+- Clean snapshot proof passed with `source_mode=clean_snapshot`, `snapshot_ready=true`, `runtime_seed_count=1`, `failed_runtime_seed_count=0`, `managed_stack_from_snapshot=true`, `passed_command_count=7`, `failed_command_count=0`, `fixture_mutation_count=0`, and `decision=clean_handoff_ready`.
+- The clean snapshot excluded `.git`, `runtime-state`, cache/temp directories, and symlinks; it seeded only `runtime-state/model-capability-profiles/phase100-current-profile.json` as a required local runtime artifact before stack restart.
+- The managed stack restarted from `/tmp/agentic_agents_phase234_clean_snapshot`; PID cwd proof covered LLM gateway, workflow-router gateway, controller service, and role proxy.
+- Phase 234 handoff commands passed from the snapshot: docs index, Phase 232 handoff gate, release channels with non-git snapshot hygiene skip, security policy, managed stack restart, first-time user doctor, and live external onboarding.
+- Live AnythingLLM onboarding passed for `ONB-001` with workflow-router run `workflow-router-20260614T125137641705Z` and feedback run `workflow-feedback-20260614T125148251418Z`.
+- Report: `runtime-state/phase234/phase234-clean-clone-release-handoff-report.json`.
+- Focused regression passed: `python3 -m pytest tests/regression/test_clean_clone_release_handoff.py tests/regression/test_release_channels.py tests/regression/test_contextless_handoff_dry_run.py tests/regression/test_onboarding_release_handoff_refresh.py -q` with `24 passed`.
+- Docs proof passed: `python3 scripts/check_docs_index.py` with `linked_count=314` and no orphan docs.
+- Final full Bash regression passed: `python3 -m pytest tests/regression/ -v` with `1530 passed`, `4 skipped`, and `23 deselected`.
+- Limitation: because the active workspace still contains uncommitted release-candidate files, this is a clean-snapshot candidate proof, not a remote `git clone` proof. A later git-clone proof should be run after the release-candidate files are committed or packaged.
+
+### Approved Phase 235: Clone-Safe Model Capability Routing
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: remove the Phase 234 runtime-state profile seed requirement by making model-capability routing work from committed release-candidate files.
+
+Scope:
+
+- Move the active routing profile dependency out of `runtime-state/` and into a committed, sanitized runtime profile artifact.
+- Update the model-capability routing policy to reference the clone-safe profile path.
+- Update clean-handoff policy and docs so a disposable checkout no longer needs a local runtime-state seed before stack restart.
+- Validate the model-capability routing gate, clean-snapshot handoff proof, docs index, focused regression, and live AnythingLLM onboarding.
+- Do not broaden model selection, enable automatic model switching, approve real apply, or weaken fail-closed routing.
+
+Acceptance target: a fresh checkout or clean snapshot can start the managed stack and route supported read-only prompts without manually copying runtime-state model capability artifacts.
+
+Completion proof:
+
+- Added clone-safe profile `runtime/model_capability_profiles/phase100-current-profile.json` and repointed `runtime/model_capability_routing.json` from `runtime-state/model-capability-profiles/phase100-current-profile.json` to the committed runtime profile path.
+- Preserved fail-closed routing, advisory-only model capability behavior, no automatic model selection, no real-apply approval, and existing task-policy boundaries.
+- Updated Phase 234 clean handoff policy so `required_runtime_seeds=[]`; clean handoff no longer copies a model capability profile from local `runtime-state/`.
+- Added Phase 235 policy, acceptance gate, CLI wrapper, focused regression tests, feature README, and examples.
+- Static gate passed with `profile_path=/mnt/c/agentic_agents/runtime/model_capability_profiles/phase100-current-profile.json`, `profile_path_uses_runtime_state=false`, `profile_clone_safe=true`, and `decision=clone_safe_routing_ready`.
+- Clean handoff rerun passed with `runtime_seed_count=0`, `failed_runtime_seed_count=0`, `managed_stack_from_snapshot=true`, and `decision=clean_handoff_ready`.
+- Live AnythingLLM onboarding passed for `ONB-001` with workflow-router run `workflow-router-20260614T133008960257Z` and feedback run `workflow-feedback-20260614T133021497446Z`.
+- Aggregate Phase 235 validator passed with `clean_handoff_loaded=true`, `clean_handoff_runtime_seed_count=0`, `profile_path_uses_runtime_state=false`, `validation_error_count=0`, and `phase236_ready=true`.
+- Focused regression passed: `python3 -m pytest tests/regression/test_clone_safe_model_capability_routing.py tests/regression/test_clean_clone_release_handoff.py tests/regression/test_release_channels.py tests/regression/test_contextless_handoff_dry_run.py tests/regression/test_onboarding_release_handoff_refresh.py -q` with `29 passed`.
+- Docs proof passed: `python3 scripts/check_docs_index.py` with `linked_count=316` and no orphan docs.
+- Final full Bash regression passed: `python3 -m pytest tests/regression/ -v` with `1535 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 236: Remote Branch Clone Release Proof
+
+Status: Approved.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the release candidate is cloneable from Git instead of only from a local clean snapshot.
+
+Scope:
+
+- Create or use a `codex/` release-candidate branch for the current validated M14 work.
+- Exclude generated runtime-state, local temp directories, protected frozen fixtures, and unrelated machine-local artifacts from the commit.
+- Commit the validated release-candidate source, docs, runtime policies, tests, and examples needed for M14 handoff.
+- Push the branch to `s-aws/vllm-agent-gateway`.
+- Clone that branch into a disposable directory outside the active workspace.
+- Run the clone-safe routing gate, clean handoff proof, first-time doctor, docs index, and live AnythingLLM onboarding from the clone.
+- Do not commit or push to any fixture repository and do not enable advanced refactor or real apply.
+
+Acceptance target: a contextless tester can clone the pushed release-candidate branch, start the managed stack from that clone, ask the representative onboarding prompt through AnythingLLM, capture feedback, and verify no protected fixture mutation without access to the active dirty workspace.

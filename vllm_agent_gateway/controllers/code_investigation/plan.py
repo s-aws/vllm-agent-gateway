@@ -26,6 +26,8 @@ from vllm_agent_gateway.controllers.code_context.lookup import (
 from vllm_agent_gateway.controllers.natural_query import (
     change_subject_queries_from_request,
     configuration_queries_from_request,
+    natural_identifier_queries_from_request,
+    strip_filesystem_paths,
 )
 from vllm_agent_gateway.controllers.verification import (
     controller_verification_commands,
@@ -282,11 +284,12 @@ def normalize_entrypoint_hints(
 
 
 def extract_query_terms(text: str) -> list[str]:
+    query_source = strip_filesystem_paths(text)
     candidates: list[str] = []
     for pattern in (r"`([^`]{3,120})`", r'"([^"]{3,120})"', r"'([^']{3,120})'"):
-        for match in re.finditer(pattern, text):
+        for match in re.finditer(pattern, query_source):
             append_unique(candidates, match.group(1), limit=MAX_QUERY_COUNT)
-    for match in re.finditer(r"\b[A-Za-z_][A-Za-z0-9_]{3,}\b", text):
+    for match in re.finditer(r"\b[A-Za-z_][A-Za-z0-9_]{3,}\b", query_source):
         token = match.group(0)
         if "_" in token or any(char.isupper() for char in token[1:]):
             append_unique(candidates, token, limit=MAX_QUERY_COUNT)
@@ -314,6 +317,8 @@ def query_candidates(request: CodeInvestigationRequest, hints: list[dict[str, An
         append_unique(candidates, query, limit=MAX_QUERY_COUNT)
     for query in extract_query_terms(request.user_request):
         append_unique(candidates, query, limit=MAX_QUERY_COUNT)
+    for query in natural_identifier_queries_from_request(request.user_request, limit=MAX_QUERY_COUNT):
+        append_unique(candidates, query, limit=MAX_QUERY_COUNT)
     return candidates
 
 
@@ -336,9 +341,9 @@ def evidence_query_weight(query: Any) -> int:
     if "/" in text or "\\" in text:
         return 85
     if "_" in text:
-        return 80
+        return 80 + min(len(text) * 4, 180)
     if re.search(r"[a-z][A-Z]|[A-Z][a-z]", text):
-        return 75
+        return 75 + min(len(text) * 3, 120)
     if len(text) >= 18:
         return 65
     if len(text) >= 10:
@@ -347,10 +352,10 @@ def evidence_query_weight(query: Any) -> int:
 
 
 def evidence_record_relevance_score(record: dict[str, Any]) -> int:
-    category_score = {"source": 360, "test": 300, "configuration": 180, "documentation": 80}
+    category_score = {"source": 330, "test": 300, "configuration": 180, "documentation": 80}
     score = category_score.get(str(record.get("category")), 0)
     if record.get("hinted"):
-        score += 250
+        score += 120
     score += min(int(record.get("match_count") or 0), 12) * 12
     queries = record.get("queries") if isinstance(record.get("queries"), list) else []
     score += sum(evidence_query_weight(query) for query in queries[:8])
@@ -364,7 +369,28 @@ def evidence_record_relevance_score(record: dict[str, Any]) -> int:
             if query_text and (query_text in path or query_text.replace(" ", "_") in basename):
                 score += 35
                 break
+    if not record_has_exact_query(record):
+        score = min(score, 519)
     return score
+
+
+def record_query_weights(record: dict[str, Any]) -> list[int]:
+    weights: list[int] = []
+    queries = record.get("queries") if isinstance(record.get("queries"), list) else []
+    weights.extend(evidence_query_weight(query) for query in queries)
+    line_refs = record.get("line_refs") if isinstance(record.get("line_refs"), list) else []
+    for line_ref in line_refs:
+        if isinstance(line_ref, dict):
+            weights.append(evidence_query_weight(line_ref.get("query")))
+    return weights
+
+
+def record_best_query_weight(record: dict[str, Any]) -> int:
+    return max(record_query_weights(record), default=0)
+
+
+def record_has_exact_query(record: dict[str, Any]) -> bool:
+    return record_best_query_weight(record) >= 75
 
 
 def evidence_relevance_tier(score: int) -> str:
@@ -410,16 +436,37 @@ def evidence_relevance(record: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def line_ref_sort_key(line_ref: dict[str, Any]) -> tuple[int, int]:
+def line_ref_role_priority(line_ref: dict[str, Any]) -> int:
+    text = str(line_ref.get("text") or "").strip()
+    query = str(line_ref.get("query") or "").strip()
+    lowered = text.lower()
+    query_lowered = query.lower()
+    if query_lowered and query_lowered not in lowered:
+        return 9
+    if re.match(r"^(async\s+def|def)\s+", text):
+        return 0
+    if re.match(r"^class\s+", text):
+        return 1
+    if re.search(r"\breturn\b", text):
+        return 2
+    if "=" in text and not text.startswith("#"):
+        return 3
+    if text.startswith("#"):
+        return 8
+    return 5
+
+
+def line_ref_sort_key(line_ref: dict[str, Any]) -> tuple[int, int, int]:
     query_score = evidence_query_weight(line_ref.get("query"))
     line = line_ref.get("line") if isinstance(line_ref.get("line"), int) else 0
-    return (-query_score, line)
+    return (-query_score, line_ref_role_priority(line_ref), line)
 
 
-def file_record_sort_key(record: dict[str, Any]) -> tuple[int, int, str]:
+def file_record_sort_key(record: dict[str, Any]) -> tuple[int, int, int, str]:
     return (
-        0 if record.get("hinted") else 1,
+        0 if record_has_exact_query(record) else 1,
         -evidence_record_relevance_score(record),
+        0 if record.get("hinted") else 1,
         str(record.get("path", "")),
     )
 
@@ -521,7 +568,10 @@ def evidence_file_records(
             append_unique(records[path]["queries"], query)
         line = match.get("line")
         if isinstance(line, int):
-            records[path]["line_refs"].append({"line": line, "query": query, "source": match.get("source")})
+            line_ref = {"line": line, "query": query, "source": match.get("source")}
+            if isinstance(match.get("text"), str):
+                line_ref["text"] = bounded_text(match["text"], 300)
+            records[path]["line_refs"].append(line_ref)
     ordered = sorted(records.values(), key=file_record_sort_key)
     for record in ordered:
         record["queries"] = sorted(record["queries"])
@@ -553,7 +603,7 @@ def likely_beginning_point(records: list[dict[str, Any]], hints: list[dict[str, 
             "status": "match_based",
             "path": record.get("path"),
             "line": first_line.get("line"),
-            "reason": "First source file with bounded exact-text evidence.",
+            "reason": "Highest-ranked source line with bounded exact-text evidence.",
         }
     if records:
         record = records[0]
@@ -1079,6 +1129,7 @@ def build_test_selection_plan(
         "target": request.behavior or bounded_text(request.user_request, 240),
         "command_tiers": tiers,
         "related_tests": compact_related_tests(related_tests),
+        "source_refs": source_refs_from_related_tests(related_tests),
         "confidence": "medium" if tiers else "low",
         "mutation_policy": "read_only_no_source_mutation",
         "gaps": plan_gaps,
@@ -2525,6 +2576,37 @@ def compact_related_tests(related_tests: list[dict[str, Any]]) -> list[dict[str,
     return compact
 
 
+def source_refs_from_related_tests(related_tests: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    seen: set[tuple[str, int | None, str | None]] = set()
+    for item in related_tests:
+        path = item.get("path")
+        if not isinstance(path, str):
+            continue
+        nested_refs: list[dict[str, Any]] = []
+        for key in ("source_refs", "evidence_refs"):
+            value = item.get(key)
+            if isinstance(value, list):
+                nested_refs.extend(ref for ref in value if isinstance(ref, dict))
+        if not nested_refs:
+            nested_refs.append({"path": path, "line": item.get("line"), "query": None})
+        for nested_ref in nested_refs:
+            ref_path = nested_ref.get("path") if isinstance(nested_ref.get("path"), str) else path
+            line = nested_ref.get("line")
+            query = nested_ref.get("query") or nested_ref.get("term")
+            key = (ref_path, line if isinstance(line, int) else None, query if isinstance(query, str) else None)
+            if key in seen:
+                continue
+            seen.add(key)
+            ref: dict[str, Any] = {"path": ref_path, "source": "related_test_discovery"}
+            if isinstance(line, int):
+                ref["line"] = line
+            if isinstance(query, str) and query:
+                ref["query"] = query
+            refs.append(ref)
+    return refs
+
+
 def source_refs_for_explanation(
     records: list[dict[str, Any]],
     target_path: str | None,
@@ -2988,17 +3070,90 @@ def route_handler_records(matches: list[dict[str, Any]]) -> list[dict[str, Any]]
     return handlers[:20]
 
 
+def source_excerpt_for_line_range(target_root: Path, relative_path: str, line_range: list[Any], max_chars: int = 600) -> str:
+    if len(line_range) != 2 or not all(isinstance(item, int) for item in line_range):
+        return ""
+    path = target_root / relative_path
+    if not path.is_file():
+        return ""
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except UnicodeDecodeError:
+        return ""
+    start = max(1, int(line_range[0]))
+    end = min(len(lines), int(line_range[1]))
+    excerpt = "\n".join(lines[start - 1 : end])
+    return bounded_text(excerpt, max_chars)
+
+
+def structure_route_handler_records(
+    structure: dict[str, Any] | None,
+    *,
+    target_root: Path,
+    request: CodeInvestigationRequest,
+    queries: list[str],
+) -> list[dict[str, Any]]:
+    if not isinstance(structure, dict):
+        return []
+    records = structure.get("records")
+    if not isinstance(records, list):
+        return []
+    prompt_tokens = {
+        token
+        for value in [request.user_request, request.behavior, *queries]
+        for token in re.findall(r"[a-zA-Z][a-zA-Z0-9_]{2,}", str(value).lower())
+        if token not in {"return", "json", "read", "only", "locate", "where", "which", "show", "handler", "message", "request"}
+    }
+    handlers: list[dict[str, Any]] = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        if record.get("record_type") != "symbol" or record.get("kind") != "function":
+            continue
+        path = record.get("path")
+        name = record.get("name")
+        qualified_name = record.get("qualified_name")
+        if not isinstance(path, str) or not isinstance(name, str):
+            continue
+        lowered_name = f"{name} {qualified_name or ''}".lower()
+        if "handle" not in lowered_name and "handler" not in lowered_name:
+            continue
+        if prompt_tokens and not any(token in lowered_name for token in prompt_tokens):
+            continue
+        line_range = record.get("line_range") if isinstance(record.get("line_range"), list) else []
+        line = line_range[0] if line_range and isinstance(line_range[0], int) else None
+        excerpt = source_excerpt_for_line_range(target_root, path, line_range)
+        handlers.append(
+            {
+                "path": path,
+                "line": line,
+                "line_range": line_range,
+                "role": "structured_handler_symbol",
+                "query": "structure_index",
+                "symbol": qualified_name or name,
+                "evidence": excerpt or str(qualified_name or name),
+                "source": "structure_index",
+            }
+        )
+    handlers.sort(key=lambda item: (str(item.get("path", "")), item.get("line") if isinstance(item.get("line"), int) else 0))
+    return handlers[:20]
+
+
 def build_endpoint_route_lookup(
     request: CodeInvestigationRequest,
     *,
+    target_root: Path,
     queries: list[str],
     matches: list[dict[str, Any]],
+    structure: dict[str, Any] | None,
     related_tests: list[dict[str, Any]],
     warnings: list[dict[str, Any]],
 ) -> dict[str, Any]:
     if not is_endpoint_route_lookup_request(request.user_request):
         return {"kind": "endpoint_route_lookup", "schema_version": SCHEMA_VERSION, "status": "not_requested"}
     handlers = route_handler_records(matches)
+    if not handlers:
+        handlers = structure_route_handler_records(structure, target_root=target_root, request=request, queries=queries)
     target = queries[0] if queries else request.behavior.strip()
     if handlers:
         status = "ready"
@@ -3400,12 +3555,143 @@ def data_model_target_from_request(user_request: str, queries: list[str], fallba
     return fallback.strip()
 
 
+def model_symbol_targets(table_name: str) -> set[str]:
+    lowered = table_name.lower()
+    targets = {lowered}
+    if lowered.endswith("s") and len(lowered) > 1:
+        targets.add(lowered[:-1])
+    return {target for target in targets if target}
+
+
+def symbol_matches_model_target(name: str, table_name: str) -> bool:
+    lowered = name.lower()
+    targets = model_symbol_targets(table_name)
+    return any(target in lowered for target in targets)
+
+
+def structure_model_symbols(structure: dict[str, Any] | None, *, model_files: list[str], table_name: str) -> list[dict[str, Any]]:
+    if not isinstance(structure, dict):
+        return []
+    records = structure.get("records")
+    if not isinstance(records, list):
+        return []
+    model_file_set = set(model_files)
+    symbols: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        if record.get("record_type") != "symbol":
+            continue
+        path = record.get("path")
+        name = record.get("name")
+        kind = record.get("kind")
+        if not isinstance(path, str) or not isinstance(name, str) or not isinstance(kind, str):
+            continue
+        if model_file_set and path not in model_file_set:
+            continue
+        if kind not in {"class", "module"}:
+            continue
+        if kind == "class" and not symbol_matches_model_target(name, table_name):
+            continue
+        key = (path, kind, name)
+        if key in seen:
+            continue
+        seen.add(key)
+        line_range = record.get("line_range") if isinstance(record.get("line_range"), list) else []
+        line = line_range[0] if line_range and isinstance(line_range[0], int) else None
+        symbol = {
+            "name": record.get("qualified_name") or name,
+            "kind": kind,
+            "path": path,
+            "source": "structure_index",
+        }
+        if isinstance(line, int):
+            symbol["line"] = line
+        if line_range:
+            symbol["line_range"] = line_range
+        symbols.append(symbol)
+    return symbols
+
+
+def ast_assignment_model_symbols(target_root: Path, *, model_files: list[str], table_name: str) -> list[dict[str, Any]]:
+    symbols: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for rel_path in model_files:
+        path = target_root / rel_path
+        if not path.is_file() or path.suffix != ".py":
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, SyntaxError):
+            continue
+        for node in ast.walk(tree):
+            names: list[str] = []
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        names.append(target.id)
+            elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                names.append(node.target.id)
+            for name in names:
+                lowered = name.lower()
+                if not symbol_matches_model_target(name, table_name):
+                    continue
+                if not any(term in lowered for term in ("schema", "sql", "table", "model", "record")):
+                    continue
+                key = (rel_path, name)
+                if key in seen:
+                    continue
+                seen.add(key)
+                symbol: dict[str, Any] = {
+                    "name": name,
+                    "kind": "assignment",
+                    "path": rel_path,
+                    "source": "python_ast",
+                }
+                line = getattr(node, "lineno", None)
+                end_line = getattr(node, "end_lineno", None)
+                if isinstance(line, int):
+                    symbol["line"] = line
+                if isinstance(line, int) and isinstance(end_line, int):
+                    symbol["line_range"] = [line, end_line]
+                symbols.append(symbol)
+    return symbols
+
+
+def data_model_symbols(
+    target_root: Path,
+    *,
+    structure: dict[str, Any] | None,
+    model_files: list[str],
+    table_name: str,
+) -> list[dict[str, Any]]:
+    symbols: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for symbol in [
+        *structure_model_symbols(structure, model_files=model_files, table_name=table_name),
+        *ast_assignment_model_symbols(target_root, model_files=model_files, table_name=table_name),
+    ]:
+        name = symbol.get("name")
+        kind = symbol.get("kind")
+        path = symbol.get("path")
+        if not isinstance(name, str) or not isinstance(kind, str) or not isinstance(path, str):
+            continue
+        key = (path, kind, name)
+        if key in seen:
+            continue
+        seen.add(key)
+        symbols.append(symbol)
+    return symbols[:20]
+
+
 def build_data_model_lookup(
     request: CodeInvestigationRequest,
     *,
     target_root: Path,
     queries: list[str],
     matches: list[dict[str, Any]],
+    structure: dict[str, Any] | None,
     warnings: list[dict[str, Any]],
 ) -> dict[str, Any]:
     if not is_data_model_lookup_request(request.user_request):
@@ -3461,10 +3747,23 @@ def build_data_model_lookup(
     for rel_path in candidate_paths:
         append_unique(model_file_candidates, rel_path)
     model_files = model_file_candidates[: request.max_files]
+    model_symbols = data_model_symbols(target_root, structure=structure, model_files=model_files, table_name=table_name)
+    symbol_source_refs: list[dict[str, Any]] = []
+    for symbol in model_symbols:
+        path = symbol.get("path")
+        if not isinstance(path, str):
+            continue
+        ref = {"path": path, "source": symbol.get("source") or "model_symbol"}
+        if isinstance(symbol.get("line"), int):
+            ref["line"] = symbol["line"]
+        if isinstance(symbol.get("name"), str):
+            ref["symbol"] = symbol["name"]
+        symbol_source_refs.append(ref)
     source_refs: list[dict[str, Any]] = []
     seen_source_refs: set[tuple[str, int | None, str]] = set()
     for ref in [
         *field_source_refs,
+        *symbol_source_refs,
         *source_refs_from_records(evidence_file_records(model_files, [], matches)),
     ]:
         path = ref.get("path")
@@ -3500,6 +3799,8 @@ def build_data_model_lookup(
         "field_count": len(fields),
         "fields": fields,
         "model_files": model_files,
+        "model_symbol_count": len(model_symbols),
+        "model_symbols": model_symbols,
         "source_refs": source_refs[:20],
         "mutation_policy": "read_only_no_source_mutation",
         "gaps": gaps,
@@ -6622,8 +6923,10 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         artifacts["configuration_lookup"] = str(run_dir / "configuration-lookup.json")
     endpoint_route_lookup = build_endpoint_route_lookup(
         request,
+        target_root=target_root,
         queries=queries,
         matches=matches,
+        structure=structure,
         related_tests=related_tests,
         warnings=warnings,
     )
@@ -6656,6 +6959,7 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         target_root=target_root,
         queries=queries,
         matches=matches,
+        structure=structure,
         warnings=warnings,
     )
     if data_model_lookup.get("status") != "not_requested":
@@ -6881,6 +7185,20 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
     write_json(run_dir / "investigation-evidence.json", evidence)
     artifacts["investigation_evidence"] = str(run_dir / "investigation-evidence.json")
 
+    test_reference_paths = {
+        str(record.get("path"))
+        for record in test_refs
+        if isinstance(record.get("path"), str) and record.get("path")
+    }
+    plan_test_references = list(test_refs)
+    for item in compact_related_tests(related_tests):
+        path = item.get("path")
+        if not isinstance(path, str) or path in test_reference_paths:
+            continue
+        test_reference = {"category": "test", "source": "test_discovery", **item}
+        plan_test_references.append(test_reference)
+        test_reference_paths.add(path)
+
     plan = {
         "kind": "code_investigation_plan",
         "schema_version": SCHEMA_VERSION,
@@ -6889,9 +7207,11 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
         "target_root": str(target_root),
         "user_request": request.user_request,
         "behavior": request.behavior,
+        "mutation_policy": "read_only_no_source_mutation",
         "likely_beginning_point": beginning,
         "participating_files": records,
-        "test_references": test_refs,
+        "source_refs": source_refs_from_records(records[: request.max_files]),
+        "test_references": plan_test_references,
         "related_tests": related_tests,
         "code_explanation": code_explanation,
         "behavior_existence": behavior_existence,
@@ -6950,12 +7270,18 @@ def invoke_code_investigation(request: CodeInvestigationRequest) -> InvocationRe
     write_json(run_dir / "investigation-plan.json", plan)
     artifacts["investigation_plan"] = str(run_dir / "investigation-plan.json")
 
+    summary_test_paths = {
+        str(record.get("path"))
+        for record in test_refs
+        if isinstance(record.get("path"), str) and record.get("path")
+    }
+    summary_test_paths.update(related_test_paths)
     summary = {
         "target_root": str(target_root),
         "query_count": len(queries),
         "participating_file_count": len(records),
         "source_file_count": len(source_refs),
-        "test_file_count": len(test_refs),
+        "test_file_count": len(summary_test_paths),
         "related_test_file_count": len(related_test_paths),
         "verification_command_count": len(verification_commands),
         "code_explanation_status": code_explanation.get("status"),

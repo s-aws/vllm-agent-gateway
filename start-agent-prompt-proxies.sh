@@ -101,7 +101,7 @@ GATEWAY_OPENAI_BASE_URL="$(openai_base_url "$GATEWAY_BASE_URL")"
 WORKFLOW_ROUTER_CONTROLLER_URL="${WORKFLOW_ROUTER_CONTROLLER_URL:-${CONTROLLER_BASE_URL}/v1/controller/workflow-router/chat/completions}"
 CONTROLLER_OUTPUT_ROOT="${CONTROLLER_OUTPUT_ROOT:-$STATE_ROOT/controller-artifacts}"
 DEFAULT_CONTROLLER_ALLOWED_TARGET_ROOTS="$ROOT"
-for fixture_root in /mnt/c/coinbase_testing_repo_frozen_tmp /mnt/c/coinbase_testing_repo_frozen_tmp.github; do
+for fixture_root in /mnt/c/coinbase_testing_repo_frozen_tmp /mnt/c/coinbase_testing_repo_frozen_tmp.github /mnt/c/staterail_testing_repo_frozen_tmp.github; do
     if [[ -d "$fixture_root" ]]; then
         DEFAULT_CONTROLLER_ALLOWED_TARGET_ROOTS="${DEFAULT_CONTROLLER_ALLOWED_TARGET_ROOTS}:$fixture_root"
     fi

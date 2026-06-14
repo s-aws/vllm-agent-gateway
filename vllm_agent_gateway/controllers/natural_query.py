@@ -8,6 +8,94 @@ import re
 PATH_PATTERN = re.compile(
     r"[A-Za-z]:[\\/]\S+|(?<![\w./-])/(?:mnt|home|tmp|var|opt|workspace|repo|repos|[A-Za-z0-9._-]+)(?:/\S+)+"
 )
+NATURAL_QUERY_STOP_WORDS = {
+    "about",
+    "against",
+    "and",
+    "around",
+    "before",
+    "belong",
+    "belongs",
+    "broad",
+    "change",
+    "changes",
+    "command",
+    "commands",
+    "could",
+    "downstream",
+    "explain",
+    "each",
+    "file",
+    "files",
+    "find",
+    "for",
+    "how",
+    "include",
+    "likely",
+    "logic",
+    "medium",
+    "need",
+    "needed",
+    "only",
+    "out",
+    "point",
+    "pytest",
+    "read",
+    "recommend",
+    "refs",
+    "risk",
+    "risks",
+    "scope",
+    "smallest",
+    "source",
+    "test",
+    "tests",
+    "that",
+    "the",
+    "tier",
+    "through",
+    "unknown",
+    "unknowns",
+    "validate",
+    "validates",
+    "validating",
+    "verification",
+    "what",
+    "where",
+    "would",
+    "why",
+}
+NATURAL_QUERY_ANCHOR_WORDS = {
+    "action",
+    "approval",
+    "association",
+    "audit",
+    "auth",
+    "authorization",
+    "behavior",
+    "boundary",
+    "catalog",
+    "client",
+    "config",
+    "configuration",
+    "contract",
+    "executor",
+    "gateway",
+    "handler",
+    "index",
+    "lineage",
+    "live",
+    "manual",
+    "no",
+    "order",
+    "placement",
+    "preflight",
+    "product",
+    "runtime",
+    "simulation",
+    "strategy",
+    "validation",
+}
 
 
 def strip_filesystem_paths(text: str) -> str:
@@ -29,6 +117,60 @@ def _identifier_variant(value: str) -> str | None:
     if len(words) < 2:
         return None
     return "_".join(word.lower() for word in words)
+
+
+def _natural_query_word(value: str) -> str:
+    lowered = value.lower()
+    if len(lowered) > 4 and lowered.endswith("ies"):
+        return lowered[:-3] + "y"
+    if len(lowered) > 4 and lowered.endswith("s") and not lowered.endswith("ss"):
+        return lowered[:-1]
+    return lowered
+
+
+def _natural_query_words(text: str) -> list[str]:
+    query_source = strip_filesystem_paths(text).replace("-", " ")
+    words: list[str] = []
+    for raw in re.findall(r"[A-Za-z][A-Za-z0-9_]*", query_source):
+        word = _natural_query_word(raw)
+        if (len(word) < 3 and word != "no") or word in NATURAL_QUERY_STOP_WORDS:
+            continue
+        words.append(word)
+    return words
+
+
+def natural_identifier_queries_from_request(user_request: str, *, limit: int = 4) -> list[str]:
+    """Return snake_case query variants from technical natural-language phrases.
+
+    The router and investigation workflows primarily search code with exact
+    text. Natural requests often say "live no-order preflight" or "manual
+    association approval" while repositories store those concepts as
+    snake_case symbols and file names. This helper turns bounded, technical
+    phrase windows into deterministic identifier queries without depending on
+    a specific repository fixture.
+    """
+
+    words = _natural_query_words(user_request)
+    scored: list[tuple[int, int, str]] = []
+    seen: set[str] = set()
+    for size in range(4, 1, -1):
+        for index in range(0, max(0, len(words) - size + 1)):
+            window = words[index : index + size]
+            if not window:
+                continue
+            if not (set(window) & NATURAL_QUERY_ANCHOR_WORDS):
+                continue
+            value = "_".join(window)
+            if value in seen:
+                continue
+            seen.add(value)
+            anchor_count = len(set(window) & NATURAL_QUERY_ANCHOR_WORDS)
+            score = anchor_count * 100 + size * 10
+            if any("_" in word for word in window):
+                score += 25
+            scored.append((score, -index, value))
+    scored.sort(reverse=True)
+    return [value for _score, _index, value in scored[:limit]]
 
 
 def _change_subject_query_variants(subject: str) -> list[str]:

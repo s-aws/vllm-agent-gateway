@@ -4,13 +4,16 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
-Current stable-readiness status: the Phase 170 stable release refresh still provides the release decision, and Phases 180 through 185 added the current chat-quality hardening layer. The latest proof floor includes answer-first chat contracts, natural output-format selection, evidence relevance ranking, related-test discovery reliability, Phase 184 AnythingLLM UI replay, and the Phase 185 contextless-agent audit pack. Phase 186 is the active handoff-refresh phase.
+Current handoff status: Phase 232 is the active onboarding and release handoff refresh. The current proof floor includes Phase 226 M6/M8 large-context usability, M9 founder-feedback rebaseline and repair rerun gates, M12 small skill admission, and M13 runtime recovery reliability. Phase 231 proved restart-and-resume behavior through vLLM, gateway/proxies, controller, AnythingLLM, one small-repo prompt, and one large-context prompt.
 
 ## What This Proves
 
 - AnythingLLM is pointed at the natural workflow-router gateway.
 - The local model on `localhost:8000` is reached through the gateway/router stack.
-- The current Priority 0 chat-quality proof reports `readiness=ready_for_founder_testing`.
+- The current Priority 0 chat-quality proof can be revalidated after restart.
+- Runtime recovery reliability passes with small-repo and large-context prompt proof.
+- Large-context prompts use retrieval/chunking/paging strategy proof instead of raw prompt stuffing.
+- Small skill admission works for the Python-service fixture without manual skill injection.
 - A normal natural-language request routes to `workflow_router.plan`.
 - The controller can run small read-only L1 investigations against the frozen Coinbase fixtures.
 - The controller can draft an exact small documentation edit through the existing implementation workflow without mutating source files.
@@ -29,6 +32,36 @@ Current stable-readiness status: the Phase 170 stable release refresh still prov
   - `/mnt/c/coinbase_testing_repo_frozen_tmp.github`
 - For API validation, `ANYTHINGLLM_API_KEY` is available in your Windows user environment.
 - For automated Desktop UI validation, Python Playwright, system Chrome, and Node/npm `npx` are available.
+
+## Current Phase 232 Happy Path
+
+Run these from Bash/WSL unless a command explicitly says PowerShell:
+
+```bash
+cd /mnt/c/agentic_agents
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/run_first_time_user_doctor.py
+python3 scripts/validate_runtime_recovery_reliability_rebaseline.py \
+  --restart-managed-stack \
+  --restart-vllm-container vllm-qwen3 \
+  --timeout-seconds 900
+python3 scripts/validate_external_tester_dry_run.py \
+  --live-runtime \
+  --include-feedback \
+  --output-path runtime-state/external-tester-dry-run/phase147/phase147-external-tester-dry-run.json
+```
+
+Expected markers:
+
+```text
+FIRST TIME USER DOCTOR PASS
+PHASE231 RUNTIME RECOVERY RELIABILITY REBASELINE PASS
+EXTERNAL TESTER DRY RUN PASS
+```
+
+The Phase 231 recovery gate includes the small-repo `python-service-code-explanation` prompt and the large-context `P221-LC-001` prompt through both workflow-router gateway and AnythingLLM.
+
+Advanced broad refactor orchestration is not released. Keep first-time testing on read-only L1/L2 prompts, draft-only proposals, feedback capture, and governed recovery validation.
 
 ## 1. Start The Local Harness
 
@@ -80,6 +113,21 @@ Expected marker:
 
 ```text
 POST RESTART RUNTIME READINESS PASS
+```
+
+To prove the restart path itself, including post-restart small-repo and large-context prompts, run the Phase 231 recovery gate:
+
+```bash
+python3 scripts/validate_runtime_recovery_reliability_rebaseline.py \
+  --restart-managed-stack \
+  --restart-vllm-container vllm-qwen3 \
+  --timeout-seconds 900
+```
+
+Expected marker:
+
+```text
+PHASE231 RUNTIME RECOVERY RELIABILITY REBASELINE PASS
 ```
 
 Validate the release-channel contract before first prompt testing:
@@ -164,6 +212,8 @@ The current Phase 170 summary should show `source_report_count=17`, `phase169_pr
 
 After this setup path passes, use [README.external-tester-onboarding.md](README.external-tester-onboarding.md) for the contextless first-test prompt set and feedback capture templates.
 
+Feedback template marker: `Record feedback for run workflow-router-REPLACE_ME`.
+
 ## Minimum External Tester Dry Run
 
 For the current founder-testing release, this is the minimum external tester proof. It uses the stable channel, `ONB-001`, AnythingLLM at `http://127.0.0.1:8500/v1`, and linked feedback capture. Run from Bash/WSL:
@@ -204,6 +254,16 @@ http://127.0.0.1:8500/v1
 
 Do not use `8400`; that is the controller service, not an OpenAI-compatible model endpoint. Use `8300/v1` only for ordinary model chat or explicit controller-envelope tests.
 
+Endpoint table:
+
+| Port | Use |
+| --- | --- |
+| `8000/v1` | Raw vLLM OpenAI-compatible model server. |
+| `8300/v1` | Ordinary LLM gateway; use for non-workflow model chat only. |
+| `8500/v1` | Workflow-router OpenAI-compatible gateway; use this as the AnythingLLM LLM base URL. |
+| `8400` | Controller HTTP API; not an OpenAI-compatible model endpoint. |
+| `3001` | AnythingLLM backend/API. |
+
 In AnythingLLM, configure the LLM provider as a Generic OpenAI-compatible provider:
 
 - Base URL: `http://127.0.0.1:8500/v1`
@@ -222,6 +282,30 @@ Invoke-RestMethod -Uri "http://127.0.0.1:3001/api/system/update-env" -Headers $h
 ```
 
 ## 3. Send One Natural Test Message
+
+Phase 232 curated prompt trio:
+
+1. Coinbase L1:
+
+```text
+In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests.
+```
+
+2. Non-Coinbase small-repo L1:
+
+```text
+In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, explain resolve_order_status in service/orders.py. Read only. Include inputs, return value, side effects, and tests. Return JSON.
+```
+
+Automated equivalent: `python-service-code-explanation`.
+
+3. Large-context strategy proof:
+
+```text
+Run the large-context usability case P221-LC-001 through the current workflow-router path and summarize the answer, selected context strategy, evidence refs, and run_id.
+```
+
+Automated equivalent: `P221-LC-001` via `scripts/validate_large_context_usability_live_closeout.py`.
 
 In a fresh AnythingLLM thread, send this as normal chat text:
 

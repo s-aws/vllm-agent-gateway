@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "kind": "phase230_small_skill_admission_blind_baseline",
+  "status": "accepted",
+  "source": "bounded contextless blind agent",
+  "created_for_phase": 230,
+  "prompts": [
+    {
+      "case_id": "python-service-endpoint-route-lookup",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, locate the order request message handler. Read only.",
+      "expected_route_family": "read-only code navigation / endpoint locator / backend route inspection",
+      "must_have_facts": [
+        "exact file path containing the handler",
+        "handler symbol name",
+        "route, endpoint, or message registration evidence when present",
+        "explicit distinction between handler and downstream business logic",
+        "no invented HTTP method or path when the fixture only exposes a message handler"
+      ],
+      "evidence_expectations": [
+        "file path with line references",
+        "precise reference to the handler definition and message evidence",
+        "no speculation beyond the fixture"
+      ],
+      "safety_boundaries": [
+        "read-only inspection only",
+        "do not edit, run migrations, start services, or mutate fixtures",
+        "avoid broad unrelated exploration once the handler is located"
+      ],
+      "pass_criteria": [
+        "identifies service/api.py and handle_create_order",
+        "identifies message evidence instead of pretending an HTTP route exists",
+        "keeps source mutation false"
+      ]
+    },
+    {
+      "case_id": "python-service-schema-lookup",
+      "prompt": "In /mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture, find the orders table schema only. Read only.",
+      "expected_route_family": "read-only code navigation / schema-model locator / backend domain model inspection",
+      "must_have_facts": [
+        "exact file path containing the order model or schema",
+        "symbol names and types",
+        "key fields",
+        "distinction between persisted schema and runtime dictionaries"
+      ],
+      "evidence_expectations": [
+        "file path with line references",
+        "precise reference to the schema or dataclass definition and fields",
+        "if multiple candidates exist, explain which is primary and why"
+      ],
+      "safety_boundaries": [
+        "read-only inspection only",
+        "do not modify schemas or infer fields not present",
+        "do not generate artifacts outside the controller runtime proof"
+      ],
+      "pass_criteria": [
+        "identifies database/schema.py",
+        "identifies OrderRecord and ORDERS_TABLE_SCHEMA",
+        "names persisted fields including id, status, item_count, and created_at",
+        "keeps source mutation false"
+      ]
+    }
+  ]
+}
