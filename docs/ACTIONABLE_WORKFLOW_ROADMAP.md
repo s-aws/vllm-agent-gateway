@@ -10371,7 +10371,7 @@ Completion proof:
 
 ### Approved Phase 240: Remote-Clone Non-Coinbase Generalization Replay
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M5 Multi-Repo Generalization, M14 Release Packaging And Onboarding.
 
@@ -10386,6 +10386,16 @@ Scope:
 - Do not add new repository fixtures unless an existing approved fixture cannot exercise the required generalization behavior.
 
 Acceptance target: the release candidate demonstrates the same supported L1/L2 read-only behavior across Coinbase and non-Coinbase fixtures from the clone path.
+
+Completion proof:
+
+- Added `runtime/remote_clone_non_coinbase_generalization_replay_policy.json`, `scripts/validate_remote_clone_non_coinbase_generalization_replay.py`, `vllm_agent_gateway/acceptance/remote_clone_non_coinbase_generalization_replay.py`, focused regression coverage, feature docs, and examples.
+- Active workspace live replay passed with `decision=remote_clone_non_coinbase_generalization_ready`, `case_count=6`, `response_count=12`, `gateway_response_count=6`, `anythingllm_response_count=6`, `gap_response_count=0`, `low_score_response_count=0`, `missing_response_count=0`, `non_coinbase_root_count=2`, `target_root_count=3`, `target_settings_status=passed`, and `repo_state_unchanged=true`.
+- Pushed branch `codex/m14-release-clone-proof` to commit `cf61f8c`, fast-forwarded `/tmp/agentic_agents_phase239_remote_clone`, restarted the gateway/controller stack from that clone, and reran the replay from the clone.
+- Remote-clone non-Coinbase replay passed with `decision=remote_clone_non_coinbase_generalization_ready`, `case_count=6`, `response_count=12`, `gateway_response_count=6`, `anythingllm_response_count=6`, `gap_response_count=0`, `low_score_response_count=0`, `missing_response_count=0`, `non_coinbase_root_count=2`, `target_root_count=3`, `target_settings_status=passed`, and `repo_state_unchanged=true`.
+- Remote-clone run IDs: gateway Python endpoint `workflow-router-20260614T172830553376Z`, gateway Python schema `workflow-router-20260614T172831374208Z`, gateway Staterail code explanation `workflow-router-20260614T172832258120Z`, gateway Staterail tests lookup `workflow-router-20260614T172837276393Z`, gateway Staterail validation command tiering `workflow-router-20260614T172842288773Z`, gateway Coinbase holdout `workflow-router-20260614T172847019728Z`, AnythingLLM Python endpoint `workflow-router-20260614T172855438522Z`, AnythingLLM Python schema `workflow-router-20260614T172856187733Z`, AnythingLLM Staterail code explanation `workflow-router-20260614T172857085008Z`, AnythingLLM Staterail tests lookup `workflow-router-20260614T172904413974Z`, AnythingLLM Staterail validation command tiering `workflow-router-20260614T172909641601Z`, and AnythingLLM Coinbase holdout `workflow-router-20260614T172914478173Z`.
+- The replay covered the approved Python-service fixture and `s-aws/staterail` frozen fixture without commits, pushes, protected fixture mutation, or generated runtime-state source staging.
+- Final full Bash regression after Phase 240 closeout passed with `1560 passed`, `4 skipped`, and `23 deselected`.
 
 ### Approved Phase 241: Large-Context Release-Candidate Strategy Replay
 
