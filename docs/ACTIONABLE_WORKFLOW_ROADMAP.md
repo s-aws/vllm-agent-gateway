@@ -10399,7 +10399,7 @@ Completion proof:
 
 ### Approved Phase 241: Large-Context Release-Candidate Strategy Replay
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M6 Large-Context Usability Baseline, M8 Context Strategy Router, M16 Corpus And Index Safety Governance, M14 Release Packaging And Onboarding.
 
@@ -10414,6 +10414,19 @@ Scope:
 - Do not attempt raw 1M-token prompting unless M15 is explicitly activated.
 
 Acceptance target: the release candidate answers large-context prompts using the approved strategy router and safety controls, with no regression to prompt stuffing, artifact-only answers, or stale evidence.
+
+Completion proof:
+
+- Added `runtime/release_candidate_large_context_strategy_replay_policy.json`, `scripts/validate_release_candidate_large_context_strategy_replay.py`, `vllm_agent_gateway/acceptance/release_candidate_large_context_strategy_replay.py`, focused regression coverage, feature docs, and examples.
+- Used a bounded contextless blind-baseline agent before local-output review. The baseline required answer-first large-context responses, strategy rationale, source refs, hash/freshness proof, artifact paging, explicit limitations, no raw prompt stuffing, no copied source text, release-clone run proof, AnythingLLM parity, and small-repo non-regression.
+- The Phase 241 replay composes the existing Phase 214, Phase 217, Phase 221, and Phase 223 validators. It does not add a second large-context router, index, chat endpoint, or live request harness.
+- Active workspace replay passed with `decision=release_candidate_large_context_strategy_ready`, `phase214_status=passed`, `phase217_status=passed`, `phase221_status=passed`, `phase223_status=passed`, `phase221_response_count=16`, `phase223_response_count=2`, `gateway_response_count=9`, `anythingllm_response_count=9`, `small_repo_regression_count=8`, `failed_small_repo_regression_count=0`, `strategy_ids=[artifact_paging, chunked_investigation, refusal, retrieval, summarization]`, `raw_1m_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `source_text_retention=metadata_only`, `store_source_text=false`, `store_rejected_content=false`, `target_settings_status=passed`, and `corpus_unchanged=true`.
+- Initial remote-clone replay exposed a release-path bootstrap defect: the clone generated a Phase 214 inventory only under the Phase 241 proof directory, while the running controller reads the canonical Phase 214 report path. The raw-context refusal answers therefore showed `None` for the corpus token estimate and missed the required `1286080` marker. The repair now regenerates the canonical Phase 214 inventory before live replay, preserving the single controller read path.
+- Pushed branch `codex/m14-release-clone-proof` to commit `70d9892`, fast-forwarded `/tmp/agentic_agents_phase239_remote_clone`, restarted the gateway/controller stack from that clone, and reran the replay from the clone.
+- Remote-clone large-context strategy replay passed with `decision=release_candidate_large_context_strategy_ready`, `phase214_status=passed`, `phase217_status=passed`, `phase221_status=passed`, `phase223_status=passed`, `phase221_response_count=16`, `phase223_response_count=2`, `gateway_response_count=9`, `anythingllm_response_count=9`, `small_repo_regression_count=8`, `failed_small_repo_regression_count=0`, `strategy_ids=[artifact_paging, chunked_investigation, refusal, retrieval, summarization]`, `raw_1m_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `source_text_retention=metadata_only`, `store_source_text=false`, `store_rejected_content=false`, `target_settings_status=passed`, and `corpus_unchanged=true`.
+- Remote-clone Phase 221 run IDs: `workflow-router-20260614T182135867044Z`, `workflow-router-20260614T182136622667Z`, `workflow-router-20260614T182137423056Z`, `workflow-router-20260614T182138131893Z`, `workflow-router-20260614T182139006591Z`, `workflow-router-20260614T182139792268Z`, `workflow-router-20260614T182140497671Z`, `workflow-router-20260614T182141187647Z`, `workflow-router-20260614T182141897566Z`, `workflow-router-20260614T182142538958Z`, `workflow-router-20260614T182143354783Z`, `workflow-router-20260614T182144023628Z`, `workflow-router-20260614T182144882971Z`, `workflow-router-20260614T182145759004Z`, `workflow-router-20260614T182146534055Z`, `workflow-router-20260614T182147300455Z`, `workflow-router-20260614T182148062608Z`, `workflow-router-20260614T182204202161Z`, `workflow-router-20260614T182211468918Z`, and `workflow-router-20260614T182225469581Z`.
+- Remote-clone Phase 223 run IDs: `workflow-router-20260614T182235394520Z`, `workflow-router-20260614T182236593391Z`, `workflow-router-20260614T182237593008Z`, `workflow-router-20260614T182253475797Z`, `workflow-router-20260614T182305413527Z`, and `workflow-router-20260614T182322228726Z`.
+- Final full Bash regression after Phase 241 closeout passed with `1565 passed`, `4 skipped`, and `23 deselected`.
 
 ### Approved Phase 242: Release-Candidate Baseline Corpus Promotion
 
