@@ -35,6 +35,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--prepare-snapshot", action="store_true")
     parser.add_argument("--run-commands", action="store_true")
     parser.add_argument("--run-live-minimal", action="store_true")
+    parser.add_argument("--managed-state-root", default=None)
     parser.add_argument("--timeout-seconds", type=int, default=120)
     return parser.parse_args()
 
@@ -52,6 +53,7 @@ def main() -> int:
             prepare_snapshot=args.prepare_snapshot,
             run_commands=args.run_commands,
             run_live_minimal=args.run_live_minimal,
+            managed_state_root=Path(args.managed_state_root) if args.managed_state_root else None,
             timeout_seconds=args.timeout_seconds,
         )
     )

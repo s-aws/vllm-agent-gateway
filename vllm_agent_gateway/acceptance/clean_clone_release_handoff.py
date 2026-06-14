@@ -54,6 +54,7 @@ class CleanCloneReleaseHandoffConfig:
     prepare_snapshot: bool = False
     run_commands: bool = False
     run_live_minimal: bool = False
+    managed_state_root: Path | None = None
     timeout_seconds: int = 120
 
 
@@ -195,7 +196,7 @@ def command_specs(snapshot_root: Path) -> dict[str, list[str]]:
         "managed_stack_restart_from_snapshot": [
             "bash",
             "-lc",
-            "./stop-agent-prompt-proxies.sh && ./start-agent-prompt-proxies.sh",
+            "bash ./stop-agent-prompt-proxies.sh && bash ./start-agent-prompt-proxies.sh",
         ],
         "first_time_user_doctor": [
             "python3",
@@ -310,7 +311,9 @@ def inspect_snapshot(config_root: Path, snapshot_root: Path, policy: dict[str, A
     return record, errors
 
 
-def active_state_root(config_root: Path) -> Path:
+def active_state_root(config_root: Path, managed_state_root: Path | None = None) -> Path:
+    if managed_state_root is not None:
+        return managed_state_root.resolve()
     return config_root.parent / "private_agentic_agents" / "runtime-state"
 
 
@@ -356,13 +359,14 @@ def run_required_commands(
     policy: dict[str, Any],
     run_live_minimal: bool,
     timeout_seconds: int,
+    managed_state_root: Path | None,
 ) -> list[dict[str, Any]]:
     specs = command_specs(snapshot_root)
     command_ids = string_list(policy.get("required_command_ids"))
     if not run_live_minimal:
         command_ids = [command_id for command_id in command_ids if command_id != "external_onboarding_live"]
     env = os.environ.copy()
-    env["AGENTIC_AGENTS_STATE_ROOT"] = str(active_state_root(config_root))
+    env["AGENTIC_AGENTS_STATE_ROOT"] = str(active_state_root(config_root, managed_state_root))
     return [
         run_command(command_id, specs[command_id], cwd=snapshot_root, timeout_seconds=timeout_seconds, env=env)
         for command_id in command_ids
@@ -383,8 +387,8 @@ def pid_cwd(pid_file: Path) -> dict[str, Any]:
     return record
 
 
-def managed_stack_record(config_root: Path, snapshot_root: Path) -> dict[str, Any]:
-    state = active_state_root(config_root)
+def managed_stack_record(config_root: Path, snapshot_root: Path, managed_state_root: Path | None) -> dict[str, Any]:
+    state = active_state_root(config_root, managed_state_root)
     pids = {
         "llm_gateway": pid_cwd(state / "llm-gateway.pid"),
         "workflow_router_gateway": pid_cwd(state / "workflow-router-gateway.pid"),
@@ -719,8 +723,9 @@ def run_clean_clone_release_handoff(config: CleanCloneReleaseHandoffConfig) -> d
             policy=policy,
             run_live_minimal=config.run_live_minimal,
             timeout_seconds=config.timeout_seconds,
+            managed_state_root=config.managed_state_root,
         )
-    managed_stack = managed_stack_record(config_root, snapshot_root)
+    managed_stack = managed_stack_record(config_root, snapshot_root, config.managed_state_root)
     after_fixtures = collect_fixture_states(policy)
     fixture_checks = compare_fixture_states(before_fixtures, after_fixtures)
     report = build_clean_clone_release_handoff_report(

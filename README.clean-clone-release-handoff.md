@@ -32,6 +32,17 @@ The default snapshot path is under the system temp directory. The report is writ
 - `runtime-state/phase234/phase234-clean-clone-release-handoff-report.json`
 - `runtime-state/phase234/phase234-clean-clone-release-handoff-report.md`
 
+When running from a disposable clone while another checkout already owns the local gateway/controller ports, pass the shared state root so the clone can stop the old stack and restart it from the snapshot:
+
+```bash
+python3 scripts/validate_clean_clone_release_handoff.py \
+  --managed-state-root /mnt/c/private_agentic_agents/runtime-state \
+  --prepare-snapshot \
+  --run-commands \
+  --run-live-minimal \
+  --timeout-seconds 240
+```
+
 ## Release Boundary
 
 A passing `clean_snapshot` report is acceptable for current local release-candidate validation. A final external release handoff should later be repeated in `git_clone` or packaged-archive mode after the candidate files are committed or bundled.
