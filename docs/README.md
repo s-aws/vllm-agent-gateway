@@ -122,6 +122,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Clean Clone Release Handoff README](../README.clean-clone-release-handoff.md): Phase 234 M14 disposable clean-snapshot proof that release handoff does not rely on private workspace state.
 - [Clone-Safe Model Capability Routing README](../README.clone-safe-model-capability-routing.md): Phase 235 M14 clone-safe routing profile path for clean checkout handoff.
 - [AnythingLLM Fresh Chat Responsiveness README](../README.anythingllm-fresh-chat-responsiveness.md): Phase 237 fresh chat, target settings, UI stream-chat, and coding prompt proof.
+- [Release-Candidate PR Readiness README](../README.release-candidate-pr-readiness.md): Phase 238 review packet for the pushed release-candidate branch.
 - [Stable Release Blocker Closure README](../README.stable-release-blocker-closure.md): Phase 131 closure gate for prompt-tightening and founder-feedback blockers before stable release readiness can pass.
 - [Stable Chat Quality Release README](../README.stable-chat-quality-release.md): Phase 130 release-readiness gate that consolidates Priority 0 proof and blocks founder testing on unresolved chat-quality items.
 - [AnythingLLM Founder Smoke README](../README.anythingllm-founder-smoke.md): Phase 134 live founder smoke suite through AnythingLLM for the current ready release path.
@@ -234,6 +235,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Clean Clone Release Handoff README](../README.clean-clone-release-handoff.md): current M14 disposable clean-snapshot proof over release handoff docs, validators, runtime restart, and live AnythingLLM onboarding.
 - [Clone-Safe Model Capability Routing README](../README.clone-safe-model-capability-routing.md): current M14 routing profile proof that clean checkouts do not need runtime-state profile seeding.
 - [AnythingLLM Fresh Chat Responsiveness README](../README.anythingllm-fresh-chat-responsiveness.md): current M14/M13/M2 proof that fresh AnythingLLM chats answer `hi` and a representative coding prompt.
+- [Release-Candidate PR Readiness README](../README.release-candidate-pr-readiness.md): current M14 review packet for branch hygiene, known limits, proof commands, and draft PR body.
 - [Stable Release Blocker Closure README](../README.stable-release-blocker-closure.md): governed closure evidence for stable release blockers.
 - [Stable Chat Quality Release README](../README.stable-chat-quality-release.md): consolidated release-readiness report with artifact hashes, blockers, and founder-testing readiness.
 - [Model Swap Smoke Probe README](../README.model-swap-smoke-probe.md): live localhost model metadata, generation, harness, compatibility, and drift-required decision gate.
@@ -387,6 +389,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Clean Clone Release Handoff Examples](examples/clean-clone-release-handoff.md)
 - [Clone-Safe Model Capability Routing Examples](examples/clone-safe-model-capability-routing.md)
 - [AnythingLLM Fresh Chat Responsiveness Examples](examples/anythingllm-fresh-chat-responsiveness.md)
+- [Release-Candidate PR Readiness Examples](examples/release-candidate-pr-readiness.md)
 - [Stable Release Blocker Closure Examples](examples/stable-release-blocker-closure.md)
 - [Stable Chat Quality Release Examples](examples/stable-chat-quality-release.md)
 - [AnythingLLM Founder Smoke Examples](examples/anythingllm-founder-smoke.md)
@@ -494,6 +497,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Clean Clone Release Handoff README](../README.clean-clone-release-handoff.md): Phase 234 gate for clean-snapshot release handoff proof.
 - [Clone-Safe Model Capability Routing README](../README.clone-safe-model-capability-routing.md): Phase 235 gate for routing without runtime-state profile seeding.
 - [AnythingLLM Fresh Chat Responsiveness README](../README.anythingllm-fresh-chat-responsiveness.md): Phase 237 gate for fresh AnythingLLM `hi`, coding prompt, target settings, UI stream-chat, and fixture proof.
+- [Release-Candidate PR Readiness README](../README.release-candidate-pr-readiness.md): Phase 238 gate for branch review packet and PR readiness hygiene.
 - [Phase 94 Runtime Skill Selection Hardening](PHASE94_RUNTIME_SKILL_SELECTION_HARDENING.md): selector contract, case catalog, live validation, and closeout proof requirements.
 - [Phase 95 Context Retrieval Upgrade](PHASE95_CONTEXT_RETRIEVAL_UPGRADE.md): context-source audit contract, unsupported layout blocking, and live validation proof.
 - [Phase 96 Implementation-Prep Workflow Expansion](PHASE96_IMPLEMENTATION_PREP_EXPANSION.md): draft-only packet proposal expansion, validation reports, fixture mutation proof, and known limits.

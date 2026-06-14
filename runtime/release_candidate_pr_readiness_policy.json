@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "release_candidate_pr_readiness_policy",
+  "phase": 238,
+  "priority_backlog_id": "P0-M14-238",
+  "required_decision": "release_candidate_reviewable",
+  "branch_prefix": "codex/",
+  "required_prior_phases": [
+    232,
+    233,
+    234,
+    235,
+    236,
+    237
+  ],
+  "required_docs": [
+    "README.md",
+    "README.getting-started.md",
+    "README.external-tester-onboarding.md",
+    "README.release-notes.md",
+    "README.contextless-handoff-dry-run.md",
+    "README.clean-clone-release-handoff.md",
+    "README.clone-safe-model-capability-routing.md",
+    "README.anythingllm-fresh-chat-responsiveness.md",
+    "docs/README.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md"
+  ],
+  "required_scripts": [
+    "scripts/check_docs_index.py",
+    "scripts/run_first_time_user_doctor.py",
+    "scripts/validate_clone_safe_model_capability_routing.py",
+    "scripts/validate_clean_clone_release_handoff.py",
+    "scripts/validate_anythingllm_fresh_chat_responsiveness.py"
+  ],
+  "forbidden_tracked_path_fragments": [
+    "runtime-state/",
+    "coinbase_testing_repo_frozen_tmp",
+    "staterail_testing_repo_frozen_tmp",
+    ".tmp_phase",
+    ".tmp_"
+  ],
+  "required_known_limit_markers": [
+    "advanced refactor",
+    "real apply",
+    "raw 1M",
+    "Source mutation: false"
+  ],
+  "acceptance_marker": "RELEASE CANDIDATE PR READINESS PASS"
+}
