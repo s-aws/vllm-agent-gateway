@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import uuid
 from datetime import datetime, timezone
@@ -52,6 +53,30 @@ RUN_ID_RE = re.compile(r"run_id:\s*(?P<run_id>[A-Za-z0-9_.:-]+)")
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def git_metadata(path: Path) -> dict[str, Any]:
+    def git_output(*args: str) -> str | None:
+        try:
+            result = subprocess.run(
+                ["git", "-C", str(path), *args],
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=10,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+        value = result.stdout.strip()
+        return value if result.returncode == 0 and value else None
+
+    return {
+        "branch": git_output("rev-parse", "--abbrev-ref", "HEAD"),
+        "commit": git_output("rev-parse", "HEAD"),
+        "remote_origin_url": git_output("config", "--get", "remote.origin.url"),
+        "status_short": git_output("status", "--short") or "",
+    }
 
 
 def workflow_router_gateway_payload(message: str) -> dict[str, Any]:
@@ -221,6 +246,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--api-key-env", default="ANYTHINGLLM_API_KEY")
     parser.add_argument("--output-path", default=DEFAULT_OUTPUT_PATH)
     parser.add_argument("--case-id", action="append", dest="case_ids")
+    parser.add_argument("--required-decision-kind", action="append", dest="required_decision_kinds")
     parser.add_argument("--skip-port-health", action="store_true")
     parser.add_argument("--timeout-seconds", type=int, default=900)
     return parser.parse_args()
@@ -241,7 +267,8 @@ def main() -> int:
             raise RuntimeError(f"Unknown case ids requested: {missing}")
     else:
         cases = all_cases
-    catalog_errors = validate_case_catalog(cases)
+    required_decisions = set(args.required_decision_kinds) if args.required_decision_kinds else None
+    catalog_errors = validate_case_catalog(cases, required_decisions=required_decisions)
     if catalog_errors:
         raise RuntimeError(f"founder feedback loop case catalog failed: {catalog_errors}")
 
@@ -286,6 +313,7 @@ def main() -> int:
         "created_at": utc_now(),
         "priority_backlog_id": "P0-BB-010",
         "config_root": str(config_root),
+        "source_git": git_metadata(config_root),
         "cases_path": str(Path(args.cases_path)),
         "controller_base_url": args.controller_base_url,
         "workflow_router_gateway_base_url": args.workflow_router_gateway_base_url,
@@ -300,7 +328,7 @@ def main() -> int:
             "target_git_changed": target_git_changed,
         },
     }
-    report_errors = validate_founder_feedback_loop_report(report, cases)
+    report_errors = validate_founder_feedback_loop_report(report, cases, required_decisions=required_decisions)
     if report_errors:
         report["status"] = "failed"
         report["errors"] = report_errors

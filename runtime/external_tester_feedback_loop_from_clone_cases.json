@@ -1,0 +1,31 @@
+{
+  "cases": [
+    {
+      "case_id": "FL243-001",
+      "expected_classifications": [
+        "useful"
+      ],
+      "expected_decision_kind": "rejected_finding",
+      "expected_gap_class": "none",
+      "feedback_template": "Record feedback for run {run_id}: useful: this release-candidate answer was clear enough for tester review and should not create repair work.",
+      "seed_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, explain what find_stealth_order_by_placed_order_id does in core/stealth_order_manager.py. Read only. Include key inputs, outputs, side effects, and tests.",
+      "surface": "gateway",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+    },
+    {
+      "case_id": "FL243-002",
+      "expected_classifications": [
+        "wrong"
+      ],
+      "expected_decision_kind": "repair_followup",
+      "expected_gap_class": "model_capability",
+      "feedback_template": "Record feedback for run {run_id}: wrong: this release-candidate answer missed the likely root cause and needs repair before this finding can be closed.",
+      "seed_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, diagnose why a placed_order_id stealth lookup answer might miss the likely root cause. Read only. Include evidence and uncertainty.",
+      "surface": "anythingllm",
+      "target_root": "/mnt/c/coinbase_testing_repo_frozen_tmp"
+    }
+  ],
+  "kind": "founder_feedback_loop_cases",
+  "phase": 243,
+  "schema_version": 1
+}

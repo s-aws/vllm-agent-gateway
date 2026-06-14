@@ -165,6 +165,7 @@ Feature docs:
 - [README.release-notes.md](README.release-notes.md): founder-testing release scope, limitations, validation evidence, and rerun commands
 - [README.release-adherence.md](README.release-adherence.md): one JSON/Markdown gate for current local model release readiness
 - [README.release-candidate-baseline-corpus-promotion.md](README.release-candidate-baseline-corpus-promotion.md): promoted release-candidate chat-quality cases in the governed baseline corpus
+- [README.external-tester-feedback-loop-from-clone.md](README.external-tester-feedback-loop-from-clone.md): release-candidate clone feedback proof for positive and defect tester records
 - [README.failure-to-roadmap.md](README.failure-to-roadmap.md): failure-to-roadmap proposal gate for failed release proof artifacts
 - [README.contextless-audit-scorecard.md](README.contextless-audit-scorecard.md): contextless audit and blind-baseline evidence scorecard
 - [README.multi-fixture-prompt-parity.md](README.multi-fixture-prompt-parity.md): multi-fixture prompt parity across gateway and AnythingLLM

@@ -1,0 +1,107 @@
+{
+  "acceptance_marker": "PHASE243 EXTERNAL TESTER FEEDBACK LOOP FROM CLONE PASS",
+  "accepted_finding_rerun_cases": [
+    {
+      "closure_status_before_rerun": "open_pending_repair",
+      "expected_decision_kind": "repair_followup",
+      "expected_gap_class": "model_capability",
+      "holdout_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp.github, diagnose why a placed_order_id lookup answer might miss the likely root cause. Read only. Include evidence, uncertainty, and related tests.",
+      "minimum_rerun_records": 2,
+      "required_fixture_roots": [
+        "/mnt/c/coinbase_testing_repo_frozen_tmp",
+        "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+      ],
+      "required_surfaces": [
+        "gateway",
+        "anythingllm"
+      ],
+      "source_case_id": "FL243-002",
+      "target_prompt": "In /mnt/c/coinbase_testing_repo_frozen_tmp, diagnose why a placed_order_id stealth lookup answer might miss the likely root cause. Read only. Include evidence and uncertainty."
+    }
+  ],
+  "cases_path": "runtime/external_tester_feedback_loop_from_clone_cases.json",
+  "kind": "external_tester_feedback_loop_from_clone_policy",
+  "live_feedback_report_path": "runtime-state/external-tester-feedback-loop-from-clone/phase243/phase243-external-tester-feedback-loop-live.json",
+  "milestone_ids": [
+    "M9",
+    "M14"
+  ],
+  "negative_controls": [
+    "missing_positive_feedback_record",
+    "missing_defect_feedback_record",
+    "missing_target_run_id",
+    "missing_feedback_run_id",
+    "missing_route_decision",
+    "missing_prompt_hash",
+    "missing_output_artifacts",
+    "accepted_repair_without_rerun_contract",
+    "rejected_feedback_without_explanation",
+    "target_fixture_mutation"
+  ],
+  "phase": 243,
+  "priority_backlog_id": "P0-M14-243",
+  "release_candidate_source": {
+    "active_workspace_path": "/mnt/c/agentic_agents",
+    "disallow_active_workspace": true,
+    "expected_branch": "codex/m14-release-clone-proof",
+    "expected_remote_url": "https://github.com/s-aws/vllm-agent-gateway.git",
+    "require_clean_source": true,
+    "require_commit": true,
+    "require_remote": true,
+    "required_source_mode": "remote_branch_clone",
+    "source_path_markers": [
+      "agentic_agents_phase239_remote_clone",
+      "agentic_agents_phase243_remote_clone"
+    ]
+  },
+  "required_feedback_outcomes": [
+    {
+      "case_id": "FL243-001",
+      "decision_status": "rejected",
+      "expected_classifications": [
+        "useful"
+      ],
+      "expected_decision_kind": "rejected_finding",
+      "expected_gap_class": "none",
+      "outcome": "positive_feedback_no_repair"
+    },
+    {
+      "case_id": "FL243-002",
+      "decision_status": "accepted",
+      "expected_classifications": [
+        "wrong"
+      ],
+      "expected_decision_kind": "repair_followup",
+      "expected_gap_class": "model_capability",
+      "outcome": "targeted_defect_repair_followup"
+    }
+  ],
+  "rerun_gate_contract": {
+    "anythingllm_surface_required": true,
+    "artifact_trace_required": true,
+    "blind_baseline_first_required": true,
+    "fixture_mutation_check_required": true,
+    "gateway_surface_required": true,
+    "gap_class_comparison_required": true,
+    "holdout_prompt_rerun_required": true,
+    "manual_success_without_rerun_allowed": false,
+    "rejected_explanations_required": true,
+    "target_prompt_rerun_required": true
+  },
+  "schema_version": 1,
+  "trace_contract": {
+    "artifact_hash_required": true,
+    "feedback_run_id_required": true,
+    "minimum_output_artifacts": 1,
+    "prompt_hash_required": true,
+    "request_artifact_required": true,
+    "route_decision_required": true,
+    "target_run_id_prefix": "workflow-router-",
+    "target_run_record_required": true
+  },
+  "runtime_state_hygiene": {
+    "git_check_ignore_required": true,
+    "git_ls_files_runtime_state_must_be_empty": true,
+    "local_artifacts_only": true
+  }
+}
