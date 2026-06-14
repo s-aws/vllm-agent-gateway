@@ -96,6 +96,7 @@ Examples are grouped by feature so the root README can stay small.
 - [Contextless Handoff Dry Run](contextless-handoff-dry-run.md): validate the live contextless handoff package after Phase 232.
 - [Clean Clone Release Handoff](clean-clone-release-handoff.md): validate the Phase 234 disposable clean-snapshot handoff package outside the active workspace.
 - [Clone-Safe Model Capability Routing](clone-safe-model-capability-routing.md): validate that clean checkout routing no longer depends on runtime-state profile seeding.
+- [AnythingLLM Fresh Chat Responsiveness](anythingllm-fresh-chat-responsiveness.md): validate fresh `hi`, coding prompt, target settings, UI stream-chat, and fixture proof.
 - [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.
 - [Stable Chat Quality Release](stable-chat-quality-release.md): consolidated release-readiness command, blocker review, and ready-state shape.
 - [AnythingLLM Founder Smoke](anythingllm-founder-smoke.md): curated four-prompt smoke suite through the real AnythingLLM workspace.

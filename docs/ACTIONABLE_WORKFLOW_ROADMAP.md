@@ -10277,3 +10277,162 @@ Completion proof:
 - Clone-safe routing aggregate gate passed from the remote clone with `clean_handoff_loaded=true`, `clean_handoff_runtime_seed_count=0`, `profile_path_uses_runtime_state=false`, and `validation_error_count=0`.
 - During the first clone attempt, Phase 236 found and fixed two clone-portability issues: restart commands assumed executable script bits, and clone proof needed an explicit shared managed state root to replace an already-running local stack.
 - Final full Bash regression after the Phase 236 closeout docs passed with `1535 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 237: AnythingLLM Fresh Chat Responsiveness Rebaseline
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove a first-time tester can create or use a fresh AnythingLLM chat and receive a useful response for simple conversational and supported coding prompts through the workflow-router gateway.
+
+Scope:
+
+- Test the user-reported failure mode where typing `hi` into AnythingLLM does not respond.
+- Validate AnythingLLM target configuration points to `http://127.0.0.1:8500/v1` and workspace `my-workspace`.
+- Compare direct workflow-router gateway behavior with AnythingLLM API behavior for a greeting prompt and one supported read-only coding prompt.
+- Capture whether failures are caused by AnythingLLM configuration, streaming behavior, gateway response shape, controller routing, stale session state, or local model availability.
+- Repair only the smallest shared gateway/controller/formatter issue needed to restore chat-visible responses.
+- Do not add a parallel greeting path, bypass workflow routing, or mutate protected fixtures.
+
+Acceptance target: a contextless tester can type `hi` in a fresh AnythingLLM chat and receive a useful chat-visible response, then run a representative read-only coding prompt through the same path with route and answer evidence.
+
+Completion proof:
+
+- Restarted the repo-managed gateway/controller stack from `/mnt/c/agentic_agents` so Phase 237 live proof exercised the active release-candidate source instead of the prior clean-snapshot process.
+- Existing API session recovery precheck passed with `anythingllm_case_count=2`, `direct_controller_case_count=2`, `failed_case_count=0`, and `blocker_finding_count=0`.
+- Added `runtime/anythingllm_fresh_chat_responsiveness_policy.json`, `vllm_agent_gateway/acceptance/anythingllm_fresh_chat_responsiveness.py`, `scripts/validate_anythingllm_fresh_chat_responsiveness.py`, focused regression coverage, README, and examples.
+- Browser-visible AnythingLLM UI proof passed for governed `UI167-GENCHAT-001` with `/stream-chat` seen, `stream_chat_response_count=1`, parsed run `workflow-router-general-20260614T151726783489Z`, and `fixture_unchanged=true`.
+- Aggregate Phase 237 proof passed with `decision=fresh_chat_responsive`, `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `blocker_finding_count=0`, `target_settings_status=passed`, `ui_report_status=passed`, and `fixture_unchanged=true`.
+- AnythingLLM target settings were verified from `/api/v1/system`: provider `generic-openai`, model `Qwen3-Coder-30B-A3B-Instruct`, workspace `my-workspace`, API base `http://127.0.0.1:3001`, and `GenericOpenAiBasePath=http://127.0.0.1:8500/v1`.
+- Direct workflow-router gateway passed `hi` with run `workflow-router-general-20260614T151740754224Z`.
+- Direct workflow-router gateway passed the representative read-only code explanation prompt with run `workflow-router-20260614T151740780812Z`.
+- AnythingLLM API passed `hi` in a fresh session with run `workflow-router-general-20260614T151749473668Z`.
+- AnythingLLM API passed the same representative read-only code explanation prompt in a fresh session with run `workflow-router-20260614T151749555364Z`.
+- Focused regression passed with `43 passed`; docs index passed with `linked_count=318` and no orphan docs.
+- The user-reported `hi` no-response symptom did not reproduce after restart through API or UI validation; Phase 238 should proceed with release-candidate readiness unless fresh UI evidence shows a different desktop-only state issue.
+
+### Approved Phase 238: Release-Candidate PR Readiness Packet
+
+Status: Approved.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M9 Founder Feedback Repair Loop.
+
+Goal: make the pushed release-candidate branch reviewable without private chat context.
+
+Scope:
+
+- Verify branch `codex/m14-release-clone-proof` contains the complete Phase 232-237 release handoff state and no generated runtime-state or protected fixture files.
+- Prepare a contextless PR/readiness summary that names the objective, supported scope, known limits, proof commands, live run IDs, regression result, and rollback path.
+- Confirm docs index, getting-started path, release notes, and stable handoff docs point to the correct release-candidate validation path.
+- If a PR is created, keep it draft unless the release decision gate explicitly marks it ready.
+- Do not treat a PR description as proof; it must link to reproducible commands and committed docs.
+
+Acceptance target: a reviewer can open the branch or draft PR and understand what changed, how to test it, what passed, what remains unsupported, and where feedback should go.
+
+### Approved Phase 239: Remote-Clone Priority 0 Chat-Quality Replay
+
+Status: Approved.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M3 Workflow/Skill/Tool Selection Reliability, M4 Evidence Quality And Relevance, M14 Release Packaging And Onboarding.
+
+Goal: prove the release candidate produces useful chat-visible answers from a remote clone, not only setup and handoff pass markers.
+
+Scope:
+
+- Use the blind-baseline-first process for a small representative prompt pack before judging local output.
+- Run the same prompts through the workflow-router gateway and AnythingLLM from a disposable clone or clean snapshot of the pushed branch.
+- Cover greeting, Coinbase code explanation, endpoint route lookup, schema lookup, related tests, feedback capture, and one unsupported-boundary refusal.
+- Score routing, selected skill/tool evidence, answer usefulness, source refs, output format, and limitation handling.
+- Repair only concrete controller, router, formatter, skill, tool, or docs gaps found by the replay.
+
+Acceptance target: representative Priority 0 prompts meet their blind-baseline rubrics through the release-candidate clone path, with no critical or high unresolved chat-quality gaps.
+
+### Approved Phase 240: Remote-Clone Non-Coinbase Generalization Replay
+
+Status: Approved.
+
+Milestone mapping: M5 Multi-Repo Generalization, M14 Release Packaging And Onboarding.
+
+Goal: confirm the release candidate still generalizes beyond the Coinbase fixtures when run from the remote clone.
+
+Scope:
+
+- Reuse the approved `s-aws/staterail` fixture scope without committing or pushing to that repository.
+- Include the Python-service fixture and Staterail prompt surfaces already used by the multi-repo proof chain.
+- Run gateway and AnythingLLM proof where the prompt is runtime-facing.
+- Verify allowed-root configuration, route selection, evidence quality, and protected fixture mutation state.
+- Do not add new repository fixtures unless an existing approved fixture cannot exercise the required generalization behavior.
+
+Acceptance target: the release candidate demonstrates the same supported L1/L2 read-only behavior across Coinbase and non-Coinbase fixtures from the clone path.
+
+### Approved Phase 241: Large-Context Release-Candidate Strategy Replay
+
+Status: Approved.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M8 Context Strategy Router, M16 Corpus And Index Safety Governance, M14 Release Packaging And Onboarding.
+
+Goal: prove the release candidate preserves large-context usability and safety boundaries from the clone path.
+
+Scope:
+
+- Reuse the governed large-corpus fixture and existing Phase 221-226 prompt surfaces.
+- Exercise retrieval, artifact paging, summarization, refusal, and chunked investigation where currently supported.
+- Verify index safety, source hash freshness, no source-text retention, no raw 1M prompt support claim, and chat-visible answer usefulness.
+- Include AnythingLLM proof for at least one release-representative large-context prompt.
+- Do not attempt raw 1M-token prompting unless M15 is explicitly activated.
+
+Acceptance target: the release candidate answers large-context prompts using the approved strategy router and safety controls, with no regression to prompt stuffing, artifact-only answers, or stale evidence.
+
+### Approved Phase 242: Release-Candidate Baseline Corpus Promotion
+
+Status: Approved.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M3 Workflow/Skill/Tool Selection Reliability, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M12 Skill Library Scaling Gate.
+
+Goal: promote the passing release-candidate chat-quality prompt set into the governed baseline corpus so future repairs cannot regress it silently.
+
+Scope:
+
+- Promote only prompts with blind-baseline-first evidence, local-stack output, comparison results, and mutation proof.
+- Record prompt hashes, expected route/workflow/skill/tool surfaces, required answer markers, and known acceptable variability.
+- Include holdout prompts for greeting, small-repo read-only, non-Coinbase generalization, feedback, and large-context behavior.
+- Reject or defer prompts with unresolved high/critical gaps instead of normalizing bad output.
+- Keep baseline corpus changes deterministic and reviewable.
+
+Acceptance target: the release-candidate prompt set becomes a durable regression surface that future agents can audit without chat history.
+
+### Approved Phase 243: External Tester Feedback Loop From Clone
+
+Status: Approved.
+
+Milestone mapping: M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding.
+
+Goal: prove feedback submitted after release-candidate clone testing becomes traceable accepted, rejected, deferred, advisory, or blocking work.
+
+Scope:
+
+- Run at least one positive feedback record and one targeted missing/defect record against fresh release-candidate workflow runs.
+- Verify feedback links to target workflow-router run IDs, route decisions, prompt hashes, and output artifacts.
+- Confirm accepted findings require rerun proof while rejected/deferred findings include a useful explanation.
+- Ensure feedback artifacts remain local/ignored and do not mutate protected fixture source.
+
+Acceptance target: a tester can report feedback from the release-candidate path and a future contextless agent can determine the correct next action from the feedback artifacts.
+
+### Approved Phase 244: V1 Release-Candidate Decision Gate
+
+Status: Approved.
+
+Milestone mapping: M1 V1 Founder Beta Closeout, M14 Release Packaging And Onboarding.
+
+Goal: aggregate the release-candidate proof chain into an explicit ship, hold, or repair decision.
+
+Scope:
+
+- Aggregate Phase 232-243 results, live run IDs, docs validation, regression results, fixture mutation proof, known limits, and unresolved findings.
+- Mark the release candidate `ship`, `hold`, or `repair-required` using deterministic criteria.
+- If `ship`, identify the exact branch/commit and tester instructions.
+- If `hold` or `repair-required`, create the smallest next roadmap phase batch tied to the blocking evidence.
+- Do not declare stable readiness if any required Priority 0 chat-quality gate has unresolved critical or high findings.
+
+Acceptance target: the project has a durable, auditable decision on whether the current release candidate is ready for founder/external tester use.

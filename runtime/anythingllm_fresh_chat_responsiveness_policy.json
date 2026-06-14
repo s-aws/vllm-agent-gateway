@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "kind": "anythingllm_fresh_chat_responsiveness_policy",
+  "phase": 237,
+  "priority_backlog_id": "P0-M14-237",
+  "required_decision": "fresh_chat_responsive",
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "workflow_router_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace",
+    "model": "Qwen3-Coder-30B-A3B-Instruct",
+    "provider": "generic-openai"
+  },
+  "required_cases": [
+    "GATEWAY-HI",
+    "ANYTHINGLLM-HI",
+    "GATEWAY-CODE-EXPLANATION",
+    "ANYTHINGLLM-CODE-EXPLANATION"
+  ],
+  "required_ui_case_ids": [
+    "UI167-GENCHAT-001"
+  ],
+  "required_target_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "acceptance_marker": "ANYTHINGLLM FRESH CHAT RESPONSIVENESS PASS",
+  "forbidden_claims": [
+    "ordinary chat should use the workflow-router as a general assistant",
+    "advanced refactor is supported",
+    "raw 1M token prompts are supported"
+  ]
+}

@@ -89,6 +89,14 @@ The first proposed milestone-aligned phase set is:
 | Phase 234 | M14 | Complete. Produced a disposable clean-snapshot release handoff proof with managed stack restarted from the snapshot, live AnythingLLM onboarding, fixture mutation proof, and full regression. |
 | Phase 235 | M14 | Complete. Made model-capability routing clone-safe by moving the active routing profile dependency out of `runtime-state/` and proving clean handoff with `runtime_seed_count=0`. |
 | Phase 236 | M14 | Complete. Proved the release candidate can be committed, pushed, cloned, started, and tested from a remote branch without active-workspace state. |
+| Phase 237 | M2/M13/M14 | Complete. Rebaselined AnythingLLM fresh-chat responsiveness, including the user-reported `hi` no-response failure mode, active-stack UI proof, API proof, target settings, coding prompt proof, and fixture safety. |
+| Phase 238 | M14/M9 | Approved. Prepare the release-candidate branch or draft PR for contextless review with proof links and known limits. |
+| Phase 239 | M2/M3/M4/M14 | Approved. Replay Priority 0 chat-quality prompts from the remote-clone path with blind-baseline comparison. |
+| Phase 240 | M5/M14 | Approved. Replay non-Coinbase generalization from the remote-clone path. |
+| Phase 241 | M6/M8/M16/M14 | Approved. Replay large-context strategy and safety behavior from the release-candidate path. |
+| Phase 242 | M2/M3/M4/M9/M12 | Approved. Promote passing release-candidate prompt coverage into the governed baseline corpus. |
+| Phase 243 | M9/M14 | Approved. Prove tester feedback from the release-candidate path becomes traceable work. |
+| Phase 244 | M1/M14 | Approved. Aggregate the release-candidate proof chain into a deterministic ship, hold, or repair decision. |
 
 ## Usage Rules
 
