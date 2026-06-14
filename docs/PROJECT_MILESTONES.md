@@ -88,7 +88,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 233 | M14 | Complete. Passed a contextless handoff dry run through setup validation, representative prompts, feedback capture, current proof gates, and AnythingLLM/gateway live evidence. |
 | Phase 234 | M14 | Complete. Produced a disposable clean-snapshot release handoff proof with managed stack restarted from the snapshot, live AnythingLLM onboarding, fixture mutation proof, and full regression. |
 | Phase 235 | M14 | Complete. Made model-capability routing clone-safe by moving the active routing profile dependency out of `runtime-state/` and proving clean handoff with `runtime_seed_count=0`. |
-| Phase 236 | M14 | Approved. Prove the release candidate can be committed, pushed, cloned, started, and tested from a remote branch without active-workspace state. |
+| Phase 236 | M14 | Complete. Proved the release candidate can be committed, pushed, cloned, started, and tested from a remote branch without active-workspace state. |
 
 ## Usage Rules
 

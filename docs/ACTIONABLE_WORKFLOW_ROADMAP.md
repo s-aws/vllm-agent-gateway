@@ -10246,7 +10246,7 @@ Completion proof:
 
 ### Approved Phase 236: Remote Branch Clone Release Proof
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M14 Release Packaging And Onboarding.
 
@@ -10263,3 +10263,17 @@ Scope:
 - Do not commit or push to any fixture repository and do not enable advanced refactor or real apply.
 
 Acceptance target: a contextless tester can clone the pushed release-candidate branch, start the managed stack from that clone, ask the representative onboarding prompt through AnythingLLM, capture feedback, and verify no protected fixture mutation without access to the active dirty workspace.
+
+Completion proof:
+
+- Created branch `codex/m14-release-clone-proof` from the validated release-candidate workspace.
+- Committed the M14 release-candidate source, docs, runtime policies, tests, and examples without staging generated `runtime-state/`, temp directories, protected frozen fixtures, or fixture repositories.
+- Pushed branch `codex/m14-release-clone-proof` to `s-aws/vllm-agent-gateway`; the remote branch commit used for the clone proof was `85a7a5e`.
+- Cloned the remote branch into `/tmp/agentic_agents_phase236_remote_clone` and verified the clone source was clean before live proof.
+- Docs index passed from the remote clone with `linked_count=316` and no orphan docs.
+- Clone-safe routing static gate passed from the remote clone with `profile_path_uses_runtime_state=false`, `profile_clone_safe=true`, and `decision=clone_safe_routing_ready`.
+- Clean handoff live proof passed from the remote clone with `source_dirty_line_count=0`, `runtime_seed_count=0`, `managed_stack_from_snapshot=true`, `fixture_mutation_count=0`, and `decision=clean_handoff_ready`.
+- Live AnythingLLM onboarding from the remote clone passed for `ONB-001` with workflow-router run `workflow-router-20260614T140622656802Z` and feedback run `workflow-feedback-20260614T140630660878Z`.
+- Clone-safe routing aggregate gate passed from the remote clone with `clean_handoff_loaded=true`, `clean_handoff_runtime_seed_count=0`, `profile_path_uses_runtime_state=false`, and `validation_error_count=0`.
+- During the first clone attempt, Phase 236 found and fixed two clone-portability issues: restart commands assumed executable script bits, and clone proof needed an explicit shared managed state root to replace an already-running local stack.
+- Final full Bash regression after the Phase 236 closeout docs passed with `1535 passed`, `4 skipped`, and `23 deselected`.
