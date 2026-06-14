@@ -19,6 +19,7 @@ def policy() -> dict:
         "required_docs": ["README.md"],
         "required_scripts": ["scripts/check_docs_index.py"],
         "forbidden_tracked_path_fragments": ["runtime-state/"],
+        "allowed_tracked_path_prefixes": ["tests/fixtures/"],
         "required_known_limit_markers": ["advanced refactor"],
         "acceptance_marker": "RELEASE CANDIDATE PR READINESS PASS",
     }

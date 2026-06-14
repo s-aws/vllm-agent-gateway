@@ -41,6 +41,9 @@
     ".tmp_phase",
     ".tmp_"
   ],
+  "allowed_tracked_path_prefixes": [
+    "tests/fixtures/"
+  ],
   "required_known_limit_markers": [
     "advanced refactor",
     "real apply",

@@ -123,6 +123,7 @@ def validate_policy(policy: dict[str, Any]) -> list[str]:
         "required_docs",
         "required_scripts",
         "forbidden_tracked_path_fragments",
+        "allowed_tracked_path_prefixes",
         "required_known_limit_markers",
     ):
         if not string_list(policy.get(field)):
@@ -178,9 +179,15 @@ def script_checks(config_root: Path, scripts: list[str]) -> list[dict[str, Any]]
     return checks
 
 
-def tracked_forbidden_paths(config_root: Path, fragments: list[str]) -> list[str]:
+def tracked_forbidden_paths(config_root: Path, fragments: list[str], allowed_prefixes: list[str] | None = None) -> list[str]:
     tracked = git_lines(config_root, "ls-files")
-    return [path for path in tracked if any(fragment in path for fragment in fragments)]
+    allowed = tuple(allowed_prefixes or ())
+    return [
+        path
+        for path in tracked
+        if any(fragment in path for fragment in fragments)
+        and not any(path.startswith(prefix) for prefix in allowed)
+    ]
 
 
 def known_limit_checks(config_root: Path, markers: list[str]) -> dict[str, Any]:
@@ -278,6 +285,7 @@ def build_report(
         },
         "hygiene": {
             "forbidden_tracked_path_fragments": string_list(policy.get("forbidden_tracked_path_fragments")),
+            "allowed_tracked_path_prefixes": string_list(policy.get("allowed_tracked_path_prefixes")),
             "forbidden_tracked_paths": forbidden_tracked_paths,
         },
         "known_limits": {
@@ -422,7 +430,11 @@ def run_release_candidate_pr_readiness(config: ReleaseCandidatePrReadinessConfig
     docs = doc_checks(config_root, string_list(policy.get("required_docs")))
     scripts = script_checks(config_root, string_list(policy.get("required_scripts")))
     phase_status_map = phase_statuses(roadmap_text, int_list(policy.get("required_prior_phases")))
-    forbidden = tracked_forbidden_paths(config_root, string_list(policy.get("forbidden_tracked_path_fragments")))
+    forbidden = tracked_forbidden_paths(
+        config_root,
+        string_list(policy.get("forbidden_tracked_path_fragments")),
+        allowed_prefixes=string_list(policy.get("allowed_tracked_path_prefixes")),
+    )
     known_limits = known_limit_checks(config_root, string_list(policy.get("required_known_limit_markers")))
     report = build_report(
         policy=policy,
