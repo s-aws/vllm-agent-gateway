@@ -292,16 +292,16 @@
     {
       "blind_baselines": {
         "path": "runtime/phase242_release_candidate_blind_baselines.json",
-        "sha256": "d802961bb343004218737f983745f19593988be7f5f76a285dd099120340ce0c"
+        "sha256": "e308699984bd3379d590a23b52be005fa6a910d1687085d3599fbae30a0c86dd"
       },
       "comparison": {
         "critical_finding_count": 0,
         "gap_categories": {},
         "high_finding_count": 0,
         "inputs": {
-          "blind_baselines_sha256": "d802961bb343004218737f983745f19593988be7f5f76a285dd099120340ce0c",
+          "blind_baselines_sha256": "e308699984bd3379d590a23b52be005fa6a910d1687085d3599fbae30a0c86dd",
           "local_eval_sha256": "b4c2f97994ec870259946b491beb91b0b28a76e92174bb63ecaebd710cb659c7",
-          "prompt_cases_sha256": "33a4b0f969e748ed5dbcbae9fc4dca7b9df30c50bf52b3bcd0107aea07a1721e"
+          "prompt_cases_sha256": "b82c591e293ea0819325364dff1a03bb6f3757c40593d8f57b628e14c78c4fc3"
         },
         "minimum_route_score": 90,
         "passed_response_count": 40,
@@ -374,7 +374,7 @@
       },
       "prompt_cases": {
         "path": "runtime/phase242_release_candidate_prompt_cases.json",
-        "sha256": "33a4b0f969e748ed5dbcbae9fc4dca7b9df30c50bf52b3bcd0107aea07a1721e"
+        "sha256": "b82c591e293ea0819325364dff1a03bb6f3757c40593d8f57b628e14c78c4fc3"
       },
       "prompt_family": "release_candidate_chat_quality",
       "repair_status": {
