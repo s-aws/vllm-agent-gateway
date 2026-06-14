@@ -6,8 +6,8 @@
   "description": "Governed rules for promoting founder smoke or prompt-pack cases into the stable Priority 0 baseline corpus. This policy does not mutate runtime/baseline_corpus.json; it blocks promotion until every required proof artifact and founder approval are present.",
   "source_corpus": {
     "path": "runtime/baseline_corpus.json",
-    "sha256": "3b4857316f1a1b2cf18f54bde6909b8112247b46971ca0b1ef15fe2bc2782dcc",
-    "expected_entry_count": 4
+    "sha256": "1c91b2643c1b0a19032e2ba90b5a6de3e470c53ff1a4b02e08565cd92a689de7",
+    "expected_entry_count": 5
   },
   "source_prompt_pack": {
     "path": "runtime/founder_test_prompt_pack.json",

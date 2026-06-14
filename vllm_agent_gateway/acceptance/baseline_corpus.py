@@ -19,10 +19,16 @@ REQUIRED_COINBASE_TARGETS = {
     "/mnt/c/coinbase_testing_repo_frozen_tmp",
     "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
 }
-EXPECTED_PHASES = {116, 117, 118, 119}
-EXPECTED_BACKLOG_IDS = {"P0-BB-001", "P0-BB-002", "P0-BB-003", "P0-BB-004"}
+EXPECTED_PHASES = {116, 117, 118, 119, 242}
+EXPECTED_BACKLOG_IDS = {"P0-BB-001", "P0-BB-002", "P0-BB-003", "P0-BB-004", "P0-M14-242"}
+EXPECTED_PHASES_DESCRIPTION = "116, 117, 118, 119, and 242"
+EXPECTED_BACKLOG_IDS_DESCRIPTION = "P0-BB-001 through P0-BB-004 plus P0-M14-242"
 EXPECTED_BASELINE_COLLECTION_ORDER = "blind_baseline_before_local_model_output"
 MINIMUM_SCORE = 85
+SURFACE_ALIASES = {
+    "workflow_router_gateway": "gateway",
+    "anythingllm_api": "anythingllm",
+}
 
 
 class CorpusEntryStatus(str, Enum):
@@ -80,10 +86,30 @@ def object_list(value: object) -> list[dict[str, Any]]:
     return [item for item in value if isinstance(item, dict)]
 
 
+def is_prompt_family_baseline_entry(entry: dict[str, Any]) -> bool:
+    backlog_id = entry.get("priority_backlog_id")
+    return (
+        entry.get("status") == CorpusEntryStatus.STABLE.value
+        and isinstance(entry.get("entry_id"), str)
+        and isinstance(backlog_id, str)
+        and backlog_id.startswith("P0-BB-")
+    )
+
+
 def string_list(value: object) -> list[str]:
     if not isinstance(value, list):
         return []
     return [item for item in value if isinstance(item, str) and item.strip()]
+
+
+def int_list(value: object) -> list[int]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, int)]
+
+
+def normalized_surface_set(value: object) -> set[str]:
+    return {SURFACE_ALIASES.get(item, item) for item in string_list(value)}
 
 
 def artifact_hash_errors(
@@ -151,6 +177,49 @@ def duplicate_values(values: list[str]) -> list[str]:
 
 def holdout_count(prompt_cases: dict[str, Any]) -> int:
     return sum(1 for item in object_list(prompt_cases.get("cases")) if item.get("holdout") is True)
+
+
+def validate_prompt_case_metadata(
+    entry: dict[str, Any],
+    prompt_cases: dict[str, Any],
+    *,
+    prefix: str,
+) -> list[str]:
+    errors: list[str] = []
+    required_categories = set(string_list(entry.get("required_prompt_categories")))
+    required_surfaces = normalized_surface_set(entry.get("required_target_surfaces"))
+    if not required_categories and not required_surfaces:
+        return errors
+    cases = object_list(prompt_cases.get("cases"))
+    categories = {
+        str(item.get("category"))
+        for item in cases
+        if isinstance(item.get("category"), str) and item.get("category")
+    }
+    missing_categories = sorted(required_categories - categories)
+    if missing_categories:
+        errors.append(f"{prefix}.prompt_cases missing required category coverage: " + ", ".join(missing_categories))
+    for item in cases:
+        case_id = item.get("case_id")
+        case_prefix = f"{prefix}.prompt_cases[{case_id}]"
+        if required_categories and not isinstance(item.get("category"), str):
+            errors.append(f"{case_prefix}.category is required")
+        if required_surfaces:
+            surfaces = normalized_surface_set(item.get("target_surfaces"))
+            missing_surfaces = sorted(required_surfaces - surfaces)
+            if missing_surfaces:
+                errors.append(f"{case_prefix}.target_surfaces missing required surface(s): " + ", ".join(missing_surfaces))
+        if not isinstance(item.get("expected_workflow"), str) or not item["expected_workflow"].strip():
+            errors.append(f"{case_prefix}.expected_workflow is required")
+        for field in ("expected_answer_markers", "forbidden_behaviors", "evidence_expectations"):
+            if not string_list(item.get(field)):
+                errors.append(f"{case_prefix}.{field} must be a non-empty string list")
+        source = item.get("promotion_source") if isinstance(item.get("promotion_source"), dict) else {}
+        if not source:
+            errors.append(f"{case_prefix}.promotion_source is required")
+        elif not isinstance(source.get("source_phase"), int) or not isinstance(source.get("source_case_id"), str):
+            errors.append(f"{case_prefix}.promotion_source must include source_phase and source_case_id")
+    return errors
 
 
 def validate_baseline_record_content(baselines: dict[str, Any], *, prefix: str) -> list[str]:
@@ -234,7 +303,82 @@ def validate_prompt_and_baseline_sources(
     if baseline_policy.get("source_mutation_allowed") is not False:
         errors.append(f"{prefix}.blind_baselines.baseline_policy must record source_mutation_allowed=false")
     errors.extend(validate_baseline_record_content(baselines, prefix=prefix))
+    errors.extend(validate_prompt_case_metadata(entry, prompt_cases, prefix=prefix))
     return errors, prompt_cases, baselines
+
+
+def validate_promotion_evidence(
+    entry: dict[str, Any],
+    *,
+    config_root: Path,
+    prefix: str,
+    require_artifacts: bool,
+) -> list[str]:
+    evidence = entry.get("promotion_evidence") if isinstance(entry.get("promotion_evidence"), dict) else {}
+    if entry.get("phase") == 242 and not evidence:
+        return [f"{prefix}.promotion_evidence is required"]
+    required_phases = set(int_list(evidence.get("required_source_phases")))
+    refs = object_list(evidence.get("source_reports"))
+    if not required_phases and not refs:
+        return []
+    errors: list[str] = []
+    if not required_phases:
+        errors.append(f"{prefix}.promotion_evidence.required_source_phases must be a non-empty integer list")
+    if not refs:
+        errors.append(f"{prefix}.promotion_evidence.source_reports must be non-empty")
+        return errors
+    ref_phases = {
+        item.get("phase")
+        for item in refs
+        if isinstance(item.get("phase"), int)
+    }
+    missing_phases = sorted(required_phases - ref_phases)
+    if missing_phases:
+        errors.append(
+            f"{prefix}.promotion_evidence.source_reports missing required phase(s): "
+            + ", ".join(str(item) for item in missing_phases)
+        )
+    for item in refs:
+        phase = item.get("phase")
+        ref_prefix = f"{prefix}.promotion_evidence.source_reports[{phase}]"
+        if not isinstance(phase, int):
+            errors.append(f"{ref_prefix}.phase is required")
+        if not isinstance(item.get("kind"), str) or not item["kind"].strip():
+            errors.append(f"{ref_prefix}.kind is required")
+        if not isinstance(item.get("status"), str) or item["status"] != "passed":
+            errors.append(f"{ref_prefix}.status must be passed")
+        errors.extend(
+            artifact_hash_errors(
+                config_root=config_root,
+                prefix=ref_prefix,
+                path_value=item.get("path"),
+                hash_value=item.get("sha256"),
+                required=require_artifacts,
+            )
+        )
+        path_value = item.get("path")
+        path = resolve_path(config_root, path_value) if isinstance(path_value, str) else Path()
+        if path.is_file():
+            artifact = read_json_object(path)
+            if artifact.get("kind") != item.get("kind"):
+                errors.append(f"{ref_prefix}.kind does not match artifact")
+            if artifact.get("status") != "passed":
+                errors.append(f"{ref_prefix} artifact status must be passed")
+            if item.get("decision") is not None and artifact.get("decision") != item.get("decision"):
+                errors.append(f"{ref_prefix}.decision does not match artifact")
+            summary = artifact.get("summary") if isinstance(artifact.get("summary"), dict) else {}
+            for key in ("critical_or_high_finding_count", "failed_case_count", "missing_case_count"):
+                if key in summary and summary.get(key) != 0:
+                    errors.append(f"{ref_prefix} artifact summary.{key} must be 0")
+            if "fixture_unchanged" in summary and summary.get("fixture_unchanged") is not True:
+                errors.append(f"{ref_prefix} artifact summary.fixture_unchanged must be true")
+            if "repo_state_unchanged" in summary and summary.get("repo_state_unchanged") is not True:
+                errors.append(f"{ref_prefix} artifact summary.repo_state_unchanged must be true")
+            if "corpus_unchanged" in summary and summary.get("corpus_unchanged") is not True:
+                errors.append(f"{ref_prefix} artifact summary.corpus_unchanged must be true")
+            if artifact.get("errors") not in ([], None):
+                errors.append(f"{ref_prefix} artifact errors must be empty")
+    return errors
 
 
 def validate_local_eval_summary(
@@ -432,10 +576,10 @@ def validate_corpus_entry(
     errors: list[str] = []
     if entry.get("status") not in {item.value for item in CorpusEntryStatus}:
         errors.append(f"{prefix}.status must be supported")
-    if entry.get("phase") not in {116, 117, 118, 119}:
+    if entry.get("phase") not in EXPECTED_PHASES:
         errors.append(f"{prefix}.phase must be one of the governed Priority 0 phases")
-    if not isinstance(entry.get("priority_backlog_id"), str) or not entry["priority_backlog_id"].startswith("P0-BB-"):
-        errors.append(f"{prefix}.priority_backlog_id must be a P0-BB id")
+    if entry.get("priority_backlog_id") not in EXPECTED_BACKLOG_IDS:
+        errors.append(f"{prefix}.priority_backlog_id must be a governed Priority 0 backlog id")
     expected_response_count = entry.get("expected_response_count")
     if not isinstance(expected_response_count, int) or expected_response_count <= 0:
         errors.append(f"{prefix}.expected_response_count must be a positive integer")
@@ -467,6 +611,14 @@ def validate_corpus_entry(
         )
     )
     errors.extend(validate_repair_status(entry, prefix=prefix))
+    errors.extend(
+        validate_promotion_evidence(
+            entry,
+            config_root=config_root,
+            prefix=prefix,
+            require_artifacts=require_artifacts,
+        )
+    )
     return errors
 
 
@@ -509,12 +661,12 @@ def validate_baseline_corpus(
     if len(phases) != len(set(phases)):
         errors.append("entries contain duplicate phase values")
     if set(phases) != EXPECTED_PHASES:
-        errors.append("entries must exactly cover phases 116, 117, 118, and 119")
+        errors.append(f"entries must exactly cover phases {EXPECTED_PHASES_DESCRIPTION}")
     backlog_ids = [str(item.get("priority_backlog_id")) for item in entries if isinstance(item.get("priority_backlog_id"), str)]
     if len(backlog_ids) != len(set(backlog_ids)):
         errors.append("entries contain duplicate priority_backlog_id values")
     if set(backlog_ids) != EXPECTED_BACKLOG_IDS:
-        errors.append("entries must exactly cover P0-BB-001 through P0-BB-004")
+        errors.append(f"entries must exactly cover {EXPECTED_BACKLOG_IDS_DESCRIPTION}")
     for index, entry in enumerate(entries):
         errors.extend(validate_corpus_entry(entry, index, config_root=config_root, require_artifacts=require_artifacts))
     return errors

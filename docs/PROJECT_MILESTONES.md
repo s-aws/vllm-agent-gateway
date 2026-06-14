@@ -94,7 +94,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 239 | M2/M3/M4/M14 | Complete. Replayed Priority 0 chat-quality prompts from the remote-clone path with blind-baseline comparison, repaired chat-visible endpoint/schema evidence gaps, and passed gateway plus AnythingLLM replay with 14/14 cases and no high/critical findings. |
 | Phase 240 | M5/M14 | Complete. Replayed non-Coinbase generalization from the remote-clone path across Python-service, Staterail, and Coinbase holdout prompts with gateway and AnythingLLM proof, no response gaps, and no fixture mutation. |
 | Phase 241 | M6/M8/M16/M14 | Complete. Replayed large-context strategy and safety behavior from the release-candidate path with generated-corpus/index bootstrap, gateway and AnythingLLM proof, all required strategies covered, no raw 1M claim, metadata-only source retention, and no generated-corpus mutation. |
-| Phase 242 | M2/M3/M4/M9/M12 | Approved. Promote passing release-candidate prompt coverage into the governed baseline corpus. |
+| Phase 242 | M2/M3/M4/M9/M12 | Complete. Promoted release-candidate prompt coverage into the governed baseline corpus with 20 cases, 8 holdouts, 40 gateway/AnythingLLM response summaries, Phase 239/240/241 evidence refs, focused gates, docs-index proof, and full regression. |
 | Phase 243 | M9/M14 | Approved. Prove tester feedback from the release-candidate path becomes traceable work. |
 | Phase 244 | M1/M14 | Approved. Aggregate the release-candidate proof chain into a deterministic ship, hold, or repair decision. |
 

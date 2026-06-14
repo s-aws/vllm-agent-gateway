@@ -11,7 +11,7 @@ python scripts/validate_baseline_corpus.py --require-artifacts --output-path run
 Expected pass summary:
 
 ```text
-BASELINE CORPUS GOVERNANCE {"entry_count": 4, "error_count": 0, "stable_entry_count": 4}
+BASELINE CORPUS GOVERNANCE {"entry_count": 5, "error_count": 0, "stable_entry_count": 5}
 BASELINE CORPUS GOVERNANCE PASS
 ```
 
@@ -56,3 +56,5 @@ python -m pytest tests/regression/test_baseline_corpus.py -q
 ```
 
 Do not mark a prompt family stable if the corpus validator reports missing local response proof, missing comparison proof, unresolved critical/high findings, stale source hashes, or missing holdout status.
+
+Phase 242 release-candidate promotion is documented separately in [release-candidate-baseline-corpus-promotion.md](release-candidate-baseline-corpus-promotion.md).

@@ -56,7 +56,7 @@ def test_project_priority0_gap_taxonomy_passes_current_stable_corpus() -> None:
     )
 
     assert report["status"] == "passed"
-    assert report["summary"]["comparison_count"] == 4  # type: ignore[index]
+    assert report["summary"]["comparison_count"] == 5  # type: ignore[index]
     assert report["summary"]["finding_count"] == 0  # type: ignore[index]
     assert report["summary"]["error_count"] == 0  # type: ignore[index]
 
@@ -136,7 +136,7 @@ def test_priority0_gap_taxonomy_allows_missing_artifacts_only_when_explicit(tmp_
     report = run_report(tmp_path, corpus, require_artifacts=False)
 
     assert report["status"] == "passed"
-    assert report["summary"]["comparison_count"] == 4  # type: ignore[index]
+    assert report["summary"]["comparison_count"] == 5  # type: ignore[index]
 
 
 def test_priority0_gap_taxonomy_rejects_summary_only_comparison_miss(tmp_path: Path) -> None:

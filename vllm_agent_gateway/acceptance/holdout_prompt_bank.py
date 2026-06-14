@@ -13,6 +13,7 @@ from vllm_agent_gateway.acceptance.baseline_corpus import (
     DEFAULT_CORPUS_PATH,
     REQUIRED_COINBASE_TARGETS,
     REQUIRED_ROUTES,
+    is_prompt_family_baseline_entry,
     object_list,
     read_json_object,
     resolve_path,
@@ -54,7 +55,7 @@ def stable_corpus_entries_by_id(corpus: dict[str, Any]) -> dict[str, dict[str, A
     return {
         str(entry.get("entry_id")): entry
         for entry in object_list(corpus.get("entries"))
-        if entry.get("status") == "stable" and isinstance(entry.get("entry_id"), str) and entry.get("entry_id")
+        if is_prompt_family_baseline_entry(entry)
     }
 
 

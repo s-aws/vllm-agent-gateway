@@ -5,7 +5,10 @@
   "description": "Governed Priority 0 blind-baseline corpus for local-model chat quality proof. Entries summarize the prompt cases, blind baselines, local eval captures, comparisons, repair status, holdouts, routes, and no-mutation evidence for stable prompt families.",
   "governance_policy": {
     "baseline_collection_order": "blind_baseline_before_local_model_output",
-    "required_routes": ["gateway", "anythingllm"],
+    "required_routes": [
+      "gateway",
+      "anythingllm"
+    ],
     "required_target_roots": [
       "/mnt/c/coinbase_testing_repo_frozen_tmp",
       "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
@@ -44,7 +47,10 @@
         "sha256": "ebd228fa218bb59455fe3bfdc083bf4533cfedfdaeb6651b97d8dbee392dc568",
         "status": "captured",
         "case_count": 10,
-        "routes": ["anythingllm", "gateway"],
+        "routes": [
+          "anythingllm",
+          "gateway"
+        ],
         "target_roots": [
           "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
           "/mnt/c/coinbase_testing_repo_frozen_tmp",
@@ -107,7 +113,10 @@
         "sha256": "a7537193cd8df8db74f53846208cc47a8e98f92d70161aa4644eb751bbb25dc7",
         "status": "captured",
         "case_count": 10,
-        "routes": ["anythingllm", "gateway"],
+        "routes": [
+          "anythingllm",
+          "gateway"
+        ],
         "target_roots": [
           "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
           "/mnt/c/coinbase_testing_repo_frozen_tmp",
@@ -170,7 +179,10 @@
         "sha256": "0b82b5750d6cfc89adf3f571a0de6cf0f6e77ad738d354a2156bd63bc03dcc8f",
         "status": "captured",
         "case_count": 10,
-        "routes": ["anythingllm", "gateway"],
+        "routes": [
+          "anythingllm",
+          "gateway"
+        ],
         "target_roots": [
           "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
           "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture",
@@ -235,7 +247,10 @@
         "sha256": "d800bbef3377443156d28720f353110ca88a0cba73b3167908642b6429ae0940",
         "status": "captured",
         "case_count": 10,
-        "routes": ["anythingllm", "gateway"],
+        "routes": [
+          "anythingllm",
+          "gateway"
+        ],
         "target_roots": [
           "/mnt/c/agentic_agents/tests/fixtures/generalization/go_http_fixture",
           "/mnt/c/agentic_agents/tests/fixtures/generalization/node_cli_fixture",
@@ -273,6 +288,123 @@
         "holdout_rerun_status": "passed",
         "stale": false
       }
+    },
+    {
+      "blind_baselines": {
+        "path": "runtime/phase242_release_candidate_blind_baselines.json",
+        "sha256": "d802961bb343004218737f983745f19593988be7f5f76a285dd099120340ce0c"
+      },
+      "comparison": {
+        "critical_finding_count": 0,
+        "gap_categories": {},
+        "high_finding_count": 0,
+        "inputs": {
+          "blind_baselines_sha256": "d802961bb343004218737f983745f19593988be7f5f76a285dd099120340ce0c",
+          "local_eval_sha256": "b4c2f97994ec870259946b491beb91b0b28a76e92174bb63ecaebd710cb659c7",
+          "prompt_cases_sha256": "33a4b0f969e748ed5dbcbae9fc4dca7b9df30c50bf52b3bcd0107aea07a1721e"
+        },
+        "minimum_route_score": 90,
+        "passed_response_count": 40,
+        "path": "runtime-state/phase242/release-candidate-comparison.json",
+        "recommended_next_repairs": [],
+        "response_count": 40,
+        "sha256": "ca43d0699df5450347a3b08118ef0fca05a094a9739aef4dfb92485150aae3da",
+        "status": "passed"
+      },
+      "entry_id": "phase242_release_candidate_chat_quality",
+      "expected_case_count": 20,
+      "expected_holdout_count": 8,
+      "expected_response_count": 40,
+      "local_eval": {
+        "case_count": 20,
+        "mutation_proof": {
+          "runtime_changed_files": [],
+          "target_changed_files": {},
+          "target_git_changed": {}
+        },
+        "path": "runtime-state/phase242/release-candidate-local-eval.json",
+        "routes": [
+          "gateway",
+          "anythingllm"
+        ],
+        "sha256": "b4c2f97994ec870259946b491beb91b0b28a76e92174bb63ecaebd710cb659c7",
+        "status": "captured",
+        "target_roots": [
+          "/mnt/c/agentic_agents/runtime-state/phase214/generated-large-corpus",
+          "/mnt/c/agentic_agents/tests/fixtures/generalization/python_service_fixture",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp",
+          "/mnt/c/coinbase_testing_repo_frozen_tmp.github",
+          "/mnt/c/staterail_testing_repo_frozen_tmp.github"
+        ]
+      },
+      "phase": 242,
+      "priority_backlog_id": "P0-M14-242",
+      "promotion_evidence": {
+        "required_source_phases": [
+          239,
+          240,
+          241
+        ],
+        "source_reports": [
+          {
+            "decision": "remote_clone_priority0_chat_quality_ready",
+            "kind": "remote_clone_priority0_chat_quality_replay_report",
+            "path": "runtime-state/remote-clone-priority0-chat-quality-replay/phase239/phase239-local-remote-clone-priority0-chat-quality-replay-report.json",
+            "phase": 239,
+            "sha256": "ed324fd0126d3d4852215db346b0296de7c6039f57d6947c3ca84a03876021b5",
+            "status": "passed"
+          },
+          {
+            "decision": "remote_clone_non_coinbase_generalization_ready",
+            "kind": "remote_clone_non_coinbase_generalization_replay_report",
+            "path": "runtime-state/remote-clone-non-coinbase-generalization-replay/phase240/phase240-local-non-coinbase-generalization-replay-report.json",
+            "phase": 240,
+            "sha256": "2f964036fe7db4336e0af4601560ba81f512a4e3a13a5f9f2bf74daec35fe942",
+            "status": "passed"
+          },
+          {
+            "decision": "release_candidate_large_context_strategy_ready",
+            "kind": "release_candidate_large_context_strategy_replay_report",
+            "path": "runtime-state/release-candidate-large-context-strategy-replay/phase241/phase241-active-large-context-strategy-replay-report.json",
+            "phase": 241,
+            "sha256": "5c7a77fc4bb0be8e860ddef15c85c6eeb9432a8e1bf7cd9d329525fcba4b53c1",
+            "status": "passed"
+          }
+        ]
+      },
+      "prompt_cases": {
+        "path": "runtime/phase242_release_candidate_prompt_cases.json",
+        "sha256": "33a4b0f969e748ed5dbcbae9fc4dca7b9df30c50bf52b3bcd0107aea07a1721e"
+      },
+      "prompt_family": "release_candidate_chat_quality",
+      "repair_status": {
+        "accepted_repairs": [],
+        "holdout_rerun_status": "passed",
+        "rejected_repairs": [],
+        "stale": false,
+        "status": "not_required"
+      },
+      "required_prompt_categories": [
+        "greeting",
+        "small_repo_read_only",
+        "non_coinbase_generalization",
+        "feedback",
+        "unsupported_boundary",
+        "large_context_retrieval",
+        "large_context_artifact_paging",
+        "large_context_summarization",
+        "large_context_refusal",
+        "large_context_chunked_investigation"
+      ],
+      "required_target_surfaces": [
+        "gateway",
+        "anythingllm"
+      ],
+      "source_order": {
+        "blind_baseline_collected_before_local_output": true,
+        "local_model_output_seen_by_blind_agent": false
+      },
+      "status": "stable"
     }
   ]
 }

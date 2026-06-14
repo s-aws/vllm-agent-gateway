@@ -24,6 +24,10 @@ def first_entry(corpus: dict[str, object]) -> dict[str, object]:
     return corpus["entries"][0]  # type: ignore[index]
 
 
+def phase242_entry(corpus: dict[str, object]) -> dict[str, object]:
+    return next(entry for entry in corpus["entries"] if entry["phase"] == 242)  # type: ignore[index]
+
+
 def write_json(path: Path, value: dict[str, object]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, ensure_ascii=True, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -44,8 +48,8 @@ def test_project_baseline_corpus_passes_with_current_artifacts() -> None:
     )
 
     assert report["status"] == "passed"
-    assert report["summary"]["entry_count"] == 4  # type: ignore[index]
-    assert report["summary"]["stable_entry_count"] == 4  # type: ignore[index]
+    assert report["summary"]["entry_count"] == 5  # type: ignore[index]
+    assert report["summary"]["stable_entry_count"] == 5  # type: ignore[index]
     assert report["summary"]["error_count"] == 0  # type: ignore[index]
 
 
@@ -65,7 +69,7 @@ def test_baseline_corpus_rejects_missing_governed_phase() -> None:
 
     errors = validate_baseline_corpus(corpus, config_root=REPO_ROOT)
 
-    assert any("exactly cover phases 116, 117, 118, and 119" in error for error in errors)
+    assert any("exactly cover phases 116, 117, 118, 119, and 242" in error for error in errors)
 
 
 def test_baseline_corpus_rejects_missing_blind_baseline_summary() -> None:
@@ -220,6 +224,55 @@ def test_baseline_corpus_rejects_missing_holdout() -> None:
     errors = validate_baseline_corpus(corpus, config_root=REPO_ROOT)
 
     assert any("fewer holdouts than expected" in error for error in errors)
+
+
+def test_baseline_corpus_rejects_missing_phase242_category_coverage() -> None:
+    corpus = load_project_corpus()
+    phase242 = phase242_entry(corpus)
+    phase242["required_prompt_categories"] = [*phase242["required_prompt_categories"], "missing_release_category"]  # type: ignore[index]
+
+    errors = validate_baseline_corpus(corpus, config_root=REPO_ROOT)
+
+    assert any("missing required category coverage: missing_release_category" in error for error in errors)
+
+
+def test_baseline_corpus_rejects_phase242_missing_surface_metadata(tmp_path: Path) -> None:
+    corpus = load_project_corpus()
+    phase242 = phase242_entry(corpus)
+    original_path = REPO_ROOT / phase242["prompt_cases"]["path"]  # type: ignore[index]
+    prompt_cases = json.loads(original_path.read_text(encoding="utf-8"))
+    prompt_cases["cases"][0]["target_surfaces"] = ["gateway"]
+    weak_path = write_json(tmp_path / "phase242-missing-surface.json", prompt_cases)
+    phase242["prompt_cases"]["path"] = str(weak_path)  # type: ignore[index]
+    phase242["prompt_cases"]["sha256"] = sha256_file(weak_path)  # type: ignore[index]
+
+    errors = validate_baseline_corpus(corpus, config_root=REPO_ROOT)
+
+    assert any("target_surfaces missing required surface(s): anythingllm" in error for error in errors)
+
+
+def test_baseline_corpus_rejects_phase242_empty_forbidden_behaviors(tmp_path: Path) -> None:
+    corpus = load_project_corpus()
+    phase242 = phase242_entry(corpus)
+    original_path = REPO_ROOT / phase242["prompt_cases"]["path"]  # type: ignore[index]
+    prompt_cases = json.loads(original_path.read_text(encoding="utf-8"))
+    prompt_cases["cases"][0]["forbidden_behaviors"] = []
+    weak_path = write_json(tmp_path / "phase242-empty-forbidden.json", prompt_cases)
+    phase242["prompt_cases"]["path"] = str(weak_path)  # type: ignore[index]
+    phase242["prompt_cases"]["sha256"] = sha256_file(weak_path)  # type: ignore[index]
+
+    errors = validate_baseline_corpus(corpus, config_root=REPO_ROOT)
+
+    assert any("forbidden_behaviors must be a non-empty string list" in error for error in errors)
+
+
+def test_baseline_corpus_rejects_phase242_missing_promotion_evidence() -> None:
+    corpus = load_project_corpus()
+    phase242_entry(corpus).pop("promotion_evidence")
+
+    errors = validate_baseline_corpus(corpus, config_root=REPO_ROOT)
+
+    assert any("promotion_evidence is required" in error for error in errors)
 
 
 def test_baseline_corpus_rejects_recommended_repair_without_rerun() -> None:

@@ -10,6 +10,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from vllm_agent_gateway.acceptance.baseline_corpus import is_prompt_family_baseline_entry
+
 
 SCHEMA_VERSION = 1
 EXPECTED_POLICY_KIND = "chat_visible_answer_contract_inventory_policy"
@@ -333,7 +335,7 @@ def baseline_records(baseline_corpus: dict[str, Any]) -> list[dict[str, Any]]:
             "high_finding_count": dict_value(item.get("comparison")).get("high_finding_count"),
         }
         for item in object_list(baseline_corpus.get("entries"))
-        if item.get("status") == "stable"
+        if is_prompt_family_baseline_entry(item)
     ]
 
 

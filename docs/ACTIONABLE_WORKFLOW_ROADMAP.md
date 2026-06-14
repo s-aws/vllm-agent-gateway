@@ -10430,7 +10430,7 @@ Completion proof:
 
 ### Approved Phase 242: Release-Candidate Baseline Corpus Promotion
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M2 Chat-Visible Answer Contract, M3 Workflow/Skill/Tool Selection Reliability, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M12 Skill Library Scaling Gate.
 
@@ -10445,6 +10445,26 @@ Scope:
 - Keep baseline corpus changes deterministic and reviewable.
 
 Acceptance target: the release-candidate prompt set becomes a durable regression surface that future agents can audit without chat history.
+
+Phase 242 implementation completed:
+
+- promoted 20 logical release-candidate chat-quality cases into `runtime/phase242_release_candidate_prompt_cases.json`
+- added 20 matching contextless blind-baseline records in `runtime/phase242_release_candidate_blind_baselines.json`
+- added stable baseline corpus entry `phase242_release_candidate_chat_quality` with 8 holdouts and 40 required gateway/AnythingLLM responses
+- linked promotion evidence to Phase 239, Phase 240, and Phase 241 source proof reports
+- extended baseline corpus validation so promoted entries must declare required categories, target surfaces, expected answer markers, forbidden behaviors, evidence expectations, and promotion evidence
+- preserved older `P0-BB-*` prompt-family gate scope for AnythingLLM usefulness, holdout-bank, and Phase 200 inventory while allowing the Priority 0 gap taxonomy to include the Phase 242 comparison artifact
+- updated baseline corpus, promotion-rule, docs, examples, and docs-index references
+
+Phase 242 validation proof:
+
+- contextless blind audit required machine-readable case records, durable evidence refs, gateway/AnythingLLM coverage, unsupported-boundary coverage, large-context strategy coverage, no fixture mutation, and executable validation gates
+- Bash baseline corpus gate passed with `entry_count=5`, `stable_entry_count=5`, and `error_count=0`
+- Bash baseline corpus promotion-rule gate passed with `candidate_count=1`, `blocked_candidate_count=1`, and `error_count=0`
+- Bash focused regression for baseline corpus and promotion rules returned `38 passed`
+- Bash downstream focused regression for AnythingLLM usefulness, holdout bank, Priority 0 gap taxonomy, and Phase 200 inventory returned `34 passed`
+- Bash docs-index validation returned `expected_count=328`, `linked_count=328`, `orphaned_docs=[]`, and `status=passed`
+- full Bash regression returned `1569 passed`, `4 skipped`, and `23 deselected`
 
 ### Approved Phase 243: External Tester Feedback Loop From Clone
 

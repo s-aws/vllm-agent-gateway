@@ -55,11 +55,12 @@ The validator fails if a stable entry has:
 
 ## Current Scope
 
-The first governed corpus covers stable Priority 0 entries from Phase 116 through Phase 119:
+The governed corpus covers stable Priority 0 entries from Phase 116 through Phase 119 plus the Phase 242 release-candidate promotion:
 
 - `P0-BB-001`: code quality and self-review
 - `P0-BB-002`: testing and defect diagnosis
 - `P0-BB-003`: tradeoffs, debt, and engineering judgment
 - `P0-BB-004`: delivery and mentorship
+- `P0-M14-242`: promoted release-candidate chat-quality coverage from Phases 239-241
 
-The next Priority 0 backlog item after this gate is the holdout prompt bank. AnythingLLM answer usefulness is covered by `README.anythingllm-answer-usefulness.md`.
+Phase 242 promoted cases declare required prompt categories, gateway and AnythingLLM target surfaces, expected answer markers, forbidden behaviors, evidence expectations, and source proof reports. AnythingLLM answer usefulness is covered by `README.anythingllm-answer-usefulness.md`.
