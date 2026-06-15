@@ -10688,3 +10688,31 @@ Completion proof:
 - Phase 247 ship handoff validator passed with `ship_handoff_ready=true`.
 - Phase 244 release-candidate decision gate rerun passed with `decision=ship`, `blocker_count=0`, and `runtime_health_blocker_count=0`.
 - Full Bash regression returned `1596 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 250: Fresh Remote-Clone Phase 249 Handoff Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 249 recovery/handoff state can be validated from a fresh remote clone without relying on the active workspace.
+
+Scope:
+
+- Create a fresh clone of `s-aws/vllm-agent-gateway` at branch `codex/m14-release-clone-proof`.
+- Verify the clone is at the pushed Phase 249 commit.
+- Run the Phase 247 ship-handoff validator from the clone.
+- Run docs-index validation from the clone.
+- Run stable release-channel validation from the clone.
+- Do not restart WSL, vLLM, Docker, gateway, controller, or AnythingLLM during this static replay.
+
+Acceptance target: the pushed branch contains enough committed recovery, handoff, docs, and release-channel metadata for static validation from a clean clone.
+
+Completion proof:
+
+- Created fresh clone `/tmp/agentic_agents_phase250_remote_clone` from `https://github.com/s-aws/vllm-agent-gateway.git` on branch `codex/m14-release-clone-proof`.
+- Clone status was clean on `codex/m14-release-clone-proof...origin/codex/m14-release-clone-proof`.
+- Clone commit was `a1266348d1c72393d02067ac7f57922b0bd4682a`.
+- Clone Phase 247 handoff validator passed with `status=passed`, `error_count=0`, and `ship_handoff_ready=true`.
+- Clone docs-index validation passed with `expected_count=336`, `linked_count=336`, `orphaned_docs=[]`, and `status=passed`.
+- Clone stable release-channel validation passed with `selected_channel=stable`, `failed_check_ids=[]`, and `status=passed`.
