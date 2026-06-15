@@ -100,6 +100,8 @@ The first proposed milestone-aligned phase set is:
 | Phase 245 | M13/M14 | Complete. Restored release-candidate runtime health across vLLM, gateway, controller, workflow-router gateway, role ports, AnythingLLM target, and protected fixture checks. |
 | Phase 246 | M1/M14 | Complete. Reran the release-candidate decision gate after runtime health was restored and reached `ship`. |
 | Phase 247 | M1/M14 | Complete. Packaged the Phase 246 ship decision into committed release proof metadata, stable-channel readiness, tester docs, and a deterministic handoff validator. |
+| Phase 248 | M14 | Complete. Replayed the committed ship handoff package from the remote clone at commit `138afa3` with static handoff, docs-index, and stable-channel proof. |
+| Phase 249 | M13/M14 | Blocked. Restore Bash/WSL command execution before any further runtime-facing validation or release claims. |
 
 ## Usage Rules
 

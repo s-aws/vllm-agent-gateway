@@ -10620,3 +10620,57 @@ Completion proof:
 - Docs-index validation passed with `expected_count=336`, `linked_count=336`, `orphaned_docs=[]`, and `status=passed`.
 - Focused Bash regression for Phase 247, release channels, Phase 244, and Phase 245 returned `24 passed`.
 - Full Bash regression after the Phase 247 repair returned `1594 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 248: Remote-Clone Ship Handoff Static Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the committed Phase 247 ship handoff package works from the release clone at the pushed branch tip.
+
+Scope:
+
+- Fast-forward `/tmp/agentic_agents_phase243_remote_clone` to the pushed `codex/m14-release-clone-proof` branch tip.
+- Verify the clone is at commit `138afa38316c39f088f5ed4c7b9776075e88acd5`.
+- Run the Phase 247 ship-handoff validator from the clone.
+- Run docs-index validation from the clone.
+- Run stable release-channel validation from the clone.
+- Do not restart WSL, vLLM, Docker, gateway, controller, or AnythingLLM during this static handoff replay.
+
+Acceptance target: the pushed branch contains enough committed handoff metadata and docs for static release-handoff validation from a clone.
+
+Completion proof:
+
+- Pushed branch `codex/m14-release-clone-proof` to commit `138afa38316c39f088f5ed4c7b9776075e88acd5`.
+- Fast-forwarded `/tmp/agentic_agents_phase243_remote_clone` from `bb0c6b0` to `138afa3` using Windows Git against the WSL clone filesystem after WSL command execution stopped responding.
+- Clone status was clean on `codex/m14-release-clone-proof...origin/codex/m14-release-clone-proof`.
+- Clone Phase 247 handoff validator passed with `status=passed`, `error_count=0`, and `ship_handoff_ready=true`.
+- Clone docs-index validation passed with `expected_count=336`, `linked_count=336`, `orphaned_docs=[]`, and `status=passed`.
+- Clone stable release-channel validation passed with `failed_check_ids=[]`.
+
+Phase 248 caveat:
+
+- WSL command execution timed out for both `ubuntu2404.exe run -- echo ok` and `wsl.exe -d Ubuntu-24.04 -- echo ok`.
+- The Phase 248 replay is therefore static clone proof only. Runtime-facing Bash proof must not continue until WSL execution is restored.
+
+### Approved Phase 249: Bash/WSL Execution Recovery Gate
+
+Status: Blocked pending founder decision.
+
+Milestone mapping: M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: restore Bash/WSL command execution before any additional runtime-facing validation or release claims.
+
+Scope:
+
+- Confirm whether WSL command execution remains hung for trivial commands.
+- If WSL can recover without terminating the distro, rerun Bash health checks and Phase 245/247 validators.
+- If WSL requires `wsl --terminate`, `wsl --shutdown`, Docker restart, or vLLM restart, get founder approval first because that can disrupt the manually managed local model and runtime stack.
+- After recovery, rerun the smallest runtime gate that proves Bash, vLLM, gateway/controller ports, AnythingLLM target settings, and protected fixtures are usable.
+
+Acceptance target: Bash validation is available again and the project can honestly continue runtime-facing Priority 0 work.
+
+Current blocker:
+
+- Both WSL launch paths time out for `echo ok`; restarting WSL may disrupt vLLM/Docker and requires founder direction.
