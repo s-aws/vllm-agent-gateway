@@ -305,6 +305,15 @@ print_role_endpoints "$ROLE_CONNECT_HOST"
 if command -v hostname >/dev/null 2>&1; then
     host_ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
     if [[ -n "$host_ip" ]]; then
+        network_gateway_openai_base_url="$(openai_base_url "http://${host_ip}:${GATEWAY_PORT}")"
+        network_workflow_router_gateway_openai_base_url="$(openai_base_url "http://${host_ip}:${WORKFLOW_ROUTER_GATEWAY_PORT}")"
+        network_controller_base_url="http://${host_ip}:${CONTROLLER_PORT}"
+        echo "network client targets:"
+        if [[ "$WORKFLOW_ROUTER_GATEWAY_ENABLED" == "1" ]]; then
+            echo "- AnythingLLM natural workflow testing: ${network_workflow_router_gateway_openai_base_url}"
+        fi
+        echo "- ordinary OpenAI-compatible model/gateway chat: ${network_gateway_openai_base_url}"
+        echo "- controller HTTP API only, not an OpenAI model endpoint: ${network_controller_base_url}"
         echo "network role endpoints:"
         print_role_endpoints "$host_ip"
     fi
@@ -321,6 +330,7 @@ echo "- AnythingLLM natural workflow testing: ${WORKFLOW_ROUTER_GATEWAY_OPENAI_B
 echo "- ordinary OpenAI-compatible model/gateway chat: ${GATEWAY_OPENAI_BASE_URL}"
 echo "- controller HTTP API only, not an OpenAI model endpoint: ${CONTROLLER_BASE_URL}"
 echo "validation note: run live validators from Bash if Windows clients receive headers but time out waiting for body bytes."
+echo "validation note: for Windows apps such as AnythingLLM, use the network client target if Windows 127.0.0.1 forwarding hangs."
 echo "Gateway logs: ${STATE_DISPLAY_ROOT}/$(basename "$GATEWAY_LOG_FILE")"
 if [[ "$WORKFLOW_ROUTER_GATEWAY_ENABLED" == "1" ]]; then
     echo "Workflow router gateway logs: ${STATE_DISPLAY_ROOT}/$(basename "$WORKFLOW_ROUTER_GATEWAY_LOG_FILE")"

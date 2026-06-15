@@ -5262,14 +5262,28 @@ def load_run_record(config: ControllerServiceConfig, run_id: str) -> dict[str, A
         if cached is not None:
             return json.loads(json.dumps(cached))
         raise ControllerServiceError("Run not found.", status=HTTPStatus.NOT_FOUND, code="run_not_found")
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        raise ControllerServiceError(
-            f"Stored run record is invalid: {exc}",
-            status=HTTPStatus.INTERNAL_SERVER_ERROR,
-            code="invalid_run_record",
-        ) from exc
+    last_json_error: json.JSONDecodeError | None = None
+    for _ in range(RUN_RECORD_VISIBILITY_RETRIES):
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+            break
+        except FileNotFoundError:
+            time.sleep(RUN_RECORD_VISIBILITY_SLEEP_SECONDS)
+        except json.JSONDecodeError as exc:
+            last_json_error = exc
+            time.sleep(RUN_RECORD_VISIBILITY_SLEEP_SECONDS)
+    else:
+        with RUN_RECORD_CACHE_LOCK:
+            cached = RUN_RECORD_CACHE.get((str(config.run_registry_root.resolve()), run_id))
+        if cached is not None:
+            return json.loads(json.dumps(cached))
+        if last_json_error is not None:
+            raise ControllerServiceError(
+                f"Stored run record is invalid: {last_json_error}",
+                status=HTTPStatus.INTERNAL_SERVER_ERROR,
+                code="invalid_run_record",
+            ) from last_json_error
+        raise ControllerServiceError("Run not found.", status=HTTPStatus.NOT_FOUND, code="run_not_found")
     if not isinstance(value, dict):
         raise ControllerServiceError(
             "Stored run record must be a JSON object.",

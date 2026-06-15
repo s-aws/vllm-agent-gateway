@@ -33,6 +33,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-path", default=str(DEFAULT_OUTPUT_PATH))
     parser.add_argument("--anythingllm-api-base-url", default=DEFAULT_ANYTHINGLLM_API_BASE_URL)
     parser.add_argument("--workflow-router-gateway-base-url", default=DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL)
+    parser.add_argument(
+        "--anythingllm-workflow-router-base-url",
+        default=None,
+        help=(
+            "Expected GenericOpenAiBasePath in AnythingLLM. "
+            "Defaults to --workflow-router-gateway-base-url when omitted."
+        ),
+    )
     parser.add_argument("--workspace", default=DEFAULT_WORKSPACE)
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--api-key-env", default="ANYTHINGLLM_API_KEY")
@@ -50,6 +58,7 @@ def main() -> int:
             output_path=Path(args.output_path),
             anythingllm_api_base_url=args.anythingllm_api_base_url,
             workflow_router_gateway_base_url=args.workflow_router_gateway_base_url,
+            anythingllm_workflow_router_base_url=args.anythingllm_workflow_router_base_url,
             workspace=args.workspace,
             model=args.model,
             api_key_env=args.api_key_env,

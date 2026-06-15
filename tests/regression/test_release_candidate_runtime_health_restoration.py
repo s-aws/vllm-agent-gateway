@@ -97,6 +97,38 @@ def test_phase245_synthetic_restored_when_health_target_chat_and_fixtures_pass(t
     assert [case["status"] for case in report["cases"]] == ["passed", "passed"]
 
 
+def test_phase245_allows_split_bash_and_anythingllm_gateway_urls(tmp_path: Path, monkeypatch) -> None:
+    root, policy_path = temp_policy(tmp_path)
+    install_success_mocks(monkeypatch)
+
+    def fake_json_request(url, *, payload=None, headers=None, timeout_seconds, method="POST"):
+        if url.endswith("/api/v1/system"):
+            return 200, {
+                "settings": {
+                    "LLMProvider": "generic-openai",
+                    "LLMModel": "Qwen3-Coder-30B-A3B-Instruct",
+                    "GenericOpenAiBasePath": "http://100.100.12.45:8500/v1",
+                }
+            }
+        return 200, {"choices": [{"message": {"content": fake_text()}}]}
+
+    monkeypatch.setattr(gate, "json_request", fake_json_request)
+    report = validate_release_candidate_runtime_health_restoration(
+        ReleaseCandidateRuntimeHealthRestorationConfig(
+            config_root=root,
+            policy_path=policy_path,
+            output_path="runtime-state/phase245/report.json",
+            workflow_router_gateway_base_url="http://127.0.0.1:8500/v1",
+            anythingllm_workflow_router_base_url="http://100.100.12.45:8500/v1",
+        )
+    )
+
+    assert report["decision"] == RuntimeHealthRestorationDecision.RESTORED.value
+    assert report["anythingllm_target_settings"]["checks"]["generic_openai_base_path"] is True
+    assert report["anythingllm_target_settings"]["required"]["workflow_router_base_url"] == "http://100.100.12.45:8500/v1"
+    assert report["anythingllm_target_settings"]["policy_required"]["workflow_router_base_url"] == "http://127.0.0.1:8500/v1"
+
+
 def test_phase245_blocks_when_runtime_health_fails(tmp_path: Path, monkeypatch) -> None:
     root, policy_path = temp_policy(tmp_path)
     install_success_mocks(monkeypatch)

@@ -53,6 +53,7 @@ class ReleaseCandidateRuntimeHealthRestorationConfig:
     output_path: Path = DEFAULT_OUTPUT_PATH
     anythingllm_api_base_url: str = DEFAULT_ANYTHINGLLM_API_BASE_URL
     workflow_router_gateway_base_url: str = DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL
+    anythingllm_workflow_router_base_url: str | None = None
     workspace: str = DEFAULT_WORKSPACE
     model: str = DEFAULT_MODEL
     api_key_env: str = "ANYTHINGLLM_API_KEY"
@@ -350,6 +351,11 @@ def anythingllm_target_settings(
     api_key: str,
 ) -> dict[str, Any]:
     required = dict_value(policy.get("required_anythingllm"))
+    expected_workflow_router_base_url = (
+        config.anythingllm_workflow_router_base_url
+        if config.anythingllm_workflow_router_base_url
+        else required.get("workflow_router_base_url")
+    )
     status_code, body = json_request(
         f"{config.anythingllm_api_base_url.rstrip('/')}/api/v1/system",
         headers={"Authorization": f"Bearer {api_key}"},
@@ -370,13 +376,15 @@ def anythingllm_target_settings(
         "workspace": actual["workspace"] == required.get("workspace"),
         "provider": actual["provider"] == required.get("provider"),
         "model": actual["model"] == required.get("model"),
-        "generic_openai_base_path": actual["generic_openai_base_path"] == required.get("workflow_router_base_url"),
+        "generic_openai_base_path": actual["generic_openai_base_path"] == expected_workflow_router_base_url,
     }
+    effective_required = {**required, "workflow_router_base_url": expected_workflow_router_base_url}
     return {
         "status": RuntimeHealthRestorationStatus.PASSED.value if all(checks.values()) else RuntimeHealthRestorationStatus.FAILED.value,
         "http_status": status_code,
         "actual": actual,
-        "required": required,
+        "required": effective_required,
+        "policy_required": required,
         "checks": checks,
     }
 

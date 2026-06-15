@@ -40,6 +40,8 @@ Adding or changing a milestone still requires explicit founder approval. If a re
 
 Priority 0 is chat quality development and testing. All other work is secondary unless it directly supports improving or validating chat quality against the current local model, skills, and tools.
 
+The Bash-hosted controller/gateway stack has two possible client surfaces on Windows machines. Bash-side validators should normally use `http://127.0.0.1` for localhost ports. Windows applications such as AnythingLLM may need the WSL network IP printed by `start-agent-prompt-proxies.sh` when Windows `127.0.0.1` forwarding returns headers but hangs before body bytes. In that case, keep the internal Bash workflow-router URL at `http://127.0.0.1:8500/v1`, configure AnythingLLM to the printed network workflow-router URL, and run validators with separate internal and AnythingLLM expected base URLs.
+
 The product objective includes large-context usability, not a raw context-size guarantee. Very large repositories and corpora, including 1M+ token projects, should become usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Do not assume the current local model can accept raw 1M-token prompts unless a dedicated proof gate validates model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality.
 
 Priority 0 chat-quality testing uses a blind-baseline-first process by default:

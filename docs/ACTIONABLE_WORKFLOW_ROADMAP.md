@@ -10656,7 +10656,7 @@ Phase 248 caveat:
 
 ### Approved Phase 249: Bash/WSL Execution Recovery Gate
 
-Status: Blocked pending founder decision.
+Status: Complete.
 
 Milestone mapping: M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
 
@@ -10671,6 +10671,20 @@ Scope:
 
 Acceptance target: Bash validation is available again and the project can honestly continue runtime-facing Priority 0 work.
 
-Current blocker:
+Completion proof:
 
-- Both WSL launch paths time out for `echo ok`; restarting WSL may disrupt vLLM/Docker and requires founder direction.
+- The founder restarted the computer, which restored WSL command execution without this project terminating WSL, Docker, or vLLM from the session.
+- Bash `ubuntu2404.exe run -- echo ok` returned `ok`, and Bash `git status --short --branch` returned a clean `codex/m14-release-clone-proof...origin/codex/m14-release-clone-proof` state.
+- The repo-managed gateway/controller/proxy stack was restarted with host-visible binds while leaving vLLM/Docker under founder control.
+- The reboot exposed a Windows-to-WSL localhost forwarding failure: Windows clients to `127.0.0.1:8300`, `8400`, and `8500` received headers or hung before body bytes, while Windows clients to the WSL network IP succeeded immediately.
+- Added split-url runtime validation support so Bash health and direct gateway checks use `http://127.0.0.1:8500/v1` while AnythingLLM can be configured to the WSL network workflow-router target when Windows localhost forwarding hangs.
+- Added startup diagnostics for WSL network client targets so future sessions can configure AnythingLLM without rediscovering the host networking issue.
+- Hardened controller run-record polling against a transient atomic-replace race exposed by full regression, so a fast poll cannot disconnect before a run record is readable.
+- AnythingLLM was configured to `http://100.100.12.45:8500/v1` for this recovered runtime and returned a fresh chat response for `hi` with run ID `workflow-router-general-20260615T113600421015Z`.
+- After restarting the updated gateway/controller/proxy stack, first-time user doctor passed with `29` checks, `0` failures, Bash workflow-router base `http://127.0.0.1:8500/v1`, and expected AnythingLLM base `http://100.100.12.45:8500/v1`.
+- Focused Bash regression for Phase 245 runtime restoration returned `7 passed`.
+- Focused controller async polling regression returned `2 passed`.
+- Phase 245 live runtime restoration passed with `decision=runtime_health_restored`, `runtime_health_blocker_count=0`, `blocker_count=0`, `phase246_ready=true`, gateway run `workflow-router-20260615T123547236269Z`, and AnythingLLM run `workflow-router-20260615T123558358442Z`.
+- Phase 247 ship handoff validator passed with `ship_handoff_ready=true`.
+- Phase 244 release-candidate decision gate rerun passed with `decision=ship`, `blocker_count=0`, and `runtime_health_blocker_count=0`.
+- Full Bash regression returned `1596 passed`, `4 skipped`, and `23 deselected`.

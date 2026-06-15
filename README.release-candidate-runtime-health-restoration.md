@@ -15,6 +15,16 @@ cd /mnt/c/agentic_agents
 python3 scripts/validate_release_candidate_runtime_health_restoration.py --timeout-seconds 240 --health-timeout-seconds 20
 ```
 
+When AnythingLLM runs as a Windows app and Windows `127.0.0.1` forwarding to WSL hangs while reading response bodies, keep the Bash gateway URL on localhost but point AnythingLLM at the WSL network target printed by `start-agent-prompt-proxies.sh`:
+
+```bash
+python3 scripts/validate_release_candidate_runtime_health_restoration.py \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --anythingllm-workflow-router-base-url http://<wsl-network-ip>:8500/v1 \
+  --timeout-seconds 240 \
+  --health-timeout-seconds 20
+```
+
 The validator writes:
 
 - `runtime-state/release-candidate-runtime-health-restoration/phase245/phase245-release-candidate-runtime-health-restoration-report.json`
@@ -26,7 +36,7 @@ The report is local runtime evidence and should not be committed.
 - `http://127.0.0.1:8000/v1/models` responds from Bash.
 - Ports `8300`, `8400`, `8500`, `8101`, `8102`, and `8201` through `8205` respond from Bash.
 - AnythingLLM is reachable at `http://127.0.0.1:3001`.
-- AnythingLLM uses the workflow-router gateway target `http://127.0.0.1:8500/v1`.
+- AnythingLLM uses the workflow-router gateway target, either `http://127.0.0.1:8500/v1` when Windows localhost forwarding works or the WSL network workflow-router URL when it does not.
 - Gateway and AnythingLLM both return a chat-visible workflow-router answer for the minimal read-only prompt.
 - `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github` remain unchanged.
 

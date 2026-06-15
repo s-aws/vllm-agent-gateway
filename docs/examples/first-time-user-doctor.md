@@ -34,6 +34,17 @@ python3 scripts/run_first_time_user_doctor.py \
   --expected-anythingllm-llm-base-url http://127.0.0.1:8500/v1
 ```
 
+## Windows AnythingLLM To WSL Network Target
+
+If Windows clients can connect to WSL localhost ports but hang while waiting for response body bytes, use the WSL network workflow-router URL printed by `start-agent-prompt-proxies.sh` for AnythingLLM while keeping Bash health checks on localhost:
+
+```powershell
+$key=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
+wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$key" python3 scripts/run_first_time_user_doctor.py `
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 `
+  --expected-anythingllm-llm-base-url http://<wsl-network-ip>:8500/v1
+```
+
 ## Expected JSON Fields
 
 ```text

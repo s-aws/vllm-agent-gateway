@@ -17,6 +17,7 @@ from typing import Any, Callable
 import pytest
 
 from vllm_agent_gateway import model_capability_routing
+from vllm_agent_gateway.controller_service import server as controller_server
 from vllm_agent_gateway.controller_service.server import (
     ControllerServiceConfig,
     append_data_model_lookup_answer,
@@ -1084,6 +1085,39 @@ def poll_run(host: str, port: int, run_id: str, terminal_statuses: set[str], tim
             return body
         time.sleep(0.05)
     raise AssertionError(f"Run {run_id} did not reach {terminal_statuses}; last body={last_body}")
+
+
+def test_load_run_record_retries_when_atomic_replace_temporarily_hides_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+    run_id = "controller-20260615T000000000000Z"
+    record = {"run_id": run_id, "workflow": "documenter.review", "status": "running"}
+    controller_server.persist_run_record(config, record)
+    original_read_text = Path.read_text
+    calls = {"count": 0}
+
+    def flaky_read_text(path: Path, *args: Any, **kwargs: Any) -> str:
+        if path.name == f"{run_id}.json" and calls["count"] == 0:
+            calls["count"] += 1
+            raise FileNotFoundError(str(path))
+        return original_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", flaky_read_text)
+
+    loaded = controller_server.load_run_record(config, run_id)
+
+    assert loaded["run_id"] == run_id
+    assert loaded["workflow"] == "documenter.review"
+    assert loaded["status"] == "running"
+    assert loaded["kind"] == "controller_run_record"
+    assert calls["count"] == 1
 
 
 def test_controller_service_health_and_direct_chat_rejection(tmp_path: Path) -> None:
