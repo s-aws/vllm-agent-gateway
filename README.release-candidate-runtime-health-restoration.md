@@ -6,6 +6,8 @@ Use this gate after manually restarting vLLM, the gateway/proxies, controller, a
 
 The gate is intentionally narrower than the release decision gate. Phase 245 answers whether runtime health is restored. Phase 246 reruns the Phase 244 ship/hold/repair decision after this gate passes.
 
+The restored decision marker is `runtime_health_restored`.
+
 ## Command
 
 ```bash

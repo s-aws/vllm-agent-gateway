@@ -10590,3 +10590,33 @@ Completion proof:
 - Reran `scripts/validate_v1_release_candidate_decision_gate.py --health-timeout-seconds 20` from `/tmp/agentic_agents_phase243_remote_clone` at commit `bf9b518`.
 - Phase 244 decision rerun returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`.
 - The ship decision used restored runtime health, the regenerated Phase 242 baseline report, the Phase 243 external tester feedback proof, docs/known-limit checks, and the completed Phase 232-243 roadmap proof chain.
+
+### Approved Phase 247: Release-Candidate Ship Handoff
+
+Status: Complete.
+
+Milestone mapping: M1 V1 Founder Beta Closeout, M14 Release Packaging And Onboarding.
+
+Goal: turn the Phase 246 ship decision into a durable contextless handoff packet that future testers and agents can audit without runtime chat history.
+
+Scope:
+
+- Record the Phase 246 ship decision in committed compact proof metadata.
+- Refresh the stable release-channel readiness metadata from the old Phase 91 proof floor to the Phase 246 ship proof.
+- Update getting-started, release notes, and docs indexes so first-time testers see the current ship state first.
+- Add a deterministic Phase 247 gate that fails on stale proof metadata, stale stable-channel readiness, missing ship markers, missing limitation markers, or incomplete roadmap state.
+- Preserve known boundaries: this is not a production deployment, raw 1M-token prompt serving is not claimed, and advanced broad refactor orchestration is not released.
+
+Acceptance target: the ship decision can be audited from committed source files and the current tester docs without relying on runtime-state, private chat context, or memory.
+
+Completion proof:
+
+- Added `runtime/release_candidate_ship_handoff_policy.json`, `vllm_agent_gateway.acceptance.release_candidate_ship_handoff`, `scripts/validate_release_candidate_ship_handoff.py`, focused regression coverage, feature docs, and examples.
+- Refreshed `runtime/release_proofs/v1-1-release-candidate-stable-proof.json` with the Phase 246 `ship` decision source, branch `codex/m14-release-clone-proof`, decision source commit `bb0c6b0`, clone path `/tmp/agentic_agents_phase243_remote_clone`, Phase 244 decision summary, Phase 245 runtime restoration run IDs, and full regression floor.
+- Updated `runtime/release_channels.json` stable readiness to `activated_by=phase246_release_candidate_decision_ship`.
+- Updated release notes and getting-started handoff docs so the current Phase 247 handoff is visible before older proof floors.
+- Phase 247 handoff gate passed with `status=passed`, `error_count=0`, and `ship_handoff_ready=true`.
+- Stable release-channel validation passed for `channel=stable` with `failed_check_ids=[]`.
+- Docs-index validation passed with `expected_count=336`, `linked_count=336`, `orphaned_docs=[]`, and `status=passed`.
+- Focused Bash regression for Phase 247, release channels, Phase 244, and Phase 245 returned `24 passed`.
+- Full Bash regression after the Phase 247 repair returned `1594 passed`, `4 skipped`, and `23 deselected`.

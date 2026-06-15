@@ -2,9 +2,13 @@
 
 ## Release Status
 
-Current status: `ready_for_founder_testing`.
+Current status: `ship`.
 
-Latest proof floor: Phase 226 made M6/M8 large-context usability release-usable through retrieval-backed chat, artifact paging, context strategy routing, live gateway proof, and live AnythingLLM proof. M9 founder feedback rebaseline and repair rerun gates are in place. M12 small skill admission completed for the Python-service fixture without manual skill injection. Phase 231 proved runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack, including post-restart small-repo and large-context prompts through gateway and AnythingLLM.
+Stable channel compatibility marker: `ready_for_founder_testing`.
+
+Latest proof floor: Phase 246 reran the Phase 244 V1 release-candidate decision gate after Phase 245 restored runtime health. The release clone at decision source commit `bb0c6b0` returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`. Phase 247 packages that decision into committed handoff metadata and tester-facing docs.
+
+Earlier proof floor: Phase 226 made M6/M8 large-context usability release-usable through retrieval-backed chat, artifact paging, context strategy routing, live gateway proof, and live AnythingLLM proof. M9 founder feedback rebaseline and repair rerun gates are in place. M12 small skill admission completed for the Python-service fixture without manual skill injection. Phase 231 proved runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack, including post-restart small-repo and large-context prompts through gateway and AnythingLLM.
 
 Earlier founder-field closeout: Phase 170 refreshed the stable proof floor after the Phase 163-169 chat-quality batch and kept the decision at `release_for_founder_testing`. Phases 171 through 176 closed the six Phase 169 product-gap proposals, and Phases 180 through 185 added chat-quality hardening: answer-first chat contract hardening, natural output-format selector stabilization, evidence relevance ranking, related-test discovery reliability, browser-visible AnythingLLM UI replay for repaired Priority 0 prompt families, and a reusable contextless-agent audit pack. Phase 230 admitted the first small skill-library fixture/eval coverage candidate using existing skills. Phase 231 proves the restarted runtime is ready with `decision=ready_after_recovery`.
 
@@ -50,6 +54,7 @@ runtime/release_proofs/v1-1-release-candidate-stable-proof.json
 - Setup and health checks for localhost model, gateway, controller, role ports, AnythingLLM, and both frozen fixtures.
 - Post-restart readiness proof over doctor, health drift, and AnythingLLM greeting/session recovery.
 - Runtime recovery reliability proof that restarts vLLM plus the repo-managed stack and then validates small-repo and large-context prompts through gateway and AnythingLLM.
+- Release-candidate ship handoff proof from the release clone after runtime health restoration.
 - Large-context usability through retrieval-backed evidence selection, context strategy routing, and artifact paging instead of raw prompt stuffing.
 - Small skill admission for Python-service endpoint and schema fixture coverage without manual skill injection.
 - Founder feedback rebaseline and repair rerun gates for useful, advisory, repair-worthy, rejected, deferred, baseline, and holdout outcomes.
@@ -130,6 +135,9 @@ Current proof summary:
 - Founder feedback repair rerun gate: accepted repairs require target, holdout, blind-baseline, mutation, and artifact proof before closure.
 - Small skill admission pilot: `status=passed`, `FX-001` implemented, gateway and AnythingLLM proof passed for Python-service endpoint and schema prompts.
 - Runtime recovery reliability rebaseline: `status=passed`, `decision=ready_after_recovery`, `covered_surface_count=7`, `missing_required_surface_count=0`, small-repo gateway `workflow-router-20260614T110227117340Z`, small-repo AnythingLLM `workflow-router-20260614T110233546368Z`, large-context gateway `workflow-router-20260614T110240178441Z`, and large-context AnythingLLM `workflow-router-20260614T110246887855Z`.
+- Release-candidate runtime health restoration: `decision=runtime_health_restored`, gateway run `workflow-router-20260614T225336875601Z`, AnythingLLM run `workflow-router-20260614T225345166828Z`, and `runtime_health_blocker_count=0`.
+- Release-candidate decision rerun: Phase 246 reran the Phase 244 gate from `/tmp/agentic_agents_phase243_remote_clone` at commit `bb0c6b0` and returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`.
+- Release-candidate ship handoff: Phase 247 validates the committed stable proof metadata, stable release-channel readiness, tester docs, known limits, and ship markers.
 
 Primary proof artifacts:
 
@@ -173,6 +181,10 @@ runtime-state/founder-feedback-loop-rebaseline/phase227/phase227-founder-feedbac
 runtime-state/founder-feedback-repair-rerun-gate/phase228/phase228-founder-feedback-repair-rerun-gate-report.json
 runtime-state/skill-library-scaling/phase230/phase230-small-skill-admission-pilot-report.json
 runtime-state/phase231/phase231-runtime-recovery-reliability-rebaseline-report.json
+runtime/release_proofs/v1-1-release-candidate-stable-proof.json
+runtime-state/release-candidate-runtime-health-restoration/phase245/phase245-release-candidate-runtime-health-restoration-report.json
+runtime-state/v1-release-candidate-decision-gate/phase244/phase244-v1-release-candidate-decision-gate-report.json
+runtime-state/release-candidate-ship-handoff/phase247/phase247-release-candidate-ship-handoff-report.json
 ```
 
 ## Re-Run Commands
@@ -252,4 +264,10 @@ python3 scripts/validate_failure_to_roadmap.py \
   --output-path runtime-state/failure-to-roadmap/phase169/phase169-failure-to-roadmap-report.json
 python3 scripts/validate_contextless_agent_audit_pack.py \
   --output-path runtime-state/contextless-agent-audit-pack/phase185/phase185-contextless-agent-audit-pack-report.json
+python3 scripts/validate_release_candidate_runtime_health_restoration.py \
+  --timeout-seconds 240 \
+  --health-timeout-seconds 20
+python3 scripts/validate_v1_release_candidate_decision_gate.py \
+  --health-timeout-seconds 20
+python3 scripts/validate_release_candidate_ship_handoff.py
 ```

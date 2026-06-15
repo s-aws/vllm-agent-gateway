@@ -10,6 +10,10 @@ The gate can return three decisions:
 
 This is intentionally not a "green-only" validator. A `hold` decision can be a passing gate result when it correctly identifies runtime health as the blocker.
 
+## Current Outcome
+
+The first Phase 244 run correctly returned `hold` while runtime health was unavailable. Phase 245 restored runtime health, and Phase 246 reran this gate from the release clone. The current release-candidate decision is `ship`.
+
 ## What It Checks
 
 - Phase 232-243 roadmap statuses are complete.

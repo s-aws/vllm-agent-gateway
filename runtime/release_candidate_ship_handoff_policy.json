@@ -1,0 +1,103 @@
+{
+  "acceptance_marker": "PHASE247 RELEASE CANDIDATE SHIP HANDOFF PASS",
+  "decision_source": {
+    "branch": "codex/m14-release-clone-proof",
+    "clone_path": "/tmp/agentic_agents_phase243_remote_clone",
+    "commit": "bb0c6b0",
+    "phase244_decision_report": "runtime-state/v1-release-candidate-decision-gate/phase244/phase244-v1-release-candidate-decision-gate-report.json",
+    "phase244_expected_decision": "ship",
+    "phase245_anythingllm_run_id": "workflow-router-20260614T225345166828Z",
+    "phase245_expected_decision": "runtime_health_restored",
+    "phase245_gateway_run_id": "workflow-router-20260614T225336875601Z",
+    "phase245_restoration_report": "runtime-state/release-candidate-runtime-health-restoration/phase245/phase245-release-candidate-runtime-health-restoration-report.json"
+  },
+  "docs_required_markers": {
+    "README.external-tester-onboarding.md": [
+      "http://127.0.0.1:8500/v1"
+    ],
+    "README.getting-started.md": [
+      "Current handoff status: Phase 247",
+      "Phase 246 ship decision",
+      "bb0c6b0"
+    ],
+    "README.release-candidate-ship-handoff.md": [
+      "Decision: `ship`",
+      "Decision source commit: `bb0c6b0`",
+      "workflow-router-20260614T225336875601Z",
+      "workflow-router-20260614T225345166828Z"
+    ],
+    "README.release-candidate-runtime-health-restoration.md": [
+      "Phase 245",
+      "runtime_health_restored"
+    ],
+    "README.release-notes.md": [
+      "Current status: `ship`",
+      "Phase 246",
+      "bb0c6b0"
+    ],
+    "README.v1-release-candidate-decision-gate.md": [
+      "Phase 244",
+      "ship"
+    ],
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 247",
+      "Status: Complete."
+    ],
+    "docs/README.md": [
+      "README.release-candidate-ship-handoff.md"
+    ],
+    "docs/examples/README.md": [
+      "release-candidate-ship-handoff.md"
+    ]
+  },
+  "expected_release_proof": {
+    "decision_source_branch": "codex/m14-release-clone-proof",
+    "decision_source_clone_path": "/tmp/agentic_agents_phase243_remote_clone",
+    "decision_source_commit": "bb0c6b0",
+    "final_regression_result_contains": "1594 passed",
+    "kind": "v1_acceptance_report",
+    "phase244_decision": "ship",
+    "phase244_machine_report_count": 2,
+    "phase244_runtime_health_blocker_count": 0,
+    "phase245_anythingllm_run_id": "workflow-router-20260614T225345166828Z",
+    "phase245_decision": "runtime_health_restored",
+    "phase245_gateway_run_id": "workflow-router-20260614T225336875601Z",
+    "profile": "v1.1-release-candidate",
+    "proof_kind": "stable_channel_activation_proof",
+    "source_phase": 246,
+    "status": "passed"
+  },
+  "expected_stable_readiness": {
+    "activated_at": "2026-06-14",
+    "activated_by": "phase246_release_candidate_decision_ship",
+    "activated_from_report": "runtime/release_proofs/v1-1-release-candidate-stable-proof.json",
+    "activated_profile": "v1.1-release-candidate"
+  },
+  "global_known_limit_markers": [
+    "Raw 1M-token prompt serving is not claimed",
+    "Advanced broad refactor orchestration is not released",
+    "not a production deployment",
+    "AnythingLLM must point at `http://127.0.0.1:8500/v1`"
+  ],
+  "kind": "release_candidate_ship_handoff_policy",
+  "milestone_ids": [
+    "M1",
+    "M14"
+  ],
+  "phase": 247,
+  "priority_backlog_id": "P0-M14-247",
+  "required_docs": [
+    "README.getting-started.md",
+    "README.external-tester-onboarding.md",
+    "README.release-notes.md",
+    "README.v1-release-candidate-decision-gate.md",
+    "README.release-candidate-runtime-health-restoration.md",
+    "README.release-candidate-ship-handoff.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/README.md",
+    "docs/examples/README.md"
+  ],
+  "required_release_channel_manifest": "runtime/release_channels.json",
+  "required_release_proof": "runtime/release_proofs/v1-1-release-candidate-stable-proof.json",
+  "schema_version": 1
+}

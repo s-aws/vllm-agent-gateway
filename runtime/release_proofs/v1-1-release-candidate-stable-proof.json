@@ -1,11 +1,38 @@
 {
-  "schema_version": 1,
+  "decision_source": {
+    "branch": "codex/m14-release-clone-proof",
+    "clone_path": "/tmp/agentic_agents_phase243_remote_clone",
+    "commit": "bb0c6b0",
+    "phase244_decision_report": "runtime-state/v1-release-candidate-decision-gate/phase244/phase244-v1-release-candidate-decision-gate-report.json",
+    "phase244_summary": {
+      "blocker_count": 0,
+      "decision": "ship",
+      "machine_report_count": 2,
+      "phase_count": 12,
+      "runtime_health_blocker_count": 0
+    },
+    "validated_at": "2026-06-14"
+  },
+  "final_regression": {
+    "command": "python3 -m pytest tests/regression/ -v",
+    "result": "1594 passed, 4 skipped, 23 deselected",
+    "runtime": "1653.23s"
+  },
   "kind": "v1_acceptance_report",
-  "status": "passed",
+  "known_boundary": "Stable covers current release-candidate L1/L2 tester workflows, setup, security, feedback, observability, runtime recovery, non-Coinbase generalization, large-context strategy usability through retrieval, chunking, summarization, artifact paging, evidence selection, and baseline-corpus promotion. Advanced broad refactor orchestration remains deferred. Raw 1M-token prompt serving is not claimed.",
   "profile": "v1.1-release-candidate",
   "proof_kind": "stable_channel_activation_proof",
-  "source_phase": 91,
-  "source_report": "runtime-state/v1-acceptance/phase90-v1-1-acceptance-final.json",
   "retention_reason": "runtime-state is local-only; stable release-channel validation needs committed proof metadata for contextless test runs.",
-  "known_boundary": "Stable covers current L1/L2 tester workflows, setup, security, feedback, observability, and disposable-copy apply proof. Advanced broad refactor orchestration remains deferred."
+  "runtime_restoration": {
+    "anythingllm_run_id": "workflow-router-20260614T225345166828Z",
+    "decision": "runtime_health_restored",
+    "gateway_run_id": "workflow-router-20260614T225336875601Z",
+    "health_probe_count": 12,
+    "runtime_health_blocker_count": 0
+  },
+  "schema_version": 1,
+  "ship_decision": "ship",
+  "source_phase": 246,
+  "source_report": "runtime-state/v1-release-candidate-decision-gate/phase244/phase244-v1-release-candidate-decision-gate-report.json",
+  "status": "passed"
 }

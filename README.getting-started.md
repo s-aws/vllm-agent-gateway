@@ -4,7 +4,7 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
-Current handoff status: Phase 232 is the active onboarding and release handoff refresh. The current proof floor includes Phase 226 M6/M8 large-context usability, M9 founder-feedback rebaseline and repair rerun gates, M12 small skill admission, and M13 runtime recovery reliability. Phase 231 proved restart-and-resume behavior through vLLM, gateway/proxies, controller, AnythingLLM, one small-repo prompt, and one large-context prompt.
+Current handoff status: Phase 247 is the active release-candidate ship handoff. The Phase 246 ship decision was produced from `/tmp/agentic_agents_phase243_remote_clone` at decision source commit `bb0c6b0` after Phase 245 restored runtime health. The current proof floor includes Phase 226 large-context usability, Phase 239 Priority 0 clone replay, Phase 240 non-Coinbase generalization, Phase 241 large-context strategy replay, Phase 242 baseline corpus promotion, Phase 243 external tester feedback proof, Phase 245 runtime health restoration, and Phase 246 release decision rerun.
 
 ## What This Proves
 
@@ -33,7 +33,7 @@ Current handoff status: Phase 232 is the active onboarding and release handoff r
 - For API validation, `ANYTHINGLLM_API_KEY` is available in your Windows user environment.
 - For automated Desktop UI validation, Python Playwright, system Chrome, and Node/npm `npx` are available.
 
-## Current Phase 232 Happy Path
+## Current Phase 247 Happy Path
 
 Run these from Bash/WSL unless a command explicitly says PowerShell:
 
@@ -45,6 +45,12 @@ python3 scripts/validate_runtime_recovery_reliability_rebaseline.py \
   --restart-managed-stack \
   --restart-vllm-container vllm-qwen3 \
   --timeout-seconds 900
+python3 scripts/validate_release_candidate_runtime_health_restoration.py \
+  --timeout-seconds 240 \
+  --health-timeout-seconds 20
+python3 scripts/validate_v1_release_candidate_decision_gate.py \
+  --health-timeout-seconds 20
+python3 scripts/validate_release_candidate_ship_handoff.py
 python3 scripts/validate_external_tester_dry_run.py \
   --live-runtime \
   --include-feedback \
@@ -56,6 +62,9 @@ Expected markers:
 ```text
 FIRST TIME USER DOCTOR PASS
 PHASE231 RUNTIME RECOVERY RELIABILITY REBASELINE PASS
+PHASE245 RELEASE CANDIDATE RUNTIME HEALTH RESTORATION PASS
+PHASE244 V1 RELEASE CANDIDATE DECISION GATE PASS
+PHASE247 RELEASE CANDIDATE SHIP HANDOFF PASS
 EXTERNAL TESTER DRY RUN PASS
 ```
 
