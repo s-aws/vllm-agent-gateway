@@ -157,6 +157,7 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-246 | Release-candidate decision rerun after runtime health | Complete in Phase 246. Reran the Phase 244 decision gate after health restoration. | Proof: live Phase 244 rerun reached `ship` with no stale runtime caveat and no runtime-health blockers. |
 | P0-M6-251 | 384k objective rebaseline | Complete in Phase 251. Rebaselined active large-context scope to 384k-token projects and blocked post-384k expansion from starting before the 384k target has a stable usable tester handoff. | Proof: Phase 251 objective policy, validator, docs, threshold checks, stale roadmap mapping repair, focused regression, docs index, and no live runtime dependency. |
 | P0-M15-270 | 500k candidate objective rebaseline | Complete in Phase 270. Activated 500k-token project usability as the next candidate target while preserving 384k as the stable baseline. | Proof: Phase 270 policy, validator, docs, follow-up phase sequence, static gate `phase270_ready=true`, `stable_estimated_project_tokens=384000`, `candidate_estimated_project_tokens=500000`, focused regression `4 passed`, docs index `353` linked docs and zero orphaned docs, and no live runtime dependency. |
+| P0-M15-271 | 500k fixture and index readiness | Complete in Phase 271. Proved the accepted fixture and metadata-first index meet the 500k candidate threshold before stale-index rejection and live validation. | Proof: Phase 271 policy, validator, docs, delegated Phase 259 readiness path, Bash readiness gate `phase272_ready=true`, `corpus_estimated_token_count=1286080`, `estimated_indexed_token_count=1286132`, `indexed_file_count=241`, `chunk_count=457`, focused regression `9 passed`, docs index `355` linked docs and zero orphaned docs, and no live runtime dependency. |
 
 ## Execution Plan
 
@@ -489,7 +490,7 @@ Next approved 384k product phases:
 - `P0-M6-268`: stable AnythingLLM 384k founder smoke. Complete.
 - `P0-M6-269`: 384k objective completion audit. Complete.
 - `P0-M15-270`: 500k candidate objective rebaseline. Complete.
-- `P0-M15-271`: 500k fixture and index readiness proof.
+- `P0-M15-271`: 500k fixture and index readiness proof. Complete.
 - `P0-M15-272`: 500k stale-index rejection hardening.
 - `P0-M15-273`: live 500k candidate acceptance.
 - `P0-M15-274`: targeted 500k answer-quality repair if needed.
@@ -546,3 +547,5 @@ Phase 263 makes the accepted 384k tester path durable for contextless first-time
 `P0-M6-269` completed in Phase 269. It added `docs/LARGE_CONTEXT_384K_COMPLETION_AUDIT.md` with a requirement-to-evidence matrix, confirmed the current model endpoint reports `max_model_len=262144`, preserved raw-384k and post-384k boundaries, and concluded the current 384k objective is complete for the supported product path.
 
 `P0-M15-270` completed in Phase 270. It activated the 500k-token project usability candidate, preserved 384k as the stable large-context baseline, added a fail-closed static validator, and defined the approved Phase 271-277 proof sequence. Static validation passed with `phase270_ready=true`, `stable_estimated_project_tokens=384000`, `candidate_estimated_project_tokens=500000`, `doc_count=7`, and `error_count=0`; focused regression passed with `4 passed`; docs index validation passed with `353` linked docs and zero orphaned docs. It does not claim raw 500k prompt support and does not promote 500k to stable.
+
+`P0-M15-271` completed in Phase 271. It reused the existing Phase 259 readiness path for corpus inventory, corpus/index safety, protected fixture fingerprinting, and context-index bootstrap, then applied the 500k candidate threshold. Bash validation passed with `phase272_ready=true`, `corpus_estimated_token_count=1286080`, `estimated_indexed_token_count=1286132`, `indexed_file_count=241`, `chunk_count=457`, `phase259_status=passed`, and `phase270_status=passed`; focused regression passed with `9 passed`; docs index validation passed with `355` linked docs and zero orphaned docs. It does not prove live gateway, AnythingLLM, or raw 500k prompt support; Phase 272 stale-index rejection remains required before live 500k acceptance.

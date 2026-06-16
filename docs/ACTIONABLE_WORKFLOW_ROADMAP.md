@@ -11303,7 +11303,7 @@ Result:
 
 ### Approved Phase 271: 500k Fixture And Index Readiness Proof
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M6 Large-Context Usability Baseline, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
 
@@ -11317,6 +11317,17 @@ Scope:
 - Produce a deterministic readiness report and focused regression.
 
 Acceptance target: Phase 273 can run against documented, fresh, source-hashed, governed 500k fixture/index state rather than undocumented runtime residue.
+
+Result:
+
+- Added `runtime/large_context_500k_fixture_index_readiness_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_500k_fixture_index_readiness`.
+- Added `scripts/validate_large_context_500k_fixture_index_readiness.py`.
+- Added focused regression coverage for policy validation, synthetic pass, under-target corpus rejection, under-target index rejection, and failed Phase 270 precondition rejection.
+- Added `README.large-context-500k-fixture-index-readiness.md` and `docs/examples/large-context-500k-fixture-index-readiness.md`.
+- Bash Phase 271 readiness gate passed with `corpus_estimated_token_count=1286080`, `estimated_indexed_token_count=1286132`, `indexed_file_count=241`, `chunk_count=457`, `phase259_status=passed`, `phase270_status=passed`, and `phase272_ready=true`.
+- Focused regression passed with `9 passed` across the Phase 270 and Phase 271 guards.
+- Docs index validation passed with `355` linked docs and zero orphaned docs.
 
 ### Approved Phase 272: 500k Stale-Index Rejection Hardening
 

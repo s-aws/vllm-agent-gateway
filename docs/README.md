@@ -135,6 +135,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Large-Context 384k Release-Candidate Decision Gate README](../README.large-context-384k-release-candidate-decision-gate.md): Phase 265 deterministic ship, hold, or repair-required decision gate for the accepted 384k proof chain.
 - [Large-Context 384k Completion Audit](LARGE_CONTEXT_384K_COMPLETION_AUDIT.md): Phase 269 requirement-to-evidence audit proving the current 384k objective for the supported product path and preserving post-384k boundaries.
 - [Large-Context 500k Candidate Rebaseline README](../README.large-context-500k-candidate-rebaseline.md): Phase 270 static gate activating the 500k-token project usability candidate while preserving 384k as the stable large-context baseline.
+- [Large-Context 500k Fixture And Index Readiness README](../README.large-context-500k-fixture-index-readiness.md): Phase 271 readiness gate proving the accepted fixture and metadata-first index meet the 500k candidate threshold before stale-index rejection and live validation.
 - [Release-Candidate Baseline Corpus Promotion README](../README.release-candidate-baseline-corpus-promotion.md): Phase 242 promoted release-candidate chat-quality cases in the governed baseline corpus.
 - [External Tester Feedback Loop From Clone README](../README.external-tester-feedback-loop-from-clone.md): Phase 243 release-candidate clone feedback proof for positive and defect tester records.
 - [V1 Release-Candidate Decision Gate README](../README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate.
@@ -421,6 +422,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Large-Context 384k Clean Clone Replay Examples](examples/large-context-384k-clean-clone-replay.md)
 - [Large-Context 384k Release-Candidate Decision Gate Examples](examples/large-context-384k-release-candidate-decision-gate.md)
 - [Large-Context 500k Candidate Rebaseline Examples](examples/large-context-500k-candidate-rebaseline.md)
+- [Large-Context 500k Fixture And Index Readiness Examples](examples/large-context-500k-fixture-index-readiness.md)
 - [Release-Candidate Baseline Corpus Promotion Examples](examples/release-candidate-baseline-corpus-promotion.md)
 - [External Tester Feedback Loop From Clone Examples](examples/external-tester-feedback-loop-from-clone.md)
 - [V1 Release-Candidate Decision Gate Examples](examples/v1-release-candidate-decision-gate.md)
