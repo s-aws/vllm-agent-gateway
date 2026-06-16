@@ -88,7 +88,16 @@ python3 scripts/validate_large_context_384k_live_acceptance.py \
   --timeout-seconds 1200
 ```
 
-If AnythingLLM is a Windows app and Windows `127.0.0.1` forwarding hangs after response headers, use the workflow-router network URL printed by `start-agent-prompt-proxies.sh` for the AnythingLLM argument only. Keep the Bash/internal gateway argument on `http://127.0.0.1:8500/v1`.
+If AnythingLLM is a Windows app and Windows `127.0.0.1` forwarding hangs after response headers, the workflow-router gateway must be bound for network clients before the printed WSL URL is usable:
+
+```bash
+WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0 \
+GATEWAY_BIND_HOST=0.0.0.0 \
+CONTROLLER_BIND_HOST=0.0.0.0 \
+bash start-agent-prompt-proxies.sh
+```
+
+If the startup output says the network workflow-router target is unavailable while `WORKFLOW_ROUTER_GATEWAY_BIND_HOST=127.0.0.1`, restart with the bind-host setting above. Then use the reachable workflow-router network URL printed by `start-agent-prompt-proxies.sh` for the AnythingLLM argument only. Keep the Bash/internal gateway argument on `http://127.0.0.1:8500/v1`.
 
 ```bash
 python3 scripts/validate_large_context_384k_live_acceptance.py \
@@ -124,6 +133,12 @@ Run from PowerShell:
 
 ```powershell
 bash -lc "cd /mnt/c/agentic_agents && ./stop-agent-prompt-proxies.sh && CONTROLLER_ALLOWED_TARGET_ROOTS='/mnt/c/agentic_agents:/mnt/c/coinbase_testing_repo_frozen_tmp:/mnt/c/coinbase_testing_repo_frozen_tmp.github' CONTROLLER_DEFAULT_ROLE_BASE_URL='http://127.0.0.1:8300/v1' ./start-agent-prompt-proxies.sh"
+```
+
+For Windows AnythingLLM testing through the printed WSL network target, include the network bind-host settings in the same start command:
+
+```powershell
+bash -lc "cd /mnt/c/agentic_agents && ./stop-agent-prompt-proxies.sh && GATEWAY_BIND_HOST=0.0.0.0 WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0 CONTROLLER_BIND_HOST=0.0.0.0 CONTROLLER_ALLOWED_TARGET_ROOTS='/mnt/c/agentic_agents:/mnt/c/coinbase_testing_repo_frozen_tmp:/mnt/c/coinbase_testing_repo_frozen_tmp.github' CONTROLLER_DEFAULT_ROLE_BASE_URL='http://127.0.0.1:8300/v1' ./start-agent-prompt-proxies.sh"
 ```
 
 Expected important lines:

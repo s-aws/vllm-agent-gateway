@@ -27,6 +27,20 @@ cd /tmp/agentic_agents_phase264_remote_clone
 git status --short
 ```
 
+Start the managed stack from the clone. If AnythingLLM is a Windows app pointed at the WSL network URL, bind the gateway services to `0.0.0.0` before using the printed network target:
+
+```bash
+bash stop-agent-prompt-proxies.sh
+GATEWAY_BIND_HOST=0.0.0.0 \
+WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0 \
+CONTROLLER_BIND_HOST=0.0.0.0 \
+CONTROLLER_ALLOWED_TARGET_ROOTS="/tmp/agentic_agents_phase264_remote_clone:/mnt/c/coinbase_testing_repo_frozen_tmp:/mnt/c/coinbase_testing_repo_frozen_tmp.github" \
+CONTROLLER_DEFAULT_ROLE_BASE_URL="http://127.0.0.1:8300/v1" \
+bash start-agent-prompt-proxies.sh
+```
+
+If the startup output says a network client target is unavailable while a bind host is `127.0.0.1`, do not point AnythingLLM at that network URL yet. Restart with the matching `*_BIND_HOST=0.0.0.0` setting first.
+
 Run from the clone after vLLM, the gateway/proxies, the controller, and AnythingLLM are running:
 
 ```bash
@@ -38,7 +52,7 @@ python3 scripts/validate_large_context_384k_clean_clone_replay.py \
   --timeout-seconds 1200
 ```
 
-For split Windows/WSL setups, replace only `--anythingllm-workflow-router-base-url` with the workflow-router network URL printed by `start-agent-prompt-proxies.sh`.
+For split Windows/WSL setups, replace only `--anythingllm-workflow-router-base-url` with the reachable workflow-router network URL printed by `start-agent-prompt-proxies.sh`.
 
 ## Pass Marker
 

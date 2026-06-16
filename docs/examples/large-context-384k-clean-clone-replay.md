@@ -11,6 +11,18 @@ cd /tmp/agentic_agents_phase264_remote_clone
 git status --short
 ```
 
+Start the managed stack from that clone. Use the bind-host settings when AnythingLLM is a Windows client pointed at the WSL network URL:
+
+```bash
+bash stop-agent-prompt-proxies.sh
+GATEWAY_BIND_HOST=0.0.0.0 \
+WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0 \
+CONTROLLER_BIND_HOST=0.0.0.0 \
+CONTROLLER_ALLOWED_TARGET_ROOTS="/tmp/agentic_agents_phase264_remote_clone:/mnt/c/coinbase_testing_repo_frozen_tmp:/mnt/c/coinbase_testing_repo_frozen_tmp.github" \
+CONTROLLER_DEFAULT_ROLE_BASE_URL="http://127.0.0.1:8300/v1" \
+bash start-agent-prompt-proxies.sh
+```
+
 Run the Phase 264 live replay:
 
 ```bash

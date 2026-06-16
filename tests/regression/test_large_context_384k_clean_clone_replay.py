@@ -177,6 +177,50 @@ def test_phase264_reports_static_gate_exception(tmp_path: Path, monkeypatch: pyt
     assert report["errors"][0]["id"] == "phase259_fixture_index_readiness.exception"
 
 
+def test_phase264_runs_phase259_and_phase260_at_canonical_paths_before_mirroring(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "config"
+    output_dir = root / "runtime-state" / "phase264"
+    phase259_report = {"status": "passed", "summary": {"phase260_ready": True}}
+    phase260_report = {"status": "passed", "summary": {"phase261_ready": True}}
+
+    def fake_phase259(config: phase264.LargeContext384kFixtureIndexReadinessConfig) -> dict:
+        canonical = root / phase264.PHASE259_DEFAULT_OUTPUT_PATH
+        markdown = root / phase264.PHASE259_DEFAULT_MARKDOWN_OUTPUT_PATH
+        phase264.write_json(canonical, phase259_report)
+        phase264.write_text(markdown, "phase259 canonical markdown\n")
+        return dict(phase259_report)
+
+    def fake_phase260(config: phase264.LargeContext384kStaleIndexRejectionConfig) -> dict:
+        assert (root / phase264.PHASE259_DEFAULT_OUTPUT_PATH).is_file()
+        canonical = root / phase264.PHASE260_DEFAULT_OUTPUT_PATH
+        markdown = root / phase264.PHASE260_DEFAULT_MARKDOWN_OUTPUT_PATH
+        phase264.write_json(canonical, phase260_report)
+        phase264.write_text(markdown, "phase260 canonical markdown\n")
+        return dict(phase260_report)
+
+    monkeypatch.setattr(phase264, "validate_large_context_384k_fixture_index_readiness", fake_phase259)
+    monkeypatch.setattr(phase264, "validate_large_context_384k_stale_index_rejection", fake_phase260)
+
+    observed259 = phase264.run_phase259_canonical_with_phase264_mirror(root, output_dir)
+    observed260 = phase264.run_phase260_canonical_with_phase264_mirror(root, output_dir)
+
+    phase259_mirror = output_dir / "phase264-phase259-large-context-384k-fixture-index-readiness-report.json"
+    phase260_mirror = output_dir / "phase264-phase260-large-context-384k-stale-index-rejection-report.json"
+    assert (root / phase264.PHASE259_DEFAULT_OUTPUT_PATH).is_file()
+    assert (root / phase264.PHASE260_DEFAULT_OUTPUT_PATH).is_file()
+    assert phase259_mirror.is_file()
+    assert phase260_mirror.is_file()
+    assert observed259["canonical_report_path"] == str((root / phase264.PHASE259_DEFAULT_OUTPUT_PATH).resolve())
+    assert observed260["canonical_report_path"] == str((root / phase264.PHASE260_DEFAULT_OUTPUT_PATH).resolve())
+    assert phase259_mirror.read_text(encoding="utf-8")
+    assert (output_dir / "phase264-phase259-large-context-384k-fixture-index-readiness-report.md").read_text(
+        encoding="utf-8"
+    ) == "phase259 canonical markdown\n"
+
+
 def test_phase264_policy_rejects_post_384k_expansion() -> None:
     mutated = copy.deepcopy(policy())
     mutated["safety_requirements"]["post_384k_expansion_allowed"] = True

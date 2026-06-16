@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any
 
 from vllm_agent_gateway.acceptance.large_context_384k_fixture_index_readiness import (
+    DEFAULT_MARKDOWN_OUTPUT_PATH as PHASE259_DEFAULT_MARKDOWN_OUTPUT_PATH,
+    DEFAULT_OUTPUT_PATH as PHASE259_DEFAULT_OUTPUT_PATH,
     LargeContext384kFixtureIndexReadinessConfig,
     validate_large_context_384k_fixture_index_readiness,
 )
@@ -25,6 +27,8 @@ from vllm_agent_gateway.acceptance.large_context_384k_objective_rebaseline impor
     validate_large_context_384k_objective_rebaseline,
 )
 from vllm_agent_gateway.acceptance.large_context_384k_stale_index_rejection import (
+    DEFAULT_MARKDOWN_OUTPUT_PATH as PHASE260_DEFAULT_MARKDOWN_OUTPUT_PATH,
+    DEFAULT_OUTPUT_PATH as PHASE260_DEFAULT_OUTPUT_PATH,
     LargeContext384kStaleIndexRejectionConfig,
     validate_large_context_384k_stale_index_rejection,
 )
@@ -329,6 +333,53 @@ def run_gate(gate_id: str, callback: Any) -> dict[str, Any]:
     return report if isinstance(report, dict) else exception_report(gate_id, RuntimeError("gate returned non-object report"))
 
 
+def mirror_canonical_gate_report(
+    report: dict[str, Any],
+    *,
+    canonical_output_path: Path,
+    canonical_markdown_output_path: Path,
+    mirror_output_path: Path,
+    mirror_markdown_output_path: Path,
+) -> dict[str, Any]:
+    mirrored = dict(report)
+    mirrored["canonical_report_path"] = str(canonical_output_path.resolve())
+    mirrored["report_path"] = str(mirror_output_path.resolve())
+    write_json(mirror_output_path, mirrored)
+    if canonical_markdown_output_path.is_file():
+        write_text(mirror_markdown_output_path, canonical_markdown_output_path.read_text(encoding="utf-8"))
+    return mirrored
+
+
+def run_phase259_canonical_with_phase264_mirror(config_root: Path, output_dir: Path) -> dict[str, Any]:
+    canonical_output_path = resolve_path(config_root, PHASE259_DEFAULT_OUTPUT_PATH)
+    canonical_markdown_output_path = resolve_path(config_root, PHASE259_DEFAULT_MARKDOWN_OUTPUT_PATH)
+    report = validate_large_context_384k_fixture_index_readiness(
+        LargeContext384kFixtureIndexReadinessConfig(config_root=config_root)
+    )
+    return mirror_canonical_gate_report(
+        report,
+        canonical_output_path=canonical_output_path,
+        canonical_markdown_output_path=canonical_markdown_output_path,
+        mirror_output_path=output_dir / "phase264-phase259-large-context-384k-fixture-index-readiness-report.json",
+        mirror_markdown_output_path=output_dir / "phase264-phase259-large-context-384k-fixture-index-readiness-report.md",
+    )
+
+
+def run_phase260_canonical_with_phase264_mirror(config_root: Path, output_dir: Path) -> dict[str, Any]:
+    canonical_output_path = resolve_path(config_root, PHASE260_DEFAULT_OUTPUT_PATH)
+    canonical_markdown_output_path = resolve_path(config_root, PHASE260_DEFAULT_MARKDOWN_OUTPUT_PATH)
+    report = validate_large_context_384k_stale_index_rejection(
+        LargeContext384kStaleIndexRejectionConfig(config_root=config_root)
+    )
+    return mirror_canonical_gate_report(
+        report,
+        canonical_output_path=canonical_output_path,
+        canonical_markdown_output_path=canonical_markdown_output_path,
+        mirror_output_path=output_dir / "phase264-phase260-large-context-384k-stale-index-rejection-report.json",
+        mirror_markdown_output_path=output_dir / "phase264-phase260-large-context-384k-stale-index-rejection-report.md",
+    )
+
+
 def run_static_gates(config_root: Path, output_dir: Path) -> dict[str, Any]:
     return {
         "docs_index": run_gate("docs_index", lambda: docs_index_check(config_root)),
@@ -354,23 +405,11 @@ def run_static_gates(config_root: Path, output_dir: Path) -> dict[str, Any]:
         ),
         "phase259_fixture_index_readiness": run_gate(
             "phase259_fixture_index_readiness",
-            lambda: validate_large_context_384k_fixture_index_readiness(
-                LargeContext384kFixtureIndexReadinessConfig(
-                    config_root=config_root,
-                    output_path=output_dir / "phase264-phase259-large-context-384k-fixture-index-readiness-report.json",
-                    markdown_output_path=output_dir / "phase264-phase259-large-context-384k-fixture-index-readiness-report.md",
-                )
-            )
+            lambda: run_phase259_canonical_with_phase264_mirror(config_root, output_dir),
         ),
         "phase260_stale_index_rejection": run_gate(
             "phase260_stale_index_rejection",
-            lambda: validate_large_context_384k_stale_index_rejection(
-                LargeContext384kStaleIndexRejectionConfig(
-                    config_root=config_root,
-                    output_path=output_dir / "phase264-phase260-large-context-384k-stale-index-rejection-report.json",
-                    markdown_output_path=output_dir / "phase264-phase260-large-context-384k-stale-index-rejection-report.md",
-                )
-            )
+            lambda: run_phase260_canonical_with_phase264_mirror(config_root, output_dir),
         ),
     }
 

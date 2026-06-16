@@ -12,7 +12,16 @@ python3 scripts/validate_large_context_384k_live_acceptance.py \
   --timeout-seconds 1200
 ```
 
-Run with a split Windows/WSL AnythingLLM target:
+For a split Windows/WSL AnythingLLM target, first restart the managed stack with network-capable bind hosts:
+
+```bash
+WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0 \
+GATEWAY_BIND_HOST=0.0.0.0 \
+CONTROLLER_BIND_HOST=0.0.0.0 \
+bash start-agent-prompt-proxies.sh
+```
+
+Then run with the reachable workflow-router network URL printed by the startup script:
 
 ```bash
 python3 scripts/validate_large_context_384k_live_acceptance.py \

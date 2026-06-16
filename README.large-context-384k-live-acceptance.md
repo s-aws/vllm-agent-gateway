@@ -27,7 +27,16 @@ python3 scripts/validate_large_context_384k_live_acceptance.py \
   --timeout-seconds 1200
 ```
 
-For Windows AnythingLLM pointed at a WSL network URL, keep Bash validators on the internal router URL and pass the effective AnythingLLM target URL printed by `start-agent-prompt-proxies.sh`:
+For Windows AnythingLLM pointed at a WSL network URL, the workflow-router gateway must be bound for network clients before the printed WSL URL is usable:
+
+```bash
+WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0 \
+GATEWAY_BIND_HOST=0.0.0.0 \
+CONTROLLER_BIND_HOST=0.0.0.0 \
+bash start-agent-prompt-proxies.sh
+```
+
+If the startup output says the network workflow-router target is unavailable while `WORKFLOW_ROUTER_GATEWAY_BIND_HOST=127.0.0.1`, restart with the bind-host setting above. Then keep Bash validators on the internal router URL and pass the effective AnythingLLM target URL printed by `start-agent-prompt-proxies.sh`:
 
 ```bash
 python3 scripts/validate_large_context_384k_live_acceptance.py \
