@@ -103,7 +103,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 248 | M14 | Complete. Replayed the committed ship handoff package from the remote clone at commit `138afa3` with static handoff, docs-index, and stable-channel proof. |
 | Phase 249 | M13/M14 | Complete. Restored Bash/WSL command execution, captured the Windows-to-WSL localhost forwarding workaround, refreshed runtime health, and reran release decision proof. |
 | Phase 250 | M14 | Complete. Replayed the pushed Phase 249 handoff state from a fresh remote clone with static handoff, docs-index, and stable-channel proof. |
-| Phase 251 | M6/M7/M8/M14 | Complete. Rebaselined the current large-context objective to 384k-token project usability and added a drift gate so 1M+ expansion work cannot become the current release target without explicit approval. |
+| Phase 251 | M6/M7/M8/M14 | Complete. Rebaselined the current large-context objective to 384k-token project usability and added a drift gate so post-384k expansion work cannot begin before the current target is ship-ready and explicitly approved. |
 | Phase 252 | M14/M6 | Complete. Replayed the pushed Phase 251 384k objective rebaseline from a fresh remote clone with Phase 251, docs-index, and stable-channel proof. |
 | Phase 253 | M6/M8/M13/M14 | Complete. Proved the post-rebaseline runtime still answers through gateway and AnythingLLM while refusing raw-corpus prompt stuffing and preserving both frozen Coinbase fixtures. |
 | Phase 254 | M2/M13/M14 | Complete. Proved post-reboot AnythingLLM greeting/session recovery for `hi` and same-session follow-up after the 384k rebaseline. |
@@ -113,8 +113,8 @@ The first proposed milestone-aligned phase set is:
 | Phase 258 | M2/M4/M6/M8/M14/M16 | Complete. Defined the executable 384k usability acceptance contract and required fixture/index readiness plus stale-index rejection before live acceptance. |
 | Phase 259 | M6/M16 | Complete. Proved the accepted 384k-plus fixture and governed index bootstrap are ready before live 384k validation. |
 | Phase 260 | M6/M8/M16 | Complete. Hardened stale-index, changed-policy, changed-source, and unsafe-evidence rejection before live 384k acceptance. |
-| Phase 261 | M2/M4/M6/M8/M13/M14/M16 | Approved. Run live 384k acceptance through gateway and AnythingLLM with blind-baseline comparison, holdouts, split URLs, and fixture proof. |
-| Phase 262 | M2/M4/M6/M8 | Approved. Repair only acceptance-gate answer-quality gaps discovered by Phase 261 target or holdout failures. |
+| Phase 261 | M2/M4/M6/M8/M13/M14/M16 | Complete. Passed live 384k acceptance through gateway and AnythingLLM with Phase 258/259/260 prerequisites, Phase 221 plus Phase 223 strategy coverage, split-url target settings, blind-baseline comparison, JSON/default parity, fixture proof, and zero high/critical findings. |
+| Phase 262 | M2/M4/M6/M8 | Complete. No targeted answer-quality repair was required because Phase 261 passed with zero errors, zero critical/high findings, zero failed small-repo regressions, and passing JSON/default parity. |
 | Phase 263 | M14/M6 | Approved. Integrate the stable 384k tester path into founder getting-started docs and doctor guidance after live acceptance passes. |
 | Phase 264 | M14/M6/M16 | Approved. Replay the 384k usability proof from a fresh remote clone with index/bootstrap instructions and no private workspace state. |
 | Phase 265 | M1/M6/M14 | Approved. Aggregate the 384k proof chain into a release-candidate ship, hold, or repair-required decision. |

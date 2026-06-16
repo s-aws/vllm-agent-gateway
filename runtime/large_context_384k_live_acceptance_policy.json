@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_384k_live_acceptance_policy",
+  "phase": 261,
+  "priority_backlog_id": "P0-M6-261",
+  "milestone_ids": [
+    "M2",
+    "M4",
+    "M6",
+    "M8",
+    "M13",
+    "M14",
+    "M16"
+  ],
+  "target_estimated_project_tokens": 384000,
+  "purpose": "Prove the current 384k-token project usability target live through workflow-router gateway and AnythingLLM after contract, fixture/index readiness, and stale-index rejection are proven.",
+  "required_preconditions": {
+    "phase258": {
+      "validator": "scripts/validate_large_context_384k_usability_acceptance_contract.py",
+      "required_status": "passed",
+      "required_summary_flag": "phase258_ready"
+    },
+    "phase259": {
+      "validator": "scripts/validate_large_context_384k_fixture_index_readiness.py",
+      "required_status": "passed",
+      "required_summary_flag": "phase260_ready",
+      "minimum_estimated_indexed_token_count": 384000
+    },
+    "phase260": {
+      "validator": "scripts/validate_large_context_384k_stale_index_rejection.py",
+      "required_status": "passed",
+      "required_summary_flag": "phase261_ready"
+    }
+  },
+  "required_anythingllm": {
+    "api_base_url": "http://127.0.0.1:3001",
+    "internal_workflow_router_base_url": "http://127.0.0.1:8500/v1",
+    "workspace": "my-workspace",
+    "model": "Qwen3-Coder-30B-A3B-Instruct",
+    "provider": "generic-openai"
+  },
+  "required_live_reports": {
+    "phase221": {
+      "required_status": "passed",
+      "minimum_response_count": 16,
+      "minimum_small_repo_regression_count": 4
+    },
+    "phase223": {
+      "required_status": "passed",
+      "minimum_response_count": 2,
+      "minimum_small_repo_regression_count": 4
+    }
+  },
+  "required_surfaces": [
+    "gateway",
+    "anythingllm"
+  ],
+  "required_strategy_ids": [
+    "retrieval",
+    "artifact_paging",
+    "summarization",
+    "refusal",
+    "chunked_investigation"
+  ],
+  "json_default_parity": {
+    "required": true,
+    "minimum_case_count": 1,
+    "minimum_passed_case_count": 1,
+    "surface": "gateway",
+    "case_id": "P261-PARITY-001",
+    "prompt": "In {target_root}, produce a long evidence report with all relevant top files for the order replay pipeline.",
+    "expected_strategy": "artifact_paging",
+    "expected_output_formats": [
+      "format_a",
+      "json"
+    ],
+    "minimum_evidence_refs": 4,
+    "minimum_visible_refs": 3,
+    "minimum_page_count": 2,
+    "minimum_artifact_refs": 8,
+    "required_terms": [
+      "order replay",
+      "src/order_replay",
+      "Paged evidence:",
+      "selected_context_strategy"
+    ]
+  },
+  "blind_baseline_comparison": {
+    "required": true,
+    "critical_or_high_finding_count": 0,
+    "baseline_artifact_required": true,
+    "comparison_artifact_required": true
+  },
+  "safety_requirements": {
+    "raw_prompt_stuffing_allowed": false,
+    "raw_384k_prompt_support_claim_allowed": false,
+    "raw_1m_prompt_support_claim_allowed": false,
+    "source_text_retention": "metadata_only",
+    "store_source_text": false,
+    "store_rejected_content": false,
+    "artifact_only_answers_allowed": false,
+    "protected_fixture_mutation_allowed": false,
+    "generated_corpus_mutation_allowed": false,
+    "post_384k_expansion_allowed": false
+  },
+  "target_root": "runtime-state/phase214/generated-large-corpus",
+  "protected_fixture_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_docs": [
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "README.large-context-384k-live-acceptance.md",
+    "docs/examples/large-context-384k-live-acceptance.md"
+  ],
+  "required_doc_markers": {
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 261",
+      "Status:",
+      "Targeted 384k Answer-Quality Repair"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "Phase 261",
+      "M2/M4/M6/M8/M13/M14/M16"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M6-261",
+      "384k live acceptance"
+    ],
+    "README.large-context-384k-live-acceptance.md": [
+      "PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS",
+      "Phase 221 plus Phase 223"
+    ],
+    "docs/examples/large-context-384k-live-acceptance.md": [
+      "validate_large_context_384k_live_acceptance.py",
+      "384000"
+    ]
+  },
+  "acceptance_marker": "PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS"
+}

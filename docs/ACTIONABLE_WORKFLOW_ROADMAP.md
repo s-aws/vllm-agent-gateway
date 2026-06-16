@@ -10740,7 +10740,7 @@ Completion proof:
 
 - Added `runtime/large_context_384k_objective_rebaseline_policy.json`, `vllm_agent_gateway.acceptance.large_context_384k_objective_rebaseline`, `scripts/validate_large_context_384k_objective_rebaseline.py`, focused regression tests, feature docs, and examples.
 - Updated active large-context threshold policies for Phase 214, Phase 215, Phase 217, and Phase 241 from `1000000` to `384000` estimated tokens.
-- Updated durable instructions and milestone text so 384k-token project usability is the current objective and larger corpora, including 1M+ token projects, are future expansion targets.
+- Updated durable instructions and milestone text so 384k-token project usability is the current objective and post-384k expansion stays paused until the 384k target is ship-ready and explicitly approved.
 - Repaired stale milestone mapping rows for completed Phase 249 and Phase 250.
 - Focused Bash regression for Phase 251 and adjacent large-context threshold gates returned `26 passed`.
 - Phase 251 static objective rebaseline gate passed with `target_estimated_project_tokens=384000`, `threshold_check_count=4`, `doc_count=6`, `error_count=0`, and `phase251_ready=true`.
@@ -11009,7 +11009,7 @@ Completion proof:
 
 ### Approved Phase 261: Live 384k Acceptance Validator
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M16 Corpus And Index Safety Governance.
 
@@ -11027,9 +11027,23 @@ Scope:
 
 Acceptance target: a semi-well-defined prompt over a 384k-plus project produces useful, chat-visible, evidence-backed output without raw prompt stuffing.
 
+Completion proof:
+
+- Added `runtime/large_context_384k_live_acceptance_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_384k_live_acceptance`.
+- Added `scripts/validate_large_context_384k_live_acceptance.py`.
+- Added focused regression coverage for the Phase 261 policy, synthetic pass path, missing chunked-investigation rejection, and post-384k expansion rejection.
+- Added `README.large-context-384k-live-acceptance.md` and `docs/examples/large-context-384k-live-acceptance.md`.
+- Contextless review found missing chunked-investigation, JSON/default parity, blind-baseline comparison, split-url target proof, and fresh-run provenance requirements; those were incorporated into the Phase 261 gate before live validation.
+- Live Phase 261 validation passed with `decision=phase261_current_384k_live_acceptance_proof`, `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, `small_repo_regression_count=8`, `failed_small_repo_regression_count=0`, `strategy_ids=[artifact_paging, chunked_investigation, refusal, retrieval, summarization]`, `json_default_parity_status=passed`, `json_default_parity_passed_count=1`, `critical_or_high_finding_count=0`, `raw_prompt_stuffing_allowed=false`, `target_settings_status=passed`, and `phase262_ready=true`.
+- AnythingLLM target settings passed with internal Bash workflow-router URL `http://127.0.0.1:8500/v1`, effective AnythingLLM workflow-router URL `http://100.100.12.45:8500/v1`, provider `generic-openai`, and model `Qwen3-Coder-30B-A3B-Instruct`.
+- Representative run IDs include Phase 221 `workflow-router-20260616T055517644020Z`, `workflow-router-20260616T055523187961Z`, `workflow-router-20260616T055528565839Z`, `workflow-router-20260616T055533901982Z`, `workflow-router-20260616T055538464958Z`; and Phase 223 `workflow-router-20260616T055718262501Z`, `workflow-router-20260616T055736743968Z`, `workflow-router-20260616T055754761872Z`, `workflow-router-20260616T055810703201Z`, `workflow-router-20260616T055820362214Z`.
+- Focused Bash regression returned `17 passed`.
+- Full Bash regression returned `1621 passed`, `4 skipped`, and `23 deselected`.
+
 ### Approved Phase 262: Targeted 384k Answer-Quality Repair
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router.
 
@@ -11043,6 +11057,11 @@ Scope:
 - Do not introduce speculative quality tuning unrelated to Phase 261 misses.
 
 Acceptance target: Phase 261 can be rerun with no unresolved high or critical chat-quality gaps.
+
+Completion proof:
+
+- No implementation repair was opened because Phase 261 passed with `error_count=0`, `critical_or_high_finding_count=0`, `failed_small_repo_regression_count=0`, and `json_default_parity_status=passed`.
+- Phase 262 remains a conditional repair pattern for future reruns, but the current Phase 261 proof requires no targeted answer-quality repair.
 
 ### Approved Phase 263: Founder 384k Getting-Started Integration
 

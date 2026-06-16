@@ -18,7 +18,7 @@
     "Chat-visible answers through the workflow-router gateway and AnythingLLM.",
     "Metadata-first index and retrieval safety proof before live acceptance.",
     "No raw 384k-token prompt-stuffing claim.",
-    "No 1M+ project-usability expansion work in the current product target."
+    "No post-384k project-usability expansion work before the 384k product target has a ship-ready proof chain."
   ],
   "required_predecessor_phase_statuses": {
     "251": "Complete.",

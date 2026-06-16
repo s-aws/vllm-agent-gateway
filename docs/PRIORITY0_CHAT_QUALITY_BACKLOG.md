@@ -155,7 +155,7 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-244 | V1 release-candidate decision gate | Complete in Phase 244. Aggregated release-candidate proof into deterministic `hold`. | Proof: Phase 232-243 completion check, Phase 242/243 machine report validation, live runtime-health probe, decision gate report, focused regression `6 passed`, docs index `linked_count=332`, and full regression `1581 passed`, `4 skipped`, `23 deselected`. Decision is `hold` because 10 required runtime-health probes failed while vLLM/model-backed endpoints were unavailable. |
 | P0-M14-245 | Release-candidate runtime health restoration | Complete in Phase 245. Restored vLLM and full featured-port health for the release-candidate stack. | Proof: localhost `8000`, gateway, controller, workflow-router gateway, role proxy ports, AnythingLLM target, minimal gateway/AnythingLLM read-only prompt, protected fixture mutation check, and focused regression. |
 | P0-M14-246 | Release-candidate decision rerun after runtime health | Complete in Phase 246. Reran the Phase 244 decision gate after health restoration. | Proof: live Phase 244 rerun reached `ship` with no stale runtime caveat and no runtime-health blockers. |
-| P0-M6-251 | 384k objective rebaseline | Complete in Phase 251. Rebaselined active large-context scope to 384k-token projects and blocked 1M+ expansion from becoming a current release requirement. | Proof: Phase 251 objective policy, validator, docs, threshold checks, stale roadmap mapping repair, focused regression, docs index, and no live runtime dependency. |
+| P0-M6-251 | 384k objective rebaseline | Complete in Phase 251. Rebaselined active large-context scope to 384k-token projects and blocked post-384k expansion from starting before the 384k target is ship-ready. | Proof: Phase 251 objective policy, validator, docs, threshold checks, stale roadmap mapping repair, focused regression, docs index, and no live runtime dependency. |
 
 ## Execution Plan
 
@@ -472,14 +472,14 @@ Phase 157 final founder-field result: `status=passed`, `quality_status=advisory`
 - `README.large-context-384k-usability-acceptance-contract.md`
 - `docs/examples/large-context-384k-usability-acceptance-contract.md`
 
-Phase 258 defines the 384k usability acceptance contract. It requires answer-first chat through workflow-router gateway and AnythingLLM, blind-baseline-first scoring, holdouts, source refs, source-hash proof, output-format parity, metadata-only index retention, and stale-index rejection before live acceptance. It explicitly keeps raw 384k prompt stuffing and 1M+ expansion outside the current product target.
+Phase 258 defines the 384k usability acceptance contract. It requires answer-first chat through workflow-router gateway and AnythingLLM, blind-baseline-first scoring, holdouts, source refs, source-hash proof, output-format parity, metadata-only index retention, and stale-index rejection before live acceptance. It explicitly keeps raw 384k prompt stuffing and post-384k expansion outside the current product target until the 384k product target has a ship-ready proof chain.
 
 Next approved 384k product phases:
 
 - `P0-M6-259`: 384k fixture/index readiness proof.
 - `P0-M6-260`: 384k stale-index rejection hardening.
-- `P0-M6-261`: live 384k acceptance validator through gateway and AnythingLLM.
-- `P0-M6-262`: targeted answer-quality repair only if Phase 261 exposes gaps.
+- `P0-M6-261`: live 384k acceptance validator through gateway and AnythingLLM. Complete.
+- `P0-M6-262`: targeted answer-quality repair only if Phase 261 exposes gaps. Complete with no repair required.
 - `P0-M6-263`: founder getting-started integration for the accepted 384k path.
 - `P0-M6-264`: clean-clone 384k usability replay.
 - `P0-M6-265`: 384k release-candidate decision gate.
@@ -504,3 +504,7 @@ Phase 259 proves 384k fixture/index readiness by composing the existing Phase 21
 - `docs/examples/large-context-384k-stale-index-rejection.md`
 
 Phase 260 proves stale-index rejection before live 384k acceptance. It hardens the existing context-strategy and retrieval-answer paths so changed source hashes, changed ignore policy, changed safety policy, missing source files, and unsafe ignored/private/secret-like evidence requests fail closed instead of serving stale or unsafe evidence. Phase 261 is now the next approved live 384k acceptance phase.
+
+`P0-M6-261` completed in Phase 261. It composes Phase 258, Phase 259, Phase 260, Phase 221, Phase 223, split-url target settings, blind-baseline comparison, JSON/default parity, and fixture fingerprints into the current 384k live acceptance proof. Live proof passed with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, all five strategy IDs covered, `json_default_parity_status=passed`, `critical_or_high_finding_count=0`, `target_settings_status=passed`, and `phase262_ready=true`. Focused Bash regression returned `17 passed`; full Bash regression returned `1621 passed`, `4 skipped`, and `23 deselected`.
+
+`P0-M6-262` completed without implementation changes because Phase 261 exposed no target or holdout answer-quality repair scope.
