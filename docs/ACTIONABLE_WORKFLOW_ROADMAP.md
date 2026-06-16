@@ -8,7 +8,7 @@ If this document conflicts with older skill, controller, gateway, or AnythingLLM
 
 The product is not "a folder of skills." The product is a local agent harness that can take a natural-language development request, select the right tools and skills without retraining, create an evidence-backed plan, execute only inside approved boundaries, verify the result, and record feedback.
 
-The product objective also includes large-context usability. Very large repositories and corpora, including 384k-token projects, should be usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Larger corpora, including 1M+ token projects, are future expansion targets and must not block the current 384k product objective. This is not a promise that the current local model can accept a raw 384k-token or larger prompt. Raw long-context serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
+The product objective also includes large-context usability. The active release target is usable 384k-token projects through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens is paused until the 384k product target has a ship-ready proof chain and the founder explicitly approves a post-384k milestone. This is not a promise that the current local model can accept a raw 384k-token or larger prompt. Raw long-context serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
 
 Final destination:
 
@@ -10929,7 +10929,7 @@ Scope:
 - Require blind-baseline-first scoring, holdout reruns, source refs, source-hash revalidation, output-format parity, and chat-visible limitations.
 - Require retrieval, artifact paging, summarization, refusal, and chunked-investigation strategy coverage.
 - Require fixture/index readiness and stale-index rejection before live acceptance.
-- Preserve the current boundary: no raw 384k prompt-stuffing claim and no 1M+ expansion work in the current target.
+- Preserve the current boundary: no raw 384k prompt-stuffing claim and no post-384k expansion work before the 384k product target has a ship-ready proof chain.
 - Add deterministic validation, focused regression, README, example, docs-index links, milestone mapping, and Priority 0 backlog state.
 
 Acceptance target: a contextless agent can validate the accepted 384k product contract and see that live acceptance is blocked until fixture/index readiness and stale-index rejection are proven.
@@ -11055,7 +11055,7 @@ Goal: make the accepted 384k tester path clear in first-time user docs and setup
 Scope:
 
 - Update getting-started, stable handoff, and relevant examples with the 384k tester path.
-- Keep raw 384k and 1M+ prompt-stuffing boundaries visible.
+- Keep raw 384k and post-384k prompt-stuffing boundaries visible.
 - Include split-url AnythingLLM guidance where needed.
 - Include expected commands and proof artifacts.
 - Do not add a new runtime capability.
@@ -11092,7 +11092,7 @@ Scope:
 
 - Consume Phase 258 through Phase 264 proof.
 - Classify unresolved findings as blocker, advisory, deferred, or rejected.
-- Keep advanced refactor and 1M+ expansion out of the decision scope.
+- Keep advanced refactor and post-384k expansion out of the decision scope.
 - Produce a deterministic decision artifact.
 
 Acceptance target: the project has a clear go/no-go decision for the 384k product target.

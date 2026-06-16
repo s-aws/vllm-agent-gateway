@@ -4,7 +4,7 @@ This document defines the default testing process and backlog for improving loca
 
 Priority 0 means the product is judged by whether a user can ask a natural-language development prompt and receive a useful, evidence-backed, chat-visible response through the current local model, gateway, skills, and tools.
 
-Priority 0 also covers large-context usability when it improves that chat outcome. The target is that very large repositories and corpora, including 384k-token projects, can be investigated through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Larger corpora, including 1M+ token projects, are future expansion targets and must not block the current 384k product objective. Raw 384k-token or larger prompts are not considered supported until a separate proof gate validates the model, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
+Priority 0 also covers large-context usability when it improves that chat outcome. The active release target is that 384k-token projects can be investigated through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens is paused until the 384k product target has a ship-ready proof chain and the founder explicitly approves a post-384k milestone. Raw 384k-token or larger prompts are not considered supported until a separate proof gate validates the model, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
 
 ## Default Process
 

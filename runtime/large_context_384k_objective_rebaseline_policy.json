@@ -10,7 +10,7 @@
     "M14"
   ],
   "target_estimated_project_tokens": 384000,
-  "purpose": "Rebaseline the active large-context product objective to 384k-token project usability and prevent 1M+ expansion work from becoming a release blocker.",
+  "purpose": "Rebaseline the active large-context product objective to 384k-token project usability and prevent post-384k expansion work from starting before the 384k target is ship-ready.",
   "required_docs": [
     "AGENTS.md",
     "docs/PROJECT_MILESTONES.md",
@@ -22,12 +22,12 @@
   "required_doc_markers": {
     "AGENTS.md": [
       "384k-token projects",
-      "future expansion targets",
+      "Work above 384k tokens",
       "raw 384k-token or larger prompts"
     ],
     "docs/PROJECT_MILESTONES.md": [
       "384k-token projects",
-      "Larger corpora, including 1M+ token projects, are future expansion targets",
+      "Work above 384k tokens",
       "M15 is deferred",
       "Phase 251"
     ],
@@ -42,7 +42,7 @@
     ],
     "README.large-context-384k-objective-rebaseline.md": [
       "384k-token project usability",
-      "future expansion target",
+      "ship-ready proof chain",
       "PHASE251 LARGE CONTEXT 384K OBJECTIVE REBASELINE PASS"
     ],
     "docs/examples/large-context-384k-objective-rebaseline.md": [
@@ -85,7 +85,7 @@
   "required_boundaries": [
     "Current release target is 384k-token project usability, not raw 384k prompt stuffing.",
     "Existing larger proof artifacts may remain as surplus evidence but must not raise the current release target.",
-    "1M+ project usability and raw 1M context are future expansion work unless explicitly reapproved."
+    "Post-384k project usability and raw long-context serving are deferred until the 384k target is ship-ready and explicitly reapproved."
   ],
   "acceptance_marker": "PHASE251 LARGE CONTEXT 384K OBJECTIVE REBASELINE PASS"
 }
