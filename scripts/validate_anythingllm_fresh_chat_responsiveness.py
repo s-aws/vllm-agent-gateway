@@ -30,6 +30,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--policy-path", default=str(DEFAULT_POLICY_PATH))
     parser.add_argument("--anythingllm-api-base-url", default=DEFAULT_ANYTHINGLLM_API_BASE_URL)
     parser.add_argument("--workflow-router-gateway-base-url", default=DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL)
+    parser.add_argument(
+        "--anythingllm-workflow-router-base-url",
+        default=None,
+        help=(
+            "Expected GenericOpenAiBasePath in AnythingLLM. "
+            "Defaults to the policy workflow_router_base_url when omitted."
+        ),
+    )
     parser.add_argument("--workspace", default=DEFAULT_WORKSPACE)
     parser.add_argument("--api-key-env", default="ANYTHINGLLM_API_KEY")
     parser.add_argument("--target-root", action="append", dest="target_roots")
@@ -51,6 +59,7 @@ def main() -> int:
             policy_path=Path(args.policy_path),
             anythingllm_api_base_url=args.anythingllm_api_base_url,
             workflow_router_gateway_base_url=args.workflow_router_gateway_base_url,
+            anythingllm_workflow_router_base_url=args.anythingllm_workflow_router_base_url,
             workspace=args.workspace,
             api_key_env=args.api_key_env,
             target_roots=tuple(args.target_roots) if args.target_roots else (

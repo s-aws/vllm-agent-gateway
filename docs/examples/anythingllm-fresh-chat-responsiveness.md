@@ -26,6 +26,17 @@ python3 scripts/validate_anythingllm_fresh_chat_responsiveness.py \
   --timeout-seconds 180
 ```
 
+If AnythingLLM is using the WSL network URL instead of Windows `127.0.0.1`, pass the expected AnythingLLM target separately:
+
+```bash
+python3 scripts/validate_anythingllm_fresh_chat_responsiveness.py \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --anythingllm-workflow-router-base-url http://100.100.12.45:8500/v1 \
+  --ui-report-path runtime-state/anythingllm-ui/phase237/phase237-ui-hi.json \
+  --output-path runtime-state/anythingllm-fresh-chat-responsiveness/phase237/phase237-anythingllm-fresh-chat-responsiveness-report.json \
+  --timeout-seconds 180
+```
+
 Inspect the result:
 
 ```bash

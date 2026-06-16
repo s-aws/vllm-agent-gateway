@@ -80,6 +80,7 @@ class AnythingLLMFreshChatResponsivenessConfig:
     policy_path: Path = DEFAULT_POLICY_PATH
     anythingllm_api_base_url: str = DEFAULT_ANYTHINGLLM_API_BASE_URL
     workflow_router_gateway_base_url: str = DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL
+    anythingllm_workflow_router_base_url: str | None = None
     workspace: str = DEFAULT_WORKSPACE
     model: str = DEFAULT_MODEL
     api_key_env: str = "ANYTHINGLLM_API_KEY"
@@ -295,19 +296,18 @@ def anythingllm_case(
     }
 
 
-def anythingllm_target_settings(
+def target_settings_result(
     config: AnythingLLMFreshChatResponsivenessConfig,
     *,
-    api_key: str,
     policy: dict[str, Any],
+    status_code: int,
+    settings: dict[str, Any],
 ) -> dict[str, Any]:
-    required = policy.get("required_anythingllm") if isinstance(policy.get("required_anythingllm"), dict) else {}
-    status_code, body = json_request(
-        f"{config.anythingllm_api_base_url.rstrip('/')}/api/v1/system",
-        headers={"Authorization": f"Bearer {api_key}"},
-        timeout_seconds=min(30, config.timeout_seconds),
+    policy_required = policy.get("required_anythingllm") if isinstance(policy.get("required_anythingllm"), dict) else {}
+    required = dict(policy_required)
+    required["workflow_router_base_url"] = (
+        config.anythingllm_workflow_router_base_url or str(policy_required.get("workflow_router_base_url") or "")
     )
-    settings = body.get("settings") if isinstance(body.get("settings"), dict) else {}
     actual = {
         "api_base_url": config.anythingllm_api_base_url,
         "workspace": config.workspace,
@@ -328,8 +328,24 @@ def anythingllm_target_settings(
         "http_status": status_code,
         "actual": actual,
         "required": required,
+        "policy_required": policy_required,
         "checks": checks,
     }
+
+
+def anythingllm_target_settings(
+    config: AnythingLLMFreshChatResponsivenessConfig,
+    *,
+    api_key: str,
+    policy: dict[str, Any],
+) -> dict[str, Any]:
+    status_code, body = json_request(
+        f"{config.anythingllm_api_base_url.rstrip('/')}/api/v1/system",
+        headers={"Authorization": f"Bearer {api_key}"},
+        timeout_seconds=min(30, config.timeout_seconds),
+    )
+    settings = body.get("settings") if isinstance(body.get("settings"), dict) else {}
+    return target_settings_result(config, policy=policy, status_code=status_code, settings=settings)
 
 
 def summarize_ui_report(path: Path | None, required_case_ids: list[str]) -> dict[str, Any]:

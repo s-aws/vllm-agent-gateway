@@ -107,6 +107,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 252 | M14/M6 | Complete. Replayed the pushed Phase 251 384k objective rebaseline from a fresh remote clone with Phase 251, docs-index, and stable-channel proof. |
 | Phase 253 | M6/M8/M13/M14 | Complete. Proved the post-rebaseline runtime still answers through gateway and AnythingLLM while refusing raw-corpus prompt stuffing and preserving both frozen Coinbase fixtures. |
 | Phase 254 | M2/M13/M14 | Complete. Proved post-reboot AnythingLLM greeting/session recovery for `hi` and same-session follow-up after the 384k rebaseline. |
+| Phase 255 | M2/M13/M14 | Complete. Hardened the AnythingLLM fresh-chat validator so split Bash/Windows workflow-router URLs do not falsely fail target settings checks. |
 
 ## Usage Rules
 

@@ -6,7 +6,8 @@ The gate checks the configured AnythingLLM target, direct workflow-router gatewa
 
 ## What It Checks
 
-- AnythingLLM system settings use `http://127.0.0.1:8500/v1` with `Qwen3-Coder-30B-A3B-Instruct`.
+- AnythingLLM system settings use the workflow-router gateway with `Qwen3-Coder-30B-A3B-Instruct`.
+- Bash-side validation can use `http://127.0.0.1:8500/v1` while Windows AnythingLLM can use the WSL network URL printed by `start-agent-prompt-proxies.sh`.
 - Direct workflow-router gateway handles `hi`.
 - AnythingLLM API handles `hi` in a fresh session.
 - Direct workflow-router gateway handles the representative read-only code explanation prompt.
@@ -34,6 +35,17 @@ python3 scripts/validate_anythingllm_fresh_chat_responsiveness.py \
   --timeout-seconds 180
 ```
 
+When AnythingLLM is configured to the WSL network URL because Windows `127.0.0.1` forwarding hangs before body bytes, keep the internal Bash gateway URL unchanged and pass the expected AnythingLLM target separately:
+
+```bash
+python3 scripts/validate_anythingllm_fresh_chat_responsiveness.py \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --anythingllm-workflow-router-base-url http://100.100.12.45:8500/v1 \
+  --ui-report-path runtime-state/anythingllm-ui/phase237/phase237-ui-hi.json \
+  --output-path runtime-state/anythingllm-fresh-chat-responsiveness/phase237/phase237-anythingllm-fresh-chat-responsiveness-report.json \
+  --timeout-seconds 180
+```
+
 Expected result:
 
 ```text
@@ -42,7 +54,7 @@ ANYTHINGLLM FRESH CHAT RESPONSIVENESS PASS
 
 ## Failure Meaning
 
-- Target settings fail: AnythingLLM is not pointed at the workflow-router gateway.
+- Target settings fail: AnythingLLM is not pointed at the expected workflow-router gateway URL for the current client surface.
 - Gateway cases fail: the controller/gateway path is not returning chat-visible content.
 - AnythingLLM API cases fail: AnythingLLM cannot reach or render the workflow-router response through its workspace API.
 - UI proof fails: the browser-visible `/stream-chat` path is not usable even if the API path works.

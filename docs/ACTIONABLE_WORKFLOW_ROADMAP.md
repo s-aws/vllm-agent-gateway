@@ -10832,3 +10832,29 @@ Completion proof:
 - Session recovery report passed with `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `anythingllm_case_count=2`, `direct_controller_case_count=2`, and `blocker_finding_count=0`.
 - Direct controller cases `DIRECT-HI` and `DIRECT-STALE-HISTORY-HI` passed.
 - Live AnythingLLM cases `ANYTHINGLLM-HI` and `ANYTHINGLLM-HELLO-SAME-SESSION` passed in session `phase140-greeting-48bcd85054f84b2d8a2f03b2b8131079`.
+
+### Approved Phase 255: AnythingLLM Fresh-Chat Split-URL Validator Hardening
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prevent the older AnythingLLM fresh-chat responsiveness validator from falsely failing when Bash uses `http://127.0.0.1:8500/v1` and Windows AnythingLLM uses the WSL network workflow-router URL.
+
+Scope:
+
+- Extend the existing Phase 237 fresh-chat validator with an optional expected AnythingLLM workflow-router base URL.
+- Preserve the single fresh-chat validation path; do not add a second validator.
+- Keep the policy-required internal workflow-router base URL unchanged for Bash-side gateway calls.
+- Add focused regression coverage for the split target-settings comparison.
+- Update the feature README and examples with the split-url command shape.
+
+Acceptance target: future fresh-chat validation can prove the current Windows/WSL AnythingLLM setup without requiring users to point Windows AnythingLLM back at a hanging `127.0.0.1` route.
+
+Completion proof:
+
+- Added `AnythingLLMFreshChatResponsivenessConfig.anythingllm_workflow_router_base_url`.
+- Added `--anythingllm-workflow-router-base-url` to `scripts/validate_anythingllm_fresh_chat_responsiveness.py`.
+- Added focused regression coverage proving policy-required `http://127.0.0.1:8500/v1` can coexist with effective AnythingLLM target `http://100.100.12.45:8500/v1`.
+- Focused Bash regression for fresh-chat and runtime-restoration split-url behavior returned `15 passed`.
+- Live target-settings probe passed with `GenericOpenAiBasePath=http://100.100.12.45:8500/v1`, provider `generic-openai`, model `Qwen3-Coder-30B-A3B-Instruct`, and all checks true.

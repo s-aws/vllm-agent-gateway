@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from vllm_agent_gateway.acceptance.anythingllm_fresh_chat_responsiveness import (
+    AnythingLLMFreshChatResponsivenessConfig,
     FreshChatStatus,
     build_report,
     classify_coding_text,
+    target_settings_result,
     validate_policy,
     validate_report,
 )
@@ -91,6 +95,27 @@ def test_phase237_report_rejects_wrong_target_settings() -> None:
     report["target_settings"] = {"status": "failed"}
     errors = validate_report(report, policy())
     assert any("target_settings" in error for error in errors)
+
+
+def test_phase237_target_settings_accepts_split_anythingllm_base_url() -> None:
+    result = target_settings_result(
+        AnythingLLMFreshChatResponsivenessConfig(
+            config_root=Path("."),
+            workflow_router_gateway_base_url="http://127.0.0.1:8500/v1",
+            anythingllm_workflow_router_base_url="http://100.100.12.45:8500/v1",
+        ),
+        policy=policy(),
+        status_code=200,
+        settings={
+            "LLMProvider": "generic-openai",
+            "LLMModel": "Qwen3-Coder-30B-A3B-Instruct",
+            "GenericOpenAiBasePath": "http://100.100.12.45:8500/v1",
+        },
+    )
+
+    assert result["status"] == FreshChatStatus.PASSED.value
+    assert result["required"]["workflow_router_base_url"] == "http://100.100.12.45:8500/v1"
+    assert result["policy_required"]["workflow_router_base_url"] == "http://127.0.0.1:8500/v1"
 
 
 def test_phase237_report_rejects_missing_run_id() -> None:
