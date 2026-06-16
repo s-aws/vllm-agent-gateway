@@ -115,6 +115,7 @@ Examples are grouped by feature so the root README can stay small.
 - [Large-Context 500k Answer-Quality Repair](large-context-500k-answer-quality-repair.md): close 500k answer-quality repair as no repair required when Phase 273 has zero accepted critical/high findings.
 - [Large-Context 500k Clean Clone Replay](large-context-500k-clean-clone-replay.md): replay the full 500k candidate proof chain from a fresh remote branch clone.
 - [Large-Context 500k Candidate Decision Gate](large-context-500k-candidate-decision-gate.md): aggregate the 500k candidate proof chain into a deterministic ship, hold, or repair-required decision.
+- [Large-Context 500k Stable Handoff Refresh](large-context-500k-stable-handoff-refresh.md): refresh stable handoff metadata and docs for governed 500k-token project usability.
 - [Release-Candidate Runtime Health Restoration](release-candidate-runtime-health-restoration.md): verify post-restart runtime health, AnythingLLM target settings, and a minimal read-only workflow-router prompt before rerunning the release decision.
 - [Release-Candidate Ship Handoff](release-candidate-ship-handoff.md): validate committed ship handoff metadata, stable-channel readiness, and tester-doc freshness.
 - [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.

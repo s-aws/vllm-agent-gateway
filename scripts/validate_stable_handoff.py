@@ -40,6 +40,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--workflow-router-gateway-base-url", default=DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL)
     parser.add_argument("--controller-base-url", default=DEFAULT_CONTROLLER_BASE_URL)
     parser.add_argument("--anythingllm-api-base-url", default=DEFAULT_ANYTHINGLLM_API_BASE_URL)
+    parser.add_argument("--expected-anythingllm-llm-base-url", default=DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL)
     parser.add_argument("--workspace", default=DEFAULT_WORKSPACE)
     parser.add_argument("--api-key-env", default="ANYTHINGLLM_API_KEY")
     parser.add_argument("--target-root", action="append", dest="target_roots")
@@ -62,6 +63,7 @@ def main() -> int:
             workflow_router_gateway_base_url=args.workflow_router_gateway_base_url,
             controller_base_url=args.controller_base_url,
             anythingllm_api_base_url=args.anythingllm_api_base_url,
+            expected_anythingllm_llm_base_url=args.expected_anythingllm_llm_base_url,
             workspace=args.workspace,
             api_key_env=args.api_key_env,
             target_roots=tuple(args.target_roots or DEFAULT_TARGET_ROOTS),

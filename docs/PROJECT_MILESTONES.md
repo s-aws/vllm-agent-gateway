@@ -6,7 +6,7 @@ These milestones define the durable product checkpoints for the project objectiv
 
 The objective is to build a local-model coding-agent harness that can take semi-well-defined natural-language software engineering requests, route them through the gateway/controller, select deterministic skills and tools without manual prompt injection, gather bounded evidence, return useful chat-visible answers, preserve safety boundaries, and produce repeatable validation proof.
 
-The objective also includes large-context usability. The 384k-token project usability baseline is complete and remains the stable large-context tester path. The next approved target is a 500k-token project usability candidate through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Raw 500k-token prompts are experimental until a dedicated proof gate validates model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality.
+The objective also includes large-context usability. Governed 500k-token project usability is the stable large-context tester path after the Phase 270-277 proof chain. The 384k-token project usability baseline remains preserved as lineage. Raw 500k-token prompts are experimental until a dedicated proof gate validates model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality.
 
 ## Milestone Gates
 
@@ -26,7 +26,7 @@ The objective also includes large-context usability. The 384k-token project usab
 | M12: Skill Library Scaling Gate | New small skills can be admitted, tested, versioned, and retired without destabilizing routing. | Skill growth remains deterministic and governed. | Skill authoring pipeline, registry readiness, eval gates, conflict detection, prompt coverage map. |
 | M13: Runtime Reliability And Recovery | Restarted vLLM, gateway, controller, and AnythingLLM recover predictably. | A tester can restart the stack and continue normal chat workflow testing. | Post-restart readiness, health drift, greeting path, AnythingLLM session isolation, port checks. |
 | M14: Release Packaging And Onboarding | A contextless tester can install, start, test, and provide feedback without session history. | The project can be handed to a new tester without private chat context. | Getting-started docs, doctor command, release notes, setup validation, clean-clone proof. |
-| M15: 500k Candidate Expansion Gate | 500k-token project usability is either promoted through its own proof chain or explicitly rejected as unsupported for the current release. | The project has an evidence-backed decision before replacing the 384k stable baseline with the 500k candidate. | Founder approval, candidate objective rebaseline, fixture/index readiness, stale-index rejection, live gateway proof, live AnythingLLM proof, clean-clone replay, decision gate, and non-regression against the 384k baseline. |
+| M15: 500k Candidate Expansion Gate | Complete. Governed 500k-token project usability is promoted to stable while raw 500k prompt serving remains unsupported. | Stable handoff metadata, docs, and completion audit expose the 500k path and preserve 384k lineage. | Founder approval, candidate objective rebaseline, fixture/index readiness, stale-index rejection, live gateway proof, live AnythingLLM proof, clean-clone replay, decision gate, stable handoff refresh, completion audit, and non-regression against the 384k baseline. |
 | M16: Corpus And Index Safety Governance | Large-corpus indexing and retrieval do not leak ignored, private, secret-like, stale, or unapproved content into chat or artifacts. | Any durable corpus index enforces ignore rules, allowed roots, secret-like content handling, source freshness, retention/deletion, and proof-artifact boundaries before retrieval is connected to chat. | Index safety policy, negative controls for ignored/private/secret-like files, stale-index rejection, source-hash proof, artifact retention/deletion proof, and no sensitive values in chat-visible output. |
 
 ## Critical Path
@@ -39,7 +39,7 @@ M1 -> M2 -> M3 -> M4 -> M5 -> M16 -> M6 -> M8 -> M9 -> M12 -> M14
 
 M7 supports M6 and M8 by measuring the real context ceiling. M16 is required before any durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M10 and M11 are implementation-safety milestones that should not outrank Priority 0 chat quality unless the roadmap explicitly returns to safe mutation. M13 supports every runtime-facing milestone.
 
-M15 is active only for the approved 500k-token project usability candidate. It must not weaken or replace the completed 384k stable baseline until the 500k candidate has its own fixture, safety, live gateway, AnythingLLM, clean-clone, decision, and handoff proof. The current product value is still governed context strategy, not proving that every request should be sent as a raw long-context prompt.
+M15 completed the approved 500k-token project usability candidate promotion to stable. It preserves the completed 384k baseline as lineage. The current product value is still governed context strategy, not proving that every request should be sent as a raw long-context prompt.
 
 ## Added Milestone Rationale
 
@@ -129,7 +129,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 274 | M2/M4/M6/M8/M15 | Complete. Closed targeted 500k answer-quality repair as no repair required because Phase 273 live acceptance had zero accepted critical or high findings. |
 | Phase 275 | M14/M15/M16 | Complete. Replayed the 500k candidate path from a fresh remote branch clone at commit `9dc768f`, with clone-hosted controller preflight, live gateway, live AnythingLLM, clean source before/after, and `phase276_ready=true`. |
 | Phase 276 | M1/M14/M15 | Complete. Aggregated the 500k proof chain into decision `ship` with zero blockers, zero runtime-health blockers, Phase 275 clean-clone proof, and `phase277_ready=true`; raw 500k prompt serving remains out of scope. |
-| Phase 277 | M14/M15 | Approved. Refresh stable handoff only if the Phase 276 decision is ship; otherwise record hold or repair state without changing the stable baseline. |
+| Phase 277 | M14/M15 | Complete. Refreshed stable handoff metadata, docs, examples, and completion audit for governed 500k-token project usability after Phase 276 returned `ship`, while preserving 384k lineage and rejecting raw 500k prompt-serving claims. |
 
 ## Usage Rules
 
@@ -138,4 +138,4 @@ The first proposed milestone-aligned phase set is:
 - Automatic phase approval only applies inside the mapped milestone's product state, done criteria, and required proof. It does not approve new milestones, milestone changes, unrelated features, or expanded product scope.
 - A milestone is complete only when its required proof exists and can be validated by a contextless agent.
 - If a proposed phase does not move a milestone forward, raise the mismatch before implementation.
-- Large-context work should preserve the completed 384k stable baseline while Phase 270 through Phase 277 test the approved 500k-token project usability candidate.
+- Large-context work should preserve the completed 384k baseline as lineage while stable testers use the governed 500k-token project usability path.

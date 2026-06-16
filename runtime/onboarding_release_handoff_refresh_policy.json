@@ -31,8 +31,8 @@
       "Large-context support currently means"
     ],
     "README.getting-started.md": [
-      "Phase 263",
-      "Phase 261",
+      "Phase 277",
+      "Phase 273",
       "scripts/validate_runtime_recovery_reliability_rebaseline.py",
       "http://127.0.0.1:8500/v1",
       "python-service-code-explanation",
@@ -47,7 +47,7 @@
       "ONB-001"
     ],
     "README.stable-handoff.md": [
-      "Phase 261",
+      "Phase 273",
       "Phase 231",
       "http://127.0.0.1:8500/v1",
       "runtime recovery reliability",

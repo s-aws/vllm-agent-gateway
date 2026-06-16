@@ -48,6 +48,7 @@ class StableHandoffConfig:
     workflow_router_gateway_base_url: str = DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL
     controller_base_url: str = DEFAULT_CONTROLLER_BASE_URL
     anythingllm_api_base_url: str = DEFAULT_ANYTHINGLLM_API_BASE_URL
+    expected_anythingllm_llm_base_url: str = DEFAULT_WORKFLOW_ROUTER_GATEWAY_BASE_URL
     workspace: str = DEFAULT_WORKSPACE
     api_key_env: str = "ANYTHINGLLM_API_KEY"
     target_roots: tuple[str, ...] = tuple(DEFAULT_TARGET_ROOTS)
@@ -132,6 +133,8 @@ def build_stable_handoff_commands(
                 config.controller_base_url,
                 "--anythingllm-api-base-url",
                 config.anythingllm_api_base_url,
+                "--expected-anythingllm-llm-base-url",
+                config.expected_anythingllm_llm_base_url,
                 "--workspace",
                 config.workspace,
                 "--api-key-env",

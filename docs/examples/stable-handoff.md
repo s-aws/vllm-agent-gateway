@@ -24,6 +24,7 @@ export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out
 python3 scripts/validate_stable_handoff.py \
   --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --expected-anythingllm-llm-base-url http://127.0.0.1:8500/v1 \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
@@ -39,6 +40,8 @@ STABLE HANDOFF PASS
 ```
 
 The smoke can still report a warning for the git-enabled frozen fixture when Bash sees Windows/WSL line-ending dirtiness. Continue only when watched hashes are unchanged and protected fixture state is not changed.
+
+If AnythingLLM is configured to the WSL network URL printed by `start-agent-prompt-proxies.sh`, keep `--workflow-router-gateway-base-url` on `http://127.0.0.1:8500/v1` for Bash-side validation and pass the printed network URL to `--expected-anythingllm-llm-base-url`.
 
 ## Refresh Field-Test Closeout
 
@@ -63,10 +66,10 @@ PHASE161 SKILL TOOL GAP BATCH PROPOSAL PASS
 
 The current Phase 161 decision is `no_new_batch_justified`.
 
-## Run The 384k Acceptance Gate
+## Run The 500k Acceptance Gate
 
 ```bash
-python3 scripts/validate_large_context_384k_live_acceptance.py \
+python3 scripts/validate_large_context_500k_live_acceptance.py \
   --live \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --anythingllm-workflow-router-base-url http://127.0.0.1:8500/v1 \
@@ -78,23 +81,22 @@ For split Windows/WSL setups, replace only `--anythingllm-workflow-router-base-u
 Expected result:
 
 ```text
-PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS
+PHASE273 LARGE CONTEXT 500K LIVE ACCEPTANCE PASS
 ```
 
-This is the current large-context proof path for usable 384k-token projects. It is not a raw prompt-stuffing proof.
+This is the current large-context proof path for usable 500k-token projects through governed context strategy. It is not a raw 500k prompt-serving proof. The 384k-token project usability baseline remains preserved.
 
-## Run The 384k Release Decision Gate
+## Run The 500k Stable Handoff Refresh
 
 ```bash
-python3 scripts/validate_large_context_384k_release_candidate_decision_gate.py \
-  --phase264-report-path /tmp/agentic_agents_phase264_remote_clone/runtime-state/phase264/phase264-large-context-384k-clean-clone-replay-report.json \
-  --health-timeout-seconds 10
+python3 scripts/validate_large_context_500k_stable_handoff_refresh.py \
+  --phase276-report-path runtime-state/phase276/phase276-large-context-500k-candidate-decision-gate-report.json
 ```
 
 Expected result:
 
 ```text
-PHASE265 LARGE CONTEXT 384K RELEASE CANDIDATE DECISION GATE PASS
+PHASE277 LARGE CONTEXT 500K STABLE HANDOFF REFRESH PASS
 ```
 
 ## Send The First Stable Prompt

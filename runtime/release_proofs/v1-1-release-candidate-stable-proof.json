@@ -19,7 +19,13 @@
     "runtime": "1653.23s"
   },
   "kind": "v1_acceptance_report",
-  "known_boundary": "Stable covers current release-candidate L1/L2 tester workflows, setup, security, feedback, observability, runtime recovery, non-Coinbase generalization, and 384k-token project usability through retrieval, chunking, summarization, artifact paging, evidence selection, clean-clone replay, and baseline-corpus promotion. Work above 384k tokens is paused. Advanced broad refactor orchestration remains deferred. Raw 384k prompt serving is not claimed. Raw 1M-token prompt serving is not claimed.",
+  "known_boundary": "Stable covers current release-candidate L1/L2 tester workflows, setup, security, feedback, observability, runtime recovery, non-Coinbase generalization, and 500k-token project usability through governed context strategy: retrieval, chunking, summarization, artifact paging, evidence selection, stale-index rejection, clean-clone replay, and baseline-corpus promotion. The 384k-token project usability baseline remains preserved. Advanced broad refactor orchestration remains deferred. Raw 500k prompt serving is not claimed. Raw 1M-token prompt serving is not claimed.",
+  "stable_refresh": {
+    "phase": 277,
+    "refreshed_at": "2026-06-16",
+    "refreshed_by": "phase277_stable_500k_handoff_refresh",
+    "refreshed_from_report": "runtime-state/phase276/phase276-large-context-500k-candidate-decision-gate-report.json"
+  },
   "large_context_384k_release_candidate": {
     "decision": "ship",
     "decision_phase": 265,
@@ -28,10 +34,39 @@
     "clean_clone_source_commit": "6dbf8d82f9176a91be2de2fe7e60a099f7d73b84",
     "target_estimated_project_tokens": 384000,
     "phase266_ready": true,
-    "post_384k_expansion_status": "paused",
+    "post_384k_expansion_status": "superseded_by_500k_stable_handoff",
     "final_regression": {
       "command": "python3 -m pytest tests/regression/ -v",
       "result": "1635 passed, 4 skipped, 23 deselected"
+    }
+  },
+  "large_context_500k_project_usability": {
+    "decision": "ship",
+    "decision_phase": 276,
+    "decision_report": "runtime-state/phase276/phase276-large-context-500k-candidate-decision-gate-report.json",
+    "clean_clone_replay_phase": 275,
+    "clean_clone_source_commit": "9dc768f0303ef2a57bad897beeffd3d537346dc2",
+    "candidate_estimated_project_tokens": 500000,
+    "previous_stable_estimated_project_tokens": 384000,
+    "raw_prompt_stuffing_allowed": false,
+    "raw_500k_prompt_serving_claimed": false,
+    "governed_context_strategy_only": true,
+    "phase277_ready": true,
+    "phase276_full_regression": {
+      "command": "python3 -m pytest tests/regression/ -v",
+      "result": "1673 passed, 4 skipped, 23 deselected"
+    },
+    "phase277_stable_handoff_smoke": {
+      "command": "python3 scripts/validate_stable_handoff.py --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 --expected-anythingllm-llm-base-url http://100.100.12.45:8500/v1 --controller-base-url http://127.0.0.1:8400 --target-root /mnt/c/coinbase_testing_repo_frozen_tmp --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github --timeout-seconds 900 --command-timeout-seconds 3600 --output-path runtime-state/stable-handoff/phase277-stable-smoke.json",
+      "result": "passed",
+      "check_count": 6,
+      "command_count": 4,
+      "failed_check_ids": []
+    },
+    "phase277_full_regression": {
+      "command": "python3 -m pytest tests/regression/ -v",
+      "result": "1679 passed, 4 skipped, 23 deselected",
+      "runtime": "1498.46s"
     }
   },
   "profile": "v1.1-release-candidate",

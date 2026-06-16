@@ -12,8 +12,9 @@ Use this handoff only for the current product surface: natural-language L1/L2 re
 - The activation report is a passed `v1_acceptance_report` with profile `v1.1-release-candidate`.
 - First-time testers still use AnythingLLM pointed at `http://127.0.0.1:8500/v1`.
 - The stable smoke command reruns setup, release-channel validation, security policy, one live onboarding prompt, feedback capture, and protected-fixture checks.
-- Phase 261 proves the current 384k-token project target live through the workflow-router gateway and AnythingLLM with retrieval, artifact paging, summarization, chunked investigation, refusal routing, split-url target settings, blind-baseline comparison, and JSON/default parity.
-- Phase 265 aggregates the current 384k proof chain into release-candidate decision `ship` with an explicit Phase 264 clean-clone report path, zero blockers, healthy runtime probes, and `phase266_ready=true`.
+- Phase 273 proves the current 500k-token project usability target live through the workflow-router gateway and AnythingLLM with retrieval, artifact paging, summarization, chunked investigation, refusal routing, split-url target settings, stale-index rejection, clean-clone lineage, blind-baseline comparison, and JSON/default parity.
+- Phase 276 aggregates the current 500k proof chain into decision `ship` with an explicit Phase 275 clean-clone report path, zero blockers, healthy runtime probes, and `phase277_ready=true`.
+- Phase 277 refreshes stable handoff metadata and docs for 500k-token project usability through governed context strategy. The 384k-token project usability baseline remains preserved.
 - Phase 230 admits the first M12 small skill-library fixture/eval coverage candidate without manual skill injection.
 - Phase 231 proves runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack.
 - Feedback still records through `workflow_feedback.record`; Phase 227 classifies feedback outcomes and Phase 228 prevents accepted repairs from closing without target and holdout rerun proof.
@@ -43,6 +44,7 @@ export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out
 python3 scripts/validate_stable_handoff.py \
   --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --expected-anythingllm-llm-base-url http://127.0.0.1:8500/v1 \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
@@ -60,6 +62,8 @@ STABLE HANDOFF PASS
 ```
 
 The report lists the child setup, release-channel, security, and onboarding reports.
+
+If AnythingLLM is configured to the WSL network URL printed by `start-agent-prompt-proxies.sh`, keep `--workflow-router-gateway-base-url` on `http://127.0.0.1:8500/v1` for Bash-side validation and pass the printed network URL to `--expected-anythingllm-llm-base-url`.
 
 ## Field-Test Closeout
 
@@ -94,12 +98,12 @@ The Phase 231 report should show `decision=ready_after_recovery`, `covered_surfa
 
 If Phase 161 ever returns `propose_batch_for_founder_approval`, or a later failure-to-roadmap pass produces approved implementation candidates, stop founder handoff expansion and review the proposals before implementing anything.
 
-## 384k Large-Context Acceptance
+## 500k Large-Context Acceptance
 
 Run this when a tester needs to verify the current large-context target rather than only the first L1 prompt:
 
 ```bash
-python3 scripts/validate_large_context_384k_live_acceptance.py \
+python3 scripts/validate_large_context_500k_live_acceptance.py \
   --live \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --anythingllm-workflow-router-base-url http://127.0.0.1:8500/v1 \
@@ -111,33 +115,34 @@ If AnythingLLM is using the WSL network URL printed by `start-agent-prompt-proxi
 Expected marker:
 
 ```text
-PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS
+PHASE273 LARGE CONTEXT 500K LIVE ACCEPTANCE PASS
 ```
 
-This proves usable 384k-token project behavior through governed context strategy. It does not approve raw 384k prompt stuffing or work above 384k tokens.
+This proves usable 500k-token project behavior through governed context strategy. It does not approve raw 500k prompt serving.
 
-## 384k Release Decision
+## 500k Stable Handoff Refresh
 
-Run this after the clean-clone replay when validating the accepted 384k product target:
+Run this after the Phase 276 decision gate when validating the accepted 500k stable handoff:
 
 ```bash
-python3 scripts/validate_large_context_384k_release_candidate_decision_gate.py \
-  --phase264-report-path /tmp/agentic_agents_phase264_remote_clone/runtime-state/phase264/phase264-large-context-384k-clean-clone-replay-report.json \
-  --health-timeout-seconds 10
+python3 scripts/validate_large_context_500k_stable_handoff_refresh.py \
+  --phase276-report-path runtime-state/phase276/phase276-large-context-500k-candidate-decision-gate-report.json
 ```
 
 Expected marker:
 
 ```text
-PHASE265 LARGE CONTEXT 384K RELEASE CANDIDATE DECISION GATE PASS
+PHASE277 LARGE CONTEXT 500K STABLE HANDOFF REFRESH PASS
 ```
 
 Expected decision:
 
 ```text
-decision=ship
-phase266_ready=true
+decision=stable_500k_handoff_refreshed
+phase278_ready=true
 ```
+
+Raw 500k prompt serving is not claimed. Raw 1M-token prompt serving is not claimed. Advanced broad refactor orchestration remains deferred.
 
 ## First Tester Prompt
 

@@ -4,7 +4,7 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
-Current handoff status: Phase 266 is the active stable tester handoff refresh for the accepted 384k-token project target. It supersedes the Phase 263 first-time 384k tester handoff after the Phase 265 release-candidate decision returned `ship`. The live 384k acceptance proof passed in Phase 261 through the workflow-router gateway and AnythingLLM with all five large-context strategies covered, split-url target settings verified, JSON/default parity verified, and zero high or critical findings. Phase 262 required no repair. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor, but first-time large-context testing should follow the current 384k path below.
+Current handoff status: Phase 277 is the active stable tester handoff refresh for governed 500k-token project usability. It supersedes the Phase 266 384k stable handoff after the Phase 276 decision returned `ship`. The 384k-token project usability baseline remains preserved as lineage. The Phase 273 live 500k candidate proof passed through the workflow-router gateway and AnythingLLM with all five large-context strategies covered, split-url target settings verified, JSON/default parity verified, and zero high or critical findings. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor, but first-time large-context testing should follow the current 500k path below.
 
 ## What This Proves
 
@@ -12,7 +12,7 @@ Current handoff status: Phase 266 is the active stable tester handoff refresh fo
 - The local model on `localhost:8000` is reached through the gateway/router stack.
 - The current Priority 0 chat-quality proof can be revalidated after restart.
 - Runtime recovery reliability passes with small-repo and large-context prompt proof.
-- Large-context prompts target usable 384k-token projects through retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing instead of raw prompt stuffing.
+- Large-context prompts target usable 500k-token projects through governed context strategy: retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing instead of raw prompt stuffing.
 - Small skill admission works for the Python-service fixture without manual skill injection.
 - A normal natural-language request routes to `workflow_router.plan`.
 - The controller can run small read-only L1 investigations against the frozen Coinbase fixtures.
@@ -72,16 +72,16 @@ The Phase 231 recovery gate includes the small-repo `python-service-code-explana
 
 Advanced broad refactor orchestration is not released. Keep first-time testing on read-only L1/L2 prompts, draft-only proposals, feedback capture, and governed recovery validation.
 
-## Current 384k Large-Context Path
+## Current 500k Large-Context Path
 
-The current large-context product target is usable 384k-token projects, not raw 384k prompt stuffing and not post-384k expansion. The accepted path uses the existing workflow-router gateway, governed metadata-first indexing, retrieval, chunked investigation, summarization, artifact paging, refusal routing, source-hash checks, and chat-visible limitations.
+The current stable large-context product target is usable 500k-token projects through governed context strategy, not raw 500k prompt serving. The accepted path uses the existing workflow-router gateway, governed metadata-first indexing, retrieval, chunked investigation, summarization, artifact paging, refusal routing, source-hash checks, stale-index rejection, clean-clone replay, and chat-visible limitations. The 384k-token project usability baseline remains preserved.
 
 Run this after vLLM, the gateway/proxies, the controller, and AnythingLLM are running:
 
 ```bash
 cd /mnt/c/agentic_agents
 export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
-python3 scripts/validate_large_context_384k_live_acceptance.py \
+python3 scripts/validate_large_context_500k_live_acceptance.py \
   --live \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --anythingllm-workflow-router-base-url http://127.0.0.1:8500/v1 \
@@ -100,7 +100,7 @@ bash start-agent-prompt-proxies.sh
 If the startup output says the network workflow-router target is unavailable while `WORKFLOW_ROUTER_GATEWAY_BIND_HOST=127.0.0.1`, restart with the bind-host setting above. Then use the reachable workflow-router network URL printed by `start-agent-prompt-proxies.sh` for the AnythingLLM argument only. Keep the Bash/internal gateway argument on `http://127.0.0.1:8500/v1`.
 
 ```bash
-python3 scripts/validate_large_context_384k_live_acceptance.py \
+python3 scripts/validate_large_context_500k_live_acceptance.py \
   --live \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --anythingllm-workflow-router-base-url http://PRINTED_WSL_WORKFLOW_ROUTER_HOST:8500/v1 \
@@ -110,22 +110,22 @@ python3 scripts/validate_large_context_384k_live_acceptance.py \
 Expected marker:
 
 ```text
-PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS
+PHASE273 LARGE CONTEXT 500K LIVE ACCEPTANCE PASS
 ```
 
-The report should show `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, `failed_small_repo_regression_count=0`, `json_default_parity_status=passed`, `critical_or_high_finding_count=0`, and all five strategy IDs: `retrieval`, `artifact_paging`, `summarization`, `refusal`, and `chunked_investigation`.
+The report should show `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, `json_default_parity_status=passed`, `critical_or_high_finding_count=0`, `raw_prompt_stuffing_allowed=false`, and all five strategy IDs: `retrieval`, `artifact_paging`, `summarization`, `refusal`, and `chunked_investigation`.
 
 Primary proof artifacts:
 
 ```text
-runtime-state/phase261/phase261-large-context-384k-live-acceptance-report.json
-runtime-state/phase261/phase261-phase221-large-context-usability-live-closeout-report.json
-runtime-state/phase261/phase261-phase223-chunked-investigation-executor-implementation-report.json
-runtime-state/phase261/phase261-blind-baseline-artifacts.json
-runtime-state/phase261/phase261-blind-baseline-comparisons.json
+runtime-state/phase273/phase273-large-context-500k-live-acceptance-report.json
+runtime-state/phase273/phase273-phase261-large-context-384k-live-acceptance-report.json
+runtime-state/phase273/phase273-phase272-large-context-500k-stale-index-rejection-report.json
+runtime-state/phase276/phase276-large-context-500k-candidate-decision-gate-report.json
+runtime-state/phase277/phase277-large-context-500k-stable-handoff-refresh-report.json
 ```
 
-Post-384k work remains paused until this 384k product path has a complete ship-ready handoff and the founder explicitly approves a later milestone.
+Raw 500k prompt serving is not claimed. Raw 1M-token prompt serving is not claimed. Advanced broad refactor orchestration remains deferred.
 
 ## 1. Start The Local Harness
 

@@ -37,6 +37,7 @@ def stable_config(tmp_path: Path, report_path: Path | None) -> StableHandoffConf
         config_root=REPO_ROOT,
         release_candidate_report_path=report_path,
         output_path=tmp_path / "stable-handoff.json",
+        expected_anythingllm_llm_base_url="http://100.100.12.45:8500/v1",
         target_roots=("fixture-a", "fixture-b"),
         python_executable="python-test",
     )
@@ -58,6 +59,9 @@ def test_stable_handoff_command_plan_uses_existing_validation_gates(tmp_path: Pa
         "external_tester_onboarding_smoke",
     ]
     assert "run_first_time_user_doctor.py" in " ".join(by_id["first_time_user_doctor"])
+    doctor_command = by_id["first_time_user_doctor"]
+    assert "--expected-anythingllm-llm-base-url" in doctor_command
+    assert "http://100.100.12.45:8500/v1" in doctor_command
     assert "validate_release_channels.py" in " ".join(by_id["stable_release_channel"])
     assert "--channel" in by_id["stable_release_channel"]
     assert "stable" in by_id["stable_release_channel"]

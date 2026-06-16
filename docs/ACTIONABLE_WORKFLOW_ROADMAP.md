@@ -8,7 +8,7 @@ If this document conflicts with older skill, controller, gateway, or AnythingLLM
 
 The product is not "a folder of skills." The product is a local agent harness that can take a natural-language development request, select the right tools and skills without retraining, create an evidence-backed plan, execute only inside approved boundaries, verify the result, and record feedback.
 
-The product objective also includes large-context usability. The completed stable baseline is usable 384k-token projects through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. The next approved target is a 500k-token project usability candidate using the same governed strategy path. This is not a promise that the current local model can accept a raw 500k-token prompt. Raw long-context serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
+The product objective also includes large-context usability. The current stable baseline is governed 500k-token project usability through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. The 384k-token project usability baseline remains preserved as lineage. This is not a promise that the current local model can accept a raw 500k-token prompt. Raw long-context serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
 
 Final destination:
 
@@ -36,7 +36,7 @@ Milestones are durable product-state checkpoints. Roadmap phases should move one
 M1 -> M2 -> M3 -> M4 -> M5 -> M16 -> M6 -> M8 -> M9 -> M12 -> M14
 ```
 
-M16 is required before durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M15 is active only for the approved 500k-token project usability candidate and must not weaken the completed 384k stable baseline. Large-context usability is achieved through governed indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing.
+M16 is required before durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M15 promoted governed 500k-token project usability to the stable handoff while preserving the completed 384k baseline as lineage. Large-context usability is achieved through governed indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing.
 
 ## Persistent Product Priorities
 
@@ -691,7 +691,7 @@ Exit criteria:
 
 ## Phase 1: Workflow Router Plan-Only MVP
 
-Status: Approved.
+Status: Complete.
 
 Goal: prove natural-language routing without executing repository work.
 
@@ -11473,7 +11473,7 @@ Result:
 
 ### Approved Phase 277: Stable 500k Handoff Refresh Or Hold
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate.
 
@@ -11486,3 +11486,18 @@ Scope:
 - Validate docs-index, release-channel, ship-handoff or hold-state markers, and relevant 500k gates.
 
 Acceptance target: testers receive an honest stable handoff state: either 500k promoted with proof or 384k preserved with an explicit 500k blocker.
+
+Implementation summary:
+
+- Added `runtime/large_context_500k_stable_handoff_refresh_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_500k_stable_handoff_refresh`.
+- Added `scripts/validate_large_context_500k_stable_handoff_refresh.py`.
+- Added focused regression coverage for policy validation, synthetic pass, missing Phase 276 report, non-ship Phase 276 report, forbidden raw-500k metadata claims, and incomplete phase state.
+- Added `README.large-context-500k-stable-handoff-refresh.md`, `docs/examples/large-context-500k-stable-handoff-refresh.md`, and `docs/LARGE_CONTEXT_500K_COMPLETION_AUDIT.md`.
+- Refreshed `runtime/release_channels.json` and `runtime/release_proofs/v1-1-release-candidate-stable-proof.json` with Phase 277 stable 500k handoff metadata while preserving Phase 247 activation proof and 384k lineage.
+- Updated root, getting-started, release-channel, stable-handoff, examples, roadmap, milestone, and Priority 0 docs so stable means governed 500k-token project usability.
+- Phase 277 gate passed with `decision=stable_500k_handoff_refreshed`, `blocker_count=0`, `phase276_status=passed`, `phase276_decision=ship`, `candidate_estimated_project_tokens=500000`, and `phase278_ready=true`.
+- Stable handoff smoke initially failed because AnythingLLM was correctly configured to the WSL network workflow-router URL while the wrapper expected `http://127.0.0.1:8500/v1`; `scripts/validate_stable_handoff.py` now supports `--expected-anythingllm-llm-base-url`.
+- Live stable handoff smoke passed with `status=passed`, `command_count=4`, `check_count=6`, zero failed checks, child doctor/release-channel/security/onboarding reports, and protected fixture checks over both frozen Coinbase roots.
+- Full Bash regression passed with `1679 passed`, `4 skipped`, and `23 deselected`.
+- Raw 500k prompt serving is not claimed; raw 1M-token prompt serving is not claimed; advanced broad refactor orchestration remains deferred.

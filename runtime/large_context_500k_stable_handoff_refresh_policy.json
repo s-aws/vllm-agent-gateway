@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_500k_stable_handoff_refresh_policy",
+  "phase": 277,
+  "priority_backlog_id": "P0-M15-277",
+  "milestone_ids": [
+    "M14",
+    "M15"
+  ],
+  "candidate_estimated_project_tokens": 500000,
+  "previous_stable_estimated_project_tokens": 384000,
+  "required_phase_range": {
+    "start": 270,
+    "end": 276
+  },
+  "required_phase276_report": {
+    "expected_kind": "large_context_500k_candidate_decision_gate_report",
+    "expected_status": "passed",
+    "expected_decision": "ship",
+    "minimum_response_count": 18,
+    "minimum_gateway_response_count": 9,
+    "minimum_anythingllm_response_count": 9,
+    "required_json_default_parity_status": "passed",
+    "required_raw_prompt_stuffing_allowed": false,
+    "required_phase277_ready": true
+  },
+  "required_release_channel_manifest": "runtime/release_channels.json",
+  "required_stable_proof": "runtime/release_proofs/v1-1-release-candidate-stable-proof.json",
+  "stable_refresh_metadata": {
+    "refreshed_at": "2026-06-16",
+    "refreshed_by": "phase277_stable_500k_handoff_refresh",
+    "refreshed_from_report": "runtime-state/phase276/phase276-large-context-500k-candidate-decision-gate-report.json",
+    "metadata_key": "large_context_500k_project_usability"
+  },
+  "required_500k_metadata": {
+    "decision": "ship",
+    "decision_phase": 276,
+    "clean_clone_replay_phase": 275,
+    "candidate_estimated_project_tokens": 500000,
+    "previous_stable_estimated_project_tokens": 384000,
+    "raw_prompt_stuffing_allowed": false,
+    "raw_500k_prompt_serving_claimed": false,
+    "governed_context_strategy_only": true,
+    "phase277_ready": true
+  },
+  "required_384k_lineage": {
+    "decision": "ship",
+    "target_estimated_project_tokens": 384000
+  },
+  "required_docs": [
+    "README.md",
+    "README.getting-started.md",
+    "README.release-channels.md",
+    "README.stable-handoff.md",
+    "README.large-context-500k-stable-handoff-refresh.md",
+    "docs/LARGE_CONTEXT_500K_COMPLETION_AUDIT.md",
+    "docs/examples/stable-handoff.md",
+    "docs/examples/large-context-500k-stable-handoff-refresh.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "docs/PROJECT_MILESTONES.md"
+  ],
+  "known_boundary_required_markers": [
+    "500k-token project usability",
+    "governed context strategy",
+    "384k-token project usability baseline remains preserved",
+    "Raw 500k prompt serving is not claimed",
+    "Raw 1M-token prompt serving is not claimed",
+    "Advanced broad refactor orchestration remains deferred"
+  ],
+  "docs_required_markers": [
+    "500k-token project usability",
+    "governed context strategy",
+    "raw 500k prompt serving is not claimed",
+    "384k-token project usability baseline remains preserved",
+    "PHASE277 LARGE CONTEXT 500K STABLE HANDOFF REFRESH PASS"
+  ],
+  "forbidden_claim_markers": [
+    "raw 500k prompt serving is supported",
+    "raw 500k prompt serving is proven",
+    "raw 500k prompt support is proven",
+    "send raw 500k-token prompts"
+  ],
+  "acceptance_marker": "PHASE277 LARGE CONTEXT 500K STABLE HANDOFF REFRESH PASS"
+}
