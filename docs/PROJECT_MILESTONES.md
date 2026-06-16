@@ -6,7 +6,7 @@ These milestones define the durable product checkpoints for the project objectiv
 
 The objective is to build a local-model coding-agent harness that can take semi-well-defined natural-language software engineering requests, route them through the gateway/controller, select deterministic skills and tools without manual prompt injection, gather bounded evidence, return useful chat-visible answers, preserve safety boundaries, and produce repeatable validation proof.
 
-The objective also includes large-context usability. The active release target is usable 384k-token projects through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens, including 1M+ project usability, is paused until the 384k product target has a ship-ready proof chain and the founder explicitly approves a post-384k milestone. Raw 384k-token or larger prompts are experimental until a dedicated proof gate validates model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality.
+The objective also includes large-context usability. The active release target is usable 384k-token projects through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens, including 1M+ project usability, is paused until the 384k product target has a stable usable tester handoff and the founder explicitly approves a post-384k milestone. Raw 384k-token or larger prompts are experimental until a dedicated proof gate validates model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality.
 
 ## Milestone Gates
 
@@ -26,7 +26,7 @@ The objective also includes large-context usability. The active release target i
 | M12: Skill Library Scaling Gate | New small skills can be admitted, tested, versioned, and retired without destabilizing routing. | Skill growth remains deterministic and governed. | Skill authoring pipeline, registry readiness, eval gates, conflict detection, prompt coverage map. |
 | M13: Runtime Reliability And Recovery | Restarted vLLM, gateway, controller, and AnythingLLM recover predictably. | A tester can restart the stack and continue normal chat workflow testing. | Post-restart readiness, health drift, greeting path, AnythingLLM session isolation, port checks. |
 | M14: Release Packaging And Onboarding | A contextless tester can install, start, test, and provide feedback without session history. | The project can be handed to a new tester without private chat context. | Getting-started docs, doctor command, release notes, setup validation, clean-clone proof. |
-| M15: Deferred Post-384k Expansion Gate | Post-384k project usability or raw long-context prompting is either separately approved for future work or explicitly rejected as unsupported for the current release. | The project has an evidence-backed decision before expanding beyond the 384k-token project target, after the 384k product target has a ship-ready proof chain. | Founder approval, model/vLLM context report, memory/latency benchmark, smoke prompt, blind-baseline quality pass, and non-regression against the 384k objective. |
+| M15: Deferred Post-384k Expansion Gate | Post-384k project usability or raw long-context prompting is either separately approved for future work or explicitly rejected as unsupported for the current release. | The project has an evidence-backed decision before expanding beyond the 384k-token project target, after the 384k product target has a stable usable tester handoff. | Founder approval, model/vLLM context report, memory/latency benchmark, smoke prompt, blind-baseline quality pass, and non-regression against the 384k objective. |
 | M16: Corpus And Index Safety Governance | Large-corpus indexing and retrieval do not leak ignored, private, secret-like, stale, or unapproved content into chat or artifacts. | Any durable corpus index enforces ignore rules, allowed roots, secret-like content handling, source freshness, retention/deletion, and proof-artifact boundaries before retrieval is connected to chat. | Index safety policy, negative controls for ignored/private/secret-like files, stale-index rejection, source-hash proof, artifact retention/deletion proof, and no sensitive values in chat-visible output. |
 
 ## Critical Path
@@ -39,7 +39,7 @@ M1 -> M2 -> M3 -> M4 -> M5 -> M16 -> M6 -> M8 -> M9 -> M12 -> M14
 
 M7 supports M6 and M8 by measuring the real context ceiling. M16 is required before any durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M10 and M11 are implementation-safety milestones that should not outrank Priority 0 chat quality unless the roadmap explicitly returns to safe mutation. M13 supports every runtime-facing milestone.
 
-M15 is deferred and must not block the main objective. The current product value is making 384k-token projects usable through governed context strategy, not proving that every request should be sent as a raw long-context prompt. Do not plan or implement post-384k expansion work until the 384k product target has a ship-ready proof chain and the founder explicitly approves a post-384k milestone.
+M15 is deferred and must not block the main objective. The current product value is making 384k-token projects usable through governed context strategy, not proving that every request should be sent as a raw long-context prompt. Do not plan or implement post-384k expansion work until the 384k product target has a stable usable tester handoff and the founder explicitly approves a post-384k milestone.
 
 ## Added Milestone Rationale
 
@@ -103,7 +103,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 248 | M14 | Complete. Replayed the committed ship handoff package from the remote clone at commit `138afa3` with static handoff, docs-index, and stable-channel proof. |
 | Phase 249 | M13/M14 | Complete. Restored Bash/WSL command execution, captured the Windows-to-WSL localhost forwarding workaround, refreshed runtime health, and reran release decision proof. |
 | Phase 250 | M14 | Complete. Replayed the pushed Phase 249 handoff state from a fresh remote clone with static handoff, docs-index, and stable-channel proof. |
-| Phase 251 | M6/M7/M8/M14 | Complete. Rebaselined the current large-context objective to 384k-token project usability and added a drift gate so post-384k expansion work cannot begin before the current target is ship-ready and explicitly approved. |
+| Phase 251 | M6/M7/M8/M14 | Complete. Rebaselined the current large-context objective to 384k-token project usability and added a drift gate so post-384k expansion work cannot begin before the current target has a stable usable tester handoff and explicit approval. |
 | Phase 252 | M14/M6 | Complete. Replayed the pushed Phase 251 384k objective rebaseline from a fresh remote clone with Phase 251, docs-index, and stable-channel proof. |
 | Phase 253 | M6/M8/M13/M14 | Complete. Proved the post-rebaseline runtime still answers through gateway and AnythingLLM while refusing raw-corpus prompt stuffing and preserving both frozen Coinbase fixtures. |
 | Phase 254 | M2/M13/M14 | Complete. Proved post-reboot AnythingLLM greeting/session recovery for `hi` and same-session follow-up after the 384k rebaseline. |
@@ -118,7 +118,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 263 | M14/M6 | Complete. Integrated the accepted 384k tester path into root, getting-started, stable handoff, release handoff, live-acceptance, and example docs with split-url AnythingLLM guidance, expected proof fields, artifact names, and explicit post-384k boundaries. |
 | Phase 264 | M14/M6/M16 | Complete. Replayed the 384k usability proof from a fresh remote clone at commit `7355639` with clone-local static gates, live gateway proof, AnythingLLM proof, runtime-state ignored, and clean source before/after. |
 | Phase 265 | M1/M6/M14 | Complete. Aggregated the 384k proof chain into release-candidate decision `ship` with fresh Phase 264 clean-clone proof at commit `6dbf8d8`, zero blockers, healthy runtime probes, and `phase266_ready=true`. |
-| Phase 266 | M14/M6 | Approved. Refresh stable handoff metadata, docs, known limits, and split-url guidance for the accepted 384k product target. |
+| Phase 266 | M14/M6 | Complete. Refreshed stable handoff metadata, docs, known limits, split-url guidance, release-channel proof metadata, and post-384k pause language for the accepted 384k product target. |
 
 ## Usage Rules
 

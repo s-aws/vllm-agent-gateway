@@ -13,6 +13,7 @@ Use this handoff only for the current product surface: natural-language L1/L2 re
 - First-time testers still use AnythingLLM pointed at `http://127.0.0.1:8500/v1`.
 - The stable smoke command reruns setup, release-channel validation, security policy, one live onboarding prompt, feedback capture, and protected-fixture checks.
 - Phase 261 proves the current 384k-token project target live through the workflow-router gateway and AnythingLLM with retrieval, artifact paging, summarization, chunked investigation, refusal routing, split-url target settings, blind-baseline comparison, and JSON/default parity.
+- Phase 265 aggregates the current 384k proof chain into release-candidate decision `ship` with an explicit Phase 264 clean-clone report path, zero blockers, healthy runtime probes, and `phase266_ready=true`.
 - Phase 230 admits the first M12 small skill-library fixture/eval coverage candidate without manual skill injection.
 - Phase 231 proves runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack.
 - Feedback still records through `workflow_feedback.record`; Phase 227 classifies feedback outcomes and Phase 228 prevents accepted repairs from closing without target and holdout rerun proof.
@@ -105,7 +106,7 @@ python3 scripts/validate_large_context_384k_live_acceptance.py \
   --timeout-seconds 1200
 ```
 
-If AnythingLLM is using the WSL network URL printed by `start-agent-prompt-proxies.sh`, pass that URL to `--anythingllm-workflow-router-base-url` and keep `--workflow-router-gateway-base-url` on `http://127.0.0.1:8500/v1`.
+If AnythingLLM is using the WSL network URL printed by `start-agent-prompt-proxies.sh`, first restart the managed stack with `WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0` so the printed target is reachable from Windows. Then pass that URL to `--anythingllm-workflow-router-base-url` and keep `--workflow-router-gateway-base-url` on `http://127.0.0.1:8500/v1`.
 
 Expected marker:
 
@@ -114,6 +115,29 @@ PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS
 ```
 
 This proves usable 384k-token project behavior through governed context strategy. It does not approve raw 384k prompt stuffing or work above 384k tokens.
+
+## 384k Release Decision
+
+Run this after the clean-clone replay when validating the accepted 384k product target:
+
+```bash
+python3 scripts/validate_large_context_384k_release_candidate_decision_gate.py \
+  --phase264-report-path /tmp/agentic_agents_phase264_remote_clone/runtime-state/phase264/phase264-large-context-384k-clean-clone-replay-report.json \
+  --health-timeout-seconds 10
+```
+
+Expected marker:
+
+```text
+PHASE265 LARGE CONTEXT 384K RELEASE CANDIDATE DECISION GATE PASS
+```
+
+Expected decision:
+
+```text
+decision=ship
+phase266_ready=true
+```
 
 ## First Tester Prompt
 

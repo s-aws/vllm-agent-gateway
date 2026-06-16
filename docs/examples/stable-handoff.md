@@ -83,6 +83,20 @@ PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS
 
 This is the current large-context proof path for usable 384k-token projects. It is not a raw prompt-stuffing proof.
 
+## Run The 384k Release Decision Gate
+
+```bash
+python3 scripts/validate_large_context_384k_release_candidate_decision_gate.py \
+  --phase264-report-path /tmp/agentic_agents_phase264_remote_clone/runtime-state/phase264/phase264-large-context-384k-clean-clone-replay-report.json \
+  --health-timeout-seconds 10
+```
+
+Expected result:
+
+```text
+PHASE265 LARGE CONTEXT 384K RELEASE CANDIDATE DECISION GATE PASS
+```
+
 ## Send The First Stable Prompt
 
 Use a fresh AnythingLLM thread:

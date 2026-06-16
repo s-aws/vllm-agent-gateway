@@ -205,7 +205,17 @@
         "activated_by": "phase246_release_candidate_decision_ship",
         "activated_from_report": "runtime/release_proofs/v1-1-release-candidate-stable-proof.json",
         "activated_profile": "v1.1-release-candidate",
-        "known_boundary": "Stable covers current release-candidate L1/L2 tester workflows, setup, security, feedback, observability, runtime recovery, non-Coinbase generalization, 384k-token project usability through retrieval, chunking, summarization, artifact paging, evidence selection, and baseline-corpus promotion. Larger 1M+ project usability is future expansion work. Advanced broad refactor orchestration remains deferred. Raw 1M-token prompt serving is not claimed."
+        "known_boundary": "Stable covers current release-candidate L1/L2 tester workflows, setup, security, feedback, observability, runtime recovery, non-Coinbase generalization, and 384k-token project usability through retrieval, chunking, summarization, artifact paging, evidence selection, clean-clone replay, and baseline-corpus promotion. Work above 384k tokens is paused. Advanced broad refactor orchestration remains deferred. Raw 384k prompt serving is not claimed. Raw 1M-token prompt serving is not claimed.",
+        "large_context_384k_release_candidate": {
+          "decision": "ship",
+          "decision_phase": 265,
+          "decision_report": "runtime-state/phase265/phase265-large-context-384k-release-candidate-decision-gate-report.json",
+          "clean_clone_replay_phase": 264,
+          "clean_clone_source_commit": "6dbf8d82f9176a91be2de2fe7e60a099f7d73b84",
+          "target_estimated_project_tokens": 384000,
+          "phase266_ready": true,
+          "post_384k_expansion_status": "paused"
+        }
       },
       "setup_validator": {
         "id": "first_time_user_doctor",

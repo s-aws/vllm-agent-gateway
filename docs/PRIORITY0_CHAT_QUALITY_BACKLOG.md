@@ -4,7 +4,7 @@ This document defines the default testing process and backlog for improving loca
 
 Priority 0 means the product is judged by whether a user can ask a natural-language development prompt and receive a useful, evidence-backed, chat-visible response through the current local model, gateway, skills, and tools.
 
-Priority 0 also covers large-context usability when it improves that chat outcome. The active release target is that 384k-token projects can be investigated through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens is paused until the 384k product target has a ship-ready proof chain and the founder explicitly approves a post-384k milestone. Raw 384k-token or larger prompts are not considered supported until a separate proof gate validates the model, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
+Priority 0 also covers large-context usability when it improves that chat outcome. The active release target is that 384k-token projects can be investigated through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens is paused until the 384k product target has a stable usable tester handoff and the founder explicitly approves a post-384k milestone. Raw 384k-token or larger prompts are not considered supported until a separate proof gate validates the model, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
 
 ## Default Process
 
@@ -155,7 +155,7 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-244 | V1 release-candidate decision gate | Complete in Phase 244. Aggregated release-candidate proof into deterministic `hold`. | Proof: Phase 232-243 completion check, Phase 242/243 machine report validation, live runtime-health probe, decision gate report, focused regression `6 passed`, docs index `linked_count=332`, and full regression `1581 passed`, `4 skipped`, `23 deselected`. Decision is `hold` because 10 required runtime-health probes failed while vLLM/model-backed endpoints were unavailable. |
 | P0-M14-245 | Release-candidate runtime health restoration | Complete in Phase 245. Restored vLLM and full featured-port health for the release-candidate stack. | Proof: localhost `8000`, gateway, controller, workflow-router gateway, role proxy ports, AnythingLLM target, minimal gateway/AnythingLLM read-only prompt, protected fixture mutation check, and focused regression. |
 | P0-M14-246 | Release-candidate decision rerun after runtime health | Complete in Phase 246. Reran the Phase 244 decision gate after health restoration. | Proof: live Phase 244 rerun reached `ship` with no stale runtime caveat and no runtime-health blockers. |
-| P0-M6-251 | 384k objective rebaseline | Complete in Phase 251. Rebaselined active large-context scope to 384k-token projects and blocked post-384k expansion from starting before the 384k target is ship-ready. | Proof: Phase 251 objective policy, validator, docs, threshold checks, stale roadmap mapping repair, focused regression, docs index, and no live runtime dependency. |
+| P0-M6-251 | 384k objective rebaseline | Complete in Phase 251. Rebaselined active large-context scope to 384k-token projects and blocked post-384k expansion from starting before the 384k target has a stable usable tester handoff. | Proof: Phase 251 objective policy, validator, docs, threshold checks, stale roadmap mapping repair, focused regression, docs index, and no live runtime dependency. |
 
 ## Execution Plan
 
@@ -472,7 +472,7 @@ Phase 157 final founder-field result: `status=passed`, `quality_status=advisory`
 - `README.large-context-384k-usability-acceptance-contract.md`
 - `docs/examples/large-context-384k-usability-acceptance-contract.md`
 
-Phase 258 defines the 384k usability acceptance contract. It requires answer-first chat through workflow-router gateway and AnythingLLM, blind-baseline-first scoring, holdouts, source refs, source-hash proof, output-format parity, metadata-only index retention, and stale-index rejection before live acceptance. It explicitly keeps raw 384k prompt stuffing and post-384k expansion outside the current product target until the 384k product target has a ship-ready proof chain.
+Phase 258 defines the 384k usability acceptance contract. It requires answer-first chat through workflow-router gateway and AnythingLLM, blind-baseline-first scoring, holdouts, source refs, source-hash proof, output-format parity, metadata-only index retention, and stale-index rejection before live acceptance. It explicitly keeps raw 384k prompt stuffing and post-384k expansion outside the current product target until the 384k product target has a stable usable tester handoff.
 
 Next approved 384k product phases:
 
@@ -483,7 +483,7 @@ Next approved 384k product phases:
 - `P0-M6-263`: founder getting-started integration for the accepted 384k path. Complete.
 - `P0-M6-264`: clean-clone 384k usability replay. Complete.
 - `P0-M6-265`: 384k release-candidate decision gate. Complete.
-- `P0-M6-266`: stable 384k handoff refresh.
+- `P0-M6-266`: stable 384k handoff refresh. Complete.
 
 `P0-M6-259` completed in Phase 259. Proof lives in:
 
@@ -524,3 +524,5 @@ Phase 263 makes the accepted 384k tester path durable for contextless first-time
 `P0-M6-264` completed in Phase 264. It fixed the clean-clone aggregate replay path so Phase 259 and Phase 260 write canonical reports before Phase 264 mirrors them, tightened network-bind guidance for Windows AnythingLLM, and replayed the accepted 384k proof from fresh remote clone `/tmp/agentic_agents_phase264_remote_clone` at commit `7355639e8b2be57edd0cfa9d7781a37f7b025aab`. Live proof passed with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, all five strategy IDs covered, `json_default_parity_status=passed`, `target_settings_status=passed`, `failed_small_repo_regression_count=0`, `critical_or_high_finding_count=0`, `runtime_state_ignored=true`, clean source before/after, and `phase265_ready=true`. Full Bash regression returned `1628 passed`, `4 skipped`, and `23 deselected`.
 
 `P0-M6-265` completed in Phase 265. It added a deterministic 384k release-candidate decision gate and avoided stale active-workspace `runtime-state/` by requiring an explicit Phase 264 clean-clone report path. Phase 264 was freshly replayed from remote clone `/tmp/agentic_agents_phase264_remote_clone` at commit `6dbf8d82f9176a91be2de2fe7e60a099f7d73b84`, then Phase 265 passed with `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `phase264_status=passed`, `phase264_decision=phase264_clean_clone_384k_usability_ready`, `target_estimated_project_tokens=384000`, and `phase266_ready=true`. Full Bash regression returned `1635 passed`, `4 skipped`, and `23 deselected`.
+
+`P0-M6-266` completed in Phase 266. It refreshed the stable tester handoff for the accepted 384k product target, updated stable release-channel metadata and committed proof references, kept runtime-state local-only, tightened post-384k pause wording to require a stable usable tester handoff before any expansion, validated docs-index, release-channel readiness, ship handoff, and the 384k decision gate, and closed with full Bash regression `1635 passed`, `4 skipped`, and `23 deselected`.

@@ -22,7 +22,7 @@ Generated `runtime-state/` reports are local-only. Durable release proof metadat
 
 - `dev`: maintainer channel for fast local iteration and setup readiness.
 - `release-candidate`: tester channel for current V1-style founder testing through the workflow-router gateway, AnythingLLM, and both frozen Coinbase fixtures.
-- `stable`: active external-tester channel promoted from the passed V1.1 release-candidate report.
+- `stable`: active external-tester channel promoted from the passed V1.1 release-candidate report and refreshed for the accepted 384k-token project target.
 
 Use `stable` for the current documented tester path after the stable handoff smoke passes. Use `release-candidate` when validating new changes before another stable promotion.
 
@@ -112,6 +112,8 @@ The supplied report must contain:
 - `kind=v1_acceptance_report`
 - `status=passed`
 - `profile=release-candidate` or `profile=v1.1-release-candidate`
+
+For the current large-context product target, stable also relies on the Phase 265 384k decision gate. That gate must return `decision=ship` with `phase266_ready=true` before stable handoff text is treated as current for 384k testing.
 
 Run the full stable handoff smoke before sending testers to the stable channel:
 

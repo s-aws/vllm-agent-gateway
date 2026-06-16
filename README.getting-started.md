@@ -4,7 +4,7 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
-Current handoff status: Phase 263 is the active first-time tester handoff for the accepted 384k-token project target. The live 384k acceptance proof passed in Phase 261 through the workflow-router gateway and AnythingLLM with all five large-context strategies covered, split-url target settings verified, JSON/default parity verified, and zero high or critical findings. Phase 262 required no repair. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor, but first-time large-context testing should follow the 384k path below.
+Current handoff status: Phase 266 is the active stable tester handoff refresh for the accepted 384k-token project target. It supersedes the Phase 263 first-time 384k tester handoff after the Phase 265 release-candidate decision returned `ship`. The live 384k acceptance proof passed in Phase 261 through the workflow-router gateway and AnythingLLM with all five large-context strategies covered, split-url target settings verified, JSON/default parity verified, and zero high or critical findings. Phase 262 required no repair. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor, but first-time large-context testing should follow the current 384k path below.
 
 ## What This Proves
 

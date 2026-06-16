@@ -8,7 +8,7 @@ If this document conflicts with older skill, controller, gateway, or AnythingLLM
 
 The product is not "a folder of skills." The product is a local agent harness that can take a natural-language development request, select the right tools and skills without retraining, create an evidence-backed plan, execute only inside approved boundaries, verify the result, and record feedback.
 
-The product objective also includes large-context usability. The active release target is usable 384k-token projects through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens is paused until the 384k product target has a ship-ready proof chain and the founder explicitly approves a post-384k milestone. This is not a promise that the current local model can accept a raw 384k-token or larger prompt. Raw long-context serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
+The product objective also includes large-context usability. The active release target is usable 384k-token projects through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens is paused until the 384k product target has a stable usable tester handoff and the founder explicitly approves a post-384k milestone. This is not a promise that the current local model can accept a raw 384k-token or larger prompt. Raw long-context serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
 
 Final destination:
 
@@ -10740,7 +10740,7 @@ Completion proof:
 
 - Added `runtime/large_context_384k_objective_rebaseline_policy.json`, `vllm_agent_gateway.acceptance.large_context_384k_objective_rebaseline`, `scripts/validate_large_context_384k_objective_rebaseline.py`, focused regression tests, feature docs, and examples.
 - Updated active large-context threshold policies for Phase 214, Phase 215, Phase 217, and Phase 241 from `1000000` to `384000` estimated tokens.
-- Updated durable instructions and milestone text so 384k-token project usability is the current objective and post-384k expansion stays paused until the 384k target is ship-ready and explicitly approved.
+- Updated durable instructions and milestone text so 384k-token project usability is the current objective and post-384k expansion stays paused until the 384k target has a stable usable tester handoff and explicit approval.
 - Repaired stale milestone mapping rows for completed Phase 249 and Phase 250.
 - Focused Bash regression for Phase 251 and adjacent large-context threshold gates returned `26 passed`.
 - Phase 251 static objective rebaseline gate passed with `target_estimated_project_tokens=384000`, `threshold_check_count=4`, `doc_count=6`, `error_count=0`, and `phase251_ready=true`.
@@ -10929,7 +10929,7 @@ Scope:
 - Require blind-baseline-first scoring, holdout reruns, source refs, source-hash revalidation, output-format parity, and chat-visible limitations.
 - Require retrieval, artifact paging, summarization, refusal, and chunked-investigation strategy coverage.
 - Require fixture/index readiness and stale-index rejection before live acceptance.
-- Preserve the current boundary: no raw 384k prompt-stuffing claim and no post-384k expansion work before the 384k product target has a ship-ready proof chain.
+- Preserve the current boundary: no raw 384k prompt-stuffing claim and no post-384k expansion work before the 384k product target has a stable usable tester handoff.
 - Add deterministic validation, focused regression, README, example, docs-index links, milestone mapping, and Priority 0 backlog state.
 
 Acceptance target: a contextless agent can validate the accepted 384k product contract and see that live acceptance is blocked until fixture/index readiness and stale-index rejection are proven.
@@ -11161,7 +11161,7 @@ Completion proof:
 
 ### Approved Phase 266: Stable 384k Handoff Refresh
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M14 Release Packaging And Onboarding, M6 Large-Context Usability Baseline.
 
@@ -11175,3 +11175,15 @@ Scope:
 - Validate docs-index, release-channel, ship-handoff, and relevant 384k gates.
 
 Acceptance target: the stable tester handoff accurately reflects the accepted 384k product behavior and boundaries.
+
+Result:
+
+- Updated durable instructions, root README, milestones, roadmap, and Priority 0 backlog so work above 384k tokens remains paused until the 384k product target has a stable usable tester handoff and a future milestone is explicitly approved.
+- Updated `README.getting-started.md`, `README.stable-handoff.md`, `README.release-channels.md`, and `docs/examples/stable-handoff.md` so the active tester handoff points to Phase 266, preserves the Phase 247 V1.1 stable floor, and names the accepted 384k path.
+- Updated `runtime/release_channels.json`, `runtime/release_proofs/v1-1-release-candidate-stable-proof.json`, and `runtime/release_candidate_ship_handoff_policy.json` with 384k release-candidate metadata, Phase 265 decision fields, paused post-384k status, and Phase 266 handoff markers.
+- Docs index validation passed with `350` linked docs and zero orphaned docs.
+- Focused release-channel/runtime-state/ship-handoff regression returned `21 passed`.
+- Bash stable release-channel validation passed with `status=passed` and zero failed checks.
+- Bash release-candidate ship-handoff validation passed with `ship_handoff_ready=true`.
+- Bash Phase 265 384k decision validation passed with `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `phase264_decision=phase264_clean_clone_384k_usability_ready`, `target_estimated_project_tokens=384000`, and `phase266_ready=true`.
+- Full Bash regression returned `1635 passed`, `4 skipped`, and `23 deselected`.
