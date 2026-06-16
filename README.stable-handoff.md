@@ -12,7 +12,7 @@ Use this handoff only for the current product surface: natural-language L1/L2 re
 - The activation report is a passed `v1_acceptance_report` with profile `v1.1-release-candidate`.
 - First-time testers still use AnythingLLM pointed at `http://127.0.0.1:8500/v1`.
 - The stable smoke command reruns setup, release-channel validation, security policy, one live onboarding prompt, feedback capture, and protected-fixture checks.
-- Phase 226 makes the current M6/M8 large-context strategy set release-usable through retrieval, artifact paging, summarization, chunked investigation, and refusal routing.
+- Phase 261 proves the current 384k-token project target live through the workflow-router gateway and AnythingLLM with retrieval, artifact paging, summarization, chunked investigation, refusal routing, split-url target settings, blind-baseline comparison, and JSON/default parity.
 - Phase 230 admits the first M12 small skill-library fixture/eval coverage candidate without manual skill injection.
 - Phase 231 proves runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack.
 - Feedback still records through `workflow_feedback.record`; Phase 227 classifies feedback outcomes and Phase 228 prevents accepted repairs from closing without target and holdout rerun proof.
@@ -92,6 +92,28 @@ no_new_batch_justified
 The Phase 231 report should show `decision=ready_after_recovery`, `covered_surface_count=7`, and `missing_required_surface_count=0`.
 
 If Phase 161 ever returns `propose_batch_for_founder_approval`, or a later failure-to-roadmap pass produces approved implementation candidates, stop founder handoff expansion and review the proposals before implementing anything.
+
+## 384k Large-Context Acceptance
+
+Run this when a tester needs to verify the current large-context target rather than only the first L1 prompt:
+
+```bash
+python3 scripts/validate_large_context_384k_live_acceptance.py \
+  --live \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --anythingllm-workflow-router-base-url http://127.0.0.1:8500/v1 \
+  --timeout-seconds 1200
+```
+
+If AnythingLLM is using the WSL network URL printed by `start-agent-prompt-proxies.sh`, pass that URL to `--anythingllm-workflow-router-base-url` and keep `--workflow-router-gateway-base-url` on `http://127.0.0.1:8500/v1`.
+
+Expected marker:
+
+```text
+PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS
+```
+
+This proves usable 384k-token project behavior through governed context strategy. It does not approve raw 384k prompt stuffing or work above 384k tokens.
 
 ## First Tester Prompt
 

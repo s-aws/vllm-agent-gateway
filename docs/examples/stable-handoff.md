@@ -63,6 +63,26 @@ PHASE161 SKILL TOOL GAP BATCH PROPOSAL PASS
 
 The current Phase 161 decision is `no_new_batch_justified`.
 
+## Run The 384k Acceptance Gate
+
+```bash
+python3 scripts/validate_large_context_384k_live_acceptance.py \
+  --live \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --anythingllm-workflow-router-base-url http://127.0.0.1:8500/v1 \
+  --timeout-seconds 1200
+```
+
+For split Windows/WSL setups, replace only `--anythingllm-workflow-router-base-url` with the workflow-router network URL printed by `start-agent-prompt-proxies.sh`.
+
+Expected result:
+
+```text
+PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS
+```
+
+This is the current large-context proof path for usable 384k-token projects. It is not a raw prompt-stuffing proof.
+
 ## Send The First Stable Prompt
 
 Use a fresh AnythingLLM thread:

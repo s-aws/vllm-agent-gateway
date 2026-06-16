@@ -480,7 +480,7 @@ Next approved 384k product phases:
 - `P0-M6-260`: 384k stale-index rejection hardening.
 - `P0-M6-261`: live 384k acceptance validator through gateway and AnythingLLM. Complete.
 - `P0-M6-262`: targeted answer-quality repair only if Phase 261 exposes gaps. Complete with no repair required.
-- `P0-M6-263`: founder getting-started integration for the accepted 384k path.
+- `P0-M6-263`: founder getting-started integration for the accepted 384k path. Complete.
 - `P0-M6-264`: clean-clone 384k usability replay.
 - `P0-M6-265`: 384k release-candidate decision gate.
 - `P0-M6-266`: stable 384k handoff refresh.
@@ -508,3 +508,15 @@ Phase 260 proves stale-index rejection before live 384k acceptance. It hardens t
 `P0-M6-261` completed in Phase 261. It composes Phase 258, Phase 259, Phase 260, Phase 221, Phase 223, split-url target settings, blind-baseline comparison, JSON/default parity, and fixture fingerprints into the current 384k live acceptance proof. Live proof passed with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, all five strategy IDs covered, `json_default_parity_status=passed`, `critical_or_high_finding_count=0`, `target_settings_status=passed`, and `phase262_ready=true`. Focused Bash regression returned `17 passed`; full Bash regression returned `1621 passed`, `4 skipped`, and `23 deselected`.
 
 `P0-M6-262` completed without implementation changes because Phase 261 exposed no target or holdout answer-quality repair scope.
+
+`P0-M6-263` completed in Phase 263. Proof lives in:
+
+- `README.md`
+- `README.getting-started.md`
+- `README.large-context-384k-live-acceptance.md`
+- `README.stable-handoff.md`
+- `README.release-candidate-ship-handoff.md`
+- `docs/examples/large-context-384k-live-acceptance.md`
+- `docs/examples/stable-handoff.md`
+
+Phase 263 makes the accepted 384k tester path durable for contextless first-time users. It names 384k-token project usability as the active large-context product target, gives the Phase 261 live command, documents split Windows/WSL AnythingLLM target handling, lists expected proof fields and artifacts, and keeps raw 384k prompt stuffing plus post-384k expansion outside the current product scope.

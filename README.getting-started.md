@@ -4,7 +4,7 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
-Current handoff status: Phase 247 is the active release-candidate ship handoff. The Phase 246 ship decision was produced from `/tmp/agentic_agents_phase243_remote_clone` at decision source commit `bb0c6b0` after Phase 245 restored runtime health. The current proof floor includes Phase 226 large-context usability, Phase 239 Priority 0 clone replay, Phase 240 non-Coinbase generalization, Phase 241 large-context strategy replay, Phase 242 baseline corpus promotion, Phase 243 external tester feedback proof, Phase 245 runtime health restoration, and Phase 246 release decision rerun.
+Current handoff status: Phase 263 is the active first-time tester handoff for the accepted 384k-token project target. The live 384k acceptance proof passed in Phase 261 through the workflow-router gateway and AnythingLLM with all five large-context strategies covered, split-url target settings verified, JSON/default parity verified, and zero high or critical findings. Phase 262 required no repair. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor, but first-time large-context testing should follow the 384k path below.
 
 ## What This Proves
 
@@ -12,7 +12,7 @@ Current handoff status: Phase 247 is the active release-candidate ship handoff. 
 - The local model on `localhost:8000` is reached through the gateway/router stack.
 - The current Priority 0 chat-quality proof can be revalidated after restart.
 - Runtime recovery reliability passes with small-repo and large-context prompt proof.
-- Large-context prompts use retrieval/chunking/paging strategy proof instead of raw prompt stuffing.
+- Large-context prompts target usable 384k-token projects through retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing instead of raw prompt stuffing.
 - Small skill admission works for the Python-service fixture without manual skill injection.
 - A normal natural-language request routes to `workflow_router.plan`.
 - The controller can run small read-only L1 investigations against the frozen Coinbase fixtures.
@@ -33,7 +33,7 @@ Current handoff status: Phase 247 is the active release-candidate ship handoff. 
 - For API validation, `ANYTHINGLLM_API_KEY` is available in your Windows user environment.
 - For automated Desktop UI validation, Python Playwright, system Chrome, and Node/npm `npx` are available.
 
-## Current Phase 247 Happy Path
+## Current Founder Happy Path
 
 Run these from Bash/WSL unless a command explicitly says PowerShell:
 
@@ -71,6 +71,52 @@ EXTERNAL TESTER DRY RUN PASS
 The Phase 231 recovery gate includes the small-repo `python-service-code-explanation` prompt and the large-context `P221-LC-001` prompt through both workflow-router gateway and AnythingLLM.
 
 Advanced broad refactor orchestration is not released. Keep first-time testing on read-only L1/L2 prompts, draft-only proposals, feedback capture, and governed recovery validation.
+
+## Current 384k Large-Context Path
+
+The current large-context product target is usable 384k-token projects, not raw 384k prompt stuffing and not post-384k expansion. The accepted path uses the existing workflow-router gateway, governed metadata-first indexing, retrieval, chunked investigation, summarization, artifact paging, refusal routing, source-hash checks, and chat-visible limitations.
+
+Run this after vLLM, the gateway/proxies, the controller, and AnythingLLM are running:
+
+```bash
+cd /mnt/c/agentic_agents
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/validate_large_context_384k_live_acceptance.py \
+  --live \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --anythingllm-workflow-router-base-url http://127.0.0.1:8500/v1 \
+  --timeout-seconds 1200
+```
+
+If AnythingLLM is a Windows app and Windows `127.0.0.1` forwarding hangs after response headers, use the workflow-router network URL printed by `start-agent-prompt-proxies.sh` for the AnythingLLM argument only. Keep the Bash/internal gateway argument on `http://127.0.0.1:8500/v1`.
+
+```bash
+python3 scripts/validate_large_context_384k_live_acceptance.py \
+  --live \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --anythingllm-workflow-router-base-url http://PRINTED_WSL_WORKFLOW_ROUTER_HOST:8500/v1 \
+  --timeout-seconds 1200
+```
+
+Expected marker:
+
+```text
+PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS
+```
+
+The report should show `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, `failed_small_repo_regression_count=0`, `json_default_parity_status=passed`, `critical_or_high_finding_count=0`, and all five strategy IDs: `retrieval`, `artifact_paging`, `summarization`, `refusal`, and `chunked_investigation`.
+
+Primary proof artifacts:
+
+```text
+runtime-state/phase261/phase261-large-context-384k-live-acceptance-report.json
+runtime-state/phase261/phase261-phase221-large-context-usability-live-closeout-report.json
+runtime-state/phase261/phase261-phase223-chunked-investigation-executor-implementation-report.json
+runtime-state/phase261/phase261-blind-baseline-artifacts.json
+runtime-state/phase261/phase261-blind-baseline-comparisons.json
+```
+
+Post-384k work remains paused until this 384k product path has a complete ship-ready handoff and the founder explicitly approves a later milestone.
 
 ## 1. Start The Local Harness
 
@@ -261,7 +307,7 @@ For natural workflow testing, AnythingLLM must use:
 http://127.0.0.1:8500/v1
 ```
 
-Do not use `8400`; that is the controller service, not an OpenAI-compatible model endpoint. Use `8300/v1` only for ordinary model chat or explicit controller-envelope tests.
+On split Windows/WSL setups, use the workflow-router network URL printed by `start-agent-prompt-proxies.sh` when the Windows AnythingLLM app cannot reliably read bodies from `127.0.0.1:8500`. Do not use `8400`; that is the controller service, not an OpenAI-compatible model endpoint. Use `8300/v1` only for ordinary model chat or explicit controller-envelope tests.
 
 Endpoint table:
 
@@ -794,7 +840,7 @@ The Markdown output is the quick review surface. Start with `summary.highest_sev
 - If AnythingLLM returns normal chat instead of `workflow_router.plan completed`, it is probably pointed at `8300/v1` instead of `8500/v1`.
 - If AnythingLLM reports `400 Streaming workflow-router chat responses are not supported yet`, restart the local harness; current workflow-router chat supports AnythingLLM-style `stream: true` requests on `8500/v1`.
 - If the controller rejects `target_root`, restart the stack with the `CONTROLLER_ALLOWED_TARGET_ROOTS` command above.
-- If Windows clients receive headers but time out waiting for the response body, run the validator from Bash.
+- If Windows clients receive headers but time out waiting for the response body, run validators from Bash and configure Windows AnythingLLM with the printed WSL workflow-router network URL instead of Windows `127.0.0.1`.
 - If `8000/v1/models` is not healthy, start or fix the vLLM server before testing the harness.
 - If an old AnythingLLM thread behaves inconsistently, start a fresh thread; long chat history can consume the gateway input budget.
 - If a founder prompt misses the target but Phase 161 still reports `no_new_batch_justified`, treat it as prompt wording or documentation feedback first. Do not create a new skill/tool unless a later governed report produces `decision=propose_batch_for_founder_approval`.

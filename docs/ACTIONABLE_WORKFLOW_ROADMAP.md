@@ -11065,7 +11065,7 @@ Completion proof:
 
 ### Approved Phase 263: Founder 384k Getting-Started Integration
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M14 Release Packaging And Onboarding, M6 Large-Context Usability Baseline.
 
@@ -11080,6 +11080,18 @@ Scope:
 - Do not add a new runtime capability.
 
 Acceptance target: a contextless tester can run the accepted 384k path through AnythingLLM without private session history.
+
+Completion proof:
+
+- Updated the root README large-context objective to name 384k-token project usability as the current target and keep post-384k expansion paused.
+- Updated `README.getting-started.md` so Phase 263 is the active first-time 384k tester handoff, with the Phase 261 live command, split-url AnythingLLM guidance, expected summary fields, and proof artifacts.
+- Updated `README.large-context-384k-live-acceptance.md` and `docs/examples/large-context-384k-live-acceptance.md` with first-time tester commands, split-url placeholder guidance, expected pass fields, and artifact names.
+- Updated `README.stable-handoff.md` and `docs/examples/stable-handoff.md` so stable testers can run the 384k acceptance path when validating large-context behavior.
+- Updated `README.release-candidate-ship-handoff.md` to preserve the Phase 247 V1.1 handoff boundary while pointing current large-context testers to the newer 384k proof path.
+- Static docs-index validation passed.
+- Phase 251 objective-rebaseline validation passed.
+- Phase 258 acceptance-contract validation passed.
+- Full regression was skipped because this phase changed only documentation, roadmap, and handoff text.
 
 ### Approved Phase 264: Clean-Clone 384k Usability Replay
 

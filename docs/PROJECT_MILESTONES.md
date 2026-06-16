@@ -115,7 +115,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 260 | M6/M8/M16 | Complete. Hardened stale-index, changed-policy, changed-source, and unsafe-evidence rejection before live 384k acceptance. |
 | Phase 261 | M2/M4/M6/M8/M13/M14/M16 | Complete. Passed live 384k acceptance through gateway and AnythingLLM with Phase 258/259/260 prerequisites, Phase 221 plus Phase 223 strategy coverage, split-url target settings, blind-baseline comparison, JSON/default parity, fixture proof, and zero high/critical findings. |
 | Phase 262 | M2/M4/M6/M8 | Complete. No targeted answer-quality repair was required because Phase 261 passed with zero errors, zero critical/high findings, zero failed small-repo regressions, and passing JSON/default parity. |
-| Phase 263 | M14/M6 | Approved. Integrate the stable 384k tester path into founder getting-started docs and doctor guidance after live acceptance passes. |
+| Phase 263 | M14/M6 | Complete. Integrated the accepted 384k tester path into root, getting-started, stable handoff, release handoff, live-acceptance, and example docs with split-url AnythingLLM guidance, expected proof fields, artifact names, and explicit post-384k boundaries. |
 | Phase 264 | M14/M6/M16 | Approved. Replay the 384k usability proof from a fresh remote clone with index/bootstrap instructions and no private workspace state. |
 | Phase 265 | M1/M6/M14 | Approved. Aggregate the 384k proof chain into a release-candidate ship, hold, or repair-required decision. |
 | Phase 266 | M14/M6 | Approved. Refresh stable handoff metadata, docs, known limits, and split-url guidance for the accepted 384k product target. |
