@@ -104,6 +104,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 249 | M13/M14 | Complete. Restored Bash/WSL command execution, captured the Windows-to-WSL localhost forwarding workaround, refreshed runtime health, and reran release decision proof. |
 | Phase 250 | M14 | Complete. Replayed the pushed Phase 249 handoff state from a fresh remote clone with static handoff, docs-index, and stable-channel proof. |
 | Phase 251 | M6/M7/M8/M14 | Complete. Rebaselined the current large-context objective to 384k-token project usability and added a drift gate so 1M+ expansion work cannot become the current release target without explicit approval. |
+| Phase 252 | M14/M6 | Complete. Replayed the pushed Phase 251 384k objective rebaseline from a fresh remote clone with Phase 251, docs-index, and stable-channel proof. |
 
 ## Usage Rules
 

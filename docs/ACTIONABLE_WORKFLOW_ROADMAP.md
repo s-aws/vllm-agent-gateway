@@ -10749,3 +10749,31 @@ Completion proof:
 - Phase 215 retrieval-first context strategy design passed with `phase214_estimated_token_count=1286080`, `validation_error_count=0`, and `phase216_ready=true`.
 - Phase 217 context index prototype passed with `estimated_indexed_token_count=1286132`, `validation_error_count=0`, and `phase218_ready=true`.
 - Full Bash regression returned `1600 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 252: Fresh Remote-Clone Phase 251 Rebaseline Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M6 Large-Context Usability Baseline.
+
+Goal: prove the pushed Phase 251 384k objective rebaseline can be validated from a fresh remote clone without relying on the active workspace.
+
+Scope:
+
+- Create a fresh clone of `s-aws/vllm-agent-gateway` at branch `codex/m14-release-clone-proof`.
+- Verify the clone is at the pushed Phase 251 commit.
+- Run the Phase 251 large-context 384k objective rebaseline validator from the clone.
+- Run docs-index validation from the clone.
+- Run stable release-channel validation from the clone.
+- Do not restart WSL, vLLM, Docker, gateway, controller, or AnythingLLM during this static replay.
+
+Acceptance target: the pushed branch contains enough committed objective, milestone, roadmap, threshold, and docs metadata for a contextless clone to verify the 384k large-context target.
+
+Completion proof:
+
+- Created fresh clone `/tmp/agentic_agents_phase252_remote_clone` from `https://github.com/s-aws/vllm-agent-gateway.git` on branch `codex/m14-release-clone-proof`.
+- Clone status was clean on `codex/m14-release-clone-proof...origin/codex/m14-release-clone-proof`.
+- Clone commit was `71f1921a47392661a2346f09fa6797f76f33424b`.
+- Clone Phase 251 large-context 384k objective rebaseline validator passed with `target_estimated_project_tokens=384000`, `threshold_check_count=4`, `doc_count=6`, `error_count=0`, and `phase251_ready=true`.
+- Clone docs-index validation passed with `expected_count=338`, `linked_count=338`, `orphaned_docs=[]`, and `status=passed`.
+- Clone stable release-channel validation passed with `selected_channel=stable`, `failed_check_ids=[]`, and `status=passed`.
