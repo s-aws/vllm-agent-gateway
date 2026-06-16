@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_384k_usability_acceptance_contract_policy",
+  "phase": 258,
+  "priority_backlog_id": "P0-M6-258",
+  "milestone_ids": [
+    "M2",
+    "M4",
+    "M6",
+    "M8",
+    "M14",
+    "M16"
+  ],
+  "target_estimated_project_tokens": 384000,
+  "purpose": "Define the executable acceptance contract for a usable 384k-token project product before live validator, onboarding, clean-clone replay, or stable handoff work proceeds.",
+  "contract_scope": [
+    "384k-token project usability through governed retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing.",
+    "Chat-visible answers through the workflow-router gateway and AnythingLLM.",
+    "Metadata-first index and retrieval safety proof before live acceptance.",
+    "No raw 384k-token prompt-stuffing claim.",
+    "No 1M+ project-usability expansion work in the current product target."
+  ],
+  "required_predecessor_phase_statuses": {
+    "251": "Complete.",
+    "252": "Complete.",
+    "253": "Complete.",
+    "254": "Complete.",
+    "255": "Complete.",
+    "256": "Complete.",
+    "257": "Complete.",
+    "258": "Complete."
+  },
+  "approved_followup_phase_statuses": {
+    "259": "Approved.",
+    "260": "Approved.",
+    "261": "Approved.",
+    "262": "Approved.",
+    "263": "Approved.",
+    "264": "Approved.",
+    "265": "Approved.",
+    "266": "Approved."
+  },
+  "required_phase_sequence": [
+    {
+      "phase": 258,
+      "name": "Large-Context 384k Usability Acceptance Contract",
+      "must_precede": [
+        259,
+        260,
+        261,
+        262,
+        263,
+        264,
+        265,
+        266
+      ]
+    },
+    {
+      "phase": 259,
+      "name": "384k Fixture And Index Readiness Proof",
+      "must_precede": [
+        260,
+        261,
+        264,
+        265,
+        266
+      ]
+    },
+    {
+      "phase": 260,
+      "name": "384k Stale-Index Rejection Hardening",
+      "must_precede": [
+        261,
+        264,
+        265,
+        266
+      ]
+    },
+    {
+      "phase": 261,
+      "name": "Live 384k Acceptance Validator",
+      "must_precede": [
+        262,
+        263,
+        264,
+        265,
+        266
+      ]
+    },
+    {
+      "phase": 262,
+      "name": "Targeted 384k Answer-Quality Repair",
+      "must_precede": [
+        263,
+        264,
+        265,
+        266
+      ],
+      "conditional": "Only execute repairs that are driven by Phase 261 acceptance gaps."
+    },
+    {
+      "phase": 263,
+      "name": "Founder 384k Getting-Started Integration",
+      "must_precede": [
+        264,
+        265,
+        266
+      ]
+    },
+    {
+      "phase": 264,
+      "name": "Clean-Clone 384k Usability Replay",
+      "must_precede": [
+        265,
+        266
+      ]
+    },
+    {
+      "phase": 265,
+      "name": "384k Release-Candidate Decision Gate",
+      "must_precede": [
+        266
+      ]
+    },
+    {
+      "phase": 266,
+      "name": "Stable 384k Handoff Refresh",
+      "must_precede": []
+    }
+  ],
+  "required_surfaces": [
+    "workflow_router_gateway",
+    "anythingllm"
+  ],
+  "required_fixture_roots": [
+    "runtime-state/phase214/generated-large-corpus",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_strategy_ids": [
+    "retrieval",
+    "artifact_paging",
+    "summarization",
+    "refusal",
+    "chunked_investigation"
+  ],
+  "required_acceptance_cases": [
+    {
+      "case_id": "P258-AC-001",
+      "category": "large_corpus_evidence_lookup",
+      "required_strategy_id": "retrieval",
+      "minimum_score": 85
+    },
+    {
+      "case_id": "P258-AC-002",
+      "category": "large_corpus_navigation",
+      "required_strategy_id": "artifact_paging",
+      "minimum_score": 85
+    },
+    {
+      "case_id": "P258-AC-003",
+      "category": "large_corpus_summarization",
+      "required_strategy_id": "summarization",
+      "minimum_score": 85
+    },
+    {
+      "case_id": "P258-AC-004",
+      "category": "large_corpus_limitations",
+      "required_strategy_id": "refusal",
+      "minimum_score": 85
+    },
+    {
+      "case_id": "P258-AC-005",
+      "category": "chunked_investigation",
+      "required_strategy_id": "chunked_investigation",
+      "minimum_score": 85
+    }
+  ],
+  "answer_contract": {
+    "answer_first_required": true,
+    "artifact_only_answers_allowed": false,
+    "chat_visible_strategy_required": true,
+    "chat_visible_limitations_required": true,
+    "source_refs_required_for_evidence_claims": true,
+    "source_hash_revalidation_required": true,
+    "blind_baseline_first_required": true,
+    "holdout_rerun_required": true,
+    "default_and_json_output_parity_required": true
+  },
+  "safety_requirements": {
+    "raw_prompt_stuffing_allowed": false,
+    "raw_384k_prompt_support_claim_allowed": false,
+    "raw_1m_prompt_support_claim_allowed": false,
+    "source_text_retention": "metadata_only",
+    "store_source_text": false,
+    "store_rejected_content": false,
+    "ignored_path_negative_controls_required": true,
+    "private_path_negative_controls_required": true,
+    "secret_like_negative_controls_required": true,
+    "stale_index_rejection_required": true,
+    "changed_ignore_policy_rejection_required": true,
+    "changed_safety_policy_rejection_required": true,
+    "protected_fixture_mutation_allowed": false
+  },
+  "required_supporting_policies": [
+    "runtime/corpus_index_safety_governance_policy.json",
+    "runtime/context_index_prototype_policy.json",
+    "runtime/large_context_usability_live_closeout_policy.json",
+    "runtime/release_candidate_large_context_strategy_replay_policy.json",
+    "runtime/large_context_384k_objective_rebaseline_policy.json"
+  ],
+  "required_docs": [
+    "AGENTS.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "README.large-context-384k-usability-acceptance-contract.md",
+    "docs/examples/large-context-384k-usability-acceptance-contract.md"
+  ],
+  "required_doc_markers": {
+    "AGENTS.md": [
+      "384k-token projects",
+      "Priority 0 is chat quality development and testing"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "M6: Large-Context Usability Baseline",
+      "M16: Corpus And Index Safety Governance",
+      "Phase 258"
+    ],
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 258",
+      "384k Fixture And Index Readiness Proof",
+      "384k Stale-Index Rejection Hardening",
+      "Live 384k Acceptance Validator"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M6-258",
+      "384k usability acceptance contract"
+    ],
+    "README.large-context-384k-usability-acceptance-contract.md": [
+      "PHASE258 LARGE CONTEXT 384K USABILITY ACCEPTANCE CONTRACT PASS",
+      "stale-index rejection before live acceptance"
+    ],
+    "docs/examples/large-context-384k-usability-acceptance-contract.md": [
+      "validate_large_context_384k_usability_acceptance_contract.py",
+      "384000"
+    ]
+  },
+  "acceptance_marker": "PHASE258 LARGE CONTEXT 384K USABILITY ACCEPTANCE CONTRACT PASS"
+}

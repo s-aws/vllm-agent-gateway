@@ -463,3 +463,24 @@ Phase 156 final release decision result: `status=passed`, `decision=release_for_
 - `docs/examples/founder-field-round1.md`
 
 Phase 157 final founder-field result: `status=passed`, `quality_status=advisory`, `case_count=30`, `pass_case_count=16`, `advisory_case_count=14`, `blocker_case_count=0`, `target_root_count=2`, `workflow_count=3`, and `phase158_required=true`. The underlying live field runner returned 30 passed prompts and 0 failed prompts through AnythingLLM.
+
+`P0-M6-258` completed in Phase 258. Proof lives in:
+
+- `runtime/large_context_384k_usability_acceptance_contract_policy.json`
+- `vllm_agent_gateway/acceptance/large_context_384k_usability_acceptance_contract.py`
+- `scripts/validate_large_context_384k_usability_acceptance_contract.py`
+- `README.large-context-384k-usability-acceptance-contract.md`
+- `docs/examples/large-context-384k-usability-acceptance-contract.md`
+
+Phase 258 defines the 384k usability acceptance contract. It requires answer-first chat through workflow-router gateway and AnythingLLM, blind-baseline-first scoring, holdouts, source refs, source-hash proof, output-format parity, metadata-only index retention, and stale-index rejection before live acceptance. It explicitly keeps raw 384k prompt stuffing and 1M+ expansion outside the current product target.
+
+Next approved 384k product phases:
+
+- `P0-M6-259`: 384k fixture/index readiness proof.
+- `P0-M6-260`: 384k stale-index rejection hardening.
+- `P0-M6-261`: live 384k acceptance validator through gateway and AnythingLLM.
+- `P0-M6-262`: targeted answer-quality repair only if Phase 261 exposes gaps.
+- `P0-M6-263`: founder getting-started integration for the accepted 384k path.
+- `P0-M6-264`: clean-clone 384k usability replay.
+- `P0-M6-265`: 384k release-candidate decision gate.
+- `P0-M6-266`: stable 384k handoff refresh.

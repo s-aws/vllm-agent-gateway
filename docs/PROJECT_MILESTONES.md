@@ -110,6 +110,15 @@ The first proposed milestone-aligned phase set is:
 | Phase 255 | M2/M13/M14 | Complete. Hardened the AnythingLLM fresh-chat validator so split Bash/Windows workflow-router URLs do not falsely fail target settings checks. |
 | Phase 256 | M2/M13/M14 | Complete. Replayed full AnythingLLM fresh-chat responsiveness with UI `hi`, gateway/API `hi`, coding prompt, split target settings, and fixture proof. |
 | Phase 257 | M6/M14 | Complete. Updated committed stable-channel metadata so external handoff names 384k-token project usability as the current large-context target and keeps 1M+ as future expansion. |
+| Phase 258 | M2/M4/M6/M8/M14/M16 | Complete. Defined the executable 384k usability acceptance contract and required fixture/index readiness plus stale-index rejection before live acceptance. |
+| Phase 259 | M6/M16 | Approved. Prove the accepted 384k-plus fixture and governed index bootstrap are ready before live 384k validation. |
+| Phase 260 | M6/M8/M16 | Approved. Harden stale-index, changed-policy, and changed-source rejection before live 384k acceptance. |
+| Phase 261 | M2/M4/M6/M8/M13/M14/M16 | Approved. Run live 384k acceptance through gateway and AnythingLLM with blind-baseline comparison, holdouts, split URLs, and fixture proof. |
+| Phase 262 | M2/M4/M6/M8 | Approved. Repair only acceptance-gate answer-quality gaps discovered by Phase 261 target or holdout failures. |
+| Phase 263 | M14/M6 | Approved. Integrate the stable 384k tester path into founder getting-started docs and doctor guidance after live acceptance passes. |
+| Phase 264 | M14/M6/M16 | Approved. Replay the 384k usability proof from a fresh remote clone with index/bootstrap instructions and no private workspace state. |
+| Phase 265 | M1/M6/M14 | Approved. Aggregate the 384k proof chain into a release-candidate ship, hold, or repair-required decision. |
+| Phase 266 | M14/M6 | Approved. Refresh stable handoff metadata, docs, known limits, and split-url guidance for the accepted 384k product target. |
 
 ## Usage Rules
 

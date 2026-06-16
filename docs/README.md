@@ -127,6 +127,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Remote-Clone Non-Coinbase Generalization Replay README](../README.remote-clone-non-coinbase-generalization-replay.md): Phase 240 remote-clone replay for Python-service and Staterail non-Coinbase fixtures.
 - [Release-Candidate Large-Context Strategy Replay README](../README.release-candidate-large-context-strategy-replay.md): Phase 241 release-candidate replay for large-context strategies through gateway and AnythingLLM.
 - [Large-Context 384k Objective Rebaseline README](../README.large-context-384k-objective-rebaseline.md): Phase 251 static gate that keeps the active large-context release target at 384k-token project usability.
+- [Large-Context 384k Usability Acceptance Contract README](../README.large-context-384k-usability-acceptance-contract.md): Phase 258 executable contract for the current 384k product target before fixture/index readiness, stale-index rejection, and live acceptance.
 - [Release-Candidate Baseline Corpus Promotion README](../README.release-candidate-baseline-corpus-promotion.md): Phase 242 promoted release-candidate chat-quality cases in the governed baseline corpus.
 - [External Tester Feedback Loop From Clone README](../README.external-tester-feedback-loop-from-clone.md): Phase 243 release-candidate clone feedback proof for positive and defect tester records.
 - [V1 Release-Candidate Decision Gate README](../README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate.
@@ -406,6 +407,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Remote-Clone Non-Coinbase Generalization Replay Examples](examples/remote-clone-non-coinbase-generalization-replay.md)
 - [Release-Candidate Large-Context Strategy Replay Examples](examples/release-candidate-large-context-strategy-replay.md)
 - [Large-Context 384k Objective Rebaseline Examples](examples/large-context-384k-objective-rebaseline.md)
+- [Large-Context 384k Usability Acceptance Contract Examples](examples/large-context-384k-usability-acceptance-contract.md)
 - [Release-Candidate Baseline Corpus Promotion Examples](examples/release-candidate-baseline-corpus-promotion.md)
 - [External Tester Feedback Loop From Clone Examples](examples/external-tester-feedback-loop-from-clone.md)
 - [V1 Release-Candidate Decision Gate Examples](examples/v1-release-candidate-decision-gate.md)

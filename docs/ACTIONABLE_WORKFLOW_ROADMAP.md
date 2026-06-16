@@ -10913,3 +10913,178 @@ Completion proof:
 - Phase 247 release-candidate ship handoff validator passed with `ship_handoff_ready=true`, `error_count=0`, and `status=passed`.
 - Phase 251 large-context 384k objective rebaseline gate passed with `target_estimated_project_tokens=384000`, `threshold_check_count=4`, `doc_count=6`, and `error_count=0`.
 - Docs-index validation passed with `expected_count=338`, `linked_count=338`, `orphaned_docs=[]`, and `status=passed`.
+
+### Approved Phase 258: Large-Context 384k Usability Acceptance Contract
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M14 Release Packaging And Onboarding, M16 Corpus And Index Safety Governance.
+
+Goal: define the executable acceptance contract for the current 384k-token project usability product before live validation, onboarding, clean-clone replay, or stable handoff proceeds.
+
+Scope:
+
+- Add a committed 384k usability acceptance policy.
+- Require answer-first chat through workflow-router gateway and AnythingLLM.
+- Require blind-baseline-first scoring, holdout reruns, source refs, source-hash revalidation, output-format parity, and chat-visible limitations.
+- Require retrieval, artifact paging, summarization, refusal, and chunked-investigation strategy coverage.
+- Require fixture/index readiness and stale-index rejection before live acceptance.
+- Preserve the current boundary: no raw 384k prompt-stuffing claim and no 1M+ expansion work in the current target.
+- Add deterministic validation, focused regression, README, example, docs-index links, milestone mapping, and Priority 0 backlog state.
+
+Acceptance target: a contextless agent can validate the accepted 384k product contract and see that live acceptance is blocked until fixture/index readiness and stale-index rejection are proven.
+
+Completion proof:
+
+- Added `runtime/large_context_384k_usability_acceptance_contract_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_384k_usability_acceptance_contract`.
+- Added `scripts/validate_large_context_384k_usability_acceptance_contract.py`.
+- Added focused regression coverage for contract validation, stale-index prerequisite enforcement, and follow-up phase status checks.
+- Added `README.large-context-384k-usability-acceptance-contract.md` and `docs/examples/large-context-384k-usability-acceptance-contract.md`.
+- Phase 258 static acceptance validator passed with `target_estimated_project_tokens=384000`, `required_acceptance_case_count=5`, `required_followup_phase_count=8`, and `phase258_ready=true`.
+- Focused Bash regression for Phase 258 passed.
+- Docs-index validation passed.
+
+### Approved Phase 259: 384k Fixture And Index Readiness Proof
+
+Status: Approved.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M16 Corpus And Index Safety Governance.
+
+Goal: prove the accepted 384k-plus fixture and governed index bootstrap are ready before any live 384k acceptance claim.
+
+Scope:
+
+- Select or regenerate the accepted 384k-plus large-context fixture.
+- Prove estimated token count is at least `384000`.
+- Build or bootstrap the governed metadata-first index through the existing index path.
+- Record allowed roots, ignore policy fingerprint, safety policy fingerprint, source hashes, chunk counts, and query smoke proof.
+- Confirm protected frozen Coinbase fixtures are unchanged.
+- Do not run live acceptance or claim chat-quality closeout.
+
+Acceptance target: Phase 261 can run against documented, fresh, source-hashed, governed 384k fixture/index state rather than undocumented runtime residue.
+
+### Approved Phase 260: 384k Stale-Index Rejection Hardening
+
+Status: Approved.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M8 Context Strategy Router, M16 Corpus And Index Safety Governance.
+
+Goal: prove stale source hashes, changed ignore policy, changed safety policy, unapproved roots, ignored paths, private paths, and secret-like content cannot be served into 384k chat answers.
+
+Scope:
+
+- Extend the existing corpus/index safety path instead of adding a parallel index implementation.
+- Add negative controls for stale source content and changed policy fingerprints.
+- Prove chat-visible answers fail closed when index freshness cannot be trusted.
+- Keep retained index artifacts metadata-only.
+- Do not proceed to live 384k acceptance until this phase passes.
+
+Acceptance target: live 384k validation cannot pass by reading stale, ignored, private, secret-like, or unapproved derived content.
+
+### Approved Phase 261: Live 384k Acceptance Validator
+
+Status: Approved.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M16 Corpus And Index Safety Governance.
+
+Goal: run the accepted 384k contract live through workflow-router gateway and AnythingLLM after fixture/index readiness and stale-index rejection are proven.
+
+Scope:
+
+- Use blind-baseline-first comparison before scoring local-model output.
+- Exercise retrieval, artifact paging, summarization, refusal, and chunked investigation.
+- Include target cases and holdouts.
+- Verify split Bash/Windows AnythingLLM URL behavior.
+- Verify answer-first chat output, evidence relevance, source refs, source-hash proof, limitations, and JSON/default parity.
+- Include small-repo non-regression on `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Verify protected fixtures remain unchanged.
+
+Acceptance target: a semi-well-defined prompt over a 384k-plus project produces useful, chat-visible, evidence-backed output without raw prompt stuffing.
+
+### Approved Phase 262: Targeted 384k Answer-Quality Repair
+
+Status: Approved.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router.
+
+Goal: repair only concrete answer-quality gaps exposed by Phase 261 target or holdout failures.
+
+Scope:
+
+- Use Phase 261 blind-baseline deltas as the only accepted source of repair scope.
+- Repair the smallest controller, workflow, skill, tool, retrieval, or formatter gap.
+- Rerun target plus holdout cases after each repair.
+- Do not introduce speculative quality tuning unrelated to Phase 261 misses.
+
+Acceptance target: Phase 261 can be rerun with no unresolved high or critical chat-quality gaps.
+
+### Approved Phase 263: Founder 384k Getting-Started Integration
+
+Status: Approved.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M6 Large-Context Usability Baseline.
+
+Goal: make the accepted 384k tester path clear in first-time user docs and setup validation after live acceptance passes.
+
+Scope:
+
+- Update getting-started, stable handoff, and relevant examples with the 384k tester path.
+- Keep raw 384k and 1M+ prompt-stuffing boundaries visible.
+- Include split-url AnythingLLM guidance where needed.
+- Include expected commands and proof artifacts.
+- Do not add a new runtime capability.
+
+Acceptance target: a contextless tester can run the accepted 384k path through AnythingLLM without private session history.
+
+### Approved Phase 264: Clean-Clone 384k Usability Replay
+
+Status: Approved.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M6 Large-Context Usability Baseline, M16 Corpus And Index Safety Governance.
+
+Goal: prove the 384k usability path works from a fresh remote clone with committed instructions and without private workspace state.
+
+Scope:
+
+- Clone the pushed branch into a disposable workspace.
+- Bootstrap the accepted fixture/index per committed docs.
+- Replay static gates, live gateway proof, and AnythingLLM proof where runtime is available.
+- Confirm runtime-state remains local-only and protected fixtures are unchanged.
+- Do not depend on active-workspace generated artifacts unless docs explicitly rebuild them.
+
+Acceptance target: a contextless agent can reproduce the 384k proof path from the remote branch.
+
+### Approved Phase 265: 384k Release-Candidate Decision Gate
+
+Status: Approved.
+
+Milestone mapping: M1 V1 Founder Beta Closeout, M6 Large-Context Usability Baseline, M14 Release Packaging And Onboarding.
+
+Goal: aggregate the 384k proof chain into a release-candidate decision of `ship`, `hold`, or `repair_required`.
+
+Scope:
+
+- Consume Phase 258 through Phase 264 proof.
+- Classify unresolved findings as blocker, advisory, deferred, or rejected.
+- Keep advanced refactor and 1M+ expansion out of the decision scope.
+- Produce a deterministic decision artifact.
+
+Acceptance target: the project has a clear go/no-go decision for the 384k product target.
+
+### Approved Phase 266: Stable 384k Handoff Refresh
+
+Status: Approved.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M6 Large-Context Usability Baseline.
+
+Goal: refresh stable handoff metadata, docs, known limits, commands, and split-url guidance for the accepted 384k product target.
+
+Scope:
+
+- Update stable release-channel metadata and committed proof references.
+- Update stable handoff docs, getting-started links, examples, and known limitations.
+- Keep runtime-state local-only.
+- Validate docs-index, release-channel, ship-handoff, and relevant 384k gates.
+
+Acceptance target: the stable tester handoff accurately reflects the accepted 384k product behavior and boundaries.
