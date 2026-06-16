@@ -11095,7 +11095,7 @@ Completion proof:
 
 ### Approved Phase 264: Clean-Clone 384k Usability Replay
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M14 Release Packaging And Onboarding, M6 Large-Context Usability Baseline, M16 Corpus And Index Safety Governance.
 
@@ -11110,6 +11110,21 @@ Scope:
 - Do not depend on active-workspace generated artifacts unless docs explicitly rebuild them.
 
 Acceptance target: a contextless agent can reproduce the 384k proof path from the remote branch.
+
+Completion proof:
+
+- Fixed the clean-clone replay aggregate so Phase 259 and Phase 260 write their canonical reports before Phase 264 mirrors them into `runtime-state/phase264/`.
+- Updated startup diagnostics and tester docs so WSL network client URLs are only treated as usable when the matching gateway service is bound for network clients.
+- Pushed commit `7355639e8b2be57edd0cfa9d7781a37f7b025aab` to `codex/m14-release-clone-proof`.
+- Replayed from fresh remote clone `/tmp/agentic_agents_phase264_remote_clone` at commit `7355639e8b2be57edd0cfa9d7781a37f7b025aab`.
+- Started the clone-owned gateway/controller stack with `GATEWAY_BIND_HOST=0.0.0.0`, `WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0`, and `CONTROLLER_BIND_HOST=0.0.0.0`.
+- Verified Windows could reach the WSL workflow-router network target `http://100.100.12.45:8500/v1/models`.
+- Live Phase 264 replay passed with `decision=phase264_clean_clone_384k_usability_ready`, `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, `strategy_ids=[artifact_paging, chunked_investigation, refusal, retrieval, summarization]`, `json_default_parity_status=passed`, `target_settings_status=passed`, `failed_small_repo_regression_count=0`, `critical_or_high_finding_count=0`, `runtime_state_ignored=true`, `source_dirty_line_count_before=0`, `source_dirty_line_count_after=0`, and `phase265_ready=true`.
+- Focused Windows regression for Phase 264 returned `7 passed`.
+- Focused Bash regression across Phase 258/259/260/261/264 returned `24 passed`.
+- Docs-index validation passed.
+- Phase 251 384k objective rebaseline validation passed.
+- Full Bash regression returned `1628 passed`, `4 skipped`, and `23 deselected`.
 
 ### Approved Phase 265: 384k Release-Candidate Decision Gate
 

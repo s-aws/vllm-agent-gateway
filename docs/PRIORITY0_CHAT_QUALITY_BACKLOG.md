@@ -481,7 +481,7 @@ Next approved 384k product phases:
 - `P0-M6-261`: live 384k acceptance validator through gateway and AnythingLLM. Complete.
 - `P0-M6-262`: targeted answer-quality repair only if Phase 261 exposes gaps. Complete with no repair required.
 - `P0-M6-263`: founder getting-started integration for the accepted 384k path. Complete.
-- `P0-M6-264`: clean-clone 384k usability replay.
+- `P0-M6-264`: clean-clone 384k usability replay. Complete.
 - `P0-M6-265`: 384k release-candidate decision gate.
 - `P0-M6-266`: stable 384k handoff refresh.
 
@@ -520,3 +520,5 @@ Phase 260 proves stale-index rejection before live 384k acceptance. It hardens t
 - `docs/examples/stable-handoff.md`
 
 Phase 263 makes the accepted 384k tester path durable for contextless first-time users. It names 384k-token project usability as the active large-context product target, gives the Phase 261 live command, documents split Windows/WSL AnythingLLM target handling, lists expected proof fields and artifacts, and keeps raw 384k prompt stuffing plus post-384k expansion outside the current product scope.
+
+`P0-M6-264` completed in Phase 264. It fixed the clean-clone aggregate replay path so Phase 259 and Phase 260 write canonical reports before Phase 264 mirrors them, tightened network-bind guidance for Windows AnythingLLM, and replayed the accepted 384k proof from fresh remote clone `/tmp/agentic_agents_phase264_remote_clone` at commit `7355639e8b2be57edd0cfa9d7781a37f7b025aab`. Live proof passed with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, all five strategy IDs covered, `json_default_parity_status=passed`, `target_settings_status=passed`, `failed_small_repo_regression_count=0`, `critical_or_high_finding_count=0`, `runtime_state_ignored=true`, clean source before/after, and `phase265_ready=true`. Full Bash regression returned `1628 passed`, `4 skipped`, and `23 deselected`.

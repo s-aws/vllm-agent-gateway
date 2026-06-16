@@ -28,11 +28,11 @@
     "README.md": [
       "README.runtime-recovery-reliability-rebaseline.md",
       "README.onboarding-release-handoff-refresh.md",
-      "Large-context support means"
+      "Large-context support currently means"
     ],
     "README.getting-started.md": [
-      "Phase 232",
-      "Phase 226",
+      "Phase 263",
+      "Phase 261",
       "scripts/validate_runtime_recovery_reliability_rebaseline.py",
       "http://127.0.0.1:8500/v1",
       "python-service-code-explanation",
@@ -47,7 +47,7 @@
       "ONB-001"
     ],
     "README.stable-handoff.md": [
-      "Phase 226",
+      "Phase 261",
       "Phase 231",
       "http://127.0.0.1:8500/v1",
       "runtime recovery reliability",
