@@ -106,6 +106,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 251 | M6/M7/M8/M14 | Complete. Rebaselined the current large-context objective to 384k-token project usability and added a drift gate so 1M+ expansion work cannot become the current release target without explicit approval. |
 | Phase 252 | M14/M6 | Complete. Replayed the pushed Phase 251 384k objective rebaseline from a fresh remote clone with Phase 251, docs-index, and stable-channel proof. |
 | Phase 253 | M6/M8/M13/M14 | Complete. Proved the post-rebaseline runtime still answers through gateway and AnythingLLM while refusing raw-corpus prompt stuffing and preserving both frozen Coinbase fixtures. |
+| Phase 254 | M2/M13/M14 | Complete. Proved post-reboot AnythingLLM greeting/session recovery for `hi` and same-session follow-up after the 384k rebaseline. |
 
 ## Usage Rules
 

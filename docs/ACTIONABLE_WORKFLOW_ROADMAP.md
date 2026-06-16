@@ -10807,3 +10807,28 @@ Completion proof:
 - AnythingLLM large-context run `workflow-router-20260616T043042196632Z` passed with score `100`, strategy `refusal`, and `raw_prompt_stuffing=false`.
 - Small-repo non-regression passed on both frozen Coinbase fixtures through gateway runs `workflow-router-20260616T043046489528Z` and `workflow-router-20260616T043101267777Z`.
 - Small-repo non-regression passed on both frozen Coinbase fixtures through AnythingLLM runs `workflow-router-20260616T043110512902Z` and `workflow-router-20260616T043124918244Z`.
+
+### Approved Phase 254: Post-Reboot AnythingLLM Greeting Recovery Smoke
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the user-reported AnythingLLM `hi` no-response symptom is not present after the reboot, runtime restart, and 384k rebaseline.
+
+Scope:
+
+- Reuse the existing AnythingLLM session recovery/greeting smoke.
+- Exercise direct controller greeting behavior.
+- Exercise live AnythingLLM `hi` and same-session follow-up behavior.
+- Confirm stale history does not turn a greeting into repository workflow work.
+- Do not mutate protected frozen fixture source files.
+
+Acceptance target: fresh and same-session greetings return chat-visible general responses through AnythingLLM with zero blocker findings.
+
+Completion proof:
+
+- Ran `python3 scripts/validate_anythingllm_session_recovery.py --output-path runtime-state/phase254/phase254-anythingllm-session-recovery-report.json --timeout-seconds 180`.
+- Session recovery report passed with `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `anythingllm_case_count=2`, `direct_controller_case_count=2`, and `blocker_finding_count=0`.
+- Direct controller cases `DIRECT-HI` and `DIRECT-STALE-HISTORY-HI` passed.
+- Live AnythingLLM cases `ANYTHINGLLM-HI` and `ANYTHINGLLM-HELLO-SAME-SESSION` passed in session `phase140-greeting-48bcd85054f84b2d8a2f03b2b8131079`.
