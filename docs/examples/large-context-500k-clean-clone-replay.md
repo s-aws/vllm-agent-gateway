@@ -3,10 +3,11 @@
 Clone the remote branch and run Phase 275:
 
 ```bash
+cd /mnt/c/agentic_agents
+bash stop-agent-prompt-proxies.sh
 rm -rf /tmp/agentic_agents_phase275_remote_clone
 git clone --branch codex/m14-release-clone-proof https://github.com/s-aws/vllm-agent-gateway.git /tmp/agentic_agents_phase275_remote_clone
 cd /tmp/agentic_agents_phase275_remote_clone
-bash stop-agent-prompt-proxies.sh || true
 GATEWAY_BIND_HOST=0.0.0.0 \
 WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0 \
 CONTROLLER_BIND_HOST=0.0.0.0 \

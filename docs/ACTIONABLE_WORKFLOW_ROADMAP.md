@@ -11414,7 +11414,7 @@ Result:
 
 ### Approved Phase 275: Clean-Clone 500k Candidate Replay
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
 
@@ -11438,7 +11438,10 @@ Result:
 - Added `README.large-context-500k-clean-clone-replay.md` and `docs/examples/large-context-500k-clean-clone-replay.md`.
 - Preliminary focused regression passed with `10 passed` across the Phase 274 and Phase 275 guards.
 - Docs index validation passed with `363` linked docs and zero orphaned docs.
-- Live clean-clone replay remains required before Phase 275 can close. The first replay attempt correctly exposed that the running controller stack was still hosted from `/mnt/c/agentic_agents`, so Phase 275 now requires controller preflight proof that the live stack is hosted from the clone root.
+- First live clean-clone replay attempt correctly failed because the running controller stack was still hosted from `/mnt/c/agentic_agents`, so Phase 275 was tightened to require controller preflight proof that the live stack is hosted from the clone root.
+- Live Phase 275 replay passed from fresh WSL clone `/tmp/agentic_agents_phase275_remote_clone` at commit `9dc768f0303ef2a57bad897beeffd3d537346dc2`.
+- Clone-hosted controller preflight passed with `controller_config_root=/tmp/agentic_agents_phase275_remote_clone` and `controller_clone_root_allowed=true`.
+- Phase 275 summary reported `decision=phase275_clean_clone_500k_candidate_ready`, `gate_count=7`, `passed_gate_count=7`, `phase273_response_count=18`, `phase273_gateway_response_count=9`, `phase273_anythingllm_response_count=9`, `phase273_critical_or_high_finding_count=0`, `phase273_json_default_parity_status=passed`, `phase274_decision=no_repair_required`, `runtime_state_ignored=true`, `source_dirty_line_count_before=0`, `source_dirty_line_count_after=0`, and `phase276_ready=true`.
 
 ### Approved Phase 276: 500k Candidate Decision Gate
 
