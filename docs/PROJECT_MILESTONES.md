@@ -117,7 +117,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 262 | M2/M4/M6/M8 | Complete. No targeted answer-quality repair was required because Phase 261 passed with zero errors, zero critical/high findings, zero failed small-repo regressions, and passing JSON/default parity. |
 | Phase 263 | M14/M6 | Complete. Integrated the accepted 384k tester path into root, getting-started, stable handoff, release handoff, live-acceptance, and example docs with split-url AnythingLLM guidance, expected proof fields, artifact names, and explicit post-384k boundaries. |
 | Phase 264 | M14/M6/M16 | Complete. Replayed the 384k usability proof from a fresh remote clone at commit `7355639` with clone-local static gates, live gateway proof, AnythingLLM proof, runtime-state ignored, and clean source before/after. |
-| Phase 265 | M1/M6/M14 | Approved. Aggregate the 384k proof chain into a release-candidate ship, hold, or repair-required decision. |
+| Phase 265 | M1/M6/M14 | Complete. Aggregated the 384k proof chain into release-candidate decision `ship` with fresh Phase 264 clean-clone proof at commit `6dbf8d8`, zero blockers, healthy runtime probes, and `phase266_ready=true`. |
 | Phase 266 | M14/M6 | Approved. Refresh stable handoff metadata, docs, known limits, and split-url guidance for the accepted 384k product target. |
 
 ## Usage Rules

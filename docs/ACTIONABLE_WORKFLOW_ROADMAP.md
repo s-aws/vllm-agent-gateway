@@ -11128,7 +11128,7 @@ Completion proof:
 
 ### Approved Phase 265: 384k Release-Candidate Decision Gate
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M1 V1 Founder Beta Closeout, M6 Large-Context Usability Baseline, M14 Release Packaging And Onboarding.
 
@@ -11142,6 +11142,22 @@ Scope:
 - Produce a deterministic decision artifact.
 
 Acceptance target: the project has a clear go/no-go decision for the 384k product target.
+
+Completion proof:
+
+- Added `runtime/large_context_384k_release_candidate_decision_gate_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_384k_release_candidate_decision_gate`.
+- Added `scripts/validate_large_context_384k_release_candidate_decision_gate.py`.
+- Added focused regression coverage for `ship`, runtime-only `hold`, missing Phase 264 proof, missing strategy coverage, incomplete phase state, and post-384k target drift rejection.
+- Added `README.large-context-384k-release-candidate-decision-gate.md` and `docs/examples/large-context-384k-release-candidate-decision-gate.md`.
+- Contextless audit warned against mechanically reusing Phase 244 and identified stale active-workspace Phase 264 runtime-state as a likely pitfall; Phase 265 therefore requires an explicit Phase 264 report path and validates deeper 384k proof fields.
+- Replayed Phase 264 again from fresh remote clone `/tmp/agentic_agents_phase264_remote_clone` at commit `6dbf8d82f9176a91be2de2fe7e60a099f7d73b84`.
+- Live Phase 264 replay passed with `decision=phase264_clean_clone_384k_usability_ready`, `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, all five required strategies, `json_default_parity_status=passed`, `target_settings_status=passed`, `failed_small_repo_regression_count=0`, `critical_or_high_finding_count=0`, clean source before/after, and `phase265_ready=true`.
+- Phase 265 decision gate passed against the explicit clean-clone Phase 264 report with `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `phase264_status=passed`, `phase264_decision=phase264_clean_clone_384k_usability_ready`, `target_estimated_project_tokens=384000`, and `phase266_ready=true`.
+- Focused Windows regression for Phase 265 returned `7 passed`.
+- Focused Bash regression for Phase 264 and Phase 265 returned `14 passed`.
+- Docs-index validation passed.
+- Full Bash regression returned `1635 passed`, `4 skipped`, and `23 deselected`.
 
 ### Approved Phase 266: Stable 384k Handoff Refresh
 
