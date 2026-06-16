@@ -11245,3 +11245,29 @@ Result:
 - Scoped AnythingLLM UI E2E for `UI167-GENCHAT-001` passed with `case_count=1`, `fixture_unchanged=true`, and `error_count=0`.
 - AnythingLLM fresh-chat responsiveness passed with `decision=fresh_chat_responsive`, `case_count=4`, `passed_case_count=4`, `anythingllm_api_case_count=2`, `workflow_router_gateway_case_count=2`, `ui_report_status=passed`, `target_settings_status=passed`, and protected fixtures unchanged.
 - Live 384k acceptance passed through workflow-router gateway and AnythingLLM with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, all five strategy IDs covered, `json_default_parity_status=passed`, `critical_or_high_finding_count=0`, `failed_small_repo_regression_count=0`, `target_estimated_project_tokens=384000`, `raw_prompt_stuffing_allowed=false`, and `target_settings_status=passed`.
+
+### Approved Phase 269: 384k Objective Completion Audit
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M14 Release Packaging And Onboarding.
+
+Goal: audit whether the active 384k large-context objective is satisfied by current durable evidence.
+
+Scope:
+
+- Derive explicit requirements from the 384k objective.
+- Map each requirement to authoritative committed docs, release metadata, clean-clone proof, live gateway proof, AnythingLLM proof, and validation outputs.
+- Record evidence gaps, if any, as future roadmap work instead of implying completion.
+- Keep post-384k and raw long-context prompting outside this completion audit.
+
+Acceptance target: a contextless maintainer can read one durable audit and decide whether the current 384k objective is complete, incomplete, or blocked by missing proof.
+
+Result:
+
+- Added `docs/LARGE_CONTEXT_384K_COMPLETION_AUDIT.md` with a requirement-to-evidence matrix for the active 384k objective.
+- Linked the audit from `docs/README.md`.
+- Confirmed the current model endpoint reports `max_model_len=262144`, preserving the boundary that 384k usability is strategy-backed rather than raw prompt serving.
+- Audit decision: complete for the current supported 384k product path.
+- Audit boundaries: raw 384k prompt serving, 1M+ project usability, post-384k expansion, and advanced broad refactor orchestration remain out of scope.
+- Docs index validation passed with `351` linked docs and zero orphaned docs.

@@ -486,6 +486,7 @@ Next approved 384k product phases:
 - `P0-M6-266`: stable 384k handoff refresh. Complete.
 - `P0-M6-267`: clean-clone stable 384k handoff replay. Complete.
 - `P0-M6-268`: stable AnythingLLM 384k founder smoke. Complete.
+- `P0-M6-269`: 384k objective completion audit. Complete.
 
 `P0-M6-259` completed in Phase 259. Proof lives in:
 
@@ -532,3 +533,5 @@ Phase 263 makes the accepted 384k tester path durable for contextless first-time
 `P0-M6-267` completed in Phase 267. It replayed the pushed Phase 266 stable 384k handoff from fresh WSL clone `/tmp/agentic_agents_phase267_remote_clone_a3f4486_r2` at commit `a3f4486539672022a9b2edb7e207c2105e96829e`. Docs index, stable release-channel metadata, release-candidate ship handoff, and the 384k decision gate passed. Clone source status was clean before and after validation, and generated `runtime-state/` proof stayed ignored and local-only.
 
 `P0-M6-268` completed in Phase 268. It caught and repaired controller allowed-root drift caused by a clone-hosted stack, restarted the managed stack from `/mnt/c/agentic_agents` with network bind hosts, and passed first-time user doctor, scoped AnythingLLM UI E2E, AnythingLLM fresh-chat responsiveness, and 384k live acceptance. Live 384k proof covered gateway and AnythingLLM, all five strategy IDs, JSON/default parity, target settings, no raw prompt stuffing, zero high/critical findings, and protected fixture cleanliness.
+
+`P0-M6-269` completed in Phase 269. It added `docs/LARGE_CONTEXT_384K_COMPLETION_AUDIT.md` with a requirement-to-evidence matrix, confirmed the current model endpoint reports `max_model_len=262144`, preserved raw-384k and post-384k boundaries, and concluded the current 384k objective is complete for the supported product path.
