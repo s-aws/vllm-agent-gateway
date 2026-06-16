@@ -484,6 +484,7 @@ Next approved 384k product phases:
 - `P0-M6-264`: clean-clone 384k usability replay. Complete.
 - `P0-M6-265`: 384k release-candidate decision gate. Complete.
 - `P0-M6-266`: stable 384k handoff refresh. Complete.
+- `P0-M6-267`: clean-clone stable 384k handoff replay. Complete.
 
 `P0-M6-259` completed in Phase 259. Proof lives in:
 
@@ -526,3 +527,5 @@ Phase 263 makes the accepted 384k tester path durable for contextless first-time
 `P0-M6-265` completed in Phase 265. It added a deterministic 384k release-candidate decision gate and avoided stale active-workspace `runtime-state/` by requiring an explicit Phase 264 clean-clone report path. Phase 264 was freshly replayed from remote clone `/tmp/agentic_agents_phase264_remote_clone` at commit `6dbf8d82f9176a91be2de2fe7e60a099f7d73b84`, then Phase 265 passed with `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `phase264_status=passed`, `phase264_decision=phase264_clean_clone_384k_usability_ready`, `target_estimated_project_tokens=384000`, and `phase266_ready=true`. Full Bash regression returned `1635 passed`, `4 skipped`, and `23 deselected`.
 
 `P0-M6-266` completed in Phase 266. It refreshed the stable tester handoff for the accepted 384k product target, updated stable release-channel metadata and committed proof references, kept runtime-state local-only, tightened post-384k pause wording to require a stable usable tester handoff before any expansion, validated docs-index, release-channel readiness, ship handoff, and the 384k decision gate, and closed with full Bash regression `1635 passed`, `4 skipped`, and `23 deselected`.
+
+`P0-M6-267` completed in Phase 267. It replayed the pushed Phase 266 stable 384k handoff from fresh WSL clone `/tmp/agentic_agents_phase267_remote_clone_a3f4486_r2` at commit `a3f4486539672022a9b2edb7e207c2105e96829e`. Docs index, stable release-channel metadata, release-candidate ship handoff, and the 384k decision gate passed. Clone source status was clean before and after validation, and generated `runtime-state/` proof stayed ignored and local-only.

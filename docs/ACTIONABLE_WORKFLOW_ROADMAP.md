@@ -11187,3 +11187,32 @@ Result:
 - Bash release-candidate ship-handoff validation passed with `ship_handoff_ready=true`.
 - Bash Phase 265 384k decision validation passed with `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `phase264_decision=phase264_clean_clone_384k_usability_ready`, `target_estimated_project_tokens=384000`, and `phase266_ready=true`.
 - Full Bash regression returned `1635 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 267: Clean-Clone Stable 384k Handoff Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M6 Large-Context Usability Baseline.
+
+Goal: prove the pushed Phase 266 stable 384k handoff can be cloned and validated without relying on the active workspace.
+
+Scope:
+
+- Clone the current pushed branch into a fresh WSL `/tmp` directory.
+- Validate docs index, stable release-channel metadata, release-candidate ship handoff, and the 384k decision gate from the clone.
+- Verify the clone is clean before and after validation aside from ignored local `runtime-state/` artifacts.
+- Do not mutate protected frozen fixtures or commit generated runtime-state artifacts.
+- Keep post-384k and raw 384k prompt-stuffing work out of scope.
+
+Acceptance target: a contextless tester can reproduce the stable 384k handoff from the pushed branch and see that the product target is usable 384k-token projects through governed context strategy, not raw long-context prompting.
+
+Result:
+
+- Cloned the pushed branch into `/tmp/agentic_agents_phase267_remote_clone_a3f4486_r2`.
+- Verified clone commit `a3f4486539672022a9b2edb7e207c2105e96829e`.
+- Verified source status before validation was clean with `PHASE267_SOURCE_STATUS_BEFORE=0`.
+- Docs index validation passed with `350` linked docs and zero orphaned docs.
+- Stable release-channel validation passed with `status=passed`, `selected_channel=stable`, `check_count=4`, and zero failed checks.
+- Release-candidate ship-handoff validation passed with `ship_handoff_ready=true` and `error_count=0`.
+- Phase 265 384k decision validation passed from the clone using the explicit Phase 264 clean-clone report path with `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `phase264_decision=phase264_clean_clone_384k_usability_ready`, `target_estimated_project_tokens=384000`, and `phase266_ready=true`.
+- Verified source status after validation was clean with `PHASE267_SOURCE_STATUS_AFTER=0`; generated `runtime-state/` proof stayed ignored and local-only.
