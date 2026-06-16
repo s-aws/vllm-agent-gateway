@@ -120,6 +120,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 265 | M1/M6/M14 | Complete. Aggregated the 384k proof chain into release-candidate decision `ship` with fresh Phase 264 clean-clone proof at commit `6dbf8d8`, zero blockers, healthy runtime probes, and `phase266_ready=true`. |
 | Phase 266 | M14/M6 | Complete. Refreshed stable handoff metadata, docs, known limits, split-url guidance, release-channel proof metadata, and post-384k pause language for the accepted 384k product target. |
 | Phase 267 | M14/M6 | Complete. Replayed the pushed Phase 266 stable 384k handoff from fresh WSL clone `/tmp/agentic_agents_phase267_remote_clone_a3f4486_r2` at commit `a3f4486` with docs-index, stable release-channel, ship-handoff, 384k decision, and clean source before/after proof. |
+| Phase 268 | M2/M6/M13/M14 | Complete. Ran the live stable founder smoke through AnythingLLM after restarting the stack from the active workspace; setup doctor, scoped UI E2E, fresh-chat responsiveness, and 384k live acceptance all passed. |
 
 ## Usage Rules
 

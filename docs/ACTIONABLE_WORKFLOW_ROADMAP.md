@@ -11216,3 +11216,32 @@ Result:
 - Release-candidate ship-handoff validation passed with `ship_handoff_ready=true` and `error_count=0`.
 - Phase 265 384k decision validation passed from the clone using the explicit Phase 264 clean-clone report path with `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `phase264_decision=phase264_clean_clone_384k_usability_ready`, `target_estimated_project_tokens=384000`, and `phase266_ready=true`.
 - Verified source status after validation was clean with `PHASE267_SOURCE_STATUS_AFTER=0`; generated `runtime-state/` proof stayed ignored and local-only.
+
+### Approved Phase 268: Stable AnythingLLM 384k Founder Smoke
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M6 Large-Context Usability Baseline, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the current stable handoff is usable through AnythingLLM after the 384k handoff and clean-clone replay.
+
+Scope:
+
+- Run the first-time user doctor against the live model, gateway, controller, workflow-router gateway, AnythingLLM API, and frozen fixtures.
+- Run the existing AnythingLLM fresh-chat responsiveness validator for a greeting and a representative coding prompt.
+- Run the existing 384k live acceptance validator through both workflow-router gateway and AnythingLLM.
+- Use the current split-url configuration when Windows AnythingLLM targets the WSL network URL.
+- Preserve protected fixtures and keep generated proof in ignored `runtime-state/`.
+- Do not introduce a new chat path, skill path, or post-384k capability.
+
+Acceptance target: a founder can use the stable handoff through AnythingLLM and get chat-visible answers for basic and 384k large-context prompts without raw prompt stuffing or private workspace assumptions.
+
+Result:
+
+- Initial setup doctor correctly failed because the running controller stack was still hosted from `/tmp/agentic_agents_phase264_remote_clone`, so `controller.allowed_roots` lacked `/mnt/c/agentic_agents`.
+- Stopped the clone-hosted Python listeners on ports `8300`, `8400`, `8500`, `8101`, `8102`, and `8201`-`8205`, then restarted the managed stack from `/mnt/c/agentic_agents` with `GATEWAY_BIND_HOST=0.0.0.0`, `WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0`, and `CONTROLLER_BIND_HOST=0.0.0.0`.
+- Restart printed the Windows AnythingLLM natural workflow target `http://100.100.12.45:8500/v1` and restored controller allowed roots for `/mnt/c/agentic_agents`, both frozen Coinbase fixtures, and the Staterail fixture.
+- First-time user doctor then passed with `check_count=29`, `passed=29`, and zero failed or warning checks.
+- Scoped AnythingLLM UI E2E for `UI167-GENCHAT-001` passed with `case_count=1`, `fixture_unchanged=true`, and `error_count=0`.
+- AnythingLLM fresh-chat responsiveness passed with `decision=fresh_chat_responsive`, `case_count=4`, `passed_case_count=4`, `anythingllm_api_case_count=2`, `workflow_router_gateway_case_count=2`, `ui_report_status=passed`, `target_settings_status=passed`, and protected fixtures unchanged.
+- Live 384k acceptance passed through workflow-router gateway and AnythingLLM with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, all five strategy IDs covered, `json_default_parity_status=passed`, `critical_or_high_finding_count=0`, `failed_small_repo_regression_count=0`, `target_estimated_project_tokens=384000`, `raw_prompt_stuffing_allowed=false`, and `target_settings_status=passed`.

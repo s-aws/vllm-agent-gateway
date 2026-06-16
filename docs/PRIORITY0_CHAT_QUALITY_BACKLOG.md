@@ -485,6 +485,7 @@ Next approved 384k product phases:
 - `P0-M6-265`: 384k release-candidate decision gate. Complete.
 - `P0-M6-266`: stable 384k handoff refresh. Complete.
 - `P0-M6-267`: clean-clone stable 384k handoff replay. Complete.
+- `P0-M6-268`: stable AnythingLLM 384k founder smoke. Complete.
 
 `P0-M6-259` completed in Phase 259. Proof lives in:
 
@@ -529,3 +530,5 @@ Phase 263 makes the accepted 384k tester path durable for contextless first-time
 `P0-M6-266` completed in Phase 266. It refreshed the stable tester handoff for the accepted 384k product target, updated stable release-channel metadata and committed proof references, kept runtime-state local-only, tightened post-384k pause wording to require a stable usable tester handoff before any expansion, validated docs-index, release-channel readiness, ship handoff, and the 384k decision gate, and closed with full Bash regression `1635 passed`, `4 skipped`, and `23 deselected`.
 
 `P0-M6-267` completed in Phase 267. It replayed the pushed Phase 266 stable 384k handoff from fresh WSL clone `/tmp/agentic_agents_phase267_remote_clone_a3f4486_r2` at commit `a3f4486539672022a9b2edb7e207c2105e96829e`. Docs index, stable release-channel metadata, release-candidate ship handoff, and the 384k decision gate passed. Clone source status was clean before and after validation, and generated `runtime-state/` proof stayed ignored and local-only.
+
+`P0-M6-268` completed in Phase 268. It caught and repaired controller allowed-root drift caused by a clone-hosted stack, restarted the managed stack from `/mnt/c/agentic_agents` with network bind hosts, and passed first-time user doctor, scoped AnythingLLM UI E2E, AnythingLLM fresh-chat responsiveness, and 384k live acceptance. Live 384k proof covered gateway and AnythingLLM, all five strategy IDs, JSON/default parity, target settings, no raw prompt stuffing, zero high/critical findings, and protected fixture cleanliness.
