@@ -138,6 +138,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Large-Context 500k Fixture And Index Readiness README](../README.large-context-500k-fixture-index-readiness.md): Phase 271 readiness gate proving the accepted fixture and metadata-first index meet the 500k candidate threshold before stale-index rejection and live validation.
 - [Large-Context 500k Stale-Index Rejection README](../README.large-context-500k-stale-index-rejection.md): Phase 272 fail-closed gate proving stale, missing, ignored, private, or unsafe derived index state is blocked before live 500k validation.
 - [Large-Context 500k Live Acceptance README](../README.large-context-500k-live-acceptance.md): Phase 273 live gateway and AnythingLLM acceptance gate for the 500k candidate after fixture/index readiness and stale-index rejection pass.
+- [Large-Context 500k Answer-Quality Repair README](../README.large-context-500k-answer-quality-repair.md): Phase 274 repair/no-repair closure gate over the Phase 273 live acceptance report.
 - [Release-Candidate Baseline Corpus Promotion README](../README.release-candidate-baseline-corpus-promotion.md): Phase 242 promoted release-candidate chat-quality cases in the governed baseline corpus.
 - [External Tester Feedback Loop From Clone README](../README.external-tester-feedback-loop-from-clone.md): Phase 243 release-candidate clone feedback proof for positive and defect tester records.
 - [V1 Release-Candidate Decision Gate README](../README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate.
@@ -427,6 +428,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Large-Context 500k Fixture And Index Readiness Examples](examples/large-context-500k-fixture-index-readiness.md)
 - [Large-Context 500k Stale-Index Rejection Examples](examples/large-context-500k-stale-index-rejection.md)
 - [Large-Context 500k Live Acceptance Examples](examples/large-context-500k-live-acceptance.md)
+- [Large-Context 500k Answer-Quality Repair Examples](examples/large-context-500k-answer-quality-repair.md)
 - [Release-Candidate Baseline Corpus Promotion Examples](examples/release-candidate-baseline-corpus-promotion.md)
 - [External Tester Feedback Loop From Clone Examples](examples/external-tester-feedback-loop-from-clone.md)
 - [V1 Release-Candidate Decision Gate Examples](examples/v1-release-candidate-decision-gate.md)

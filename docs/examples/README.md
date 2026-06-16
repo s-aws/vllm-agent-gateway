@@ -112,6 +112,7 @@ Examples are grouped by feature so the root README can stay small.
 - [Large-Context 500k Fixture And Index Readiness](large-context-500k-fixture-index-readiness.md): verify the accepted fixture and metadata-first index meet the 500k candidate threshold before stale-index rejection and live validation.
 - [Large-Context 500k Stale-Index Rejection](large-context-500k-stale-index-rejection.md): verify stale, missing, ignored, private, and unsafe derived index state fails closed before live 500k validation.
 - [Large-Context 500k Live Acceptance](large-context-500k-live-acceptance.md): run the 500k candidate through live gateway and AnythingLLM after readiness and stale-index gates pass.
+- [Large-Context 500k Answer-Quality Repair](large-context-500k-answer-quality-repair.md): close 500k answer-quality repair as no repair required when Phase 273 has zero accepted critical/high findings.
 - [Release-Candidate Runtime Health Restoration](release-candidate-runtime-health-restoration.md): verify post-restart runtime health, AnythingLLM target settings, and a minimal read-only workflow-router prompt before rerunning the release decision.
 - [Release-Candidate Ship Handoff](release-candidate-ship-handoff.md): validate committed ship handoff metadata, stable-channel readiness, and tester-doc freshness.
 - [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.

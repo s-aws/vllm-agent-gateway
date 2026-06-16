@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_500k_answer_quality_repair_policy",
+  "phase": 274,
+  "priority_backlog_id": "P0-M15-274",
+  "milestone_ids": [
+    "M2",
+    "M4",
+    "M6",
+    "M8",
+    "M15"
+  ],
+  "purpose": "Close targeted 500k answer-quality repair as no repair required when Phase 273 live acceptance has no accepted critical or high findings.",
+  "phase273_live_acceptance": {
+    "policy_path": "runtime/large_context_500k_live_acceptance_policy.json",
+    "validator": "scripts/validate_large_context_500k_live_acceptance.py",
+    "report_path": "runtime-state/phase273/phase273-large-context-500k-live-acceptance-report.json",
+    "required_status": "passed",
+    "required_phase274_ready": true,
+    "maximum_critical_or_high_finding_count": 0
+  },
+  "decision_when_no_findings": "no_repair_required",
+  "required_docs": [
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "README.large-context-500k-answer-quality-repair.md",
+    "docs/examples/large-context-500k-answer-quality-repair.md"
+  ],
+  "required_doc_markers": {
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 274",
+      "Status: Complete.",
+      "Clean-Clone 500k Candidate Replay"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "Phase 274",
+      "M2/M4/M6/M8/M15"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M15-274",
+      "targeted 500k answer-quality repair"
+    ],
+    "README.large-context-500k-answer-quality-repair.md": [
+      "PHASE274 LARGE CONTEXT 500K ANSWER QUALITY REPAIR PASS",
+      "no repair required"
+    ],
+    "docs/examples/large-context-500k-answer-quality-repair.md": [
+      "validate_large_context_500k_answer_quality_repair.py",
+      "no_repair_required"
+    ]
+  },
+  "acceptance_marker": "PHASE274 LARGE CONTEXT 500K ANSWER QUALITY REPAIR PASS"
+}

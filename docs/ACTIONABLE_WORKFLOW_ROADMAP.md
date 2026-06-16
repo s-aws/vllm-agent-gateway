@@ -11387,7 +11387,7 @@ Result:
 
 ### Approved Phase 274: Targeted 500k Answer-Quality Repair
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M15 500k Candidate Expansion Gate.
 
@@ -11400,6 +11400,17 @@ Scope:
 - Do not broaden into post-500k expansion or advanced refactor work.
 
 Acceptance target: all accepted Phase 273 answer-quality findings are either repaired with target and holdout proof or explicitly deferred with a blocker reason.
+
+Result:
+
+- Added `runtime/large_context_500k_answer_quality_repair_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_500k_answer_quality_repair`.
+- Added `scripts/validate_large_context_500k_answer_quality_repair.py`.
+- Added focused regression coverage for policy validation, no-repair pass, missing Phase 273 report, accepted critical/high findings, and failed Phase 273 report.
+- Added `README.large-context-500k-answer-quality-repair.md` and `docs/examples/large-context-500k-answer-quality-repair.md`.
+- Phase 274 closure gate passed with `decision=no_repair_required`, `phase273_status=passed`, `phase273_phase274_ready=true`, `phase273_critical_or_high_finding_count=0`, `accepted_repair_finding_count=0`, and `phase275_ready=true`.
+- Focused regression passed with `11 passed` across the Phase 273 and Phase 274 guards.
+- Docs index validation passed with `361` linked docs and zero orphaned docs.
 
 ### Approved Phase 275: Clean-Clone 500k Candidate Replay
 
