@@ -205,7 +205,7 @@
         "activated_by": "phase246_release_candidate_decision_ship",
         "activated_from_report": "runtime/release_proofs/v1-1-release-candidate-stable-proof.json",
         "activated_profile": "v1.1-release-candidate",
-        "known_boundary": "Stable covers current release-candidate L1/L2 tester workflows, setup, security, feedback, observability, runtime recovery, non-Coinbase generalization, large-context strategy usability through retrieval, chunking, summarization, artifact paging, evidence selection, and baseline-corpus promotion. Advanced broad refactor orchestration remains deferred. Raw 1M-token prompt serving is not claimed."
+        "known_boundary": "Stable covers current release-candidate L1/L2 tester workflows, setup, security, feedback, observability, runtime recovery, non-Coinbase generalization, 384k-token project usability through retrieval, chunking, summarization, artifact paging, evidence selection, and baseline-corpus promotion. Larger 1M+ project usability is future expansion work. Advanced broad refactor orchestration remains deferred. Raw 1M-token prompt serving is not claimed."
       },
       "setup_validator": {
         "id": "first_time_user_doctor",

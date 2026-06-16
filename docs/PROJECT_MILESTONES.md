@@ -109,6 +109,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 254 | M2/M13/M14 | Complete. Proved post-reboot AnythingLLM greeting/session recovery for `hi` and same-session follow-up after the 384k rebaseline. |
 | Phase 255 | M2/M13/M14 | Complete. Hardened the AnythingLLM fresh-chat validator so split Bash/Windows workflow-router URLs do not falsely fail target settings checks. |
 | Phase 256 | M2/M13/M14 | Complete. Replayed full AnythingLLM fresh-chat responsiveness with UI `hi`, gateway/API `hi`, coding prompt, split target settings, and fixture proof. |
+| Phase 257 | M6/M14 | Complete. Updated committed stable-channel metadata so external handoff names 384k-token project usability as the current large-context target and keeps 1M+ as future expansion. |
 
 ## Usage Rules
 

@@ -19,7 +19,7 @@
     "runtime": "1653.23s"
   },
   "kind": "v1_acceptance_report",
-  "known_boundary": "Stable covers current release-candidate L1/L2 tester workflows, setup, security, feedback, observability, runtime recovery, non-Coinbase generalization, large-context strategy usability through retrieval, chunking, summarization, artifact paging, evidence selection, and baseline-corpus promotion. Advanced broad refactor orchestration remains deferred. Raw 1M-token prompt serving is not claimed.",
+  "known_boundary": "Stable covers current release-candidate L1/L2 tester workflows, setup, security, feedback, observability, runtime recovery, non-Coinbase generalization, 384k-token project usability through retrieval, chunking, summarization, artifact paging, evidence selection, and baseline-corpus promotion. Larger 1M+ project usability is future expansion work. Advanced broad refactor orchestration remains deferred. Raw 1M-token prompt serving is not claimed.",
   "profile": "v1.1-release-candidate",
   "proof_kind": "stable_channel_activation_proof",
   "retention_reason": "runtime-state is local-only; stable release-channel validation needs committed proof metadata for contextless test runs.",

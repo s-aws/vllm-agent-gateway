@@ -10885,3 +10885,31 @@ Completion proof:
 - Gateway coding prompt passed with run `workflow-router-20260616T043849004880Z`.
 - AnythingLLM API `hi` passed with run `workflow-router-general-20260616T043858605948Z` in session `phase237-hi-4e8359a4eccd41878f895aa69a818305`.
 - AnythingLLM API coding prompt passed with run `workflow-router-20260616T043858680448Z` in session `phase237-code-0b47ddc90e8b4ccd8690524f41534f4b`.
+
+### Approved Phase 257: Stable Metadata 384k Boundary Refresh
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M14 Release Packaging And Onboarding.
+
+Goal: make the committed stable-channel metadata match the current 384k large-context objective so contextless testers do not infer the old 1M+ target from release handoff files.
+
+Scope:
+
+- Update committed stable release-channel readiness metadata.
+- Update committed stable proof metadata.
+- Name 384k-token project usability as the current release target.
+- Keep larger 1M+ project usability as future expansion work.
+- Preserve the existing raw 1M-token prompt-serving boundary marker required by release validators.
+- Do not edit local runtime-state proof artifacts.
+
+Acceptance target: stable release metadata communicates the same current large-context target as AGENTS.md, milestones, roadmap, and Phase 251.
+
+Completion proof:
+
+- Updated `runtime/release_channels.json` stable `known_boundary` to name `384k-token project usability`.
+- Updated `runtime/release_proofs/v1-1-release-candidate-stable-proof.json` `known_boundary` to name `384k-token project usability`.
+- Stable release-channel validation passed with `selected_channel=stable`, `failed_check_ids=[]`, and `status=passed`.
+- Phase 247 release-candidate ship handoff validator passed with `ship_handoff_ready=true`, `error_count=0`, and `status=passed`.
+- Phase 251 large-context 384k objective rebaseline gate passed with `target_estimated_project_tokens=384000`, `threshold_check_count=4`, `doc_count=6`, and `error_count=0`.
+- Docs-index validation passed with `expected_count=338`, `linked_count=338`, `orphaned_docs=[]`, and `status=passed`.
