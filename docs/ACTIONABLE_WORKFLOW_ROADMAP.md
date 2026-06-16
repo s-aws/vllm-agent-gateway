@@ -8,7 +8,7 @@ If this document conflicts with older skill, controller, gateway, or AnythingLLM
 
 The product is not "a folder of skills." The product is a local agent harness that can take a natural-language development request, select the right tools and skills without retraining, create an evidence-backed plan, execute only inside approved boundaries, verify the result, and record feedback.
 
-The product objective also includes large-context usability. Very large repositories and corpora, including 1M+ token projects, should be usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. This is not a promise that the current local model can accept a raw 1M-token prompt. Raw 1M-token serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
+The product objective also includes large-context usability. Very large repositories and corpora, including 384k-token projects, should be usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Larger corpora, including 1M+ token projects, are future expansion targets and must not block the current 384k product objective. This is not a promise that the current local model can accept a raw 384k-token or larger prompt. Raw long-context serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
 
 Final destination:
 
@@ -36,7 +36,7 @@ Milestones are durable product-state checkpoints. Roadmap phases should move one
 M1 -> M2 -> M3 -> M4 -> M5 -> M16 -> M6 -> M8 -> M9 -> M12 -> M14
 ```
 
-M16 is required before durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M15, the raw 1M-context gate, is experimental and must not block the main objective. Large-context usability is achieved first through governed indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing.
+M16 is required before durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M15 is deferred post-384k expansion work and must not block the main objective. Large-context usability is achieved first through governed indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing.
 
 ## Persistent Product Priorities
 
@@ -10716,3 +10716,36 @@ Completion proof:
 - Clone Phase 247 handoff validator passed with `status=passed`, `error_count=0`, and `ship_handoff_ready=true`.
 - Clone docs-index validation passed with `expected_count=336`, `linked_count=336`, `orphaned_docs=[]`, and `status=passed`.
 - Clone stable release-channel validation passed with `selected_channel=stable`, `failed_check_ids=[]`, and `status=passed`.
+
+### Approved Phase 251: Large-Context 384k Objective Rebaseline
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M7 Context Ceiling Benchmark, M8 Context Strategy Router, M14 Release Packaging And Onboarding.
+
+Goal: rebaseline the active large-context product objective from 1M+ project usability to 384k-token project usability so the current release can become usable before larger-corpus expansion work.
+
+Scope:
+
+- Update durable instructions, milestones, Priority 0 backlog language, and roadmap framing so 384k-token project usability is the current target.
+- Keep existing "raw 1M not proven" negative controls where they protect against false raw-context claims.
+- Lower active large-context policy minimums from 1M estimated tokens to `384000` estimated tokens.
+- Add a deterministic static validator that fails if durable docs or thresholds drift back to treating 1M+ as the current release target.
+- Do not shrink historical proof artifacts or generated corpus sizes in this phase because downstream release reports still reference those historical values as surplus evidence.
+- Do not call vLLM, the gateway, controller, or AnythingLLM; this phase is a static objective and governance rebaseline.
+
+Acceptance target: a contextless agent can verify that the current large-context release target is 384k-token project usability, while 1M+ project usability and raw long-context prompting remain future expansion work unless explicitly reapproved.
+
+Completion proof:
+
+- Added `runtime/large_context_384k_objective_rebaseline_policy.json`, `vllm_agent_gateway.acceptance.large_context_384k_objective_rebaseline`, `scripts/validate_large_context_384k_objective_rebaseline.py`, focused regression tests, feature docs, and examples.
+- Updated active large-context threshold policies for Phase 214, Phase 215, Phase 217, and Phase 241 from `1000000` to `384000` estimated tokens.
+- Updated durable instructions and milestone text so 384k-token project usability is the current objective and larger corpora, including 1M+ token projects, are future expansion targets.
+- Repaired stale milestone mapping rows for completed Phase 249 and Phase 250.
+- Focused Bash regression for Phase 251 and adjacent large-context threshold gates returned `26 passed`.
+- Phase 251 static objective rebaseline gate passed with `target_estimated_project_tokens=384000`, `threshold_check_count=4`, `doc_count=6`, `error_count=0`, and `phase251_ready=true`.
+- Docs-index validation passed with `expected_count=338`, `linked_count=338`, `orphaned_docs=[]`, and `status=passed`.
+- Phase 214 large-corpus inventory still passed with `estimated_token_count=1286080`, proving the historical generated corpus remains surplus evidence above the 384k target without raising the current objective.
+- Phase 215 retrieval-first context strategy design passed with `phase214_estimated_token_count=1286080`, `validation_error_count=0`, and `phase216_ready=true`.
+- Phase 217 context index prototype passed with `estimated_indexed_token_count=1286132`, `validation_error_count=0`, and `phase218_ready=true`.
+- Full Bash regression returned `1600 passed`, `4 skipped`, and `23 deselected`.

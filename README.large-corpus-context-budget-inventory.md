@@ -2,7 +2,7 @@
 
 Phase 214 creates a reproducible large local corpus fixture and records the current context-budget facts before retrieval or indexing work starts.
 
-This phase does not implement retrieval, durable indexing, context routing, artifact paging, or raw 1M-token prompting. It establishes the measured facts required for those later phases.
+This phase does not implement retrieval, durable indexing, context routing, artifact paging, or raw 384k-token or larger prompting. It establishes the measured facts required for those later phases.
 
 ## What It Checks
 
@@ -12,7 +12,7 @@ This phase does not implement retrieval, durable indexing, context routing, arti
 - Current model and gateway assumptions are parsed from `VLLM_AGENT_HOST.md` and `start-agent-prompt-proxies.sh`.
 - Local runtime probes are recorded when available, including `/v1/models` and gateway/controller health endpoints.
 - Blind-baseline prompt categories exist for navigation, evidence lookup, summarization, and limitations.
-- The report explicitly states that raw 1M-token prompt support is not proven.
+- The report explicitly states that raw long-context prompt support is not proven.
 
 ## Inputs
 

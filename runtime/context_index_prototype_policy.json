@@ -165,7 +165,7 @@
   "minimums": {
     "indexed_file_count": 220,
     "chunk_count": 220,
-    "estimated_indexed_token_count": 1000000,
+    "estimated_indexed_token_count": 384000,
     "rejected_negative_control_count": 6,
     "query_smoke_case_count": 3,
     "max_search_term_length": 32

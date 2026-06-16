@@ -41,7 +41,7 @@
     "phase223_response_count": 2,
     "anythingllm_response_count": 9,
     "small_repo_regression_count": 8,
-    "large_corpus_estimated_tokens": 1000000
+    "large_corpus_estimated_tokens": 384000
   },
   "safety_requirements": {
     "raw_1m_prompt_support_proven": false,

@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_384k_objective_rebaseline_policy",
+  "phase": 251,
+  "priority_backlog_id": "P0-M6-251",
+  "milestone_ids": [
+    "M6",
+    "M7",
+    "M8",
+    "M14"
+  ],
+  "target_estimated_project_tokens": 384000,
+  "purpose": "Rebaseline the active large-context product objective to 384k-token project usability and prevent 1M+ expansion work from becoming a release blocker.",
+  "required_docs": [
+    "AGENTS.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "README.large-context-384k-objective-rebaseline.md",
+    "docs/examples/large-context-384k-objective-rebaseline.md"
+  ],
+  "required_doc_markers": {
+    "AGENTS.md": [
+      "384k-token projects",
+      "future expansion targets",
+      "raw 384k-token or larger prompts"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "384k-token projects",
+      "Larger corpora, including 1M+ token projects, are future expansion targets",
+      "M15 is deferred",
+      "Phase 251"
+    ],
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "384k-token projects",
+      "### Approved Phase 251",
+      "Status: Complete."
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "384k-token projects",
+      "P0-M6-251"
+    ],
+    "README.large-context-384k-objective-rebaseline.md": [
+      "384k-token project usability",
+      "future expansion target",
+      "PHASE251 LARGE CONTEXT 384K OBJECTIVE REBASELINE PASS"
+    ],
+    "docs/examples/large-context-384k-objective-rebaseline.md": [
+      "validate_large_context_384k_objective_rebaseline.py",
+      "384000"
+    ]
+  },
+  "current_objective_forbidden_markers": [
+    "The product value is making 1M+ token projects usable",
+    "1M+ token projects are usable without raw prompt stuffing",
+    "answer-quality proof over a 1M+ token fixture"
+  ],
+  "required_thresholds": [
+    {
+      "path": "runtime/large_corpus_context_budget_inventory_policy.json",
+      "json_pointer": "/inventory_minimums/estimated_token_count",
+      "expected": 384000
+    },
+    {
+      "path": "runtime/retrieval_first_context_strategy_design_policy.json",
+      "json_pointer": "/phase214_precondition/minimum_estimated_token_count",
+      "expected": 384000
+    },
+    {
+      "path": "runtime/context_index_prototype_policy.json",
+      "json_pointer": "/minimums/estimated_indexed_token_count",
+      "expected": 384000
+    },
+    {
+      "path": "runtime/release_candidate_large_context_strategy_replay_policy.json",
+      "json_pointer": "/minimums/large_corpus_estimated_tokens",
+      "expected": 384000
+    }
+  ],
+  "required_phase_statuses": {
+    "249": "Complete.",
+    "250": "Complete.",
+    "251": "Complete."
+  },
+  "required_boundaries": [
+    "Current release target is 384k-token project usability, not raw 384k prompt stuffing.",
+    "Existing larger proof artifacts may remain as surplus evidence but must not raise the current release target.",
+    "1M+ project usability and raw 1M context are future expansion work unless explicitly reapproved."
+  ],
+  "acceptance_marker": "PHASE251 LARGE CONTEXT 384K OBJECTIVE REBASELINE PASS"
+}

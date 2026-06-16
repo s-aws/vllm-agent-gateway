@@ -6,7 +6,7 @@ These milestones define the durable product checkpoints for the project objectiv
 
 The objective is to build a local-model coding-agent harness that can take semi-well-defined natural-language software engineering requests, route them through the gateway/controller, select deterministic skills and tools without manual prompt injection, gather bounded evidence, return useful chat-visible answers, preserve safety boundaries, and produce repeatable validation proof.
 
-The objective also includes large-context usability. Very large repositories and corpora, including 1M+ token projects, should become usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Raw 1M-token prompts are experimental until a dedicated proof gate validates model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality.
+The objective also includes large-context usability. Very large repositories and corpora, including 384k-token projects, should become usable through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Larger corpora, including 1M+ token projects, are future expansion targets and must not block the current 384k product objective. Raw 384k-token or larger prompts are experimental until a dedicated proof gate validates model config, vLLM settings, hardware memory, latency, and blind-baseline answer quality.
 
 ## Milestone Gates
 
@@ -17,7 +17,7 @@ The objective also includes large-context usability. Very large repositories and
 | M3: Workflow/Skill/Tool Selection Reliability | Natural prompts route correctly without manual skill injection. | The router selects the right workflow, skills, and tools and explains selected/rejected candidates where required. | Prompt matrix across L1/L2 families, selected/rejected skill/tool explanation, holdout reruns, route-surface proof. |
 | M4: Evidence Quality And Relevance | Answers cite the right files, tests, artifacts, and limitations. | Evidence is relevant, confidence-labeled, and not padded with weak or unrelated references. | Evidence relevance scoring, source hash proof, contextless audits, local-model reruns. |
 | M5: Multi-Repo Generalization | The harness works beyond the original Coinbase fixtures. | Representative prompts pass across different repository structures and languages. | Coinbase git and non-git fixtures plus at least 2-3 structurally different repos passing representative prompts. |
-| M6: Large-Context Usability Baseline | 1M+ token projects are usable without raw prompt stuffing. | The framework can answer useful questions over a very large corpus through context strategy. | Corpus index, retrieval-first answers, chunked investigation, artifact paging, answer-quality proof over a 1M+ token fixture. |
+| M6: Large-Context Usability Baseline | 384k-token projects are usable without raw prompt stuffing. | The framework can answer useful questions over a very large corpus through context strategy. | Corpus index, retrieval-first answers, chunked investigation, artifact paging, answer-quality proof over a fixture that is at least 384k estimated tokens. |
 | M7: Context Ceiling Benchmark | The real local-model context limits are known. | The project records measured prompt limits, latency, memory, and failure modes. | Benchmarks at 32K, 64K, 128K, and 256K with quality scores and failure classification. |
 | M8: Context Strategy Router | The controller chooses the right context strategy. | Requests route to direct context, retrieval, chunking, summarization, artifact paging, or refusal based on size and task. | Deterministic routing tests for small, medium, huge, ambiguous, and unsupported context requests. |
 | M9: Founder Feedback Repair Loop | Field feedback reliably becomes accepted, rejected, deferred, or blocking work. | Founder notes and trial misses become traceable decisions with owner paths and rerun gates. | Feedback intake reports, rejected-note proof, rerun gates, no untracked advisory drift. |
@@ -26,7 +26,7 @@ The objective also includes large-context usability. Very large repositories and
 | M12: Skill Library Scaling Gate | New small skills can be admitted, tested, versioned, and retired without destabilizing routing. | Skill growth remains deterministic and governed. | Skill authoring pipeline, registry readiness, eval gates, conflict detection, prompt coverage map. |
 | M13: Runtime Reliability And Recovery | Restarted vLLM, gateway, controller, and AnythingLLM recover predictably. | A tester can restart the stack and continue normal chat workflow testing. | Post-restart readiness, health drift, greeting path, AnythingLLM session isolation, port checks. |
 | M14: Release Packaging And Onboarding | A contextless tester can install, start, test, and provide feedback without session history. | The project can be handed to a new tester without private chat context. | Getting-started docs, doctor command, release notes, setup validation, clean-clone proof. |
-| M15: Experimental Raw 1M Context Gate | Raw 1M-token prompts are either proven or explicitly rejected as unsupported. | The project has an evidence-backed decision on raw 1M serving. | vLLM reports at least 1M context, memory/latency benchmark, 1M smoke prompt, blind-baseline quality pass. |
+| M15: Deferred Post-384k Expansion Gate | 1M+ project usability or raw long-context prompting is either separately approved for future work or explicitly rejected as unsupported for the current release. | The project has an evidence-backed decision before expanding beyond the 384k-token project target. | Founder approval, model/vLLM context report, memory/latency benchmark, smoke prompt, blind-baseline quality pass, and non-regression against the 384k objective. |
 | M16: Corpus And Index Safety Governance | Large-corpus indexing and retrieval do not leak ignored, private, secret-like, stale, or unapproved content into chat or artifacts. | Any durable corpus index enforces ignore rules, allowed roots, secret-like content handling, source freshness, retention/deletion, and proof-artifact boundaries before retrieval is connected to chat. | Index safety policy, negative controls for ignored/private/secret-like files, stale-index rejection, source-hash proof, artifact retention/deletion proof, and no sensitive values in chat-visible output. |
 
 ## Critical Path
@@ -39,7 +39,7 @@ M1 -> M2 -> M3 -> M4 -> M5 -> M16 -> M6 -> M8 -> M9 -> M12 -> M14
 
 M7 supports M6 and M8 by measuring the real context ceiling. M16 is required before any durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M10 and M11 are implementation-safety milestones that should not outrank Priority 0 chat quality unless the roadmap explicitly returns to safe mutation. M13 supports every runtime-facing milestone.
 
-M15 is experimental and must not block the main objective. The product value is making 1M+ token projects usable, not proving that every request should be sent as a raw 1M-token prompt.
+M15 is deferred and must not block the main objective. The current product value is making 384k-token projects usable through governed context strategy, not proving that every request should be sent as a raw long-context prompt. Larger corpora, including 1M+ token projects, are future expansion targets.
 
 ## Added Milestone Rationale
 
@@ -101,7 +101,9 @@ The first proposed milestone-aligned phase set is:
 | Phase 246 | M1/M14 | Complete. Reran the release-candidate decision gate after runtime health was restored and reached `ship`. |
 | Phase 247 | M1/M14 | Complete. Packaged the Phase 246 ship decision into committed release proof metadata, stable-channel readiness, tester docs, and a deterministic handoff validator. |
 | Phase 248 | M14 | Complete. Replayed the committed ship handoff package from the remote clone at commit `138afa3` with static handoff, docs-index, and stable-channel proof. |
-| Phase 249 | M13/M14 | Blocked. Restore Bash/WSL command execution before any further runtime-facing validation or release claims. |
+| Phase 249 | M13/M14 | Complete. Restored Bash/WSL command execution, captured the Windows-to-WSL localhost forwarding workaround, refreshed runtime health, and reran release decision proof. |
+| Phase 250 | M14 | Complete. Replayed the pushed Phase 249 handoff state from a fresh remote clone with static handoff, docs-index, and stable-channel proof. |
+| Phase 251 | M6/M7/M8/M14 | Complete. Rebaselined the current large-context objective to 384k-token project usability and added a drift gate so 1M+ expansion work cannot become the current release target without explicit approval. |
 
 ## Usage Rules
 
@@ -110,4 +112,4 @@ The first proposed milestone-aligned phase set is:
 - Automatic phase approval only applies inside the mapped milestone's product state, done criteria, and required proof. It does not approve new milestones, milestone changes, unrelated features, or expanded product scope.
 - A milestone is complete only when its required proof exists and can be validated by a contextless agent.
 - If a proposed phase does not move a milestone forward, raise the mismatch before implementation.
-- Large-context work should prefer retrieval-first and evidence-selection designs unless M15 has passed.
+- Large-context work should prefer retrieval-first and evidence-selection designs for the 384k-token project target unless M15 is explicitly reapproved and passed.

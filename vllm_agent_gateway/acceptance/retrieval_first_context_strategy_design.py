@@ -17,6 +17,7 @@ EXPECTED_REPORT_KIND = "retrieval_first_context_strategy_design_report"
 EXPECTED_PHASE = 215
 EXPECTED_BACKLOG_ID = "P0-M6-215"
 EXPECTED_MILESTONE_IDS = {"M6", "M8"}
+MINIMUM_LARGE_CONTEXT_OBJECTIVE_TOKENS = 384_000
 DEFAULT_POLICY_PATH = Path("runtime") / "retrieval_first_context_strategy_design_policy.json"
 DEFAULT_OUTPUT_PATH = Path("runtime-state") / "phase215" / "phase215-retrieval-first-context-strategy-design-report.json"
 DEFAULT_MARKDOWN_OUTPUT_PATH = (
@@ -231,11 +232,12 @@ def validate_policy(policy: dict[str, Any]) -> list[dict[str, str]]:
         errors.append(
             validation_error("policy.phase214_precondition.required_phase215_ready", "required_phase215_ready must be true")
         )
-    if not isinstance(phase214.get("minimum_estimated_token_count"), int) or phase214.get("minimum_estimated_token_count", 0) < 1_000_000:
+    minimum_tokens = phase214.get("minimum_estimated_token_count")
+    if not isinstance(minimum_tokens, int) or minimum_tokens < MINIMUM_LARGE_CONTEXT_OBJECTIVE_TOKENS:
         errors.append(
             validation_error(
                 "policy.phase214_precondition.minimum_estimated_token_count",
-                "minimum_estimated_token_count must be at least 1000000",
+                f"minimum_estimated_token_count must be at least {MINIMUM_LARGE_CONTEXT_OBJECTIVE_TOKENS}",
             )
         )
     if phase214.get("raw_1m_prompt_support_proven_must_be") is not False:

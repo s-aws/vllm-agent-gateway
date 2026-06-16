@@ -13,7 +13,7 @@
     "report_path": "runtime-state/phase214/phase214-large-corpus-context-budget-inventory-report.json",
     "required_status": "passed",
     "required_phase215_ready": true,
-    "minimum_estimated_token_count": 1000000,
+    "minimum_estimated_token_count": 384000,
     "raw_1m_prompt_support_proven_must_be": false
   },
   "required_strategy_ids": [

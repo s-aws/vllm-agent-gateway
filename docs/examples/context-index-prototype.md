@@ -30,7 +30,7 @@ Expected result:
 
 - `indexed_file_count` is at least `220`.
 - `chunk_count` is at least `220`.
-- `estimated_indexed_token_count` is at least `1000000`.
+- `estimated_indexed_token_count` is at least `384000`.
 - `query_smoke_passed_count` is `3`.
 - `negative_control_passed_count` is `7`.
 - `source_text_retention` is `metadata_only`.
