@@ -131,6 +131,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Large-Context 384k Fixture And Index Readiness README](../README.large-context-384k-fixture-index-readiness.md): Phase 259 composed readiness gate over Phase 214, Phase 216, and Phase 217 before stale-index rejection and live 384k acceptance.
 - [Large-Context 384k Stale-Index Rejection README](../README.large-context-384k-stale-index-rejection.md): Phase 260 fail-closed gate for stale source hashes, changed policies, missing sources, and unsafe evidence before live 384k acceptance.
 - [Large-Context 384k Live Acceptance README](../README.large-context-384k-live-acceptance.md): Phase 261 composed live gate over Phase 258, Phase 259, Phase 260, Phase 221, Phase 223, split-url target settings, blind-baseline comparison, and JSON/default parity.
+- [Large-Context 384k Clean Clone Replay README](../README.large-context-384k-clean-clone-replay.md): Phase 264 remote branch clone replay proving the accepted 384k path without active-workspace state.
 - [Release-Candidate Baseline Corpus Promotion README](../README.release-candidate-baseline-corpus-promotion.md): Phase 242 promoted release-candidate chat-quality cases in the governed baseline corpus.
 - [External Tester Feedback Loop From Clone README](../README.external-tester-feedback-loop-from-clone.md): Phase 243 release-candidate clone feedback proof for positive and defect tester records.
 - [V1 Release-Candidate Decision Gate README](../README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate.
@@ -414,6 +415,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Large-Context 384k Fixture And Index Readiness Examples](examples/large-context-384k-fixture-index-readiness.md)
 - [Large-Context 384k Stale-Index Rejection Examples](examples/large-context-384k-stale-index-rejection.md)
 - [Large-Context 384k Live Acceptance Examples](examples/large-context-384k-live-acceptance.md)
+- [Large-Context 384k Clean Clone Replay Examples](examples/large-context-384k-clean-clone-replay.md)
 - [Release-Candidate Baseline Corpus Promotion Examples](examples/release-candidate-baseline-corpus-promotion.md)
 - [External Tester Feedback Loop From Clone Examples](examples/external-tester-feedback-loop-from-clone.md)
 - [V1 Release-Candidate Decision Gate Examples](examples/v1-release-candidate-decision-gate.md)

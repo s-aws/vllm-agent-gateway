@@ -106,6 +106,7 @@ Examples are grouped by feature so the root README can stay small.
 - [Large-Context 384k Fixture And Index Readiness](large-context-384k-fixture-index-readiness.md): compose existing inventory, safety, and metadata-first index gates into a 384k readiness proof.
 - [Large-Context 384k Stale-Index Rejection](large-context-384k-stale-index-rejection.md): run disposable stale-source, changed-policy, missing-source, and unsafe-evidence fail-closed cases.
 - [Large-Context 384k Live Acceptance](large-context-384k-live-acceptance.md): run the composed live 384k gate through gateway, AnythingLLM, Phase 221, Phase 223, split-url target settings, blind-baseline comparison, and JSON/default parity.
+- [Large-Context 384k Clean Clone Replay](large-context-384k-clean-clone-replay.md): clone the remote branch and replay the accepted 384k proof path without active-workspace state.
 - [Release-Candidate Runtime Health Restoration](release-candidate-runtime-health-restoration.md): verify post-restart runtime health, AnythingLLM target settings, and a minimal read-only workflow-router prompt before rerunning the release decision.
 - [Release-Candidate Ship Handoff](release-candidate-ship-handoff.md): validate committed ship handoff metadata, stable-channel readiness, and tester-doc freshness.
 - [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.

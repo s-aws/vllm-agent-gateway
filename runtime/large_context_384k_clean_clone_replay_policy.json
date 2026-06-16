@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_384k_clean_clone_replay_policy",
+  "phase": 264,
+  "priority_backlog_id": "P0-M6-264",
+  "milestone_ids": [
+    "M14",
+    "M6",
+    "M16"
+  ],
+  "required_decision": "phase264_clean_clone_384k_usability_ready",
+  "source_requirements": {
+    "required_source_mode": "remote_branch_clone",
+    "required_branch": "codex/m14-release-clone-proof",
+    "required_remote_url_fragment": "s-aws/vllm-agent-gateway",
+    "require_clean_git_status_before": true,
+    "require_clean_git_status_after": true,
+    "require_runtime_state_ignored": true
+  },
+  "required_static_gates": [
+    "docs_index",
+    "phase251_objective_rebaseline",
+    "phase258_acceptance_contract",
+    "phase259_fixture_index_readiness",
+    "phase260_stale_index_rejection"
+  ],
+  "required_live_gate": "phase261_live_acceptance",
+  "required_phase261_summary": {
+    "target_estimated_project_tokens": 384000,
+    "minimum_response_count": 18,
+    "minimum_gateway_response_count": 9,
+    "minimum_anythingllm_response_count": 9,
+    "failed_small_repo_regression_count": 0,
+    "critical_or_high_finding_count": 0,
+    "json_default_parity_status": "passed",
+    "target_settings_status": "passed",
+    "required_strategy_ids": [
+      "retrieval",
+      "artifact_paging",
+      "summarization",
+      "refusal",
+      "chunked_investigation"
+    ]
+  },
+  "safety_requirements": {
+    "raw_prompt_stuffing_allowed": false,
+    "raw_384k_prompt_support_claim_allowed": false,
+    "post_384k_expansion_allowed": false,
+    "runtime_state_tracked_allowed": false,
+    "active_workspace_runtime_state_dependency_allowed": false,
+    "protected_fixture_mutation_allowed": false
+  },
+  "required_docs": [
+    "README.getting-started.md",
+    "README.large-context-384k-live-acceptance.md",
+    "README.large-context-384k-clean-clone-replay.md",
+    "docs/examples/large-context-384k-clean-clone-replay.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md"
+  ],
+  "required_doc_markers": {
+    "README.getting-started.md": [
+      "Current 384k Large-Context Path",
+      "validate_large_context_384k_live_acceptance.py",
+      "PRINTED_WSL_WORKFLOW_ROUTER_HOST"
+    ],
+    "README.large-context-384k-live-acceptance.md": [
+      "PHASE261 LARGE CONTEXT 384K LIVE ACCEPTANCE PASS",
+      "Proof Artifacts"
+    ],
+    "README.large-context-384k-clean-clone-replay.md": [
+      "PHASE264 LARGE CONTEXT 384K CLEAN CLONE REPLAY PASS",
+      "remote branch clone"
+    ],
+    "docs/examples/large-context-384k-clean-clone-replay.md": [
+      "git clone",
+      "validate_large_context_384k_clean_clone_replay.py"
+    ],
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 264",
+      "Clean-Clone 384k Usability Replay"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "Phase 264",
+      "M14/M6/M16"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M6-264",
+      "clean-clone 384k usability replay"
+    ]
+  },
+  "acceptance_marker": "PHASE264 LARGE CONTEXT 384K CLEAN CLONE REPLAY PASS"
+}
