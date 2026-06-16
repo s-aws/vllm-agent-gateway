@@ -10777,3 +10777,33 @@ Completion proof:
 - Clone Phase 251 large-context 384k objective rebaseline validator passed with `target_estimated_project_tokens=384000`, `threshold_check_count=4`, `doc_count=6`, `error_count=0`, and `phase251_ready=true`.
 - Clone docs-index validation passed with `expected_count=338`, `linked_count=338`, `orphaned_docs=[]`, and `status=passed`.
 - Clone stable release-channel validation passed with `selected_channel=stable`, `failed_check_ids=[]`, and `status=passed`.
+
+### Approved Phase 253: Post-Rebaseline Runtime Large-Context Smoke
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the running local stack still answers after the 384k objective rebaseline and that raw-corpus prompt stuffing remains refused through gateway and AnythingLLM.
+
+Scope:
+
+- Check local model, workflow-router gateway, gateway, and controller health after the founder-managed vLLM restart.
+- Confirm the current model reports a context limit below the 384k project target, reinforcing that 384k usability must use retrieval/chunking/paging rather than raw prompt stuffing.
+- Run the existing runtime health restoration gate with split URL settings for Bash and AnythingLLM.
+- Run one live large-context limitations case through gateway and AnythingLLM.
+- Run the built-in small-repo non-regression checks on `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github` through both gateway and AnythingLLM.
+- Do not mutate protected frozen fixture source files.
+
+Acceptance target: the active runtime can answer the post-rebaseline large-context boundary prompt through the user-facing paths, refuses raw-corpus stuffing, and keeps small-repo prompts out of the large-context path.
+
+Completion proof:
+
+- vLLM `http://127.0.0.1:8000/v1/models` returned model `Qwen3-Coder-30B-A3B-Instruct` with `max_model_len=262144`.
+- Workflow-router gateway `http://127.0.0.1:8500/v1/models`, controller `http://127.0.0.1:8400/health`, and gateway `http://127.0.0.1:8300/__gateway/health` passed health checks.
+- Phase 245 runtime restoration validator passed with `decision=runtime_health_restored`, `runtime_health_blocker_count=0`, `blocker_count=0`, and `phase246_ready=true` using Bash workflow-router base `http://127.0.0.1:8500/v1` and AnythingLLM workflow-router base `http://100.100.12.45:8500/v1`.
+- Live Phase 221 partial smoke for `P221-LC-004` passed with `response_count=2`, `failed_response_count=0`, `small_repo_regression_count=4`, `failed_small_repo_regression_count=0`, `m6_ready=true`, `m8_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+- Gateway large-context run `workflow-router-20260616T043037115290Z` passed with score `100`, strategy `refusal`, and `raw_prompt_stuffing=false`.
+- AnythingLLM large-context run `workflow-router-20260616T043042196632Z` passed with score `100`, strategy `refusal`, and `raw_prompt_stuffing=false`.
+- Small-repo non-regression passed on both frozen Coinbase fixtures through gateway runs `workflow-router-20260616T043046489528Z` and `workflow-router-20260616T043101267777Z`.
+- Small-repo non-regression passed on both frozen Coinbase fixtures through AnythingLLM runs `workflow-router-20260616T043110512902Z` and `workflow-router-20260616T043124918244Z`.
