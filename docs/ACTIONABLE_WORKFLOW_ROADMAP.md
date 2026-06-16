@@ -11358,7 +11358,7 @@ Result:
 
 ### Approved Phase 273: Live 500k Candidate Acceptance
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
 
@@ -11372,6 +11372,18 @@ Scope:
 - Preserve protected fixtures and generated corpus safety boundaries.
 
 Acceptance target: a semi-well-defined prompt over a 500k-plus project produces useful, chat-visible, evidence-backed output without raw prompt stuffing.
+
+Result:
+
+- Added `runtime/large_context_500k_live_acceptance_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_500k_live_acceptance`.
+- Added `scripts/validate_large_context_500k_live_acceptance.py`.
+- Added focused regression coverage for policy validation, synthetic live delegate pass, failed Phase 272 precondition, failed live delegate, missing strategy, and forbidden raw-500k prompt-support claim.
+- Added `README.large-context-500k-live-acceptance.md` and `docs/examples/large-context-500k-live-acceptance.md`.
+- Bash live Phase 273 gate passed with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, all five required strategy IDs covered, `target_settings_status=passed`, `json_default_parity_status=passed`, `critical_or_high_finding_count=0`, `raw_prompt_stuffing_allowed=false`, `phase261_status=passed`, `phase272_status=passed`, and `phase274_ready=true`.
+- Focused regression passed with `20 passed` across the Phase 270 through Phase 273 guards.
+- Docs index validation passed with `359` linked docs and zero orphaned docs.
+- Full Bash regression passed with `1655 passed`, `4 skipped`, and `23 deselected`.
 
 ### Approved Phase 274: Targeted 500k Answer-Quality Repair
 

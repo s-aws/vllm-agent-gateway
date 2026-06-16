@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_500k_live_acceptance_policy",
+  "phase": 273,
+  "priority_backlog_id": "P0-M15-273",
+  "milestone_ids": [
+    "M2",
+    "M4",
+    "M6",
+    "M8",
+    "M13",
+    "M14",
+    "M15",
+    "M16"
+  ],
+  "candidate_estimated_project_tokens": 500000,
+  "purpose": "Prove the 500k-token project usability candidate live through the workflow-router gateway and AnythingLLM after fixture/index readiness and stale-index rejection are proven.",
+  "phase272_precondition": {
+    "policy_path": "runtime/large_context_500k_stale_index_rejection_policy.json",
+    "validator": "scripts/validate_large_context_500k_stale_index_rejection.py",
+    "required_status": "passed",
+    "required_phase273_ready": true
+  },
+  "phase261_live_delegate": {
+    "policy_path": "runtime/large_context_384k_live_acceptance_policy.json",
+    "validator": "scripts/validate_large_context_384k_live_acceptance.py",
+    "required_status": "passed",
+    "required_phase262_ready": true,
+    "minimum_response_count": 18,
+    "minimum_gateway_response_count": 9,
+    "minimum_anythingllm_response_count": 9
+  },
+  "required_strategy_ids": [
+    "retrieval",
+    "artifact_paging",
+    "summarization",
+    "refusal",
+    "chunked_investigation"
+  ],
+  "safety_requirements": {
+    "raw_prompt_stuffing_allowed": false,
+    "raw_500k_prompt_support_claim_allowed": false,
+    "source_text_retention": "metadata_only",
+    "store_source_text": false,
+    "store_rejected_content": false,
+    "artifact_only_answers_allowed": false,
+    "protected_fixture_mutation_allowed": false,
+    "generated_corpus_mutation_allowed": false
+  },
+  "required_docs": [
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "README.large-context-500k-live-acceptance.md",
+    "docs/examples/large-context-500k-live-acceptance.md"
+  ],
+  "required_doc_markers": {
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 273",
+      "Status: Complete.",
+      "Targeted 500k Answer-Quality Repair"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "Phase 273",
+      "M2/M4/M6/M8/M13/M14/M15/M16"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M15-273",
+      "live 500k candidate acceptance"
+    ],
+    "README.large-context-500k-live-acceptance.md": [
+      "PHASE273 LARGE CONTEXT 500K LIVE ACCEPTANCE PASS",
+      "existing Phase 261 live acceptance path"
+    ],
+    "docs/examples/large-context-500k-live-acceptance.md": [
+      "validate_large_context_500k_live_acceptance.py",
+      "500000"
+    ]
+  },
+  "acceptance_marker": "PHASE273 LARGE CONTEXT 500K LIVE ACCEPTANCE PASS"
+}
