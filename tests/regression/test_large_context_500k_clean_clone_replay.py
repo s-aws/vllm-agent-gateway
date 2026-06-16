@@ -157,7 +157,7 @@ def test_phase275_controller_preflight_rejects_non_clone_hosted_controller(tmp_p
         lambda controller_base_url, timeout_seconds: {
             "status": "ok",
             "config_root": "/mnt/c/agentic_agents",
-            "allowed_target_roots": ["/mnt/c/agentic_agents"],
+            "allowed_target_roots": ["/tmp/unrelated-controller-root"],
         },
     )
 
