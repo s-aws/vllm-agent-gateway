@@ -110,6 +110,7 @@ Examples are grouped by feature so the root README can stay small.
 - [Large-Context 384k Release-Candidate Decision Gate](large-context-384k-release-candidate-decision-gate.md): aggregate the 384k proof chain into a deterministic ship, hold, or repair-required decision.
 - [Large-Context 500k Candidate Rebaseline](large-context-500k-candidate-rebaseline.md): validate that 500k project usability is only a candidate target and 384k remains the stable baseline.
 - [Large-Context 500k Fixture And Index Readiness](large-context-500k-fixture-index-readiness.md): verify the accepted fixture and metadata-first index meet the 500k candidate threshold before stale-index rejection and live validation.
+- [Large-Context 500k Stale-Index Rejection](large-context-500k-stale-index-rejection.md): verify stale, missing, ignored, private, and unsafe derived index state fails closed before live 500k validation.
 - [Release-Candidate Runtime Health Restoration](release-candidate-runtime-health-restoration.md): verify post-restart runtime health, AnythingLLM target settings, and a minimal read-only workflow-router prompt before rerunning the release decision.
 - [Release-Candidate Ship Handoff](release-candidate-ship-handoff.md): validate committed ship handoff metadata, stable-channel readiness, and tester-doc freshness.
 - [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.

@@ -11331,7 +11331,7 @@ Result:
 
 ### Approved Phase 272: 500k Stale-Index Rejection Hardening
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M6 Large-Context Usability Baseline, M8 Context Strategy Router, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
 
@@ -11344,6 +11344,17 @@ Scope:
 - Confirm all fail-closed controls still work before live 500k acceptance.
 
 Acceptance target: live 500k validation cannot pass by reading stale, ignored, private, secret-like, or unapproved derived content.
+
+Result:
+
+- Added `runtime/large_context_500k_stale_index_rejection_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_500k_stale_index_rejection`.
+- Added `scripts/validate_large_context_500k_stale_index_rejection.py`.
+- Added focused regression coverage for policy validation, synthetic pass, failed Phase 271 precondition, failed stale-index delegate, and partial case-pass rejection.
+- Added `README.large-context-500k-stale-index-rejection.md` and `docs/examples/large-context-500k-stale-index-rejection.md`.
+- Bash Phase 272 stale-index gate passed with `phase260_case_count=6`, `phase260_passed_case_count=6`, `phase260_status=passed`, `phase260_phase261_ready=true`, `phase271_status=passed`, `phase271_phase272_ready=true`, and `phase273_ready=true`.
+- Focused regression passed with `14 passed` across the Phase 270, Phase 271, and Phase 272 guards.
+- Docs index validation passed with `357` linked docs and zero orphaned docs.
 
 ### Approved Phase 273: Live 500k Candidate Acceptance
 

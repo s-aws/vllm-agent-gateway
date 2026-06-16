@@ -124,7 +124,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 269 | M6/M14 | Complete. Added the 384k completion audit with requirement-to-evidence matrix, current model context boundary, durable proof links, and complete decision for the supported 384k product path. |
 | Phase 270 | M6/M8/M14/M15/M16 | Complete. Activated the 500k-token project usability candidate with durable boundaries, 384k stable baseline preservation, static validation, docs, and follow-up phase sequence. |
 | Phase 271 | M6/M15/M16 | Complete. Proved the accepted fixture and metadata-first index meet the 500k candidate threshold by delegating to the existing Phase 259 readiness path and applying 500k corpus/index checks. |
-| Phase 272 | M6/M8/M15/M16 | Approved. Prove stale-index, changed-policy, changed-source, and unsafe-evidence rejection for the 500k candidate. |
+| Phase 272 | M6/M8/M15/M16 | Complete. Proved stale-index, changed-policy, changed-source, and unsafe-evidence rejection for the 500k candidate by requiring Phase 271 readiness and delegating fail-closed case execution to the existing Phase 260 path. |
 | Phase 273 | M2/M4/M6/M8/M13/M14/M15/M16 | Approved. Run live 500k candidate acceptance through workflow-router gateway and AnythingLLM. |
 | Phase 274 | M2/M4/M6/M8/M15 | Approved. Perform targeted 500k answer-quality repair only if Phase 273 exposes gaps. |
 | Phase 275 | M14/M15/M16 | Approved. Replay the 500k candidate path from a fresh remote clone. |
