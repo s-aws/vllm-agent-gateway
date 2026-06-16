@@ -10858,3 +10858,30 @@ Completion proof:
 - Added focused regression coverage proving policy-required `http://127.0.0.1:8500/v1` can coexist with effective AnythingLLM target `http://100.100.12.45:8500/v1`.
 - Focused Bash regression for fresh-chat and runtime-restoration split-url behavior returned `15 passed`.
 - Live target-settings probe passed with `GenericOpenAiBasePath=http://100.100.12.45:8500/v1`, provider `generic-openai`, model `Qwen3-Coder-30B-A3B-Instruct`, and all checks true.
+
+### Approved Phase 256: Full Fresh-Chat Split-URL Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the hardened Phase 237 fresh-chat validator works end to end in the current Windows/WSL split-url setup.
+
+Scope:
+
+- Run the browser-visible AnythingLLM UI `hi` proof for `UI167-GENCHAT-001`.
+- Run the full Phase 237 fresh-chat aggregate validator with Bash workflow-router base `http://127.0.0.1:8500/v1` and expected AnythingLLM workflow-router base `http://100.100.12.45:8500/v1`.
+- Cover gateway `hi`, gateway read-only coding prompt, AnythingLLM API `hi`, AnythingLLM API read-only coding prompt, UI `hi`, target settings, and protected fixture state.
+- Do not change protected frozen fixture source files.
+
+Acceptance target: a first-time tester using AnythingLLM through the WSL network workflow-router URL can get a visible `hi` response and a representative coding answer without target-setting false failures.
+
+Completion proof:
+
+- UI `hi` proof passed for `UI167-GENCHAT-001` with `stream_chat_seen=true`, `fixture_unchanged=true`, and parsed run `workflow-router-general-20260616T043835693036Z`.
+- Full fresh-chat aggregate validator passed with `decision=fresh_chat_responsive`, `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `blocker_finding_count=0`, `missing_required_case_count=0`, `target_settings_status=passed`, `ui_report_status=passed`, and `fixture_unchanged=true`.
+- Target settings check passed with policy-required `workflow_router_base_url=http://127.0.0.1:8500/v1` and effective AnythingLLM target `http://100.100.12.45:8500/v1`.
+- Gateway `hi` passed with run `workflow-router-general-20260616T043848975693Z`.
+- Gateway coding prompt passed with run `workflow-router-20260616T043849004880Z`.
+- AnythingLLM API `hi` passed with run `workflow-router-general-20260616T043858605948Z` in session `phase237-hi-4e8359a4eccd41878f895aa69a818305`.
+- AnythingLLM API coding prompt passed with run `workflow-router-20260616T043858680448Z` in session `phase237-code-0b47ddc90e8b4ccd8690524f41534f4b`.

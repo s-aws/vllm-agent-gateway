@@ -108,6 +108,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 253 | M6/M8/M13/M14 | Complete. Proved the post-rebaseline runtime still answers through gateway and AnythingLLM while refusing raw-corpus prompt stuffing and preserving both frozen Coinbase fixtures. |
 | Phase 254 | M2/M13/M14 | Complete. Proved post-reboot AnythingLLM greeting/session recovery for `hi` and same-session follow-up after the 384k rebaseline. |
 | Phase 255 | M2/M13/M14 | Complete. Hardened the AnythingLLM fresh-chat validator so split Bash/Windows workflow-router URLs do not falsely fail target settings checks. |
+| Phase 256 | M2/M13/M14 | Complete. Replayed full AnythingLLM fresh-chat responsiveness with UI `hi`, gateway/API `hi`, coding prompt, split target settings, and fixture proof. |
 
 ## Usage Rules
 
