@@ -11414,7 +11414,7 @@ Result:
 
 ### Approved Phase 275: Clean-Clone 500k Candidate Replay
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
 
@@ -11428,6 +11428,16 @@ Scope:
 - Verify source status is clean before and after validation aside from ignored local `runtime-state/`.
 
 Acceptance target: a contextless agent can reproduce the 500k candidate proof path from the remote branch.
+
+Result:
+
+- Added `runtime/large_context_500k_clean_clone_replay_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_500k_clean_clone_replay`.
+- Added `scripts/validate_large_context_500k_clean_clone_replay.py`.
+- Added focused regression coverage for policy validation, synthetic clean-clone pass, dirty clone after replay, failed Phase 273 gate, and tracked `runtime-state/` rejection.
+- Added `README.large-context-500k-clean-clone-replay.md` and `docs/examples/large-context-500k-clean-clone-replay.md`.
+- Preliminary focused regression passed with `10 passed` across the Phase 274 and Phase 275 guards.
+- Docs index validation passed with `363` linked docs and zero orphaned docs.
 
 ### Approved Phase 276: 500k Candidate Decision Gate
 

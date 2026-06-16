@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_500k_clean_clone_replay_policy",
+  "phase": 275,
+  "priority_backlog_id": "P0-M15-275",
+  "milestone_ids": [
+    "M14",
+    "M15",
+    "M16"
+  ],
+  "candidate_estimated_project_tokens": 500000,
+  "required_decision": "phase275_clean_clone_500k_candidate_ready",
+  "source_requirements": {
+    "required_source_mode": "remote_branch_clone",
+    "required_branch": "codex/m14-release-clone-proof",
+    "required_remote_url_fragment": "s-aws/vllm-agent-gateway",
+    "require_clean_git_status_before": true,
+    "require_clean_git_status_after": true,
+    "require_runtime_state_ignored": true
+  },
+  "required_gates": [
+    "docs_index",
+    "phase270_candidate_rebaseline",
+    "phase271_fixture_index_readiness",
+    "phase272_stale_index_rejection",
+    "phase273_live_acceptance",
+    "phase274_answer_quality_repair"
+  ],
+  "safety_requirements": {
+    "raw_prompt_stuffing_allowed": false,
+    "raw_500k_prompt_support_claim_allowed": false,
+    "runtime_state_tracked_allowed": false,
+    "active_workspace_runtime_state_dependency_allowed": false,
+    "protected_fixture_mutation_allowed": false
+  },
+  "required_docs": [
+    "README.large-context-500k-live-acceptance.md",
+    "README.large-context-500k-clean-clone-replay.md",
+    "docs/examples/large-context-500k-clean-clone-replay.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md"
+  ],
+  "required_doc_markers": {
+    "README.large-context-500k-live-acceptance.md": [
+      "PHASE273 LARGE CONTEXT 500K LIVE ACCEPTANCE PASS",
+      "Phase 276 must make the ship, hold, or repair-required decision"
+    ],
+    "README.large-context-500k-clean-clone-replay.md": [
+      "PHASE275 LARGE CONTEXT 500K CLEAN CLONE REPLAY PASS",
+      "remote branch clone"
+    ],
+    "docs/examples/large-context-500k-clean-clone-replay.md": [
+      "git clone",
+      "validate_large_context_500k_clean_clone_replay.py"
+    ],
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 275",
+      "Status: Complete.",
+      "500k Candidate Decision Gate"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "Phase 275",
+      "M14/M15/M16"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M15-275",
+      "clean-clone 500k candidate replay"
+    ]
+  },
+  "acceptance_marker": "PHASE275 LARGE CONTEXT 500K CLEAN CLONE REPLAY PASS"
+}
