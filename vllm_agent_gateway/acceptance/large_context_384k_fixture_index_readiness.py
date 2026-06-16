@@ -27,6 +27,10 @@ from vllm_agent_gateway.acceptance.large_corpus_context_budget_inventory import 
     LargeCorpusContextBudgetInventoryConfig,
     run_large_corpus_context_budget_inventory,
 )
+from vllm_agent_gateway.acceptance.retrieval_first_context_strategy_design import (
+    RetrievalFirstContextStrategyDesignConfig,
+    run_retrieval_first_context_strategy_design,
+)
 
 
 SCHEMA_VERSION = 1
@@ -230,13 +234,18 @@ def run_composed_gates(config_root: Path) -> dict[str, dict[str, Any]]:
     phase214 = run_large_corpus_context_budget_inventory(
         LargeCorpusContextBudgetInventoryConfig(config_root=config_root)
     )
+    # Phase 216 consumes the Phase 215 strategy-design report. Generate it here so
+    # clean clones do not depend on local runtime-state residue.
+    phase215 = run_retrieval_first_context_strategy_design(
+        RetrievalFirstContextStrategyDesignConfig(config_root=config_root)
+    )
     phase216 = run_corpus_index_safety_governance(
         CorpusIndexSafetyGovernanceConfig(config_root=config_root)
     )
     phase217 = run_context_index_prototype(
         ContextIndexPrototypeConfig(config_root=config_root)
     )
-    return {"phase214": phase214, "phase216": phase216, "phase217": phase217}
+    return {"phase214": phase214, "phase215": phase215, "phase216": phase216, "phase217": phase217}
 
 
 def load_composed_reports(config_root: Path, policy: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], list[dict[str, str]]]:
