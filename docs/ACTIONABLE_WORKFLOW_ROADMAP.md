@@ -8,7 +8,7 @@ If this document conflicts with older skill, controller, gateway, or AnythingLLM
 
 The product is not "a folder of skills." The product is a local agent harness that can take a natural-language development request, select the right tools and skills without retraining, create an evidence-backed plan, execute only inside approved boundaries, verify the result, and record feedback.
 
-The product objective also includes large-context usability. The active release target is usable 384k-token projects through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens is paused until the 384k product target has a stable usable tester handoff and the founder explicitly approves a post-384k milestone. This is not a promise that the current local model can accept a raw 384k-token or larger prompt. Raw long-context serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
+The product objective also includes large-context usability. The completed stable baseline is usable 384k-token projects through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. The next approved target is a 500k-token project usability candidate using the same governed strategy path. This is not a promise that the current local model can accept a raw 500k-token prompt. Raw long-context serving remains experimental until a dedicated proof gate validates the model context limit, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
 
 Final destination:
 
@@ -36,7 +36,7 @@ Milestones are durable product-state checkpoints. Roadmap phases should move one
 M1 -> M2 -> M3 -> M4 -> M5 -> M16 -> M6 -> M8 -> M9 -> M12 -> M14
 ```
 
-M16 is required before durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M15 is deferred post-384k expansion work and must not block the main objective. Large-context usability is achieved first through governed indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing.
+M16 is required before durable context-index or retrieval-backed chat closeout because indexing creates persistent derived repository content. M15 is active only for the approved 500k-token project usability candidate and must not weaken the completed 384k stable baseline. Large-context usability is achieved through governed indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing.
 
 ## Persistent Product Priorities
 
@@ -11271,3 +11271,148 @@ Result:
 - Audit decision: complete for the current supported 384k product path.
 - Audit boundaries: raw 384k prompt serving, 1M+ project usability, post-384k expansion, and advanced broad refactor orchestration remain out of scope.
 - Docs index validation passed with `351` linked docs and zero orphaned docs.
+
+### Approved Phase 270: 500k Candidate Objective Rebaseline
+
+Status: Complete.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M8 Context Strategy Router, M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
+
+Goal: activate a 500k-token project usability candidate while preserving 384k-token project usability as the stable large-context baseline.
+
+Scope:
+
+- Update durable instructions, milestones, Priority 0 backlog language, and roadmap framing so 500k-token project usability is the next candidate target.
+- Keep the 384k stable baseline intact until the 500k candidate has its own proof chain.
+- Add a deterministic static validator that fails if durable docs imply stable 500k support, raw 500k prompt support, or post-500k expansion without proof.
+- Define the approved follow-up phases for fixture/index readiness, stale-index rejection, live acceptance, targeted repair, clean-clone replay, decision, and stable handoff refresh.
+- Do not call vLLM, the gateway, controller, or AnythingLLM; this phase is a static candidate-governance rebaseline.
+
+Acceptance target: a contextless agent can verify that 500k-token project usability is an approved candidate target, 384k remains the stable baseline, and raw 500k prompt serving is not claimed.
+
+Result:
+
+- Added `runtime/large_context_500k_candidate_rebaseline_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_500k_candidate_rebaseline`.
+- Added `scripts/validate_large_context_500k_candidate_rebaseline.py`.
+- Added focused regression coverage for policy validation, synthetic pass, forbidden stable-500k claims, and incomplete roadmap state.
+- Added `README.large-context-500k-candidate-rebaseline.md` and `docs/examples/large-context-500k-candidate-rebaseline.md`.
+- Phase 270 static gate passed with `stable_estimated_project_tokens=384000`, `candidate_estimated_project_tokens=500000`, `doc_count=7`, `error_count=0`, and `phase270_ready=true`.
+- Focused regression passed with `4 passed`.
+- Docs index validation passed with `353` linked docs and zero orphaned docs.
+
+### Approved Phase 271: 500k Fixture And Index Readiness Proof
+
+Status: Approved.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
+
+Goal: prove the accepted fixture and governed metadata-first index are sufficient for the 500k-token project usability candidate before live validation.
+
+Scope:
+
+- Compose the existing large-corpus inventory, corpus/index safety, and context-index gates.
+- Require estimated fixture and indexed-token counts to meet or exceed `500000`.
+- Preserve metadata-only source retention, no rejected-content storage, and protected fixture cleanliness.
+- Produce a deterministic readiness report and focused regression.
+
+Acceptance target: Phase 273 can run against documented, fresh, source-hashed, governed 500k fixture/index state rather than undocumented runtime residue.
+
+### Approved Phase 272: 500k Stale-Index Rejection Hardening
+
+Status: Approved.
+
+Milestone mapping: M6 Large-Context Usability Baseline, M8 Context Strategy Router, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
+
+Goal: prove stale source hashes, changed ignore policy, changed safety policy, unapproved roots, ignored paths, private paths, and secret-like content cannot be served into 500k candidate chat answers.
+
+Scope:
+
+- Reuse the existing stale-index rejection path; do not add a second retrieval implementation.
+- Raise the candidate target to `500000` in this phase's policy and proof only.
+- Confirm all fail-closed controls still work before live 500k acceptance.
+
+Acceptance target: live 500k validation cannot pass by reading stale, ignored, private, secret-like, or unapproved derived content.
+
+### Approved Phase 273: Live 500k Candidate Acceptance
+
+Status: Approved.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
+
+Goal: run the 500k candidate live through workflow-router gateway and AnythingLLM after fixture/index readiness and stale-index rejection pass.
+
+Scope:
+
+- Run retrieval, artifact paging, summarization, refusal, and chunked-investigation cases.
+- Require blind-baseline-first comparison, source refs, source-hash proof, chat-visible limitations, JSON/default parity, and small-repo non-regression.
+- Verify target settings for split Windows/WSL AnythingLLM configuration.
+- Preserve protected fixtures and generated corpus safety boundaries.
+
+Acceptance target: a semi-well-defined prompt over a 500k-plus project produces useful, chat-visible, evidence-backed output without raw prompt stuffing.
+
+### Approved Phase 274: Targeted 500k Answer-Quality Repair
+
+Status: Approved.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M15 500k Candidate Expansion Gate.
+
+Goal: repair only evidence-backed answer-quality gaps exposed by Phase 273.
+
+Scope:
+
+- If Phase 273 passes with no high or critical findings, close this phase as no repair required.
+- If repairs are required, repair the smallest controller, workflow, skill, tool, or formatter gap and rerun the target prompt plus holdouts.
+- Do not broaden into post-500k expansion or advanced refactor work.
+
+Acceptance target: all accepted Phase 273 answer-quality findings are either repaired with target and holdout proof or explicitly deferred with a blocker reason.
+
+### Approved Phase 275: Clean-Clone 500k Candidate Replay
+
+Status: Approved.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
+
+Goal: prove the 500k candidate path works from a fresh remote clone with committed instructions and without private workspace state.
+
+Scope:
+
+- Push the Phase 270-274 work before cloning.
+- Clone the current branch into WSL `/tmp`.
+- Run the 500k static, fixture/index, stale-index, live acceptance, and repair/no-repair gates from the clone.
+- Verify source status is clean before and after validation aside from ignored local `runtime-state/`.
+
+Acceptance target: a contextless agent can reproduce the 500k candidate proof path from the remote branch.
+
+### Approved Phase 276: 500k Candidate Decision Gate
+
+Status: Approved.
+
+Milestone mapping: M1 V1 Founder Beta Closeout, M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate.
+
+Goal: aggregate the 500k proof chain into a deterministic decision of `ship`, `hold`, or `repair_required`.
+
+Scope:
+
+- Consume Phase 270 through Phase 275 proof.
+- Classify unresolved findings as blocker, advisory, deferred, or rejected.
+- Keep raw 500k prompt serving and post-500k expansion out of decision scope.
+- Produce a deterministic decision artifact.
+
+Acceptance target: the project has a clear go/no-go decision for the 500k candidate target.
+
+### Approved Phase 277: Stable 500k Handoff Refresh Or Hold
+
+Status: Approved.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate.
+
+Goal: update the stable handoff only if Phase 276 returns `ship`; otherwise preserve 384k as stable and record the 500k hold or repair state.
+
+Scope:
+
+- If Phase 276 returns `ship`, refresh stable handoff metadata, docs, known limits, commands, split-url guidance, and completion audit for 500k.
+- If Phase 276 returns `hold` or `repair_required`, do not change the stable baseline; document the blocker and next action.
+- Validate docs-index, release-channel, ship-handoff or hold-state markers, and relevant 500k gates.
+
+Acceptance target: testers receive an honest stable handoff state: either 500k promoted with proof or 384k preserved with an explicit 500k blocker.

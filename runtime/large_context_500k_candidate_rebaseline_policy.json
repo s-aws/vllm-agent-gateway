@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_500k_candidate_rebaseline_policy",
+  "phase": 270,
+  "priority_backlog_id": "P0-M15-270",
+  "milestone_ids": [
+    "M6",
+    "M8",
+    "M14",
+    "M15",
+    "M16"
+  ],
+  "stable_estimated_project_tokens": 384000,
+  "candidate_estimated_project_tokens": 500000,
+  "purpose": "Activate a 500k-token project usability candidate while preserving 384k-token project usability as the stable large-context baseline.",
+  "required_docs": [
+    "AGENTS.md",
+    "README.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "README.large-context-500k-candidate-rebaseline.md",
+    "docs/examples/large-context-500k-candidate-rebaseline.md"
+  ],
+  "required_doc_markers": {
+    "AGENTS.md": [
+      "500k-token project usability candidate",
+      "384k stable large-context baseline",
+      "raw 500k-token prompts"
+    ],
+    "README.md": [
+      "384k-token projects remain the stable large-context baseline",
+      "500k-token project usability candidate",
+      "raw 500k-token prompts"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "M15: 500k Candidate Expansion Gate",
+      "Phase 270",
+      "500k-token project usability candidate"
+    ],
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 270",
+      "Status: Complete.",
+      "500k-token project usability candidate"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M15-270",
+      "500k candidate objective rebaseline"
+    ],
+    "README.large-context-500k-candidate-rebaseline.md": [
+      "PHASE270 LARGE CONTEXT 500K CANDIDATE REBASELINE PASS",
+      "384k stable baseline",
+      "500k-token project usability candidate"
+    ],
+    "docs/examples/large-context-500k-candidate-rebaseline.md": [
+      "validate_large_context_500k_candidate_rebaseline.py",
+      "500000"
+    ]
+  },
+  "forbidden_stable_claim_markers": [
+    "500k-token projects are stable",
+    "500k is the stable release target",
+    "raw 500k-token prompts are supported",
+    "raw 500k prompt serving is supported",
+    "1M+ project usability is the active release target"
+  ],
+  "required_phase_statuses": {
+    "266": "Complete.",
+    "267": "Complete.",
+    "268": "Complete.",
+    "269": "Complete.",
+    "270": "Complete."
+  },
+  "required_boundaries": [
+    "384k-token project usability remains the stable large-context baseline.",
+    "500k-token project usability is a candidate target until it passes its own fixture, safety, live, clean-clone, decision, and handoff proof.",
+    "Raw 500k-token prompt serving is not claimed."
+  ],
+  "approved_followup_phases": [
+    271,
+    272,
+    273,
+    274,
+    275,
+    276,
+    277
+  ],
+  "acceptance_marker": "PHASE270 LARGE CONTEXT 500K CANDIDATE REBASELINE PASS"
+}

@@ -4,7 +4,7 @@ This document defines the default testing process and backlog for improving loca
 
 Priority 0 means the product is judged by whether a user can ask a natural-language development prompt and receive a useful, evidence-backed, chat-visible response through the current local model, gateway, skills, and tools.
 
-Priority 0 also covers large-context usability when it improves that chat outcome. The active release target is that 384k-token projects can be investigated through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. Work above 384k tokens is paused until the 384k product target has a stable usable tester handoff and the founder explicitly approves a post-384k milestone. Raw 384k-token or larger prompts are not considered supported until a separate proof gate validates the model, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
+Priority 0 also covers large-context usability when it improves that chat outcome. The stable large-context baseline is that 384k-token projects can be investigated through indexing, retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing. The next approved target is a 500k-token project usability candidate. Raw 500k-token prompts are not considered supported until a separate proof gate validates the model, vLLM configuration, hardware memory, latency, and blind-baseline answer quality.
 
 ## Default Process
 
@@ -156,6 +156,7 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-245 | Release-candidate runtime health restoration | Complete in Phase 245. Restored vLLM and full featured-port health for the release-candidate stack. | Proof: localhost `8000`, gateway, controller, workflow-router gateway, role proxy ports, AnythingLLM target, minimal gateway/AnythingLLM read-only prompt, protected fixture mutation check, and focused regression. |
 | P0-M14-246 | Release-candidate decision rerun after runtime health | Complete in Phase 246. Reran the Phase 244 decision gate after health restoration. | Proof: live Phase 244 rerun reached `ship` with no stale runtime caveat and no runtime-health blockers. |
 | P0-M6-251 | 384k objective rebaseline | Complete in Phase 251. Rebaselined active large-context scope to 384k-token projects and blocked post-384k expansion from starting before the 384k target has a stable usable tester handoff. | Proof: Phase 251 objective policy, validator, docs, threshold checks, stale roadmap mapping repair, focused regression, docs index, and no live runtime dependency. |
+| P0-M15-270 | 500k candidate objective rebaseline | Complete in Phase 270. Activated 500k-token project usability as the next candidate target while preserving 384k as the stable baseline. | Proof: Phase 270 policy, validator, docs, follow-up phase sequence, static gate `phase270_ready=true`, `stable_estimated_project_tokens=384000`, `candidate_estimated_project_tokens=500000`, focused regression `4 passed`, docs index `353` linked docs and zero orphaned docs, and no live runtime dependency. |
 
 ## Execution Plan
 
@@ -487,6 +488,14 @@ Next approved 384k product phases:
 - `P0-M6-267`: clean-clone stable 384k handoff replay. Complete.
 - `P0-M6-268`: stable AnythingLLM 384k founder smoke. Complete.
 - `P0-M6-269`: 384k objective completion audit. Complete.
+- `P0-M15-270`: 500k candidate objective rebaseline. Complete.
+- `P0-M15-271`: 500k fixture and index readiness proof.
+- `P0-M15-272`: 500k stale-index rejection hardening.
+- `P0-M15-273`: live 500k candidate acceptance.
+- `P0-M15-274`: targeted 500k answer-quality repair if needed.
+- `P0-M15-275`: clean-clone 500k candidate replay.
+- `P0-M15-276`: 500k candidate decision gate.
+- `P0-M15-277`: stable 500k handoff refresh or hold.
 
 `P0-M6-259` completed in Phase 259. Proof lives in:
 
@@ -535,3 +544,5 @@ Phase 263 makes the accepted 384k tester path durable for contextless first-time
 `P0-M6-268` completed in Phase 268. It caught and repaired controller allowed-root drift caused by a clone-hosted stack, restarted the managed stack from `/mnt/c/agentic_agents` with network bind hosts, and passed first-time user doctor, scoped AnythingLLM UI E2E, AnythingLLM fresh-chat responsiveness, and 384k live acceptance. Live 384k proof covered gateway and AnythingLLM, all five strategy IDs, JSON/default parity, target settings, no raw prompt stuffing, zero high/critical findings, and protected fixture cleanliness.
 
 `P0-M6-269` completed in Phase 269. It added `docs/LARGE_CONTEXT_384K_COMPLETION_AUDIT.md` with a requirement-to-evidence matrix, confirmed the current model endpoint reports `max_model_len=262144`, preserved raw-384k and post-384k boundaries, and concluded the current 384k objective is complete for the supported product path.
+
+`P0-M15-270` completed in Phase 270. It activated the 500k-token project usability candidate, preserved 384k as the stable large-context baseline, added a fail-closed static validator, and defined the approved Phase 271-277 proof sequence. Static validation passed with `phase270_ready=true`, `stable_estimated_project_tokens=384000`, `candidate_estimated_project_tokens=500000`, `doc_count=7`, and `error_count=0`; focused regression passed with `4 passed`; docs index validation passed with `353` linked docs and zero orphaned docs. It does not claim raw 500k prompt support and does not promote 500k to stable.
