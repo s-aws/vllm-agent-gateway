@@ -128,7 +128,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 273 | M2/M4/M6/M8/M13/M14/M15/M16 | Complete. Ran the 500k candidate through live workflow-router gateway and AnythingLLM acceptance by requiring Phase 272 proof and delegating live execution to the existing Phase 261 path. |
 | Phase 274 | M2/M4/M6/M8/M15 | Complete. Closed targeted 500k answer-quality repair as no repair required because Phase 273 live acceptance had zero accepted critical or high findings. |
 | Phase 275 | M14/M15/M16 | Complete. Replayed the 500k candidate path from a fresh remote branch clone at commit `9dc768f`, with clone-hosted controller preflight, live gateway, live AnythingLLM, clean source before/after, and `phase276_ready=true`. |
-| Phase 276 | M1/M14/M15 | Approved. Aggregate the 500k proof chain into ship, hold, or repair-required decision. |
+| Phase 276 | M1/M14/M15 | Complete. Aggregated the 500k proof chain into decision `ship` with zero blockers, zero runtime-health blockers, Phase 275 clean-clone proof, and `phase277_ready=true`; raw 500k prompt serving remains out of scope. |
 | Phase 277 | M14/M15 | Approved. Refresh stable handoff only if the Phase 276 decision is ship; otherwise record hold or repair state without changing the stable baseline. |
 
 ## Usage Rules

@@ -11445,7 +11445,7 @@ Result:
 
 ### Approved Phase 276: 500k Candidate Decision Gate
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M1 V1 Founder Beta Closeout, M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate.
 
@@ -11459,6 +11459,17 @@ Scope:
 - Produce a deterministic decision artifact.
 
 Acceptance target: the project has a clear go/no-go decision for the 500k candidate target.
+
+Result:
+
+- Added `runtime/large_context_500k_candidate_decision_gate_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_500k_candidate_decision_gate`.
+- Added `scripts/validate_large_context_500k_candidate_decision_gate.py`.
+- Added focused regression coverage for policy validation, synthetic ship, runtime-health hold, missing Phase 275 report repair, missing strategy repair, incomplete required phase repair, and raw-500k promotion rule rejection.
+- Added `README.large-context-500k-candidate-decision-gate.md` and `docs/examples/large-context-500k-candidate-decision-gate.md`.
+- Live Phase 276 decision gate passed using `/tmp/agentic_agents_phase275_remote_clone/runtime-state/phase275/phase275-large-context-500k-clean-clone-replay-report.json`.
+- Phase 276 summary reported `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `phase275_status=passed`, `phase275_decision=phase275_clean_clone_500k_candidate_ready`, `candidate_estimated_project_tokens=500000`, `stable_estimated_project_tokens=384000`, `phase273_response_count=18`, `phase273_gateway_response_count=9`, `phase273_anythingllm_response_count=9`, `phase273_critical_or_high_finding_count=0`, `phase273_json_default_parity_status=passed`, `raw_prompt_stuffing_allowed=false`, and `phase277_ready=true`.
+- Phase 276 does not promote raw 500k prompt serving. It authorizes Phase 277 to refresh the stable handoff for governed 500k-token project usability only.
 
 ### Approved Phase 277: Stable 500k Handoff Refresh Or Hold
 
