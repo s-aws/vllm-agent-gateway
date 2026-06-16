@@ -494,3 +494,13 @@ Next approved 384k product phases:
 - `docs/examples/large-context-384k-fixture-index-readiness.md`
 
 Phase 259 proves 384k fixture/index readiness by composing the existing Phase 214, Phase 216, and Phase 217 gates. It records a large-corpus estimate above the 384k target, a metadata-only index above the 384k target, query smoke proof, negative control proof, and protected Coinbase fixture fingerprints. Phase 260 remains required before live acceptance because stale-index rejection must be hardened separately.
+
+`P0-M6-260` completed in Phase 260. Proof lives in:
+
+- `runtime/large_context_384k_stale_index_rejection_policy.json`
+- `vllm_agent_gateway/acceptance/large_context_384k_stale_index_rejection.py`
+- `scripts/validate_large_context_384k_stale_index_rejection.py`
+- `README.large-context-384k-stale-index-rejection.md`
+- `docs/examples/large-context-384k-stale-index-rejection.md`
+
+Phase 260 proves stale-index rejection before live 384k acceptance. It hardens the existing context-strategy and retrieval-answer paths so changed source hashes, changed ignore policy, changed safety policy, missing source files, and unsafe ignored/private/secret-like evidence requests fail closed instead of serving stale or unsafe evidence. Phase 261 is now the next approved live 384k acceptance phase.

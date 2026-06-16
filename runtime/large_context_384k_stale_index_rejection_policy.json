@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_384k_stale_index_rejection_policy",
+  "phase": 260,
+  "priority_backlog_id": "P0-M6-260",
+  "milestone_ids": [
+    "M6",
+    "M8",
+    "M16"
+  ],
+  "target_estimated_project_tokens": 384000,
+  "purpose": "Prove stale source, changed policy, missing source, and unsafe evidence conditions fail closed before live 384k acceptance.",
+  "phase259_precondition": {
+    "policy_path": "runtime/large_context_384k_fixture_index_readiness_policy.json",
+    "validator": "scripts/validate_large_context_384k_fixture_index_readiness.py",
+    "required_status": "passed"
+  },
+  "required_cases": [
+    {
+      "case_id": "P260-STALENESS-001",
+      "surface": "context_strategy_router",
+      "mutation": "stale_source_hash",
+      "expected_status": "blocked",
+      "expected_reason": "stale_index_or_source_hash"
+    },
+    {
+      "case_id": "P260-STALENESS-002",
+      "surface": "context_strategy_router",
+      "mutation": "changed_ignore_policy_hash",
+      "expected_status": "blocked",
+      "expected_reason": "stale_index_or_source_hash"
+    },
+    {
+      "case_id": "P260-STALENESS-003",
+      "surface": "context_strategy_router",
+      "mutation": "changed_safety_policy_hash",
+      "expected_status": "blocked",
+      "expected_reason": "stale_index_or_source_hash"
+    },
+    {
+      "case_id": "P260-STALENESS-004",
+      "surface": "context_strategy_router",
+      "mutation": "source_missing",
+      "expected_status": "blocked",
+      "expected_reason": "stale_index_or_source_hash"
+    },
+    {
+      "case_id": "P260-STALENESS-005",
+      "surface": "retrieval_answer",
+      "mutation": "changed_safety_policy_hash",
+      "expected_status": "blocked",
+      "expected_error_id": "index.no_fresh_evidence"
+    },
+    {
+      "case_id": "P260-STALENESS-006",
+      "surface": "retrieval_answer",
+      "mutation": "unsafe_evidence_request",
+      "expected_status": "blocked",
+      "expected_error_id": "request.unsafe_evidence_request"
+    }
+  ],
+  "required_fail_closed_properties": {
+    "artifact_only_answers_allowed": false,
+    "raw_prompt_stuffing_allowed": false,
+    "source_text_retention": "metadata_only",
+    "store_source_text": false,
+    "store_rejected_content": false,
+    "serve_stale_evidence_allowed": false,
+    "serve_ignored_or_secret_like_evidence_allowed": false
+  },
+  "required_docs": [
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "README.large-context-384k-stale-index-rejection.md",
+    "docs/examples/large-context-384k-stale-index-rejection.md"
+  ],
+  "required_doc_markers": {
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 260",
+      "Status: Complete.",
+      "Live 384k Acceptance Validator"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "Phase 260",
+      "M6/M8/M16"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M6-260",
+      "stale-index rejection"
+    ],
+    "README.large-context-384k-stale-index-rejection.md": [
+      "PHASE260 LARGE CONTEXT 384K STALE INDEX REJECTION PASS",
+      "fail closed"
+    ],
+    "docs/examples/large-context-384k-stale-index-rejection.md": [
+      "validate_large_context_384k_stale_index_rejection.py",
+      "P260-STALENESS-005"
+    ]
+  },
+  "acceptance_marker": "PHASE260 LARGE CONTEXT 384K STALE INDEX REJECTION PASS"
+}

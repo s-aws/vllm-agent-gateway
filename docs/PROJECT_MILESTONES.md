@@ -112,7 +112,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 257 | M6/M14 | Complete. Updated committed stable-channel metadata so external handoff names 384k-token project usability as the current large-context target and keeps 1M+ as future expansion. |
 | Phase 258 | M2/M4/M6/M8/M14/M16 | Complete. Defined the executable 384k usability acceptance contract and required fixture/index readiness plus stale-index rejection before live acceptance. |
 | Phase 259 | M6/M16 | Complete. Proved the accepted 384k-plus fixture and governed index bootstrap are ready before live 384k validation. |
-| Phase 260 | M6/M8/M16 | Approved. Harden stale-index, changed-policy, and changed-source rejection before live 384k acceptance. |
+| Phase 260 | M6/M8/M16 | Complete. Hardened stale-index, changed-policy, changed-source, and unsafe-evidence rejection before live 384k acceptance. |
 | Phase 261 | M2/M4/M6/M8/M13/M14/M16 | Approved. Run live 384k acceptance through gateway and AnythingLLM with blind-baseline comparison, holdouts, split URLs, and fixture proof. |
 | Phase 262 | M2/M4/M6/M8 | Approved. Repair only acceptance-gate answer-quality gaps discovered by Phase 261 target or holdout failures. |
 | Phase 263 | M14/M6 | Approved. Integrate the stable 384k tester path into founder getting-started docs and doctor guidance after live acceptance passes. |

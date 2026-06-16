@@ -10977,7 +10977,7 @@ Completion proof:
 
 ### Approved Phase 260: 384k Stale-Index Rejection Hardening
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M6 Large-Context Usability Baseline, M8 Context Strategy Router, M16 Corpus And Index Safety Governance.
 
@@ -10992,6 +10992,20 @@ Scope:
 - Do not proceed to live 384k acceptance until this phase passes.
 
 Acceptance target: live 384k validation cannot pass by reading stale, ignored, private, secret-like, or unapproved derived content.
+
+Completion proof:
+
+- Added `runtime/large_context_384k_stale_index_rejection_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_384k_stale_index_rejection`.
+- Added `scripts/validate_large_context_384k_stale_index_rejection.py`.
+- Hardened `vllm_agent_gateway.controllers.large_context.context_strategy.index_freshness_status` to reject changed ignore-policy and safety-policy fingerprints before strategy execution.
+- Hardened `vllm_agent_gateway.controllers.large_context.retrieval_answer.build_report` so retrieval returns `blocked` when all candidate evidence is rejected by freshness or policy checks.
+- Added focused regression coverage for stale source hash, changed ignore policy, changed safety policy, retrieval fail-closed behavior, and the Phase 260 gate.
+- Added `README.large-context-384k-stale-index-rejection.md` and `docs/examples/large-context-384k-stale-index-rejection.md`.
+- Phase 260 stale-index rejection gate passed with `case_count=6`, `passed_case_count=6`, and `phase261_ready=true`.
+- Focused Bash regression for Phase 260 passed.
+- Docs-index validation passed.
+- Full Bash regression returned `1617 passed`, `4 skipped`, and `23 deselected`.
 
 ### Approved Phase 261: Live 384k Acceptance Validator
 

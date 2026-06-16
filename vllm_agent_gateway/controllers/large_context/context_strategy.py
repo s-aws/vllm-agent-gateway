@@ -9,10 +9,12 @@ from typing import Any
 
 from vllm_agent_gateway.acceptance.context_index_prototype import (
     dict_value,
+    fingerprint_ignore_policy,
     object_list,
     read_json_object,
     resolve_path,
     sha256_file,
+    sha256_text,
 )
 from vllm_agent_gateway.controllers.large_context.retrieval_answer import (
     DEFAULT_CONTEXT_INDEX_POLICY_PATH,
@@ -178,11 +180,15 @@ def index_freshness_status(config_root: Path, target_root: Path, context_index_p
         policy = read_json_object(policy_path)
         index_path = resolve_path(config_root, str(dict_value(policy.get("index_artifact")).get("path")))
         index = read_json_object(index_path)
+        phase216_policy_path = resolve_path(config_root, str(policy.get("phase216_policy_path")))
+        phase216_policy = read_json_object(phase216_policy_path)
     except (OSError, RuntimeError, json.JSONDecodeError):
         return {"status": "missing_or_malformed", "stale_source_count": 0, "checked_source_count": 0}
     stale_count = 0
     checked_count = 0
     stale_examples: list[str] = []
+    current_ignore_fingerprint = fingerprint_ignore_policy(target_root, phase216_policy)
+    current_safety_fingerprint = sha256_text(json.dumps(phase216_policy, sort_keys=True))
     for chunk in object_list(index.get("chunks")):
         relative_path = str(chunk.get("relative_path") or chunk.get("source_path") or "")
         if not relative_path or Path(relative_path).is_absolute() or ".." in Path(relative_path).parts:
@@ -203,6 +209,8 @@ def index_freshness_status(config_root: Path, target_root: Path, context_index_p
             or chunk.get("source_sha256") != sha256_file(source_path)
             or chunk.get("source_size") != stat.st_size
             or chunk.get("source_mtime_ns") != stat.st_mtime_ns
+            or chunk.get("ignore_policy_fingerprint") != current_ignore_fingerprint
+            or chunk.get("safety_policy_fingerprint") != current_safety_fingerprint
         ):
             stale_count += 1
             if len(stale_examples) < 5:

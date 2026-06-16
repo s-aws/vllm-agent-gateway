@@ -41,6 +41,19 @@ DEFAULT_ARTIFACT_PAGE_SIZE = 4
 DEFAULT_TARGET_INPUT_LIMIT = 24_000
 DEFAULT_MODEL_CONTEXT_LIMIT = 65_536
 DEFAULT_MAX_SOURCE_LINES_READ = 80
+FRESHNESS_OR_POLICY_REJECTION_REASONS = {
+    "stale_index_freshness_status",
+    "stale_source_hash",
+    "stale_source_size",
+    "stale_source_mtime",
+    "changed_ignore_policy_hash",
+    "changed_safety_policy_hash",
+    "source_missing",
+    "invalid_relative_path",
+    "unexpected_context_strategy",
+    "unsupported_index_schema_version",
+    "source_text_field_present",
+}
 
 
 class RetrievalAnswerCategory(str, Enum):
@@ -614,6 +627,20 @@ def build_report(request: RetrievalBackedChatAnswerRequest, run_dir: Path) -> di
             max_evidence_refs=request.max_artifact_evidence_refs,
         )
         evidence_refs = artifact_evidence_refs[: request.max_evidence_refs]
+        rejected_reasons = {
+            reason
+            for decision in safety_decisions
+            if decision.get("decision") == "reject"
+            for reason in string_list(decision.get("reasons"))
+        }
+        if not evidence_refs and rejected_reasons.intersection(FRESHNESS_OR_POLICY_REJECTION_REASONS):
+            validation_errors.append(
+                {
+                    "id": "index.no_fresh_evidence",
+                    "severity": "high",
+                    "message": "all candidate retrieval evidence was rejected by freshness or policy checks",
+                }
+            )
         selected_token_estimate = sum(int(ref.get("chunk_token_estimate") or 0) for ref in evidence_refs)
         answer, limitations, confidence = build_retrieval_answer(
             category=category,

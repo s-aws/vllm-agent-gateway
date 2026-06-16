@@ -222,3 +222,33 @@ def test_unsafe_evidence_request_blocks_without_refs(tmp_path: Path) -> None:
     assert report["status"] == "blocked"
     assert report["evidence_refs"] == []
     assert "cannot retrieve private" in report["answer"].lower()
+
+
+def test_retrieval_answer_blocks_when_policy_fingerprint_changes(tmp_path: Path) -> None:
+    target_root, context_policy_path = make_context_index_policy(tmp_path)
+    context_policy = read_json_object(context_policy_path)
+    safety_policy_path = Path(context_policy["phase216_policy_path"])
+    safety_policy = read_json_object(safety_policy_path)
+    safety_policy["secret_like_patterns"].append({"contains": "NEW_SENTINEL"})
+    write_json(safety_policy_path, safety_policy)
+
+    result = invoke_retrieval_backed_chat_answer(
+        RetrievalBackedChatAnswerRequest(
+            config_root=REPO_ROOT,
+            target_root=target_root,
+            output_root=tmp_path / "changed-policy",
+            user_request="In the large corpus fixture, find evidence for how risk gate decisions flow into audit summaries.",
+            context_index_policy_path=context_policy_path,
+        )
+    )
+
+    report = result.report
+    assert isinstance(report, dict)
+    assert report["status"] == "blocked"
+    assert report["summary"]["route_status"] == "blocked"
+    assert report["evidence_refs"] == []
+    assert any(item["id"] == "index.no_fresh_evidence" for item in report["validation_errors"])
+    assert any(
+        "changed_safety_policy_hash" in decision.get("reasons", [])
+        for decision in report["safety_decisions"]
+    )

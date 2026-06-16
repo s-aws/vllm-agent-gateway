@@ -104,6 +104,7 @@ Examples are grouped by feature so the root README can stay small.
 - [Large-Context 384k Objective Rebaseline](large-context-384k-objective-rebaseline.md): validate that current large-context scope remains 384k-token project usability.
 - [Large-Context 384k Usability Acceptance Contract](large-context-384k-usability-acceptance-contract.md): validate the 384k product acceptance contract before fixture/index readiness, stale-index rejection, and live acceptance.
 - [Large-Context 384k Fixture And Index Readiness](large-context-384k-fixture-index-readiness.md): compose existing inventory, safety, and metadata-first index gates into a 384k readiness proof.
+- [Large-Context 384k Stale-Index Rejection](large-context-384k-stale-index-rejection.md): run disposable stale-source, changed-policy, missing-source, and unsafe-evidence fail-closed cases.
 - [Release-Candidate Runtime Health Restoration](release-candidate-runtime-health-restoration.md): verify post-restart runtime health, AnythingLLM target settings, and a minimal read-only workflow-router prompt before rerunning the release decision.
 - [Release-Candidate Ship Handoff](release-candidate-ship-handoff.md): validate committed ship handoff metadata, stable-channel readiness, and tester-doc freshness.
 - [Stable Release Blocker Closure](stable-release-blocker-closure.md): close prompt-tightening and founder-feedback blockers with governed evidence.

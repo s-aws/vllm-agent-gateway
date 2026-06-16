@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -68,6 +69,9 @@ def utc_timestamp() -> str:
 
 
 def resolve_path(config_root: Path, value: str | Path) -> Path:
+    text = str(value)
+    if os.name == "nt" and len(text) > 7 and text.startswith("/mnt/") and text[5].isalpha() and text[6] == "/":
+        return Path(f"{text[5].upper()}:/{text[7:]}")
     path = Path(value)
     return path if path.is_absolute() else config_root / path
 
@@ -258,7 +262,11 @@ def load_composed_reports(config_root: Path, policy: dict[str, Any]) -> tuple[di
     return reports, errors
 
 
-def validate_composed_reports(policy: dict[str, Any], reports: dict[str, dict[str, Any]]) -> list[dict[str, str]]:
+def validate_composed_reports(
+    config_root: Path,
+    policy: dict[str, Any],
+    reports: dict[str, dict[str, Any]],
+) -> list[dict[str, str]]:
     errors: list[dict[str, str]] = []
     gates = dict_value(policy.get("composed_gates"))
     phase214 = reports.get("phase214", {})
@@ -312,7 +320,7 @@ def validate_composed_reports(policy: dict[str, Any], reports: dict[str, dict[st
             errors.append(validation_error(f"phase217.{key}", f"{key} must match policy", source="phase217"))
     index_path = phase217.get("index_artifact_path")
     if isinstance(index_path, str):
-        artifact_path = Path(index_path)
+        artifact_path = resolve_path(config_root, index_path)
         if not artifact_path.is_file():
             errors.append(validation_error("phase217.index_artifact_path", "index artifact path must exist", source="phase217"))
     else:
@@ -374,7 +382,7 @@ def validate_large_context_384k_fixture_index_readiness(
         reports, report_load_errors = load_composed_reports(config_root, policy)
     after_fixtures = protected_fixture_fingerprints(config_root, policy)
     fixture_errors = fixture_mutation_errors(before_fixtures, after_fixtures)
-    composed_errors = validate_composed_reports(policy, reports)
+    composed_errors = validate_composed_reports(config_root, policy, reports)
     phase258_errors = []
     if phase258.get("status") != dict_value(policy.get("phase258_precondition")).get("required_status"):
         phase258_errors.append(validation_error("phase258.status", "Phase 258 acceptance contract must pass", source="phase258"))

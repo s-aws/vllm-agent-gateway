@@ -77,6 +77,48 @@ def test_context_strategy_selector_blocks_stale_index(tmp_path: Path) -> None:
     assert decision["source_freshness_status"] == "stale"
 
 
+def test_context_strategy_selector_blocks_changed_ignore_policy(tmp_path: Path) -> None:
+    target_root, context_policy_path = make_context_index_policy(tmp_path)
+    (target_root / ".gitignore").write_text("ignored/\nruntime-state/\n*.bin\n*.secret\nnew-deny/\n", encoding="utf-8")
+
+    decision = select_context_strategy(
+        config_root=REPO_ROOT,
+        target_root=target_root,
+        user_request="In the large corpus fixture, find evidence for how risk gate decisions flow into audit summaries.",
+        route_evidence=[{"source": "router_rule", "rule": "large_context_read_only_terms"}],
+        selected_workflow="code_investigation.plan",
+        request_context={"context_index_policy_path": str(context_policy_path)},
+    )
+
+    assert decision["selected_strategy"] == ContextStrategy.REFUSAL.value
+    assert decision["status"] == "blocked"
+    assert decision["reason"] == "stale_index_or_source_hash"
+    assert decision["source_freshness_status"] == "stale"
+
+
+def test_context_strategy_selector_blocks_changed_safety_policy(tmp_path: Path) -> None:
+    target_root, context_policy_path = make_context_index_policy(tmp_path)
+    context_policy = read_json_object(context_policy_path)
+    safety_policy_path = Path(context_policy["phase216_policy_path"])
+    safety_policy = read_json_object(safety_policy_path)
+    safety_policy["secret_like_patterns"].append({"contains": "NEW_SENTINEL"})
+    write_json(safety_policy_path, safety_policy)
+
+    decision = select_context_strategy(
+        config_root=REPO_ROOT,
+        target_root=target_root,
+        user_request="In the large corpus fixture, find evidence for how risk gate decisions flow into audit summaries.",
+        route_evidence=[{"source": "router_rule", "rule": "large_context_read_only_terms"}],
+        selected_workflow="code_investigation.plan",
+        request_context={"context_index_policy_path": str(context_policy_path)},
+    )
+
+    assert decision["selected_strategy"] == ContextStrategy.REFUSAL.value
+    assert decision["status"] == "blocked"
+    assert decision["reason"] == "stale_index_or_source_hash"
+    assert decision["source_freshness_status"] == "stale"
+
+
 def test_context_strategy_selector_selects_all_core_strategies(tmp_path: Path) -> None:
     target_root, context_policy_path = make_context_index_policy(tmp_path)
     route_evidence = [{"source": "router_rule", "rule": "large_context_read_only_terms"}]
