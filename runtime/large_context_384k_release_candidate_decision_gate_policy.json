@@ -1,0 +1,124 @@
+{
+  "acceptance_marker": "PHASE265 LARGE CONTEXT 384K RELEASE CANDIDATE DECISION GATE PASS",
+  "allowed_decisions": [
+    "ship",
+    "hold",
+    "repair_required"
+  ],
+  "decision_rules": {
+    "hold_on_runtime_health_failure": true,
+    "repair_on_missing_required_phase_or_artifact": true,
+    "ship_only_when_no_blockers": true
+  },
+  "kind": "large_context_384k_release_candidate_decision_gate_policy",
+  "known_limit_markers": [
+    "usable 384k-token projects",
+    "raw 384k prompt stuffing",
+    "Work above 384k tokens remains paused",
+    "Advanced broad refactor orchestration is not released"
+  ],
+  "milestone_ids": [
+    "M1",
+    "M6",
+    "M14"
+  ],
+  "phase": 265,
+  "priority_backlog_id": "P0-M6-265",
+  "required_docs": [
+    "README.getting-started.md",
+    "README.large-context-384k-live-acceptance.md",
+    "README.large-context-384k-clean-clone-replay.md",
+    "README.stable-handoff.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "docs/PROJECT_MILESTONES.md"
+  ],
+  "required_phase264_report": {
+    "expected_decision": "phase264_clean_clone_384k_usability_ready",
+    "expected_kind": "large_context_384k_clean_clone_replay_report",
+    "expected_status": "passed",
+    "minimum_anythingllm_response_count": 9,
+    "minimum_gateway_response_count": 9,
+    "minimum_response_count": 18,
+    "required_branch": "codex/m14-release-clone-proof",
+    "required_json_default_parity_status": "passed",
+    "required_remote_url_fragment": "s-aws/vllm-agent-gateway",
+    "required_static_gate_count": 5,
+    "required_strategy_ids": [
+      "artifact_paging",
+      "chunked_investigation",
+      "refusal",
+      "retrieval",
+      "summarization"
+    ],
+    "required_target_estimated_project_tokens": 384000,
+    "required_target_settings_status": "passed"
+  },
+  "required_phase_range": {
+    "end": 264,
+    "start": 258
+  },
+  "required_runtime_health": [
+    {
+      "id": "localhost_model",
+      "required": true,
+      "url": "http://127.0.0.1:8000/v1/models"
+    },
+    {
+      "id": "llm_gateway",
+      "required": true,
+      "url": "http://127.0.0.1:8300/v1/models"
+    },
+    {
+      "id": "controller",
+      "required": true,
+      "url": "http://127.0.0.1:8400/health"
+    },
+    {
+      "id": "workflow_router_gateway",
+      "required": true,
+      "url": "http://127.0.0.1:8500/v1/models"
+    },
+    {
+      "id": "reviewer_code",
+      "required": true,
+      "url": "http://127.0.0.1:8101/v1/models"
+    },
+    {
+      "id": "tester_code",
+      "required": true,
+      "url": "http://127.0.0.1:8102/v1/models"
+    },
+    {
+      "id": "architect_default",
+      "required": true,
+      "url": "http://127.0.0.1:8201/v1/models"
+    },
+    {
+      "id": "dispatcher_default",
+      "required": true,
+      "url": "http://127.0.0.1:8202/v1/models"
+    },
+    {
+      "id": "implementer_default",
+      "required": true,
+      "url": "http://127.0.0.1:8203/v1/models"
+    },
+    {
+      "id": "researcher_default",
+      "required": true,
+      "url": "http://127.0.0.1:8204/v1/models"
+    },
+    {
+      "id": "documenter_default",
+      "required": true,
+      "url": "http://127.0.0.1:8205/v1/models"
+    },
+    {
+      "id": "anythingllm_api",
+      "required": true,
+      "url": "http://127.0.0.1:3001/api/docs/"
+    }
+  ],
+  "schema_version": 1
+}
