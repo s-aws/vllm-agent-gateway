@@ -257,7 +257,8 @@ def roadmap_phase_statuses(config_root: Path, policy: dict[str, Any]) -> tuple[d
             status_match = re.search(r"^Status:\s*(?P<status>.+?)\s*$", body, flags=re.MULTILINE)
             status = status_match.group("status") if status_match else None
         statuses[str(phase)] = status
-        if status != expected_status:
+        status_matches = status == expected_status or (expected_status == "Approved." and status == "Complete.")
+        if not status_matches:
             errors.append(
                 validation_error(
                     f"roadmap.phase{phase}.status",

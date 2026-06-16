@@ -10947,7 +10947,7 @@ Completion proof:
 
 ### Approved Phase 259: 384k Fixture And Index Readiness Proof
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M6 Large-Context Usability Baseline, M16 Corpus And Index Safety Governance.
 
@@ -10963,6 +10963,17 @@ Scope:
 - Do not run live acceptance or claim chat-quality closeout.
 
 Acceptance target: Phase 261 can run against documented, fresh, source-hashed, governed 384k fixture/index state rather than undocumented runtime residue.
+
+Completion proof:
+
+- Added `runtime/large_context_384k_fixture_index_readiness_policy.json`.
+- Added `vllm_agent_gateway.acceptance.large_context_384k_fixture_index_readiness`.
+- Added `scripts/validate_large_context_384k_fixture_index_readiness.py`.
+- Added focused regression coverage for policy validation, synthetic report aggregation, under-target index rejection, and metadata-only safety requirements.
+- Added `README.large-context-384k-fixture-index-readiness.md` and `docs/examples/large-context-384k-fixture-index-readiness.md`.
+- Phase 259 readiness gate passed with `corpus_estimated_token_count=1286080`, `estimated_indexed_token_count=1286132`, `indexed_file_count=241`, `chunk_count=457`, and `phase260_ready=true`.
+- Phase 259 focused regression passed.
+- Docs-index validation passed.
 
 ### Approved Phase 260: 384k Stale-Index Rejection Hardening
 

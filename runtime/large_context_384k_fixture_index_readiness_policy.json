@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "large_context_384k_fixture_index_readiness_policy",
+  "phase": 259,
+  "priority_backlog_id": "P0-M6-259",
+  "milestone_ids": [
+    "M6",
+    "M16"
+  ],
+  "target_estimated_project_tokens": 384000,
+  "purpose": "Prove the accepted 384k-plus fixture and governed metadata-first index are ready before live 384k acceptance runs.",
+  "phase258_precondition": {
+    "policy_path": "runtime/large_context_384k_usability_acceptance_contract_policy.json",
+    "validator": "scripts/validate_large_context_384k_usability_acceptance_contract.py",
+    "required_status": "passed"
+  },
+  "composed_gates": {
+    "large_corpus_inventory": {
+      "phase": 214,
+      "policy_path": "runtime/large_corpus_context_budget_inventory_policy.json",
+      "report_path": "runtime-state/phase214/phase214-large-corpus-context-budget-inventory-report.json",
+      "required_status": "passed",
+      "minimum_estimated_token_count": 384000,
+      "required_phase215_ready": true
+    },
+    "corpus_index_safety": {
+      "phase": 216,
+      "policy_path": "runtime/corpus_index_safety_governance_policy.json",
+      "report_path": "runtime-state/phase216/phase216-corpus-index-safety-governance-report.json",
+      "required_status": "passed",
+      "minimum_negative_control_count": 13,
+      "required_phase217_ready": true
+    },
+    "context_index": {
+      "phase": 217,
+      "policy_path": "runtime/context_index_prototype_policy.json",
+      "report_path": "runtime-state/phase217/phase217-context-index-prototype-report.json",
+      "required_status": "passed",
+      "minimum_indexed_file_count": 220,
+      "minimum_chunk_count": 220,
+      "minimum_estimated_indexed_token_count": 384000,
+      "required_phase218_ready": true
+    }
+  },
+  "required_index_safety": {
+    "source_text_retention": "metadata_only",
+    "store_source_text": false,
+    "store_rejected_content": false,
+    "raw_prompt_stuffing_allowed": false,
+    "raw_384k_prompt_support_claim_allowed": false,
+    "raw_1m_prompt_support_claim_allowed": false,
+    "artifact_only_answers_allowed": false
+  },
+  "protected_fixture_roots": [
+    "/mnt/c/coinbase_testing_repo_frozen_tmp",
+    "/mnt/c/coinbase_testing_repo_frozen_tmp.github"
+  ],
+  "required_docs": [
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PROJECT_MILESTONES.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md",
+    "README.large-context-384k-fixture-index-readiness.md",
+    "docs/examples/large-context-384k-fixture-index-readiness.md"
+  ],
+  "required_doc_markers": {
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "### Approved Phase 259",
+      "Status: Complete.",
+      "384k Stale-Index Rejection Hardening"
+    ],
+    "docs/PROJECT_MILESTONES.md": [
+      "Phase 259",
+      "M6/M16"
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M6-259",
+      "384k fixture/index readiness"
+    ],
+    "README.large-context-384k-fixture-index-readiness.md": [
+      "PHASE259 LARGE CONTEXT 384K FIXTURE INDEX READINESS PASS",
+      "existing Phase 214, Phase 216, and Phase 217 gates"
+    ],
+    "docs/examples/large-context-384k-fixture-index-readiness.md": [
+      "validate_large_context_384k_fixture_index_readiness.py",
+      "384000"
+    ]
+  },
+  "acceptance_marker": "PHASE259 LARGE CONTEXT 384K FIXTURE INDEX READINESS PASS"
+}

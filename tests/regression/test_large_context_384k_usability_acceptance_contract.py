@@ -127,3 +127,17 @@ def test_phase258_rejects_unapproved_followup_status(tmp_path: Path) -> None:
 
     assert report["status"] == LargeContext384kUsabilityAcceptanceContractStatus.FAILED.value
     assert any(item["id"] == "roadmap.phase261.status" for item in report["errors"])
+
+
+def test_phase258_allows_followup_phase_completion(tmp_path: Path) -> None:
+    root, policy_path = temp_config(tmp_path, overrides={"259": "Complete."})
+    report = validate_large_context_384k_usability_acceptance_contract(
+        LargeContext384kUsabilityAcceptanceContractConfig(
+            config_root=root,
+            policy_path=policy_path,
+            output_path="runtime-state/phase258/report.json",
+            markdown_output_path="runtime-state/phase258/report.md",
+        )
+    )
+
+    assert report["status"] == LargeContext384kUsabilityAcceptanceContractStatus.PASSED.value

@@ -484,3 +484,13 @@ Next approved 384k product phases:
 - `P0-M6-264`: clean-clone 384k usability replay.
 - `P0-M6-265`: 384k release-candidate decision gate.
 - `P0-M6-266`: stable 384k handoff refresh.
+
+`P0-M6-259` completed in Phase 259. Proof lives in:
+
+- `runtime/large_context_384k_fixture_index_readiness_policy.json`
+- `vllm_agent_gateway/acceptance/large_context_384k_fixture_index_readiness.py`
+- `scripts/validate_large_context_384k_fixture_index_readiness.py`
+- `README.large-context-384k-fixture-index-readiness.md`
+- `docs/examples/large-context-384k-fixture-index-readiness.md`
+
+Phase 259 proves 384k fixture/index readiness by composing the existing Phase 214, Phase 216, and Phase 217 gates. It records a large-corpus estimate above the 384k target, a metadata-only index above the 384k target, query smoke proof, negative control proof, and protected Coinbase fixture fingerprints. Phase 260 remains required before live acceptance because stale-index rejection must be hardened separately.
