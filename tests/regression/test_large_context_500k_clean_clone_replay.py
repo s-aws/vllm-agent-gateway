@@ -55,6 +55,14 @@ def git_state(*, dirty: int = 0) -> dict:
 
 def gates(*, phase273_status: str = "passed") -> dict[str, dict]:
     return {
+        "controller_preflight": {
+            "status": "passed",
+            "summary": {
+                "controller_config_root": "/tmp/clone",
+                "clone_root_allowed": True,
+                "error_count": 0,
+            },
+        },
         "docs_index": {"status": "passed", "summary": {}},
         "phase270_candidate_rebaseline": {"status": "passed", "summary": {"phase270_ready": True}},
         "phase271_fixture_index_readiness": {"status": "passed", "summary": {"phase272_ready": True}},
@@ -138,6 +146,34 @@ def test_phase275_rejects_failed_phase273_gate(tmp_path: Path, monkeypatch: pyte
 
     assert report["status"] == LargeContext500kCleanCloneReplayStatus.FAILED.value
     assert any(item["id"] == "phase273_live_acceptance.status" for item in report["errors"])
+
+
+def test_phase275_controller_preflight_rejects_non_clone_hosted_controller(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    root, policy_path = temp_config(tmp_path)
+    monkeypatch.setattr(phase275, "git_state", lambda config_root: git_state())
+    monkeypatch.setattr(
+        phase275,
+        "read_controller_health",
+        lambda controller_base_url, timeout_seconds: {
+            "status": "ok",
+            "config_root": "/mnt/c/agentic_agents",
+            "allowed_target_roots": ["/mnt/c/agentic_agents"],
+        },
+    )
+
+    report = validate_large_context_500k_clean_clone_replay(
+        LargeContext500kCleanCloneReplayConfig(
+            config_root=root,
+            policy_path=policy_path,
+            output_path="runtime-state/phase275/report.json",
+            markdown_output_path="runtime-state/phase275/report.md",
+            live=True,
+        )
+    )
+
+    assert report["status"] == LargeContext500kCleanCloneReplayStatus.FAILED.value
+    assert any(item["id"] == "controller_preflight.config_root" for item in report["errors"])
+    assert any(item["id"] == "controller_preflight.allowed_target_roots" for item in report["errors"])
 
 
 def test_phase275_policy_rejects_runtime_state_tracking() -> None:

@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from vllm_agent_gateway.acceptance.large_context_384k_clean_clone_replay import (
     git_state,
@@ -127,6 +130,7 @@ def validate_policy(policy: dict[str, Any]) -> list[dict[str, str]]:
         "phase272_stale_index_rejection",
         "phase273_live_acceptance",
         "phase274_answer_quality_repair",
+        "controller_preflight",
     }:
         errors.append(validation_error("policy.required_gates", "gate set mismatch"))
     safety = dict_value(policy.get("safety_requirements"))
@@ -190,6 +194,97 @@ def source_checks(policy: dict[str, Any], before: dict[str, Any], after: dict[st
     return errors
 
 
+def is_path_under(path: Path, root: Path) -> bool:
+    try:
+        path.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def read_controller_health(controller_base_url: str, timeout_seconds: int) -> dict[str, Any]:
+    url = controller_base_url.rstrip("/") + "/health"
+    request = Request(url, headers={"Accept": "application/json"})
+    try:
+        with urlopen(request, timeout=timeout_seconds) as response:
+            payload = response.read().decode("utf-8")
+            value = read_json_object_from_text(payload)
+            value["http_status"] = response.status
+            value["url"] = url
+            return value
+    except HTTPError as exc:
+        return {
+            "status": "failed",
+            "http_status": exc.code,
+            "url": url,
+            "error": str(exc),
+        }
+    except (OSError, URLError, TimeoutError) as exc:
+        return {
+            "status": "failed",
+            "url": url,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+
+
+def read_json_object_from_text(text: str) -> dict[str, Any]:
+    try:
+        value = json.loads(text)
+    except Exception as exc:  # pragma: no cover - defensive parsing guard
+        raise ValueError(f"controller health returned invalid JSON: {exc}") from exc
+    if not isinstance(value, dict):
+        raise ValueError("controller health must return a JSON object")
+    return value
+
+
+def controller_preflight(config: LargeContext500kCleanCloneReplayConfig) -> dict[str, Any]:
+    if not config.live:
+        return {"status": "skipped", "reason": "live flag not enabled"}
+    health = read_controller_health(config.controller_base_url, min(config.timeout_seconds, 30))
+    config_root = config.config_root.resolve()
+    allowed_roots = [Path(root) for root in string_list(health.get("allowed_target_roots"))]
+    health_config_root = str(health.get("config_root") or "")
+    checks = {
+        "health_status_ok": health.get("status") == "ok",
+        "config_root_matches_clone": health_config_root == str(config_root),
+        "clone_root_allowed": any(is_path_under(config_root, root) for root in allowed_roots),
+    }
+    errors: list[dict[str, str]] = []
+    if not checks["health_status_ok"]:
+        errors.append(validation_error("health", "controller health did not return ok", source="controller_preflight", severity="critical"))
+    if not checks["config_root_matches_clone"]:
+        errors.append(
+            validation_error(
+                "config_root",
+                f"controller config_root must be the clean clone ({config_root}); got {health_config_root or '<missing>'}",
+                source="controller_preflight",
+                severity="critical",
+            )
+        )
+    if not checks["clone_root_allowed"]:
+        errors.append(
+            validation_error(
+                "allowed_target_roots",
+                f"controller allowed_target_roots must include the clean clone root {config_root}",
+                source="controller_preflight",
+                severity="critical",
+            )
+        )
+    return {
+        "status": "passed" if not errors else "failed",
+        "health": health,
+        "checks": checks,
+        "errors": errors,
+        "summary": {
+            "controller_config_root": health_config_root or None,
+            "controller_allowed_target_root_count": len(allowed_roots),
+            "clone_root_allowed": checks["clone_root_allowed"],
+            "config_root_matches_clone": checks["config_root_matches_clone"],
+            "error_count": len(errors),
+        },
+    }
+
+
 def docs_index_check(config_root: Path) -> dict[str, Any]:
     result = run_command(["python3", "scripts/check_docs_index.py"], cwd=config_root, timeout_seconds=120)
     return {"status": "passed" if result.get("returncode") == 0 else "failed", **result}
@@ -219,6 +314,7 @@ def run_gate(gate_id: str, callback: Any) -> dict[str, Any]:
 def run_gates(config: LargeContext500kCleanCloneReplayConfig) -> dict[str, dict[str, Any]]:
     root = config.config_root.resolve()
     return {
+        "controller_preflight": run_gate("controller_preflight", lambda: controller_preflight(config)),
         "docs_index": run_gate("docs_index", lambda: docs_index_check(root)),
         "phase270_candidate_rebaseline": run_gate(
             "phase270_candidate_rebaseline",
@@ -367,6 +463,9 @@ def validate_large_context_500k_clean_clone_replay(
             "runtime_state_ignored": before_git.get("runtime_state_ignored"),
             "gate_count": len(gates),
             "passed_gate_count": passed_gate_count,
+            "controller_preflight_status": dict_value(gates.get("controller_preflight")).get("status"),
+            "controller_config_root": dict_value(dict_value(gates.get("controller_preflight")).get("summary")).get("controller_config_root"),
+            "controller_clone_root_allowed": dict_value(dict_value(gates.get("controller_preflight")).get("summary")).get("clone_root_allowed"),
             "phase273_response_count": phase273_summary.get("response_count"),
             "phase273_gateway_response_count": phase273_summary.get("gateway_response_count"),
             "phase273_anythingllm_response_count": phase273_summary.get("anythingllm_response_count"),

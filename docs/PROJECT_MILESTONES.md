@@ -127,7 +127,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 272 | M6/M8/M15/M16 | Complete. Proved stale-index, changed-policy, changed-source, and unsafe-evidence rejection for the 500k candidate by requiring Phase 271 readiness and delegating fail-closed case execution to the existing Phase 260 path. |
 | Phase 273 | M2/M4/M6/M8/M13/M14/M15/M16 | Complete. Ran the 500k candidate through live workflow-router gateway and AnythingLLM acceptance by requiring Phase 272 proof and delegating live execution to the existing Phase 261 path. |
 | Phase 274 | M2/M4/M6/M8/M15 | Complete. Closed targeted 500k answer-quality repair as no repair required because Phase 273 live acceptance had zero accepted critical or high findings. |
-| Phase 275 | M14/M15/M16 | Complete. Replayed the 500k candidate path from a fresh remote branch clone without active workspace state. |
+| Phase 275 | M14/M15/M16 | Approved. Replay the 500k candidate path from a fresh remote branch clone and require the live controller stack to be hosted from that clone before clean-clone proof can close. |
 | Phase 276 | M1/M14/M15 | Approved. Aggregate the 500k proof chain into ship, hold, or repair-required decision. |
 | Phase 277 | M14/M15 | Approved. Refresh stable handoff only if the Phase 276 decision is ship; otherwise record hold or repair state without changing the stable baseline. |
 

@@ -9193,6 +9193,7 @@ class ControllerRequestHandler(BaseHTTPRequestHandler):
                 {
                     "status": "ok",
                     "kind": "controller_service",
+                    "config_root": str(self.server.config.config_root),
                     "allowed_target_roots": [str(path) for path in self.server.config.allowed_target_roots],
                     "output_root": str(self.server.config.output_root),
                 },

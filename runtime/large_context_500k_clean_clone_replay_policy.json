@@ -19,6 +19,7 @@
     "require_runtime_state_ignored": true
   },
   "required_gates": [
+    "controller_preflight",
     "docs_index",
     "phase270_candidate_rebaseline",
     "phase271_fixture_index_readiness",
@@ -56,7 +57,7 @@
     ],
     "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
       "### Approved Phase 275",
-      "Status: Complete.",
+      "Status: Approved.",
       "500k Candidate Decision Gate"
     ],
     "docs/PROJECT_MILESTONES.md": [

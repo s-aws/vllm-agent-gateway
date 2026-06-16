@@ -1136,6 +1136,8 @@ def test_controller_service_health_and_direct_chat_rejection(tmp_path: Path) -> 
         assert headers["Connection"] == "close"
         assert body["status"] == "ok"
         assert body["kind"] == "controller_service"
+        assert body["config_root"] == str(REPO_ROOT)
+        assert body["allowed_target_roots"] == [str(tmp_path / "allowed")]
 
         status, body = request_json(host, port, "POST", "/v1/chat/completions", {"messages": []})
         assert status == 404

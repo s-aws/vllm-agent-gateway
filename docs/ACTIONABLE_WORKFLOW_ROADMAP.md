@@ -691,7 +691,7 @@ Exit criteria:
 
 ## Phase 1: Workflow Router Plan-Only MVP
 
-Status: Complete.
+Status: Approved.
 
 Goal: prove natural-language routing without executing repository work.
 
@@ -11414,7 +11414,7 @@ Result:
 
 ### Approved Phase 275: Clean-Clone 500k Candidate Replay
 
-Status: Complete.
+Status: Approved.
 
 Milestone mapping: M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
 
@@ -11434,10 +11434,11 @@ Result:
 - Added `runtime/large_context_500k_clean_clone_replay_policy.json`.
 - Added `vllm_agent_gateway.acceptance.large_context_500k_clean_clone_replay`.
 - Added `scripts/validate_large_context_500k_clean_clone_replay.py`.
-- Added focused regression coverage for policy validation, synthetic clean-clone pass, dirty clone after replay, failed Phase 273 gate, and tracked `runtime-state/` rejection.
+- Added focused regression coverage for policy validation, synthetic clean-clone pass, dirty clone after replay, failed Phase 273 gate, controller preflight rejection, and tracked `runtime-state/` rejection.
 - Added `README.large-context-500k-clean-clone-replay.md` and `docs/examples/large-context-500k-clean-clone-replay.md`.
 - Preliminary focused regression passed with `10 passed` across the Phase 274 and Phase 275 guards.
 - Docs index validation passed with `363` linked docs and zero orphaned docs.
+- Live clean-clone replay remains required before Phase 275 can close. The first replay attempt correctly exposed that the running controller stack was still hosted from `/mnt/c/agentic_agents`, so Phase 275 now requires controller preflight proof that the live stack is hosted from the clone root.
 
 ### Approved Phase 276: 500k Candidate Decision Gate
 
