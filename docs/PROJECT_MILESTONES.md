@@ -130,6 +130,8 @@ The first proposed milestone-aligned phase set is:
 | Phase 275 | M14/M15/M16 | Complete. Replayed the 500k candidate path from a fresh remote branch clone at commit `9dc768f`, with clone-hosted controller preflight, live gateway, live AnythingLLM, clean source before/after, and `phase276_ready=true`. |
 | Phase 276 | M1/M14/M15 | Complete. Aggregated the 500k proof chain into decision `ship` with zero blockers, zero runtime-health blockers, Phase 275 clean-clone proof, and `phase277_ready=true`; raw 500k prompt serving remains out of scope. |
 | Phase 277 | M14/M15 | Complete. Refreshed stable handoff metadata, docs, examples, and completion audit for governed 500k-token project usability after Phase 276 returned `ship`, while preserving 384k lineage and rejecting raw 500k prompt-serving claims. |
+| Phase 278 | M2/M4/M6/M8/M15/M16 | Complete. Added an adversarial context stitching fixture and scorer for cross-chunk synthesis, precedence handling, boundary loss, randomized retrieval-order, and hallucinated reconciliation failures after the governed 500k path became stable. |
+| Phase 279 | M2/M4/M6/M8/M13 | Approved. Define the corpus QA gateway route contract needed for supplied long-form corpus prompts to reach answer synthesis instead of being rejected as missing-target coding requests. |
 
 ## Usage Rules
 

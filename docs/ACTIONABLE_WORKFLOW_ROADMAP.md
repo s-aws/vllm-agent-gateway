@@ -11501,3 +11501,53 @@ Implementation summary:
 - Live stable handoff smoke passed with `status=passed`, `command_count=4`, `check_count=6`, zero failed checks, child doctor/release-channel/security/onboarding reports, and protected fixture checks over both frozen Coinbase roots.
 - Full Bash regression passed with `1679 passed`, `4 skipped`, and `23 deselected`.
 - Raw 500k prompt serving is not claimed; raw 1M-token prompt serving is not claimed; advanced broad refactor orchestration remains deferred.
+
+### Approved Phase 278: Adversarial Context Stitching Fixture
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
+
+Goal: add a durable adversarial fixture that catches large-context answer failures not exposed by simple retrieval success: cross-chunk synthesis failure, precedence mistakes, boundary loss, and hallucinated reconciliation.
+
+Scope:
+
+- Generate the Meridian Gate adversarial corpus with irrelevant filler blocks large enough to force chunking under normal retrieval configurations.
+- Emit standard, zero-overlap, and randomized retrieval-order fixture artifacts for future release validation.
+- Score expected, captured, or live gateway answers against all eight required outcomes.
+- Fail hard if the answer allows EU rollout, uses November 15 as the controlling launch date, allows Payments API v2 in production, miscalculates total cost or CFO approval, loses `ORCHID-17`, or changes sentinel order.
+- Keep this as a validation fixture and scorer; do not introduce a new retrieval implementation, new chat endpoint, or raw 500k prompt-serving claim.
+
+Acceptance target: a contextless maintainer can generate the adversarial corpus, feed the standard prompt through the gateway when the local stack is available, score captured answers from any client surface, and use the zero-overlap/randomized-order manifests as future regression gates.
+
+Result:
+
+- Added `runtime/adversarial_context_stitching_policy.json`.
+- Added `vllm_agent_gateway.acceptance.adversarial_context_stitching`.
+- Added `scripts/validate_adversarial_context_stitching.py`.
+- Added focused regression coverage for policy validation, fixture generation, expected-answer scoring, wrong launch date, EU allowed, boundary loss, sentinel order loss, failed answer-file scoring, and live-gateway request wiring.
+- Added `README.adversarial-context-stitching.md` and `docs/examples/adversarial-context-stitching.md`.
+- The fixture writes standard prompt, zero-overlap chunk manifest, randomized retrieval-order chunk manifest, expected answer, JSON report, and Markdown report under `runtime-state/phase278/`.
+- Phase 278 static fixture validation passed with three fixture modes, zero expected-answer hard failures, and `phase279_ready=true`.
+- First live gateway scoring attempt returned `missing_target_root_for_coding_request` and failed all eight hard outcomes because the workflow router treated the supplied corpus QA prompt as an unsupported coding request. This is a measured product gap, not a model synthesis pass.
+- Focused regression passed with `10 passed`.
+- Docs index validation passed with `370` linked docs and zero orphaned docs.
+- Full Bash regression passed with `1689 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 279: Corpus QA Gateway Route Contract
+
+Status: Approved.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery.
+
+Goal: define and validate the smallest gateway route contract that lets supplied corpus/document-QA prompts reach an answer path instead of failing as missing-target coding requests.
+
+Scope:
+
+- Detect supplied-corpus QA prompts without weakening coding-workflow target-root requirements.
+- Route only bounded read-only corpus QA prompts; do not add source mutation, repository inspection, or new raw 500k prompt-serving claims.
+- Reuse the existing chat-visible answer contract and output-format behavior.
+- Run Phase 278 live gateway scoring as the target proof after the route contract exists.
+- Keep AnythingLLM and randomized/zero-overlap proof as follow-up unless the route contract can cover them without broadening implementation scope.
+
+Acceptance target: `python3 scripts/validate_adversarial_context_stitching.py --live-gateway` reaches an answer-producing route and fails or passes on the eight corpus QA outcomes, rather than refusing with `missing_target_root_for_coding_request`.

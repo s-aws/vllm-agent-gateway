@@ -1,0 +1,64 @@
+{
+  "acceptance_marker": "PHASE278 ADVERSARIAL CONTEXT STITCHING PASS",
+  "corpus_id": "meridian_gate_adversarial_context_stitching_v1",
+  "filler": {
+    "boundary_minimum_token_count": 2600,
+    "maximum_token_count": 5000,
+    "minimum_token_count": 2000,
+    "standard_token_count": 2400
+  },
+  "fixture_modes": [
+    "standard",
+    "zero_overlap",
+    "randomized_retrieval_order"
+  ],
+  "kind": "adversarial_context_stitching_policy",
+  "milestone_ids": [
+    "M2",
+    "M4",
+    "M6",
+    "M8",
+    "M15",
+    "M16"
+  ],
+  "phase": 278,
+  "priority_backlog_id": "P0-M6-278",
+  "required_doc_markers": {
+    "README.adversarial-context-stitching.md": [
+      "PHASE278 ADVERSARIAL CONTEXT STITCHING PASS",
+      "cross-chunk synthesis",
+      "zero-overlap",
+      "randomized retrieval-order"
+    ],
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md": [
+      "Approved Phase 278: Adversarial Context Stitching Fixture",
+      "Status: Complete."
+    ],
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md": [
+      "P0-M6-278",
+      "adversarial context stitching"
+    ],
+    "docs/examples/adversarial-context-stitching.md": [
+      "validate_adversarial_context_stitching.py",
+      "--answer-file",
+      "--live-gateway"
+    ]
+  },
+  "required_docs": [
+    "README.adversarial-context-stitching.md",
+    "docs/examples/adversarial-context-stitching.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md"
+  ],
+  "required_hard_failure_outcomes": [
+    "launch_date",
+    "regions",
+    "eu_rollout",
+    "payments_api",
+    "contract_cost",
+    "kill_switch",
+    "sentinel_order",
+    "obsolete_facts"
+  ],
+  "schema_version": 1
+}

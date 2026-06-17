@@ -503,6 +503,7 @@ Next approved 384k product phases:
 - `P0-M15-275`: clean-clone 500k candidate replay. Complete.
 - `P0-M15-276`: 500k candidate decision gate. Complete.
 - `P0-M15-277`: stable 500k handoff refresh or hold. Complete.
+- `P0-M6-278`: adversarial context stitching fixture. Complete.
 
 `P0-M6-259` completed in Phase 259. Proof lives in:
 
@@ -567,3 +568,15 @@ Phase 263 makes the accepted 384k tester path durable for contextless first-time
 `P0-M15-276` completed in Phase 276. It consumed the explicit Phase 275 clean-clone report path `/tmp/agentic_agents_phase275_remote_clone/runtime-state/phase275/phase275-large-context-500k-clean-clone-replay-report.json` and returned `decision=ship` with `blocker_count=0`, `runtime_health_blocker_count=0`, `phase275_status=passed`, `phase275_decision=phase275_clean_clone_500k_candidate_ready`, `candidate_estimated_project_tokens=500000`, `stable_estimated_project_tokens=384000`, `phase273_response_count=18`, `phase273_gateway_response_count=9`, `phase273_anythingllm_response_count=9`, `phase273_critical_or_high_finding_count=0`, `phase273_json_default_parity_status=passed`, `raw_prompt_stuffing_allowed=false`, and `phase277_ready=true`. It does not promote raw 500k prompt serving; Phase 277 must refresh or hold the stable handoff explicitly.
 
 `P0-M15-277` completed in Phase 277. It consumed the Phase 276 ship report and refreshed stable release-channel metadata, committed proof metadata, stable handoff docs, getting-started docs, examples, and `docs/LARGE_CONTEXT_500K_COMPLETION_AUDIT.md` for governed 500k-token project usability. Phase 277 validation passed with `decision=stable_500k_handoff_refreshed`, `blocker_count=0`, `phase276_status=passed`, `phase276_decision=ship`, `candidate_estimated_project_tokens=500000`, and `phase278_ready=true`. The live stable handoff smoke passed after the wrapper learned the split-url case through `--expected-anythingllm-llm-base-url`, with zero failed checks and protected fixture checks over both frozen Coinbase roots. Full Bash regression passed with `1679 passed`, `4 skipped`, and `23 deselected`. Raw 500k prompt serving is not claimed; raw 1M-token prompt serving is not claimed; advanced broad refactor orchestration remains deferred.
+
+`P0-M6-278` completed in Phase 278. It adds the adversarial context stitching fixture for cross-chunk synthesis, precedence handling, boundary loss, and hallucinated reconciliation. Proof lives in:
+
+- `runtime/adversarial_context_stitching_policy.json`
+- `vllm_agent_gateway/acceptance/adversarial_context_stitching.py`
+- `scripts/validate_adversarial_context_stitching.py`
+- `README.adversarial-context-stitching.md`
+- `docs/examples/adversarial-context-stitching.md`
+
+Phase 278 generates standard, zero-overlap, and randomized retrieval-order Meridian Gate fixture artifacts. It scores expected, captured, or live gateway answers against eight hard outcomes: launch date, proceedable regions, EU DPA blocker, production Payments API, total contract cost and CFO approval, contiguous `ORCHID-17`, sentinel order, and obsolete facts. The static fixture gate passed with three fixture modes, zero expected-answer hard failures, and `phase279_ready=true`; focused regression passed with `10 passed`; docs index validation passed with `370` linked docs and zero orphaned docs; full Bash regression passed with `1689 passed`, `4 skipped`, and `23 deselected`.
+
+The first live gateway scoring attempt exposed a route-level blocker before model synthesis: the workflow router returned `missing_target_root_for_coding_request` for the supplied corpus QA prompt and failed all eight hard outcomes. The next Priority 0 backlog item is `P0-M6-279`: define a corpus QA gateway route contract that preserves coding target-root safety while allowing bounded supplied-corpus questions to reach an answer path.
