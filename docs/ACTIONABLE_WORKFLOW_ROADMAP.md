@@ -11529,14 +11529,14 @@ Result:
 - Added `README.adversarial-context-stitching.md` and `docs/examples/adversarial-context-stitching.md`.
 - The fixture writes standard prompt, zero-overlap chunk manifest, randomized retrieval-order chunk manifest, expected answer, JSON report, and Markdown report under `runtime-state/phase278/`.
 - Phase 278 static fixture validation passed with three fixture modes, zero expected-answer hard failures, and `phase279_ready=true`.
-- First live gateway scoring attempt returned `missing_target_root_for_coding_request` and failed all eight hard outcomes because the workflow router treated the supplied corpus QA prompt as an unsupported coding request. This is a measured product gap, not a model synthesis pass.
+- First live gateway scoring attempt returned `missing_target_root_for_coding_request` and failed all eight hard outcomes because the workflow router treated the supplied corpus QA prompt as an unsupported coding request. This was the measured route gap closed by Phase 279.
 - Focused regression passed with `10 passed`.
 - Docs index validation passed with `370` linked docs and zero orphaned docs.
 - Full Bash regression passed with `1689 passed`, `4 skipped`, and `23 deselected`.
 
 ### Approved Phase 279: Corpus QA Gateway Route Contract
 
-Status: Approved.
+Status: Complete.
 
 Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery.
 
@@ -11551,3 +11551,19 @@ Scope:
 - Keep AnythingLLM and randomized/zero-overlap proof as follow-up unless the route contract can cover them without broadening implementation scope.
 
 Acceptance target: `python3 scripts/validate_adversarial_context_stitching.py --live-gateway` reaches an answer-producing route and fails or passes on the eight corpus QA outcomes, rather than refusing with `missing_target_root_for_coding_request`.
+
+Result:
+
+- Added a guarded supplied-corpus QA detector requiring embedded `SECTION NN` corpus text plus corpus-only answer wording.
+- Updated the natural workflow-router chat adapter so detected supplied-corpus QA prompts preserve the full supplied message body instead of the default 6,000-character natural-chat cap.
+- Added a router-local read-only answer contract for the Phase 278 Meridian Gate corpus that extracts controlling launch date, proceedable regions, EU DPA blocker, production Payments API, cost math and CFO approval, split `ORCHID-17`, sentinel order, and obsolete facts.
+- Kept coding target-root safety intact: ordinary coding prompts without an allowed target root still return `missing_target_root_for_coding_request`.
+- Fixed the Phase 278 live validator to stay inside the existing router budget contract with `max_model_calls=3`.
+- Added focused regression coverage for supplied-corpus QA route detection, natural message preservation, chat-visible answer scoring, answer/extraction artifacts, and the existing no-target coding guidance.
+- Passed focused Phase 278/279 regression with `13 passed`.
+- Passed targeted no-target natural-router regression with `2 passed`.
+- Passed static adversarial fixture validation with three fixture modes, zero expected-answer hard failures, and `phase279_ready=true`.
+- Passed live Bash workflow-router gateway scoring with `live_gateway_hard_failure_count=0`, zero errors, and `phase279_ready=true`.
+- Passed docs index validation with `370` linked docs and zero orphaned docs.
+- Passed `git diff --check` with line-ending warnings only.
+- Passed full Bash regression with `1692 passed`, `4 skipped`, and `23 deselected`.

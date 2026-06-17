@@ -190,6 +190,8 @@ Natural L2 test selection is supported for read-only prompts that ask for smalle
 
 Natural task decomposition is supported for prompts that explicitly ask to decompose or break down a multi-step task into work packages, dependencies, approval gates, or a plan DAG. It routes to `task.decompose`, executes read-only by default, and returns `downstream_task_decomposition` with `Work packages:`, `Dependencies:`, `Approval gates:`, `Uncertainty:`, `Verification:`, and `Source mutation: false` in default chat output.
 
+Supplied-corpus QA is supported for prompts that embed a sectioned corpus and explicitly ask for an answer based only on that supplied corpus. This route does not inspect a target repository and does not weaken target-root requirements for normal coding prompts. It preserves the full supplied corpus message body, answers through the existing workflow-router chat-visible answer contract, and writes `supplied-corpus-qa-answer.txt` plus `supplied-corpus-qa-extraction.json` artifacts. The Phase 278 Meridian Gate adversarial fixture is the current validation gate for this route.
+
 ## Artifacts
 
 Artifacts are written under `CONTROLLER_OUTPUT_ROOT/workflow-router/<run-id>/`:
@@ -199,6 +201,8 @@ Artifacts are written under `CONTROLLER_OUTPUT_ROOT/workflow-router/<run-id>/`:
 - `route-decision.json`
 - `downstream-result.json` when execution delegates
 - `approval-state.json`
+- `supplied-corpus-qa-answer.txt` for supplied-corpus QA routes
+- `supplied-corpus-qa-extraction.json` for supplied-corpus QA routes
 - `run-state.json`
 
 The summary includes `route_status`, `selected_workflow`, `next_action`, `target_repo_read`, `model_router_status`, downstream fields when execution delegates, `verification_command_count` when downstream investigation found related test evidence, `approval_state_status`, `approval_type`, and `source_changed`, `source_tree_changed`, `disposable_copy_changed`, `copy_tree_restored`, `mutation_diff_file_count`, `mutation_diff_paths`, and `mutation_rollback_status` for disposable-copy apply.

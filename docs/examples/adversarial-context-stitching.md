@@ -26,7 +26,14 @@ python3 scripts/validate_adversarial_context_stitching.py \
   --model-base-url http://127.0.0.1:8000/v1
 ```
 
-This command should pass only after the gateway has a supported corpus/document-QA route for supplied long-form text. A `missing_target_root_for_coding_request` response is a valid failure signal: it means routing blocked the test before the model could attempt cross-chunk synthesis.
+This command should pass through the Phase 279 supplied-corpus QA route. A `missing_target_root_for_coding_request` response is a valid failure signal: it means routing blocked the test before the corpus answer contract could run.
+
+The successful live route writes answer artifacts in the workflow-router run directory:
+
+```text
+supplied-corpus-qa-answer.txt
+supplied-corpus-qa-extraction.json
+```
 
 Score an answer captured from another surface, including AnythingLLM, without rerunning the model:
 

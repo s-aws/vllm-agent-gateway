@@ -156,6 +156,7 @@ from vllm_agent_gateway.controllers.workflow_router.plan import (
     is_l1_small_unit_test_request,
     is_l1_small_text_edit_request,
     is_large_context_read_only_request,
+    is_supplied_corpus_qa_request,
     is_task_decomposition_request,
     is_skill_batch_proposal_request,
     invoke_workflow_router_plan,
@@ -511,6 +512,8 @@ WORKFLOW_ROUTER_FIELDS = {
     "role_base_url",
     "model",
 }
+DEFAULT_NATURAL_USER_MESSAGE_LIMIT = 6000
+SUPPLIED_CORPUS_QA_USER_MESSAGE_LIMIT = 2_000_000
 
 
 class ControllerServiceError(RuntimeError):
@@ -1531,7 +1534,9 @@ def latest_user_message_text_optional(payload: dict[str, Any]) -> str:
         if role == "user" or role is None:
             text = chat_content_to_text(message.get("content")).strip()
             if text:
-                return bounded_string(text, 6000)
+                if is_supplied_corpus_qa_request(text):
+                    return bounded_string(text, SUPPLIED_CORPUS_QA_USER_MESSAGE_LIMIT)
+                return bounded_string(text, DEFAULT_NATURAL_USER_MESSAGE_LIMIT)
     return ""
 
 
@@ -5437,7 +5442,9 @@ def latest_user_message_text(payload: dict[str, Any]) -> str:
         if role == "user" or role is None:
             text = chat_content_to_text(message.get("content")).strip()
             if text:
-                return bounded_string(text, 6000)
+                if is_supplied_corpus_qa_request(text):
+                    return bounded_string(text, SUPPLIED_CORPUS_QA_USER_MESSAGE_LIMIT)
+                return bounded_string(text, DEFAULT_NATURAL_USER_MESSAGE_LIMIT)
     raise ControllerServiceError("Workflow-router chat requires a non-empty latest user message.", code="missing_user_message")
 
 
@@ -5480,6 +5487,12 @@ def target_root_from_natural_request(user_request: str, payload: dict[str, Any])
     )
 
 
+def default_natural_router_target_root(config: ControllerServiceConfig) -> str:
+    if config.allowed_target_roots:
+        return str(config.allowed_target_roots[0])
+    return str(config.config_root)
+
+
 def is_natural_control_request_without_target(user_request: str) -> bool:
     text = user_request.lower()
     control_terms = (
@@ -5518,6 +5531,8 @@ def no_target_guidance_kind(user_request: str, payload: dict[str, Any]) -> str |
     if target_paths_from_natural_text(user_request):
         return None
     if RUN_ID_IN_TEXT_RE.search(user_request):
+        return None
+    if is_supplied_corpus_qa_request(user_request):
         return None
     if is_natural_control_request_without_target(user_request):
         return None
@@ -5561,6 +5576,8 @@ def no_target_guidance_kind(user_request: str, payload: dict[str, Any]) -> str |
 
 
 def infer_workflow_router_mode(user_request: str) -> str:
+    if is_supplied_corpus_qa_request(user_request):
+        return "plan_only"
     text = user_request.lower()
     if is_skill_batch_proposal_request(text):
         return "execute_read_only"
@@ -7455,7 +7472,8 @@ def natural_workflow_router_payload(payload: dict[str, Any], config: ControllerS
     approval_payload = natural_approval_continuation_payload(payload, user_request, config)
     if approval_payload is not None:
         return approval_payload
-    target_root = target_root_from_natural_request(user_request, payload)
+    supplied_corpus_qa = is_supplied_corpus_qa_request(user_request)
+    target_root = default_natural_router_target_root(config) if supplied_corpus_qa else target_root_from_natural_request(user_request, payload)
     budgets = payload.get("budgets")
     if not isinstance(budgets, dict):
         budgets = {
@@ -7468,7 +7486,7 @@ def natural_workflow_router_payload(payload: dict[str, Any], config: ControllerS
         "schema_version": 1,
         "target_root": target_root,
         "user_request": user_request,
-        "mode": infer_workflow_router_mode(user_request),
+        "mode": "plan_only" if supplied_corpus_qa else infer_workflow_router_mode(user_request),
         "budgets": budgets,
     }
     if isinstance(payload.get("context"), dict):

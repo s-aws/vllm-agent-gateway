@@ -8,12 +8,25 @@ from vllm_agent_gateway.acceptance.adversarial_context_stitching import (
     DEFAULT_POLICY_PATH,
     AdversarialContextStitchingConfig,
     AdversarialContextStitchingStatus,
+    FixtureMode,
+    build_corpus,
     expected_answer,
+    prompt_for_corpus,
     read_json_object,
     score_answer,
     validate_adversarial_context_stitching,
     validate_policy,
     write_json,
+)
+from vllm_agent_gateway.controller_service.server import (
+    ControllerServiceConfig,
+    handle_workflow_router_chat_completion,
+    latest_user_message_text,
+)
+from vllm_agent_gateway.controllers.workflow_router.plan import (
+    SUPPLIED_CORPUS_QA_STATUS,
+    is_supplied_corpus_qa_request,
+    workflow_kind_for_request,
 )
 
 
@@ -149,6 +162,60 @@ def test_phase278_live_gateway_uses_standard_prompt(monkeypatch, tmp_path: Path)
 
     assert report["status"] == AdversarialContextStitchingStatus.PASSED.value
     assert report["summary"]["live_gateway_hard_failure_count"] == 0
+
+
+def test_phase279_router_detects_supplied_corpus_qa() -> None:
+    prompt = prompt_for_corpus(build_corpus(policy(), FixtureMode.STANDARD)["corpus"])
+
+    workflow_id, status_reason, evidence = workflow_kind_for_request(prompt)
+
+    assert workflow_id is None
+    assert status_reason == "supplied_corpus_qa"
+    assert is_supplied_corpus_qa_request(prompt) is True
+    assert any(item.get("rule") == "supplied_corpus_qa_terms" for item in evidence)
+
+
+def test_phase279_supplied_corpus_qa_preserves_full_natural_message() -> None:
+    prompt = prompt_for_corpus(build_corpus(policy(), FixtureMode.STANDARD)["corpus"])
+    payload = {"messages": [{"role": "user", "content": prompt}]}
+
+    message = latest_user_message_text(payload)
+
+    assert "SECTION 10 -- DPA STATUS" in message
+    assert "Based only on the supplied corpus" in message
+    assert len(message) == len(prompt.strip())
+
+
+def test_phase279_workflow_router_chat_answers_supplied_corpus_without_target(tmp_path: Path) -> None:
+    target_root = tmp_path / "allowed-placeholder"
+    target_root.mkdir()
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / "controller-output",
+        allowed_target_roots=(target_root,),
+        port=0,
+    )
+    prompt = prompt_for_corpus(build_corpus(policy(), FixtureMode.STANDARD)["corpus"])
+
+    body = handle_workflow_router_chat_completion(
+        {
+            "model": "agentic-workflow-router",
+            "messages": [{"role": "user", "content": prompt}],
+            "budgets": {"max_model_calls": 0, "max_selected_skills": 5, "max_selected_tools": 5},
+        },
+        config,
+    )
+
+    content = body["choices"][0]["message"]["content"]
+    summary = body["agentic_controller_response"]["summary"]
+    assert summary["route_status"] == SUPPLIED_CORPUS_QA_STATUS
+    assert summary["selected_workflow"] is None
+    assert "missing_target_root_for_coding_request" not in content
+    assert score_answer(summary["answer"])["status"] == AdversarialContextStitchingStatus.PASSED.value
+    assert score_answer(content)["status"] == AdversarialContextStitchingStatus.PASSED.value
+    artifacts = body["agentic_controller_response"]["artifacts"]
+    assert Path(artifacts["supplied_corpus_qa_answer"]).is_file()
+    assert Path(artifacts["supplied_corpus_qa_extraction"]).is_file()
 
 
 def test_phase278_policy_rejects_missing_randomized_mode() -> None:

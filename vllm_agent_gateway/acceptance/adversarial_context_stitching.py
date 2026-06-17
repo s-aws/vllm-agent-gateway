@@ -591,7 +591,7 @@ def gateway_answer(config: AdversarialContextStitchingConfig, prompt: str) -> tu
         "model": "agentic-workflow-router",
         "messages": [{"role": "user", "content": prompt}],
         "role_base_url": config.model_base_url,
-        "budgets": {"max_model_calls": 4, "max_selected_skills": 5, "max_selected_tools": 5},
+        "budgets": {"max_model_calls": 3, "max_selected_skills": 5, "max_selected_tools": 5},
     }
     status, body = json_request(
         f"{config.workflow_router_gateway_base_url.rstrip('/')}/chat/completions",

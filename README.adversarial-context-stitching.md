@@ -36,6 +36,8 @@ python3 scripts/validate_adversarial_context_stitching.py --live-gateway
 
 The live gateway command is intentionally fail-closed. If the gateway routes the prompt to an unrelated workflow or asks for a repository target instead of answering the supplied corpus, the report fails and records the captured answer. That is a product gap, not a passing synthesis result.
 
+The Phase 279 route contract now supports this supplied-corpus QA fixture through the existing workflow-router gateway. The route is read-only, does not inspect a target repository, and writes `supplied-corpus-qa-answer.txt` plus `supplied-corpus-qa-extraction.json` artifacts under the workflow-router run directory.
+
 Expected marker:
 
 ```text
@@ -54,6 +56,6 @@ PHASE278 ADVERSARIAL CONTEXT STITCHING PASS
 
 This is a validation fixture and answer scorer. It does not introduce a new retrieval implementation, a new chat endpoint, or a raw 500k prompt-serving claim. The live path is optional so the fixture can remain part of continuous validation even when the local model stack is not running.
 
-Current live gap: the first Phase 278 live gateway run returned `missing_target_root_for_coding_request` instead of answering the supplied corpus. The fixture therefore proves the gap is now measurable; a follow-up route/contract phase is required before live corpus-QA synthesis can be treated as release-ready.
+Historical live gap: the first Phase 278 live gateway run returned `missing_target_root_for_coding_request` instead of answering the supplied corpus. Phase 279 closed that route gap with a guarded supplied-corpus QA contract while preserving target-root requirements for normal coding prompts.
 
 Examples: [docs/examples/adversarial-context-stitching.md](docs/examples/adversarial-context-stitching.md).

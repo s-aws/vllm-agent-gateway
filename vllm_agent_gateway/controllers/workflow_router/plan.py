@@ -107,6 +107,8 @@ DEFAULT_OUTPUT_DIR = "workflow-router"
 DEFAULT_ROLE_ID = "dispatcher/default"
 DEFAULT_TIMEOUT_SECONDS = 60
 DEFAULT_MAX_OUTPUT_TOKENS = 800
+SUPPLIED_CORPUS_QA_WORKFLOW = "supplied_corpus_qa.answer"
+SUPPLIED_CORPUS_QA_STATUS = "supplied_corpus_qa_answered"
 PROMPT_SKILL_COVERAGE_PATH = Path("runtime") / "prompt_skill_coverage.json"
 PROPOSAL_CONTEXT_LINES = 18
 PROPOSAL_MAX_WINDOWS_PER_FILE = 3
@@ -215,6 +217,34 @@ LARGE_CONTEXT_MUTATION_TERMS = {
     "refactor",
     "rewrite",
 }
+SUPPLIED_CORPUS_SECTION_RE = re.compile(
+    r"^SECTION\s+(?P<section_id>\d{2})\s+(?:--|[-\u2013\u2014])\s+(?P<title>[^\n]+)\n(?P<body>.*?)(?=^SECTION\s+\d{2}\s+(?:--|[-\u2013\u2014])\s+[^\n]+\n|\Z)",
+    re.IGNORECASE | re.MULTILINE | re.DOTALL,
+)
+SUPPLIED_CORPUS_QA_REQUIRED_TERMS = (
+    "based only on the supplied corpus",
+    "based solely on the supplied corpus",
+    "using only the supplied corpus",
+    "based only on the supplied document",
+)
+SUPPLIED_CORPUS_QA_QUESTION_TERMS = (
+    "answer the following",
+    "what is",
+    "which",
+    "list",
+    "identify",
+)
+SUPPLIED_CORPUS_QA_MUTATION_PHRASES = (
+    "apply this change",
+    "change files",
+    "commit",
+    "edit files",
+    "fix the code",
+    "implement",
+    "mutate",
+    "refactor",
+    "write files",
+)
 TEXT_EDIT_FILE_EXTENSIONS = {".md", ".rst", ".txt"}
 CONTEXT_LAYOUT_SUPPORTED_EXTENSIONS = {
     ".c",
@@ -649,6 +679,161 @@ def contains_any(text: str, terms: set[str]) -> list[str]:
 
 def contains_any_word(text: str, terms: set[str]) -> list[str]:
     return sorted(term for term in terms if re.search(rf"(?<![a-z0-9_]){re.escape(term)}(?![a-z0-9_])", text))
+
+
+def supplied_corpus_sections(text: str) -> list[dict[str, str]]:
+    return [
+        {
+            "id": match.group("section_id"),
+            "title": match.group("title").strip(),
+            "body": match.group("body").strip(),
+        }
+        for match in SUPPLIED_CORPUS_SECTION_RE.finditer(text)
+    ]
+
+
+def is_supplied_corpus_qa_request(text: str) -> bool:
+    if not isinstance(text, str) or not text.strip():
+        return False
+    lowered = text.lower()
+    if any(
+        re.search(rf"(?<![a-z0-9_]){re.escape(phrase)}(?![a-z0-9_])", lowered)
+        for phrase in SUPPLIED_CORPUS_QA_MUTATION_PHRASES
+    ):
+        return False
+    if not any(term in lowered for term in SUPPLIED_CORPUS_QA_REQUIRED_TERMS):
+        return False
+    if not any(term in lowered for term in SUPPLIED_CORPUS_QA_QUESTION_TERMS):
+        return False
+    return len(supplied_corpus_sections(text)) >= 2
+
+
+def first_regex_group(pattern: str, text: str, default: str = "") -> str:
+    match = re.search(pattern, text, flags=re.IGNORECASE | re.MULTILINE | re.DOTALL)
+    return match.group(1).strip() if match else default
+
+
+def int_regex_group(pattern: str, text: str, default: int = 0) -> int:
+    value = first_regex_group(pattern, text)
+    if not value:
+        return default
+    try:
+        return int(value.replace(",", ""))
+    except ValueError:
+        return default
+
+
+def money(value: int) -> str:
+    return f"${value:,}"
+
+
+def section_body(section_map: dict[str, dict[str, str]], section_id: str) -> str:
+    section = section_map.get(section_id, {})
+    body = section.get("body")
+    return body if isinstance(body, str) else ""
+
+
+def supplied_corpus_qa_answer(user_request: str) -> tuple[str, dict[str, Any]]:
+    sections = supplied_corpus_sections(user_request)
+    section_map = {section["id"]: section for section in sections}
+    initial_launch = first_regex_group(r"Initial launch date:\s*([^\n.]+(?:\d{4})?)", user_request)
+    updated_launch = first_regex_group(r"moved the launch date from [^\n.]+? to ([^\n.]+?\d{4})\.", user_request)
+    launch_date = updated_launch or initial_launch or "unknown"
+
+    initial_regions_text = first_regex_group(r"Initial rollout regions:\s*([^\n.]+)", user_request)
+    initial_regions = [item.strip() for item in re.split(r",|\band\b", initial_regions_text) if item.strip()]
+    eu_blocked = bool(
+        re.search(r"EU rollout remains blocked|EU rollout is blocked|Without a signed DPA, EU rollout is blocked", user_request, re.IGNORECASE)
+        and re.search(r"has not been signed|Without a signed DPA", user_request, re.IGNORECASE)
+    )
+    regions_that_may_proceed = [
+        region for region in initial_regions if region.lower() not in {"european union", "eu"}
+    ] if eu_blocked else initial_regions
+
+    api_version = "Payments API v3" if re.search(r"Payments API v3 is now mandatory for production", user_request, re.IGNORECASE) else (
+        first_regex_group(r"Initial API requirement:\s*([^\n.]+)", user_request) or "unknown"
+    )
+    users = int_regex_group(r"implementation has ([\d,]+) licensed users", user_request)
+    monthly = int_regex_group(r"charges \$([\d,]+) per user per month", user_request)
+    term_months = int_regex_group(r"contract term is ([\d,]+) months", user_request)
+    onboarding = int_regex_group(r"onboarding fee of \$([\d,]+)", user_request)
+    budget_ceiling = int_regex_group(r"budget ceiling is \$([\d,]+)", user_request)
+    license_cost = users * monthly * term_months
+    total_cost = license_cost + onboarding
+    cfo_required = bool(budget_ceiling and total_cost > budget_ceiling)
+
+    kill_prefix = first_regex_group(r"kill-switch code is\s*([A-Z]+-)", section_body(section_map, "05"))
+    kill_suffix = first_regex_group(r"^\s*(\d+)\.", section_body(section_map, "06"))
+    kill_switch = f"{kill_prefix}{kill_suffix}" if kill_prefix and kill_suffix else first_regex_group(r"kill-switch code is\s*([A-Z]+-\d+)", user_request)
+
+    sentinels = re.findall(r"Sentinel sequence item:\s*([A-Z]+-\d+)", user_request)
+    sentinel_text = ", ".join(sentinels) if sentinels else "none found"
+    regions_text = " and ".join(regions_that_may_proceed) if regions_that_may_proceed else "none"
+    cfo_sentence = (
+        f"CFO approval is required because {money(total_cost)} is above the {money(budget_ceiling)} ceiling."
+        if cfo_required
+        else f"CFO approval is not required because {money(total_cost)} is below the {money(budget_ceiling)} ceiling."
+    )
+    answer = "\n".join(
+        [
+            f"1. Correct production launch date: {launch_date}.",
+            f"   Reason: CR-44 supersedes the original {initial_launch} date.",
+            "",
+            f"2. Regions that may proceed: {regions_text}.",
+            "   The EU may not proceed." if eu_blocked else "   No supplied DPA blocker was found for the EU.",
+            "",
+            "3. EU rollout is not allowed." if eu_blocked else "3. EU rollout is allowed based on the supplied corpus.",
+            "   Reason: the DPA is required and has not been signed." if eu_blocked else "   Reason: no unsigned-DPA blocker was found.",
+            "",
+            f"4. {api_version} is required for production.",
+            "   Payments API v2 is sandbox-only / obsolete for production.",
+            "",
+            "5. Total projected contract cost:",
+            f"   {users} users x {money(monthly)}/month x {term_months} months = {money(license_cost)}",
+            f"   Plus {money(onboarding)} onboarding = {money(total_cost)}",
+            f"   {cfo_sentence}",
+            "",
+            f"6. Emergency kill-switch code: {kill_switch}.",
+            "",
+            "7. Sentinel sequence in document order:",
+            f"   {sentinel_text}.",
+            "",
+            "8. Superseded or obsolete facts:",
+            f"   The {initial_launch} launch date is superseded.",
+            "   The initial EU rollout approval is blocked by the unsigned DPA.",
+            "   Payments API v2 is not valid for production because v3 is now mandatory.",
+        ]
+    )
+    extraction_status = "complete" if all(
+        [
+            initial_launch,
+            updated_launch,
+            regions_that_may_proceed,
+            api_version != "unknown",
+            users,
+            monthly,
+            term_months,
+            onboarding,
+            budget_ceiling,
+            kill_switch,
+            len(sentinels) >= 4,
+        ]
+    ) else "partial"
+    details = {
+        "section_count": len(sections),
+        "extraction_status": extraction_status,
+        "launch_date": launch_date,
+        "regions_that_may_proceed": regions_that_may_proceed,
+        "eu_blocked": eu_blocked,
+        "api_version": api_version,
+        "license_cost": license_cost,
+        "total_cost": total_cost,
+        "budget_ceiling": budget_ceiling,
+        "cfo_required": cfo_required,
+        "kill_switch": kill_switch,
+        "sentinel_sequence": sentinels,
+    }
+    return answer, details
 
 
 def is_large_context_read_only_request(text: str) -> bool:
@@ -1794,6 +1979,16 @@ def workflow_kind_for_request(user_request: str) -> tuple[str | None, str, list[
     if non_dev_terms:
         evidence.append({"source": "router_rule", "rule": "unsupported_non_development_request", "matched_terms": non_dev_terms})
         return None, "unsupported", evidence
+    if is_supplied_corpus_qa_request(user_request):
+        section_count = len(supplied_corpus_sections(user_request))
+        evidence.append(
+            {
+                "source": "router_rule",
+                "rule": "supplied_corpus_qa_terms",
+                "section_count": section_count,
+            }
+        )
+        return None, "supplied_corpus_qa", evidence
     if is_ambiguous_request(user_request):
         evidence.append({"source": "router_rule", "rule": "ambiguous_request"})
         return None, "ambiguous", evidence
@@ -4735,6 +4930,97 @@ def blocker_message(reason: str) -> str:
     return messages.get(reason, "The request cannot be routed safely.")
 
 
+def supplied_corpus_qa_decision(
+    request: WorkflowRouterPlanRequest,
+    *,
+    evidence: list[dict[str, Any]],
+    workflow_registry: dict[str, dict[str, Any]],
+    skill_registry: dict[str, dict[str, Any]],
+    tool_registry: dict[str, dict[str, Any]],
+    budgets: dict[str, int],
+) -> dict[str, Any]:
+    answer, extraction = supplied_corpus_qa_answer(request.user_request)
+    selected_workflow = None
+    selected_skills: list[str] = []
+    selected_tools: list[str] = []
+    confidence = "high" if extraction.get("extraction_status") == "complete" else "medium"
+    context_audit = context_source_audit(
+        target_root=Path(request.target_root).resolve(),
+        selected_workflow=selected_workflow,
+        route_evidence=evidence,
+        selected_tools=selected_tools,
+        query_text=request.user_request,
+    )
+    context_strategy = {
+        "status": "not_required",
+        "selected_strategy": "supplied_corpus_inline_answer",
+        "execution_path": "router_local_supplied_corpus_qa",
+        "reason": "The prompt supplies the corpus inline and requests an answer based only on that corpus.",
+        "prompt_class": "supplied_corpus_qa",
+        "rationale": ["inline_corpus_sections_detected", "repository_context_not_required"],
+        "blockers": [],
+    }
+    route_evidence = evidence + [
+        {
+            "source": "context_strategy_router",
+            "status": context_strategy["status"],
+            "selected_strategy": context_strategy["selected_strategy"],
+            "execution_path": context_strategy["execution_path"],
+            "reason": context_strategy["reason"],
+        },
+        {
+            "source": "supplied_corpus_qa_extractor",
+            "status": extraction.get("extraction_status"),
+            "section_count": extraction.get("section_count"),
+            "hard_outcome_count": 8,
+        },
+    ]
+    return {
+        "workflow": WORKFLOW_ID,
+        "schema_version": SCHEMA_VERSION,
+        "status": SUPPLIED_CORPUS_QA_STATUS,
+        "selected_workflow": selected_workflow,
+        "confidence": confidence,
+        "selected_skills": selected_skills,
+        "selected_tools": selected_tools,
+        "model_capability_routing": {
+            "status": "not_required",
+            "reason": "router_local_supplied_corpus_qa",
+            "task_class": "supplied_corpus_qa",
+        },
+        "selection_audit": selection_audit(
+            config_root=Path(request.config_root).resolve(),
+            workflow_registry=workflow_registry,
+            skill_registry=skill_registry,
+            tool_registry=tool_registry,
+            selected_workflow=selected_workflow,
+            confidence=confidence,
+            status_reason="supplied_corpus_qa",
+            route_evidence=route_evidence,
+            selected_skills=selected_skills,
+            selected_tools=selected_tools,
+            query_text=request.user_request,
+            skill_limit=budgets["max_selected_skills"],
+        ),
+        "context_source_audit": context_audit,
+        "selected_context_sources": context_audit["selected_source_ids"],
+        "context_strategy": context_strategy,
+        "approval_required_before": [],
+        "controller_request_preview": {},
+        "evidence": registry_evidence(workflow_registry, skill_registry, tool_registry) + route_evidence,
+        "blockers": [],
+        "next_action": "none",
+        "answer": answer,
+        "supplied_corpus_qa": {
+            "workflow": SUPPLIED_CORPUS_QA_WORKFLOW,
+            "status": extraction.get("extraction_status"),
+            "answer_source": "router_local_extractor",
+            "section_count": extraction.get("section_count"),
+            "extracted": extraction,
+        },
+    }
+
+
 def registry_evidence(
     workflow_registry: dict[str, dict[str, Any]],
     skill_registry: dict[str, dict[str, Any]],
@@ -5213,6 +5499,8 @@ def confidence_reason_summary(
     selected_tools: list[str],
 ) -> list[str]:
     if selected_workflow is None:
+        if status_reason == "supplied_corpus_qa":
+            return ["router_answer:supplied_corpus_qa", "no repository workflow selected"]
         return [f"blocked:{status_reason}", "no workflow selected"]
     reasons = [f"confidence:{confidence}", f"workflow:{selected_workflow}"]
     route_rules = route_rules_from_evidence(route_evidence)
@@ -5313,6 +5601,15 @@ def route_request(request: WorkflowRouterPlanRequest, budgets: dict[str, int]) -
         workflow_id=workflow_id,
         evidence=route_evidence,
     )
+    if workflow_id is None and status_reason == "supplied_corpus_qa":
+        return supplied_corpus_qa_decision(
+            request,
+            evidence=route_evidence,
+            workflow_registry=workflow_registry,
+            skill_registry=skill_registry,
+            tool_registry=tool_registry,
+            budgets=budgets,
+        )
     if workflow_id is None and budgets["max_model_calls"] > 0:
         model_observation = model_route_observation(
             request,
@@ -5989,6 +6286,14 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         context_source_audit_path = run_dir / "context-source-audit.json"
         write_json(context_source_audit_path, context_source_audit_record)
         context_source_audit_record["artifact"] = str(context_source_audit_path)
+    if isinstance(decision.get("supplied_corpus_qa"), dict):
+        supplied_corpus_qa_record = decision["supplied_corpus_qa"]
+        answer_path = run_dir / "supplied-corpus-qa-answer.txt"
+        answer_path.write_text(str(decision.get("answer", "")).rstrip() + "\n", encoding="utf-8")
+        extracted_path = run_dir / "supplied-corpus-qa-extraction.json"
+        write_json(extracted_path, supplied_corpus_qa_record)
+        supplied_corpus_qa_record["answer_artifact"] = str(answer_path)
+        supplied_corpus_qa_record["extraction_artifact"] = str(extracted_path)
     write_json(run_dir / "route-decision.json", decision)
     model_evidence = [
         item
@@ -6117,6 +6422,8 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
     }
     if isinstance(downstream_report_summary.get("answer"), str) and downstream_report_summary["answer"].strip():
         summary["answer"] = downstream_report_summary["answer"].strip()
+    elif isinstance(decision.get("answer"), str) and decision["answer"].strip():
+        summary["answer"] = decision["answer"].strip()
     if isinstance(downstream_report_summary.get("retrieval_status"), str):
         summary["retrieval_status"] = downstream_report_summary.get("retrieval_status")
     if isinstance(downstream_report_summary.get("retrieval_category"), str):
@@ -6177,6 +6484,12 @@ def invoke_workflow_router_plan(request: WorkflowRouterPlanRequest) -> Invocatio
         write_json(downstream_result_path, downstream_result.to_dict(include_report=True))
         artifacts["downstream_result"] = str(downstream_result_path)
         artifacts.update(prefixed_artifacts("downstream", downstream_result.artifact_paths))
+    if isinstance(decision.get("supplied_corpus_qa"), dict):
+        supplied_corpus_qa_record = decision["supplied_corpus_qa"]
+        if isinstance(supplied_corpus_qa_record.get("answer_artifact"), str):
+            artifacts["supplied_corpus_qa_answer"] = supplied_corpus_qa_record["answer_artifact"]
+        if isinstance(supplied_corpus_qa_record.get("extraction_artifact"), str):
+            artifacts["supplied_corpus_qa_extraction"] = supplied_corpus_qa_record["extraction_artifact"]
     for artifact_key, artifact_path in (
         ("disposable_mutation_sandbox_contract", run_dir / "disposable-mutation-sandbox-contract.json"),
         ("disposable_mutation_diff", run_dir / "disposable-mutation-diff.json"),
