@@ -11567,3 +11567,36 @@ Result:
 - Passed docs index validation with `370` linked docs and zero orphaned docs.
 - Passed `git diff --check` with line-ending warnings only.
 - Passed full Bash regression with `1692 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 280: General Supplied Corpus QA Capability
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, M15 500k Candidate Expansion Gate, M16 Corpus And Index Safety Governance.
+
+Goal: make supplied-corpus QA a first-class bounded workflow-router capability, not a one-off adversarial fixture handler.
+
+Scope:
+
+- Answer questions over inline user-supplied sectioned or clearly segmented corpus text only.
+- Preserve evidence-only behavior: answers must use supplied facts and no repository investigation.
+- Support cross-section synthesis, precedence and superseded facts, boundary stitching, simple calculations, ordered extraction, and contradiction/blocker handling.
+- Preserve answer-first chat output and durable `supplied-corpus-qa-answer.txt` plus `supplied-corpus-qa-extraction.json` artifacts.
+- Keep normal coding prompts protected by `target_root` requirements.
+- Validate through Bash workflow-router gateway and AnythingLLM.
+- Do not add file/PDF ingestion, arbitrary repository investigation, source mutation, advanced refactor planning, raw 500k prompt-serving claims, fine-tuning, or general RAG redesign.
+
+Acceptance target: a semi-well-defined user prompt with an inline structured corpus can be answered from chat using only supplied facts, with correct synthesis across sections, while normal repository workflows remain protected by target-root requirements.
+
+Result:
+
+- Added `vllm_agent_gateway.controllers.supplied_corpus_qa` as the single reusable supplied-corpus QA answer path.
+- Replaced the Phase 279 fixture-shaped answer code in `workflow_router.plan` with the generic supplied-corpus QA module.
+- Added `vllm_agent_gateway.acceptance.supplied_corpus_qa_generalization` and `scripts/validate_supplied_corpus_qa_generalization.py`.
+- Added five unseen fixtures covering precedence/superseded facts, boundary stitching, ordered facts, numeric calculation, and contradiction handling.
+- Added regression coverage for the generic engine, same-route workflow-router execution, fixture-literal implementation guard, acceptance report generation, and no-target coding prompt safety.
+- Added `README.supplied-corpus-qa.md` and `docs/examples/supplied-corpus-qa.md`.
+- Phase 278 adversarial fixture remained green with zero hard failures after the generic implementation.
+- Phase 280 live gateway and AnythingLLM validation passed for all five unseen fixtures.
+- The generic answer path contains no Phase 278 fixture literals.
+- Full Bash regression passed.

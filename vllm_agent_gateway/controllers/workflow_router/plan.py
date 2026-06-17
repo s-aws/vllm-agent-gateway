@@ -68,6 +68,13 @@ from vllm_agent_gateway.controllers.skill_batch.propose import (
     SkillBatchProposalRequest,
     invoke_skill_batch_proposal,
 )
+from vllm_agent_gateway.controllers.supplied_corpus_qa import (
+    SUPPLIED_CORPUS_QA_STATUS,
+    SUPPLIED_CORPUS_QA_WORKFLOW,
+    answer_supplied_corpus_qa,
+    is_supplied_corpus_qa_request,
+    supplied_corpus_sections,
+)
 from vllm_agent_gateway.controllers.task_decompose.decompose import (
     TaskDecompositionError,
     TaskDecompositionRequest,
@@ -107,8 +114,6 @@ DEFAULT_OUTPUT_DIR = "workflow-router"
 DEFAULT_ROLE_ID = "dispatcher/default"
 DEFAULT_TIMEOUT_SECONDS = 60
 DEFAULT_MAX_OUTPUT_TOKENS = 800
-SUPPLIED_CORPUS_QA_WORKFLOW = "supplied_corpus_qa.answer"
-SUPPLIED_CORPUS_QA_STATUS = "supplied_corpus_qa_answered"
 PROMPT_SKILL_COVERAGE_PATH = Path("runtime") / "prompt_skill_coverage.json"
 PROPOSAL_CONTEXT_LINES = 18
 PROPOSAL_MAX_WINDOWS_PER_FILE = 3
@@ -217,34 +222,6 @@ LARGE_CONTEXT_MUTATION_TERMS = {
     "refactor",
     "rewrite",
 }
-SUPPLIED_CORPUS_SECTION_RE = re.compile(
-    r"^SECTION\s+(?P<section_id>\d{2})\s+(?:--|[-\u2013\u2014])\s+(?P<title>[^\n]+)\n(?P<body>.*?)(?=^SECTION\s+\d{2}\s+(?:--|[-\u2013\u2014])\s+[^\n]+\n|\Z)",
-    re.IGNORECASE | re.MULTILINE | re.DOTALL,
-)
-SUPPLIED_CORPUS_QA_REQUIRED_TERMS = (
-    "based only on the supplied corpus",
-    "based solely on the supplied corpus",
-    "using only the supplied corpus",
-    "based only on the supplied document",
-)
-SUPPLIED_CORPUS_QA_QUESTION_TERMS = (
-    "answer the following",
-    "what is",
-    "which",
-    "list",
-    "identify",
-)
-SUPPLIED_CORPUS_QA_MUTATION_PHRASES = (
-    "apply this change",
-    "change files",
-    "commit",
-    "edit files",
-    "fix the code",
-    "implement",
-    "mutate",
-    "refactor",
-    "write files",
-)
 TEXT_EDIT_FILE_EXTENSIONS = {".md", ".rst", ".txt"}
 CONTEXT_LAYOUT_SUPPORTED_EXTENSIONS = {
     ".c",
@@ -679,161 +656,6 @@ def contains_any(text: str, terms: set[str]) -> list[str]:
 
 def contains_any_word(text: str, terms: set[str]) -> list[str]:
     return sorted(term for term in terms if re.search(rf"(?<![a-z0-9_]){re.escape(term)}(?![a-z0-9_])", text))
-
-
-def supplied_corpus_sections(text: str) -> list[dict[str, str]]:
-    return [
-        {
-            "id": match.group("section_id"),
-            "title": match.group("title").strip(),
-            "body": match.group("body").strip(),
-        }
-        for match in SUPPLIED_CORPUS_SECTION_RE.finditer(text)
-    ]
-
-
-def is_supplied_corpus_qa_request(text: str) -> bool:
-    if not isinstance(text, str) or not text.strip():
-        return False
-    lowered = text.lower()
-    if any(
-        re.search(rf"(?<![a-z0-9_]){re.escape(phrase)}(?![a-z0-9_])", lowered)
-        for phrase in SUPPLIED_CORPUS_QA_MUTATION_PHRASES
-    ):
-        return False
-    if not any(term in lowered for term in SUPPLIED_CORPUS_QA_REQUIRED_TERMS):
-        return False
-    if not any(term in lowered for term in SUPPLIED_CORPUS_QA_QUESTION_TERMS):
-        return False
-    return len(supplied_corpus_sections(text)) >= 2
-
-
-def first_regex_group(pattern: str, text: str, default: str = "") -> str:
-    match = re.search(pattern, text, flags=re.IGNORECASE | re.MULTILINE | re.DOTALL)
-    return match.group(1).strip() if match else default
-
-
-def int_regex_group(pattern: str, text: str, default: int = 0) -> int:
-    value = first_regex_group(pattern, text)
-    if not value:
-        return default
-    try:
-        return int(value.replace(",", ""))
-    except ValueError:
-        return default
-
-
-def money(value: int) -> str:
-    return f"${value:,}"
-
-
-def section_body(section_map: dict[str, dict[str, str]], section_id: str) -> str:
-    section = section_map.get(section_id, {})
-    body = section.get("body")
-    return body if isinstance(body, str) else ""
-
-
-def supplied_corpus_qa_answer(user_request: str) -> tuple[str, dict[str, Any]]:
-    sections = supplied_corpus_sections(user_request)
-    section_map = {section["id"]: section for section in sections}
-    initial_launch = first_regex_group(r"Initial launch date:\s*([^\n.]+(?:\d{4})?)", user_request)
-    updated_launch = first_regex_group(r"moved the launch date from [^\n.]+? to ([^\n.]+?\d{4})\.", user_request)
-    launch_date = updated_launch or initial_launch or "unknown"
-
-    initial_regions_text = first_regex_group(r"Initial rollout regions:\s*([^\n.]+)", user_request)
-    initial_regions = [item.strip() for item in re.split(r",|\band\b", initial_regions_text) if item.strip()]
-    eu_blocked = bool(
-        re.search(r"EU rollout remains blocked|EU rollout is blocked|Without a signed DPA, EU rollout is blocked", user_request, re.IGNORECASE)
-        and re.search(r"has not been signed|Without a signed DPA", user_request, re.IGNORECASE)
-    )
-    regions_that_may_proceed = [
-        region for region in initial_regions if region.lower() not in {"european union", "eu"}
-    ] if eu_blocked else initial_regions
-
-    api_version = "Payments API v3" if re.search(r"Payments API v3 is now mandatory for production", user_request, re.IGNORECASE) else (
-        first_regex_group(r"Initial API requirement:\s*([^\n.]+)", user_request) or "unknown"
-    )
-    users = int_regex_group(r"implementation has ([\d,]+) licensed users", user_request)
-    monthly = int_regex_group(r"charges \$([\d,]+) per user per month", user_request)
-    term_months = int_regex_group(r"contract term is ([\d,]+) months", user_request)
-    onboarding = int_regex_group(r"onboarding fee of \$([\d,]+)", user_request)
-    budget_ceiling = int_regex_group(r"budget ceiling is \$([\d,]+)", user_request)
-    license_cost = users * monthly * term_months
-    total_cost = license_cost + onboarding
-    cfo_required = bool(budget_ceiling and total_cost > budget_ceiling)
-
-    kill_prefix = first_regex_group(r"kill-switch code is\s*([A-Z]+-)", section_body(section_map, "05"))
-    kill_suffix = first_regex_group(r"^\s*(\d+)\.", section_body(section_map, "06"))
-    kill_switch = f"{kill_prefix}{kill_suffix}" if kill_prefix and kill_suffix else first_regex_group(r"kill-switch code is\s*([A-Z]+-\d+)", user_request)
-
-    sentinels = re.findall(r"Sentinel sequence item:\s*([A-Z]+-\d+)", user_request)
-    sentinel_text = ", ".join(sentinels) if sentinels else "none found"
-    regions_text = " and ".join(regions_that_may_proceed) if regions_that_may_proceed else "none"
-    cfo_sentence = (
-        f"CFO approval is required because {money(total_cost)} is above the {money(budget_ceiling)} ceiling."
-        if cfo_required
-        else f"CFO approval is not required because {money(total_cost)} is below the {money(budget_ceiling)} ceiling."
-    )
-    answer = "\n".join(
-        [
-            f"1. Correct production launch date: {launch_date}.",
-            f"   Reason: CR-44 supersedes the original {initial_launch} date.",
-            "",
-            f"2. Regions that may proceed: {regions_text}.",
-            "   The EU may not proceed." if eu_blocked else "   No supplied DPA blocker was found for the EU.",
-            "",
-            "3. EU rollout is not allowed." if eu_blocked else "3. EU rollout is allowed based on the supplied corpus.",
-            "   Reason: the DPA is required and has not been signed." if eu_blocked else "   Reason: no unsigned-DPA blocker was found.",
-            "",
-            f"4. {api_version} is required for production.",
-            "   Payments API v2 is sandbox-only / obsolete for production.",
-            "",
-            "5. Total projected contract cost:",
-            f"   {users} users x {money(monthly)}/month x {term_months} months = {money(license_cost)}",
-            f"   Plus {money(onboarding)} onboarding = {money(total_cost)}",
-            f"   {cfo_sentence}",
-            "",
-            f"6. Emergency kill-switch code: {kill_switch}.",
-            "",
-            "7. Sentinel sequence in document order:",
-            f"   {sentinel_text}.",
-            "",
-            "8. Superseded or obsolete facts:",
-            f"   The {initial_launch} launch date is superseded.",
-            "   The initial EU rollout approval is blocked by the unsigned DPA.",
-            "   Payments API v2 is not valid for production because v3 is now mandatory.",
-        ]
-    )
-    extraction_status = "complete" if all(
-        [
-            initial_launch,
-            updated_launch,
-            regions_that_may_proceed,
-            api_version != "unknown",
-            users,
-            monthly,
-            term_months,
-            onboarding,
-            budget_ceiling,
-            kill_switch,
-            len(sentinels) >= 4,
-        ]
-    ) else "partial"
-    details = {
-        "section_count": len(sections),
-        "extraction_status": extraction_status,
-        "launch_date": launch_date,
-        "regions_that_may_proceed": regions_that_may_proceed,
-        "eu_blocked": eu_blocked,
-        "api_version": api_version,
-        "license_cost": license_cost,
-        "total_cost": total_cost,
-        "budget_ceiling": budget_ceiling,
-        "cfo_required": cfo_required,
-        "kill_switch": kill_switch,
-        "sentinel_sequence": sentinels,
-    }
-    return answer, details
 
 
 def is_large_context_read_only_request(text: str) -> bool:
@@ -4939,7 +4761,7 @@ def supplied_corpus_qa_decision(
     tool_registry: dict[str, dict[str, Any]],
     budgets: dict[str, int],
 ) -> dict[str, Any]:
-    answer, extraction = supplied_corpus_qa_answer(request.user_request)
+    answer, extraction = answer_supplied_corpus_qa(request.user_request)
     selected_workflow = None
     selected_skills: list[str] = []
     selected_tools: list[str] = []

@@ -132,6 +132,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 277 | M14/M15 | Complete. Refreshed stable handoff metadata, docs, examples, and completion audit for governed 500k-token project usability after Phase 276 returned `ship`, while preserving 384k lineage and rejecting raw 500k prompt-serving claims. |
 | Phase 278 | M2/M4/M6/M8/M15/M16 | Complete. Added an adversarial context stitching fixture and scorer for cross-chunk synthesis, precedence handling, boundary loss, randomized retrieval-order, and hallucinated reconciliation failures after the governed 500k path became stable. |
 | Phase 279 | M2/M4/M6/M8/M13 | Complete. Added the guarded supplied-corpus QA route contract, preserved full supplied corpus messages, emitted chat-visible answer/extraction artifacts, kept coding target-root safety intact, and passed live Phase 278 gateway scoring with zero hard failures. |
+| Phase 280 | M2/M4/M6/M8/M13/M15/M16 | Complete. Generalized supplied-corpus QA into a reusable inline-corpus answer path with five unseen fixtures, live gateway and AnythingLLM proof, preserved coding target-root safety, fixture-literal implementation guard, docs, and full regression. |
 
 ## Usage Rules
 

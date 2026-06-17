@@ -144,6 +144,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Large-Context 500k Stable Handoff Refresh README](../README.large-context-500k-stable-handoff-refresh.md): Phase 277 stable handoff refresh for governed 500k-token project usability.
 - [Large-Context 500k Completion Audit](LARGE_CONTEXT_500K_COMPLETION_AUDIT.md): Phase 277 requirement-to-evidence audit for the stable governed 500k project-usability path.
 - [Adversarial Context Stitching README](../README.adversarial-context-stitching.md): Phase 278 fixture and scorer for cross-chunk synthesis, precedence handling, boundary loss, and randomized retrieval-order validation.
+- [Supplied Corpus QA README](../README.supplied-corpus-qa.md): Phase 280 first-class inline supplied-corpus QA route for evidence-only synthesis, precedence, boundary stitching, calculations, and contradiction handling.
 - [Release-Candidate Baseline Corpus Promotion README](../README.release-candidate-baseline-corpus-promotion.md): Phase 242 promoted release-candidate chat-quality cases in the governed baseline corpus.
 - [External Tester Feedback Loop From Clone README](../README.external-tester-feedback-loop-from-clone.md): Phase 243 release-candidate clone feedback proof for positive and defect tester records.
 - [V1 Release-Candidate Decision Gate README](../README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate.
@@ -438,6 +439,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Large-Context 500k Candidate Decision Gate Examples](examples/large-context-500k-candidate-decision-gate.md)
 - [Large-Context 500k Stable Handoff Refresh Examples](examples/large-context-500k-stable-handoff-refresh.md)
 - [Adversarial Context Stitching Examples](examples/adversarial-context-stitching.md)
+- [Supplied Corpus QA Examples](examples/supplied-corpus-qa.md)
 - [Release-Candidate Baseline Corpus Promotion Examples](examples/release-candidate-baseline-corpus-promotion.md)
 - [External Tester Feedback Loop From Clone Examples](examples/external-tester-feedback-loop-from-clone.md)
 - [V1 Release-Candidate Decision Gate Examples](examples/v1-release-candidate-decision-gate.md)
