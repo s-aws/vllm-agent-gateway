@@ -17,7 +17,7 @@ runtime-state/phase278/fixture/expected-answer.txt
 runtime-state/phase278/phase278-adversarial-context-stitching-report.json
 ```
 
-Feed the generated standard prompt through the workflow-router gateway and score the answer:
+Feed the generated standard, zero-overlap, and randomized-retrieval-order prompts through the workflow-router gateway and score each answer:
 
 ```bash
 python3 scripts/validate_adversarial_context_stitching.py \
@@ -26,7 +26,7 @@ python3 scripts/validate_adversarial_context_stitching.py \
   --model-base-url http://127.0.0.1:8000/v1
 ```
 
-This command should pass through the Phase 279 supplied-corpus QA route. A `missing_target_root_for_coding_request` response is a valid failure signal: it means routing blocked the test before the corpus answer contract could run.
+This command should pass each mode through the supplied-corpus QA route. A `missing_target_root_for_coding_request` response is a valid failure signal: it means routing blocked the test before the corpus answer contract could run.
 
 The successful live route writes answer artifacts in the workflow-router run directory:
 

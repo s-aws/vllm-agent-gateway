@@ -607,6 +607,28 @@ def gateway_answer(config: AdversarialContextStitchingConfig, prompt: str) -> tu
     return status, body, response_text
 
 
+def live_gateway_mode_result(
+    config: AdversarialContextStitchingConfig,
+    *,
+    fixture_dir: Path,
+    mode: str,
+    prompt_path: str,
+) -> dict[str, Any]:
+    prompt = Path(prompt_path).read_text(encoding="utf-8")
+    status, body, response_text = gateway_answer(config, prompt)
+    live_score = score_answer(response_text)
+    live_answer_path = fixture_dir / f"live-gateway-answer-{mode}.txt"
+    write_text(live_answer_path, response_text)
+    return {
+        "mode": mode,
+        "http_status": status,
+        "body_sha256": sha256_text(json.dumps(body, ensure_ascii=True, sort_keys=True)),
+        "response_sha256": sha256_text(response_text),
+        "score": live_score,
+        "answer_path": str(live_answer_path.resolve()),
+    }
+
+
 def render_markdown(report: dict[str, Any]) -> str:
     summary = dict_value(report.get("summary"))
     lines = [
@@ -660,24 +682,35 @@ def validate_adversarial_context_stitching(config: AdversarialContextStitchingCo
                 errors.append(validation_error("answer_file.score", "answer-file failed adversarial stitching score", source="answer_file", severity="critical"))
 
     live_gateway_result: dict[str, Any] | None = None
+    live_gateway_results: list[dict[str, Any]] = []
     if config.live_gateway:
-        standard_prompt = Path(str(dict_value(artifacts.get("standard")).get("prompt_path") or ""))
-        prompt = standard_prompt.read_text(encoding="utf-8")
-        status, body, response_text = gateway_answer(config, prompt)
-        live_score = score_answer(response_text)
-        live_gateway_result = {
-            "http_status": status,
-            "body_sha256": sha256_text(json.dumps(body, ensure_ascii=True, sort_keys=True)),
-            "response_sha256": sha256_text(response_text),
-            "score": live_score,
-        }
-        live_answer_path = fixture_dir / "live-gateway-answer.txt"
-        write_text(live_answer_path, response_text)
-        live_gateway_result["answer_path"] = str(live_answer_path.resolve())
-        if status != 200:
-            errors.append(validation_error("live_gateway.http_status", f"live gateway returned HTTP {status}", source="live_gateway", severity="critical"))
-        if live_score["status"] != AdversarialContextStitchingStatus.PASSED.value:
-            errors.append(validation_error("live_gateway.score", "live gateway answer failed adversarial stitching score", source="live_gateway", severity="critical"))
+        for mode in FixtureMode:
+            prompt_path = str(dict_value(artifacts.get(mode.value)).get("prompt_path") or "")
+            result = live_gateway_mode_result(config, fixture_dir=fixture_dir, mode=mode.value, prompt_path=prompt_path)
+            live_gateway_results.append(result)
+            if mode is FixtureMode.STANDARD:
+                live_gateway_result = result
+                legacy_answer_path = fixture_dir / "live-gateway-answer.txt"
+                write_text(legacy_answer_path, Path(result["answer_path"]).read_text(encoding="utf-8"))
+                live_gateway_result["legacy_answer_path"] = str(legacy_answer_path.resolve())
+            if result["http_status"] != 200:
+                errors.append(
+                    validation_error(
+                        f"live_gateway.{mode.value}.http_status",
+                        f"live gateway returned HTTP {result['http_status']} for {mode.value}",
+                        source="live_gateway",
+                        severity="critical",
+                    )
+                )
+            if dict_value(result.get("score")).get("status") != AdversarialContextStitchingStatus.PASSED.value:
+                errors.append(
+                    validation_error(
+                        f"live_gateway.{mode.value}.score",
+                        f"live gateway answer failed adversarial stitching score for {mode.value}",
+                        source="live_gateway",
+                        severity="critical",
+                    )
+                )
 
     status = AdversarialContextStitchingStatus.PASSED.value if not errors else AdversarialContextStitchingStatus.FAILED.value
     report = {
@@ -706,6 +739,7 @@ def validate_adversarial_context_stitching(config: AdversarialContextStitchingCo
         "answer_file_path": answer_file_path,
         "answer_file_score": answer_file_score,
         "live_gateway_result": live_gateway_result,
+        "live_gateway_results": live_gateway_results,
         "errors": errors,
         "summary": {
             "error_count": len(errors),
@@ -717,8 +751,17 @@ def validate_adversarial_context_stitching(config: AdversarialContextStitchingCo
             "expected_answer_hard_failure_count": expected_score.get("hard_failure_count"),
             "answer_file_hard_failure_count": None if answer_file_score is None else answer_file_score.get("hard_failure_count"),
             "live_gateway_hard_failure_count": None
-            if live_gateway_result is None
-            else dict_value(live_gateway_result.get("score")).get("hard_failure_count"),
+            if not live_gateway_results
+            else sum(int(dict_value(result.get("score")).get("hard_failure_count") or 0) for result in live_gateway_results),
+            "live_gateway_mode_count": len(live_gateway_results),
+            "live_gateway_failed_mode_count": len(
+                [
+                    result
+                    for result in live_gateway_results
+                    if dict_value(result.get("score")).get("status") != AdversarialContextStitchingStatus.PASSED.value
+                    or result.get("http_status") != 200
+                ]
+            ),
             "phase279_ready": not errors,
         },
     }

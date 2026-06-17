@@ -162,6 +162,13 @@ def test_phase278_live_gateway_uses_standard_prompt(monkeypatch, tmp_path: Path)
 
     assert report["status"] == AdversarialContextStitchingStatus.PASSED.value
     assert report["summary"]["live_gateway_hard_failure_count"] == 0
+    assert report["summary"]["live_gateway_mode_count"] == 3
+    assert report["summary"]["live_gateway_failed_mode_count"] == 0
+    assert {item["mode"] for item in report["live_gateway_results"]} == {
+        "standard",
+        "zero_overlap",
+        "randomized_retrieval_order",
+    }
 
 
 def test_phase279_router_detects_supplied_corpus_qa() -> None:

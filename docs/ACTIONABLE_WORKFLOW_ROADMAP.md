@@ -11529,6 +11529,7 @@ Result:
 - Added `README.adversarial-context-stitching.md` and `docs/examples/adversarial-context-stitching.md`.
 - The fixture writes standard prompt, zero-overlap chunk manifest, randomized retrieval-order chunk manifest, expected answer, JSON report, and Markdown report under `runtime-state/phase278/`.
 - Phase 278 static fixture validation passed with three fixture modes, zero expected-answer hard failures, and `phase279_ready=true`.
+- Follow-up tightening upgraded live gateway scoring from standard-only to all three fixture modes: standard, zero-overlap, and randomized retrieval order.
 - First live gateway scoring attempt returned `missing_target_root_for_coding_request` and failed all eight hard outcomes because the workflow router treated the supplied corpus QA prompt as an unsupported coding request. This was the measured route gap closed by Phase 279.
 - Focused regression passed with `10 passed`.
 - Docs index validation passed with `370` linked docs and zero orphaned docs.

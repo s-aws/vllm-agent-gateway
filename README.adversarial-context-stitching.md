@@ -28,13 +28,13 @@ python3 scripts/validate_adversarial_context_stitching.py \
   --answer-file runtime-state/phase278/fixture/live-gateway-answer.txt
 ```
 
-Run the generated standard prompt through the workflow-router gateway and score the response:
+Run the generated standard, zero-overlap, and randomized-retrieval-order prompts through the workflow-router gateway and score each response:
 
 ```bash
 python3 scripts/validate_adversarial_context_stitching.py --live-gateway
 ```
 
-The live gateway command is intentionally fail-closed. If the gateway routes the prompt to an unrelated workflow or asks for a repository target instead of answering the supplied corpus, the report fails and records the captured answer. That is a product gap, not a passing synthesis result.
+The live gateway command is intentionally fail-closed. If the gateway routes any mode to an unrelated workflow or asks for a repository target instead of answering the supplied corpus, the report fails and records the captured answer. That is a product gap, not a passing synthesis result.
 
 The Phase 279 route contract now supports this supplied-corpus QA fixture through the existing workflow-router gateway. The route is read-only, does not inspect a target repository, and writes `supplied-corpus-qa-answer.txt` plus `supplied-corpus-qa-extraction.json` artifacts under the workflow-router run directory.
 
@@ -51,6 +51,9 @@ PHASE278 ADVERSARIAL CONTEXT STITCHING PASS
 - `runtime-state/phase278/fixture/randomized_retrieval_order/chunk-manifest.json`
 - `runtime-state/phase278/fixture/expected-answer.txt`
 - `runtime-state/phase278/phase278-adversarial-context-stitching-report.json`
+- `runtime-state/phase278/fixture/live-gateway-answer-standard.txt`
+- `runtime-state/phase278/fixture/live-gateway-answer-zero_overlap.txt`
+- `runtime-state/phase278/fixture/live-gateway-answer-randomized_retrieval_order.txt`
 
 ## Boundary
 
