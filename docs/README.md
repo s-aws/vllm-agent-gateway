@@ -6,6 +6,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 
 - [Project README](../README.md): what this project is, tested setup, quick start, basic usage, and repository layout.
 - [Project Milestones](PROJECT_MILESTONES.md): approved product-state gates for reaching the local-model coding-agent objective, including large-context usability.
+- [Current Project Architecture](CURRENT_PROJECT_ARCHITECTURE.md): current gateway/controller/workflow/model validation map plus approved future connector, identity, and privacy milestone goals.
 - [Getting Started With AnythingLLM](../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup README](../README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
 - [External Tester Onboarding README](../README.external-tester-onboarding.md): contextless release-candidate tester path with curated read-only prompts and linked feedback capture.

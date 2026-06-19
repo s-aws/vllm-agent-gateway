@@ -28,6 +28,15 @@ The objective also includes large-context usability. Governed 500k-token project
 | M14: Release Packaging And Onboarding | A contextless tester can install, start, test, and provide feedback without session history. | The project can be handed to a new tester without private chat context. | Getting-started docs, doctor command, release notes, setup validation, clean-clone proof. |
 | M15: 500k Candidate Expansion Gate | Complete. Governed 500k-token project usability is promoted to stable while raw 500k prompt serving remains unsupported. | Stable handoff metadata, docs, and completion audit expose the 500k path and preserve 384k lineage. | Founder approval, candidate objective rebaseline, fixture/index readiness, stale-index rejection, live gateway proof, live AnythingLLM proof, clean-clone replay, decision gate, stable handoff refresh, completion audit, and non-regression against the 384k baseline. |
 | M16: Corpus And Index Safety Governance | Large-corpus indexing and retrieval do not leak ignored, private, secret-like, stale, or unapproved content into chat or artifacts. | Any durable corpus index enforces ignore rules, allowed roots, secret-like content handling, source freshness, retention/deletion, and proof-artifact boundaries before retrieval is connected to chat. | Index safety policy, negative controls for ignored/private/secret-like files, stale-index rejection, source-hash proof, artifact retention/deletion proof, and no sensitive values in chat-visible output. |
+| M17: Connector Contract And Registry | Future governed connectors have typed contracts before any external API integration is added. | Connectors are registered through manifests that define capabilities, operations, read/write class, auth requirements, safety constraints, and eval fixtures. | Connector schema, registry validation, allowlist proof, negative controls for unregistered connectors, and contextless audit of connector metadata. |
+| M18: Connector Execution Mediation | Connector execution flows through one controller-owned path instead of raw tool exposure. | The router can invoke only approved connector operations through deterministic mediation, read-only or dry-run defaults, approval gates for mutation, and complete audit artifacts. | Controller mediation tests, raw MCP bypass rejection, operation allowlist tests, dry-run proof, approval-gate proof, and live local-model route proof. |
+| M19: Connector Eval And Release Gate | New connectors cannot ship without repeatable chat-quality, safety, and failure-mode validation. | Each connector has prompt coverage, holdouts, blind-baseline scoring, negative controls, and release proof before it can be enabled for normal workflows. | Connector eval runner, fixture-backed prompt pack, hallucination and unsupported-scope tests, AnythingLLM proof when applicable, and release decision artifact. |
+| M20: Identity Context Contract | User identity becomes explicit runtime context for any future connector action. | The gateway/controller preserve request identity, session binding, and actor metadata without allowing anonymous privileged connector execution. | Request identity schema, actor propagation tests, missing-identity fail-closed tests, stale-session rejection, and audit artifact checks. |
+| M21: User-Scope Authorization Enforcement | Connector operations execute only within the requesting user's allowed scopes. | OAuth scopes or equivalent user grants are checked before connector execution, and insufficient scope fails closed with chat-visible recovery guidance. | Scope policy tests, privilege-escalation negative controls, cross-user denial tests, read/write scope split proof, and audit logs. |
+| M22: User-Scoped Action Audit And Replay | User-scoped connector actions are traceable, reviewable, and reproducible. | Each connector action records actor, scopes, operation, inputs, decision, approval state, output summary, and replay-safe proof without leaking sensitive values. | Audit schema, replay validator, approval trace proof, redaction proof, and contextless audit pack. |
+| M23: PII And Secret Detection Policy | Sensitive data is identified before chat, artifact, memory, or connector use can leak it. | PII, secret-like values, and sensitive corpus content are masked, refused, or bounded according to policy before model-visible or chat-visible output. | Detection policy, masking tests, false-positive/false-negative fixtures, leak negative controls, and no-sensitive-output proof. |
+| M24: Governed Memory Store Policy | Persistent memory is allowed only with retention, deletion, inspection, and provenance boundaries. | Any durable session or project memory has explicit scope, TTL or retention rule, deletion path, source provenance, and user-visible inspection controls. | Memory policy schema, retention/deletion tests, provenance proof, hidden-memory rejection, and stale-memory negative controls. |
+| M25: Privacy And Memory Safety EvalOps | Privacy and memory regressions are continuously tested before release. | Blind-baseline and local-stack tests detect PII leakage, stale memory use, cross-session contamination, and unsupported reconciliation claims. | Privacy regression suite, contextless audit reports, AnythingLLM session-isolation proof, leak scoring, and release-blocking thresholds. |
 
 ## Critical Path
 
@@ -41,9 +50,29 @@ M7 supports M6 and M8 by measuring the real context ceiling. M16 is required bef
 
 M15 completed the approved 500k-token project usability candidate promotion to stable. It preserves the completed 384k baseline as lineage. The current product value is still governed context strategy, not proving that every request should be sent as a raw long-context prompt.
 
+The JD-derived future goals sit outside the current primary path until a roadmap phase explicitly targets connector, identity, or privacy/memory expansion. Their internal dependency paths are:
+
+```text
+JD-G1 Governed connectors: M17 -> M18 -> M19
+JD-G2 User-scoped authorization: M20 -> M21 -> M22
+JD-G3 PII and memory safety: M23 -> M24 -> M25
+```
+
+M20-M22 depend on M17-M18 before user-scoped connector execution can be meaningful. M23-M25 should gate sensitive enterprise connectors, external private corpora, or persistent memory expansion.
+
 ## Added Milestone Rationale
 
 M16 was added because M6/M8 large-context work requires durable indexing and retrieval. That creates persistent derived copies of repository content and can leak ignored files, private paths, secret-like strings, stale chunks, or unapproved roots into chat and artifacts if governance is only handled inside implementation details. M16 is therefore a prerequisite safety milestone for context-index and retrieval-backed chat work, not a separate product expansion.
+
+M17-M25 were added from the approved JD-derived future-goal review. They do not authorize raw MCP access, enterprise-specific connectors, Kubernetes deployment, or persistent hidden memory. They convert the useful parts of the JD into bounded product states that preserve the existing objective: natural-language local-model work through deterministic skills, tools, evidence, safety boundaries, and repeatable validation proof.
+
+## JD-Derived Future Goal Mapping
+
+| Goal | Milestone Series | Goal State | Required Dependency Notes |
+| --- | --- | --- | --- |
+| JD-G1: Governed connector framework for external APIs | M17, M18, M19 | Future connectors are typed, allowlisted, mediated by the controller, audited, and gated by evals before release. | Raw MCP or direct model-to-tool access remains out of scope. Connector work must preserve the single controller-owned execution path. |
+| JD-G2: OAuth/user-scope identity propagation for connector execution | M20, M21, M22 | Any future connector action is bound to the requesting actor and allowed scopes, with fail-closed authorization and replayable audit proof. | Depends on connector contracts and mediation from M17-M18. It must not use shared privileged service accounts as a substitute for user scope. |
+| JD-G3: PII and memory safety policy before sensitive data or persistent memory expansion | M23, M24, M25 | Sensitive values, private corpus content, and persistent memory are governed by masking/refusal, retention, deletion, provenance, and regression gates. | Gates persistent memory, sensitive external connectors, private enterprise corpora, and any future data-clean-room work. |
 
 ## Initial Roadmap Mapping
 
