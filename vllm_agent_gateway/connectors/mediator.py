@@ -15,6 +15,7 @@ from vllm_agent_gateway.connectors.catalog import (
     runtime_connectors_by_id,
     string_list,
 )
+from vllm_agent_gateway.connectors.identity import replay_safe_argument_summary
 
 
 class ConnectorMediationError(RuntimeError):
@@ -24,10 +25,12 @@ class ConnectorMediationError(RuntimeError):
         *,
         code: str = "connector_mediation_error",
         status: HTTPStatus = HTTPStatus.UNPROCESSABLE_ENTITY,
+        details: dict[str, Any] | None = None,
     ):
         super().__init__(message)
         self.code = code
         self.status = status
+        self.details = details or {}
 
 
 def require_object(value: Any, label: str) -> dict[str, Any]:
@@ -157,6 +160,98 @@ def validate_approval(approval: Any, *, connector_id: str, operation_id: str) ->
     }
 
 
+def connector_required_scopes(auth: dict[str, Any]) -> list[str]:
+    try:
+        return string_list(auth.get("required_scopes", []), "connector.auth.required_scopes", allow_empty=True)
+    except ConnectorCatalogError as exc:
+        raise ConnectorMediationError(str(exc), code=exc.code, status=exc.status) from exc
+
+
+def authorize_actor_for_connector(auth: dict[str, Any], actor_context: dict[str, Any]) -> dict[str, Any]:
+    auth_type = auth.get("type")
+    required_scopes = connector_required_scopes(auth)
+    granted_scopes = actor_context.get("granted_scopes", [])
+    if not isinstance(granted_scopes, list) or not all(isinstance(item, str) for item in granted_scopes):
+        raise ConnectorMediationError(
+            "actor_context.granted_scopes must be validated before connector mediation.",
+            code="invalid_connector_actor_context",
+            status=HTTPStatus.FORBIDDEN,
+        )
+    missing_scopes = sorted(set(required_scopes) - set(granted_scopes))
+    decision = {
+        "auth_type": auth_type,
+        "required_scopes": required_scopes,
+        "granted_scopes": sorted(set(granted_scopes)),
+        "missing_scopes": missing_scopes,
+        "scope_match": not missing_scopes,
+        "authorization_status": "allowed",
+    }
+    if auth_type == ConnectorAuthType.OAUTH_USER_SCOPE.value and missing_scopes:
+        decision["authorization_status"] = "denied"
+        raise ConnectorMediationError(
+            f"Actor is missing required connector scope(s): {', '.join(missing_scopes)}",
+            code="connector_scope_denied",
+            status=HTTPStatus.FORBIDDEN,
+            details={
+                "authorization": decision,
+                "recovery": {
+                    "required_action": "Retry with actor_context.granted_scopes containing the connector required scopes.",
+                    "missing_scopes": missing_scopes,
+                },
+            },
+        )
+    return decision
+
+
+def approval_state(operation_class: Any, approval_record: dict[str, Any] | None) -> str:
+    if operation_class == ConnectorOperationClass.WRITE.value:
+        return "approved" if approval_record is not None else "missing"
+    return "not_required"
+
+
+def output_summary(result_payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "result_keys": sorted(result_payload),
+        "status": result_payload.get("status") if isinstance(result_payload.get("status"), str) else None,
+        "raw_output_summary_only": True,
+    }
+
+
+def audit_record(
+    *,
+    actor_context: dict[str, Any],
+    connector_id: str,
+    operation_id: str,
+    operation_class: Any,
+    arguments: dict[str, Any],
+    authorization: dict[str, Any],
+    approval_record: dict[str, Any] | None,
+    decision: str,
+    result_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    return {
+        "kind": "connector_invocation_audit",
+        "schema_version": 1,
+        "actor_id": actor_context["actor_id"],
+        "auth_subject_hash": actor_context["auth_subject_hash"],
+        "session_id": actor_context["session_id"],
+        "request_id": actor_context["request_id"],
+        "connector_id": connector_id,
+        "operation_id": operation_id,
+        "operation_class": operation_class,
+        "required_scopes": authorization["required_scopes"],
+        "granted_scopes": authorization["granted_scopes"],
+        "missing_scopes": authorization["missing_scopes"],
+        "authorization_status": authorization["authorization_status"],
+        "approval_state": approval_state(operation_class, approval_record),
+        "decision": decision,
+        "input": replay_safe_argument_summary(arguments),
+        "output": output_summary(result_payload) if result_payload is not None else None,
+        "raw_auth_subject_stored": False,
+        "raw_arguments_stored": False,
+    }
+
+
 def mediate_connector_operation(
     *,
     config_root: Path,
@@ -164,6 +259,7 @@ def mediate_connector_operation(
     operation_id: str,
     arguments: dict[str, Any],
     dry_run: bool,
+    actor_context: dict[str, Any],
     approval: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     connector = load_enabled_connector(config_root, connector_id)
@@ -172,19 +268,29 @@ def mediate_connector_operation(
     validate_arguments(operation, arguments)
     operation_class = operation.get("operation_class")
     auth = require_object(connector.get("auth"), "connector.auth")
+    authorization = authorize_actor_for_connector(auth, actor_context)
     if auth.get("type") == ConnectorAuthType.SERVICE_READ_ONLY.value and operation_class == ConnectorOperationClass.WRITE.value:
         raise ConnectorMediationError("service_read_only connectors cannot expose write operations.", code="unsafe_connector_auth")
     approval_record = None
     if operation_class == ConnectorOperationClass.WRITE.value:
-        approval_record = validate_approval(approval, connector_id=connector_id, operation_id=operation_id)
+        try:
+            approval_record = validate_approval(approval, connector_id=connector_id, operation_id=operation_id)
+        except ConnectorMediationError as exc:
+            exc.details = {**exc.details, "authorization": authorization}
+            raise
         if dry_run is not True:
             raise ConnectorMediationError(
                 "Write connector operations are dry-run only in the current mediation phase.",
                 code="connector_write_execution_not_supported",
                 status=HTTPStatus.FORBIDDEN,
+                details={"authorization": authorization},
             )
     if operation_class == ConnectorOperationClass.DRY_RUN.value and dry_run is not True:
-        raise ConnectorMediationError("dry_run connector operations require dry_run=true.", code="connector_dry_run_required")
+        raise ConnectorMediationError(
+            "dry_run connector operations require dry_run=true.",
+            code="connector_dry_run_required",
+            details={"authorization": authorization},
+        )
 
     result_payload = operation.get("stub_response")
     if not isinstance(result_payload, dict):
@@ -193,6 +299,17 @@ def mediate_connector_operation(
             "connector_id": connector_id,
             "operation_id": operation_id,
         }
+    audit = audit_record(
+        actor_context=actor_context,
+        connector_id=connector_id,
+        operation_id=operation_id,
+        operation_class=operation_class,
+        arguments=arguments,
+        authorization=authorization,
+        approval_record=approval_record,
+        decision="allowed",
+        result_payload=result_payload,
+    )
     return {
         "kind": "connector_invocation_result",
         "schema_version": 1,
@@ -203,9 +320,12 @@ def mediate_connector_operation(
         "protocol": connector.get("protocol"),
         "mediation": connector.get("mediation"),
         "auth_type": auth.get("type"),
+        "actor_context": actor_context,
+        "authorization": authorization,
         "approval": approval_record,
         "result": result_payload,
         "audit": {
+            **audit,
             "controller_owned_path": True,
             "raw_mcp_used": False,
             "direct_model_tool_access_used": False,

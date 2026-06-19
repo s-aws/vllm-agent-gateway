@@ -2,7 +2,7 @@
 
 The connector catalog is the governed admission surface for future external API connectors.
 
-Current status: Phase 284 governed connector registration, enabled local-stub mediation, and release-gated enablement. The project can validate connector manifests, append connector metadata to `runtime/connectors.json` through an approval-gated workflow, require release-gate proof before `enabled=true`, and invoke enabled `local_stub` connector operations through a controller-owned path. It does not call external APIs, expose raw MCP, or route natural-language prompts to connector operations yet.
+Current status: Phase 287 governed connector registration, enabled local-stub mediation, release-gated enablement, actor-bound invocation, user-scope enforcement, and replay-safe connector audit proof. The project can validate connector manifests, append connector metadata to `runtime/connectors.json` through an approval-gated workflow, require release-gate proof before `enabled=true`, and invoke enabled `local_stub` connector operations through a controller-owned path. It does not call external APIs, expose raw MCP, perform real OAuth token exchange, or route natural-language prompts to connector operations yet.
 
 ## When To Use It
 
@@ -15,6 +15,9 @@ Use connector catalog validation when proposing a future connector contract and 
 - eval fixture references exist
 - no raw MCP or direct model-to-tool bypass is allowed
 - validation produces artifacts without mutating runtime registries or target repositories
+- connector invocation is bound to an explicit actor/session/request context
+- `oauth_user_scope` connectors enforce required scopes against `actor_context.granted_scopes`
+- invocation artifacts include replay-safe audit records without raw auth subjects or raw argument values
 
 Do not use it for live API calls. Current invocation support is limited to enabled `local_stub` connector entries in `runtime/connectors.json`.
 
@@ -134,7 +137,13 @@ PII policies:
 - enabled registration requires explicit approval plus a passed connector eval release-gate report.
 - registration must not modify tools, workflows, roles, target repositories, or external services.
 - connector invocation is supported only for `enabled=true` `local_stub` connectors.
+- connector invocation requires `actor_context` with actor ID, auth subject, session ID, request ID, granted scopes, issue time, and expiration time.
+- expired, anonymous, missing, or malformed actor context fails closed before connector execution.
+- `oauth_user_scope.required_scopes` must be present in `actor_context.granted_scopes`.
+- insufficient user scope fails closed with missing-scope recovery guidance.
 - connector invocation writes request, invocation, and run-state artifacts.
+- connector invocation artifacts record replay-safe argument hashes instead of raw argument values.
+- connector invocation audits store `auth_subject_hash`, not raw auth subjects.
 - connector invocation must not call external networks, mutate runtime registries, mutate target repositories, use raw MCP, or expose direct model-to-connector tool access.
 - write-class connector operations are dry-run only in the current phase and require explicit connector invocation approval.
 
@@ -149,7 +158,17 @@ PII policies:
   "arguments": {
     "ticket_id": "T-123"
   },
-  "dry_run": true
+  "dry_run": true,
+  "actor_context": {
+    "schema_version": 1,
+    "actor_id": "tester-actor",
+    "auth_subject": "local-subject:tester-actor",
+    "session_id": "session-001",
+    "request_id": "request-001",
+    "granted_scopes": ["tickets:read"],
+    "issued_at_utc": "2026-01-01T00:00:00Z",
+    "expires_at_utc": "2999-01-01T00:00:00Z"
+  }
 }
 ```
 
@@ -216,6 +235,16 @@ Write-class dry runs require approval:
     "ticket_id": "T-123"
   },
   "dry_run": true,
+  "actor_context": {
+    "schema_version": 1,
+    "actor_id": "tester-actor",
+    "auth_subject": "local-subject:tester-actor",
+    "session_id": "session-001",
+    "request_id": "request-002",
+    "granted_scopes": ["tickets:write"],
+    "issued_at_utc": "2026-01-01T00:00:00Z",
+    "expires_at_utc": "2999-01-01T00:00:00Z"
+  },
   "approval": {
     "status": "approved_for_connector_invocation",
     "scope": "connector_invocation",
@@ -243,6 +272,10 @@ Each invocation run writes:
 - `run-state.json`
 
 The response summary includes `invocation_status`, `connector_id`, `operation_id`, `operation_class`, `dry_run`, `controller_owned_path`, `raw_mcp_used`, `direct_model_tool_access_used`, `external_network_called`, `runtime_registry_changed`, and `target_repository_changed`.
+
+For actor-bound invocations, the response summary also includes `actor_bound`, `actor_id`, `session_id`, `request_id`, `authorization_status`, `required_scopes`, `missing_scopes`, and `approval_state`.
+
+Each invocation report contains an `audit` object with actor/session/request identity, required and granted scopes, authorization decision, approval state, replay-safe input hash, output summary, and explicit `raw_auth_subject_stored=false` plus `raw_arguments_stored=false` markers.
 
 Each registration run writes:
 

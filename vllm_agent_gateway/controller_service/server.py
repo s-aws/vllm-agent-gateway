@@ -493,6 +493,7 @@ CONNECTOR_INVOCATION_FIELDS = {
     "operation_id",
     "arguments",
     "dry_run",
+    "actor_context",
     "approval",
     "metadata",
     "role_id",

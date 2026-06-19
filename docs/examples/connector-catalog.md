@@ -234,7 +234,17 @@ curl -s http://127.0.0.1:8400/v1/controller/connectors/invocations \
     "arguments": {
       "ticket_id": "T-123"
     },
-    "dry_run": true
+    "dry_run": true,
+    "actor_context": {
+      "schema_version": 1,
+      "actor_id": "tester-actor",
+      "auth_subject": "local-subject:tester-actor",
+      "session_id": "session-001",
+      "request_id": "request-001",
+      "granted_scopes": ["tickets:read"],
+      "issued_at_utc": "2026-01-01T00:00:00Z",
+      "expires_at_utc": "2999-01-01T00:00:00Z"
+    }
   }' | python -m json.tool
 ```
 
@@ -244,6 +254,8 @@ Expected success markers for an enabled `local_stub` connector:
 "workflow": "connector.invoke"
 "status": "completed"
 "invocation_status": "completed"
+"actor_bound": true
+"authorization_status": "allowed"
 "controller_owned_path": true
 "raw_mcp_used": false
 "direct_model_tool_access_used": false
@@ -264,6 +276,16 @@ Write-class connector dry-run approval:
     "ticket_id": "T-123"
   },
   "dry_run": true,
+  "actor_context": {
+    "schema_version": 1,
+    "actor_id": "tester-actor",
+    "auth_subject": "local-subject:tester-actor",
+    "session_id": "session-001",
+    "request_id": "request-002",
+    "granted_scopes": ["tickets:write"],
+    "issued_at_utc": "2026-01-01T00:00:00Z",
+    "expires_at_utc": "2999-01-01T00:00:00Z"
+  },
   "approval": {
     "status": "approved_for_connector_invocation",
     "scope": "connector_invocation",
@@ -279,9 +301,28 @@ Expected rejection codes:
 ```text
 unknown_connector
 connector_not_enabled
+missing_connector_actor_context
+anonymous_connector_actor_context
+stale_connector_actor_context
+connector_scope_denied
 raw_mcp_bypass_not_allowed
 direct_model_tool_bypass_not_allowed
 unsupported_connector_argument
 missing_connector_invocation_approval
 connector_write_execution_not_supported
+```
+
+Validate a connector invocation audit artifact:
+
+```bash
+python scripts/validate_connector_user_scope_audit.py \
+  --report-path runtime-state/controller-artifacts/connector-invocations/<run-id>/connector-invocation.json
+```
+
+Expected audit markers:
+
+```text
+CONNECTOR USER SCOPE AUDIT PASS
+"raw_auth_subject_stored": false
+"raw_arguments_stored": false
 ```

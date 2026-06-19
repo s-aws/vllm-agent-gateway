@@ -69,7 +69,7 @@ If a request selects a role that is not allowed for the workflow, or asks for mo
 
 `connector_catalog.register` is the approval-gated registration workflow for validated connector metadata. It appends only to `runtime/connectors.json`; draft registration installs `enabled=false`, and enabled registration requires a passed connector eval release-gate report. It does not modify tools, workflows, roles, target repositories, or external services.
 
-`connector.invoke` is the controller-owned mediation workflow for enabled local stub connectors. It writes audit artifacts and proves operation allowlists, approval checks, and bypass rejection. It does not call external APIs or expose connector operations as model-visible tools.
+`connector.invoke` is the controller-owned mediation workflow for enabled local stub connectors. It requires actor/session/request context, enforces declared user scopes for `oauth_user_scope` connectors, writes replay-safe audit artifacts, and proves operation allowlists, approval checks, and bypass rejection. It does not call external APIs, exchange real OAuth tokens, or expose connector operations as model-visible tools.
 
 ## Which Interface To Use
 

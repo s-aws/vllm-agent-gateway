@@ -11743,3 +11743,95 @@ Result:
 - Docs index validation passed with `377` linked docs and zero orphaned docs.
 - JSON validation passed for `runtime/connectors.json`, `runtime/workflows.json`, and `runtime/connector_eval_release_gate_policy.json`.
 - Full Bash regression passed with `1724 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 285: Connector Identity Context Contract
+
+Status: Complete.
+
+Milestone mapping: M20 Identity Context Contract.
+
+Goal: make connector invocation actor-bound before any future external connector action can run.
+
+Scope:
+
+- Add a required connector invocation `actor_context` contract with schema version, actor ID, auth subject, session ID, request ID, granted scopes, issue time, and expiration time.
+- Validate actor context before connector mediation attempts can execute.
+- Reject missing, malformed, anonymous, or expired actor context fail-closed.
+- Preserve actor context in request, invocation, and run-state artifacts.
+- Add summary fields that make identity binding visible without exposing secrets.
+- Keep connector registration, connector validation, external API calls, real OAuth token exchange, PII policy, and persistent memory out of scope.
+
+Acceptance target: every `connector.invoke` request is traceably bound to a current actor/session/request context, and anonymous or stale connector invocation attempts fail before connector execution.
+
+Result:
+
+- Added `vllm_agent_gateway.connectors.identity` with the connector actor-context contract, timestamp validation, anonymous actor rejection, auth-subject hashing, and replay-safe argument hashing.
+- Added `actor_context` to the `connector.invoke` controller request shape and HTTP allowlist.
+- Required actor context before connector mediation can execute.
+- Redacted raw auth subjects from request artifacts while preserving `auth_subject_hash`.
+- Replaced raw request-argument artifact storage with replay-safe argument hashes and argument-key summaries.
+- Added failed-attempt artifacts for missing, malformed, anonymous, and expired actor context.
+- Added response summary fields for `actor_bound`, `actor_id`, `session_id`, `request_id`, and `authorization_status`.
+- Focused connector tests proved valid actor-bound invocation plus missing, malformed, anonymous, and expired actor-context rejection without runtime or target mutation.
+
+### Approved Phase 286: Connector User-Scope Authorization Enforcement
+
+Status: Complete.
+
+Milestone mapping: M21 User-Scope Authorization Enforcement.
+
+Goal: enforce declared user scopes for connector invocation through the controller-owned mediation path.
+
+Scope:
+
+- Compare connector `oauth_user_scope.required_scopes` against `actor_context.granted_scopes`.
+- Allow invocation only when all connector-required scopes are present.
+- Preserve read/write scope split proof with explicit read and write connector fixtures.
+- Reject insufficient scope, cross-user/stale approval mismatch, and malformed granted scopes fail-closed.
+- Add chat-visible recovery fields to the invocation summary for authorization failures.
+- Do not add real OAuth providers, token refresh, enterprise-specific connectors, raw MCP access, or direct model-visible connector tools.
+
+Acceptance target: a connector operation cannot execute when the requesting actor lacks the required user scopes, and the failure response explains the missing scope boundary without leaking credentials.
+
+Result:
+
+- Enforced `oauth_user_scope.required_scopes` inside the single `vllm_agent_gateway.connectors.mediator.mediate_connector_operation` path.
+- Added required/granted/missing scope decisions to successful and failed invocation summaries.
+- Rejected insufficient scope with `connector_scope_denied`, `authorization_status=denied`, and missing-scope recovery guidance.
+- Preserved read/write scope split proof with write connector fixtures requiring `tickets:write`.
+- Preserved write approval behavior after scope authorization and carried the scope decision into missing-approval audit records.
+- Focused connector tests proved allowed scope, insufficient scope, write dry-run approval, missing write approval, and no registry/target mutation.
+
+### Approved Phase 287: Connector User-Scoped Audit And Replay Proof
+
+Status: Complete.
+
+Milestone mapping: M22 User-Scoped Action Audit And Replay.
+
+Goal: make every connector invocation attempt auditable and replay-safe without exposing sensitive values.
+
+Scope:
+
+- Add a deterministic audit record for successful and failed connector invocation attempts.
+- Include actor ID, auth subject hash, session ID, request ID, connector ID, operation ID, operation class, required scopes, granted-scope match result, approval state, decision, output summary, and replay-safe input hash.
+- Avoid storing raw sensitive connector arguments in replay summary fields.
+- Add validation helpers and regression tests proving audit records are present on success, missing identity, expired identity, insufficient scope, and write dry-run approval paths.
+- Do not add persistent memory, external log sinks, SIEM integrations, PII redaction beyond current connector-safe fields, or real external connector execution.
+
+Acceptance target: a contextless maintainer can inspect a connector invocation artifact and determine who requested it, what scope decision was made, what operation was attempted, what was returned or denied, and how to replay the decision safely without raw secret exposure.
+
+Result:
+
+- Added `vllm_agent_gateway.acceptance.connector_user_scope_audit` as the replay-safe connector invocation audit validator.
+- Added `scripts/validate_connector_user_scope_audit.py` for validating a `connector-invocation.json` artifact from the command line.
+- Added `connector_invocation_audit` records to successful and failed invocation reports.
+- Audit records include actor ID, auth subject hash, session ID, request ID, connector ID, operation ID, operation class, required scopes, granted scopes, missing scopes, authorization status, approval state, decision, replay-safe input hash, and output summary.
+- Audit records explicitly mark `raw_auth_subject_stored=false` and `raw_arguments_stored=false`.
+- Regression tests validate audit artifacts on successful invocation, missing actor context, insufficient scope, missing approval, and approved write dry-run paths.
+- Regression tests also prove the audit validator rejects raw argument storage.
+- Direct CLI validation passed against a generated connector invocation artifact with `CONNECTOR USER SCOPE AUDIT PASS`.
+- Updated `README.connector-catalog.md`, `README.controller-service.md`, `docs/examples/connector-catalog.md`, `docs/CURRENT_PROJECT_ARCHITECTURE.md`, and `docs/README.md`.
+- Focused connector/tool regression passed with `40 passed`.
+- Docs index validation passed with `377` linked docs and zero orphaned docs.
+- JSON validation passed for `runtime/connectors.json`, `runtime/workflows.json`, and `runtime/connector_eval_release_gate_policy.json`.
+- Full Bash regression passed with `1730 passed`, `4 skipped`, and `23 deselected`.
