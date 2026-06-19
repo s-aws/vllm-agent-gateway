@@ -26,6 +26,10 @@ flowchart TD
     Workflows --> TaskDecompose["task.decompose"]
     Workflows --> SuppliedCorpusQA["supplied_corpus_qa.answer"]
     Workflows --> LargeContext["Large-Context Retrieval / Chunked Investigation"]
+    Workflows --> ConnectorCatalog["connector_catalog.validate"]
+    Workflows --> ConnectorRegister["connector_catalog.register"]
+    Workflows --> ConnectorInvoke["connector.invoke"]
+    Validation --> ConnectorReleaseGate["Connector Eval Release Gate"]
 
     Router --> Safety["Safety Boundaries"]
     Safety --> AllowRoots["Allowed target roots"]
@@ -43,7 +47,7 @@ flowchart TD
     Validation --> AnythingLLMProof["AnythingLLM Proof"]
     Validation --> FixtureProof["Frozen Fixture Mutation Checks"]
 
-    Milestones["Future External Integration Milestone Goals"] --> Connectors["M17-M19 Governed Connectors"]
+    Milestones["External Integration Milestone Goals"] --> Connectors["M17-M19 Governed Connectors"]
     Milestones --> Identity["M20-M22 User-Scoped Authorization"]
     Milestones --> Privacy["M23-M25 PII And Memory Safety"]
 ```
@@ -54,7 +58,7 @@ flowchart TD
 - The supported large-context path is governed 500k-token project usability through context strategy, retrieval, chunked investigation, artifact paging, and safety checks. It is not a raw 500k prompt guarantee.
 - AnythingLLM is a tester-facing client surface. It should reach the workflow-router gateway when testing natural workflow behavior.
 - Runtime artifacts are local proof records. They are not source of truth for product design unless summarized in tracked docs.
-- Raw MCP access, enterprise-specific connectors, production OAuth identity propagation, Kubernetes deployment, and persistent hidden memory are not currently shipped capabilities.
+- Connector catalog validation, approval-gated connector registration, enabled local-stub connector mediation, and connector eval release-gate validation are available for governed manifest, registry append, dry-run/read-only proof, and shippability checks. Real external connector execution, raw MCP access, enterprise-specific connectors, production OAuth identity propagation, Kubernetes deployment, and persistent hidden memory are not currently shipped capabilities.
 
 ## Future Goal Position
 

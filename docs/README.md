@@ -91,6 +91,8 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Gateway Feature README](../README.gateway.md): runtime architecture, vLLM gateway behavior, role prompt proxies, ports, and client connection notes.
 - [Controller Service README](../README.controller-service.md): explicit HTTP workflow service, end-to-end documenter service example, allowlisted target roots, and run lookup.
 - [Workflow Router README](../README.workflow-router.md): natural-language workflow routing, natural client adapters, read-only execution, inline L1/L2 chat answers, approved implementation prep, packet-objective and narrowed-edit follow-up, and disposable-copy apply proof through controller-owned registry selection.
+- [Connector Catalog README](../README.connector-catalog.md): Phase 284 governed connector manifest validation, approval-gated registration, enabled local-stub mediation, and registry append proof for external integration contracts.
+- [Connector Eval Release Gate README](../README.connector-eval-release-gate.md): Phase 283 gate blocking connector enablement without eval, holdout, blind-baseline, negative-control, and release-decision proof.
 - [Runtime Skill Selection Hardening](PHASE94_RUNTIME_SKILL_SELECTION_HARDENING.md): Phase 94 selector audit contract, governed cases, repeated-run validation, gateway/AnythingLLM proof, and fail-closed rules.
 - [Context Retrieval Upgrade README](../README.context-retrieval-upgrade.md): Phase 95 source-family selection, context-source audit artifacts, unsupported layout blocking, and live gateway/AnythingLLM validation.
 - [Implementation-Prep Expansion README](../README.implementation-prep-expansion.md): Phase 96 draft-only packet proposal expansion, approved-investigation follow-up, verification commands, and live gateway/AnythingLLM proof.
@@ -211,6 +213,8 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Documenter README](../README.documenter.md): bounded document review, parallel chunk review, manifests, review plans, follow-ups, agent-executable change plans, drafts, and resumable state.
 - [Streaming README](../README.streaming.md): streaming modes for oversized files and explicit reductions.
 - [Workflow Router README](../README.workflow-router.md): route decisions from natural-language requests plus natural client adapters, read-only execution, inline L1/L2 chat answers, approved implementation prep, packet-objective and narrowed-edit follow-up, and disposable-copy apply proof.
+- [Connector Catalog README](../README.connector-catalog.md): read-only connector admission validation before future connector registration, mediation, or eval release gates.
+- [Connector Eval Release Gate README](../README.connector-eval-release-gate.md): connector release-packet validation before connector enablement or natural workflow exposure.
 - [Runtime Skill Selection Hardening](PHASE94_RUNTIME_SKILL_SELECTION_HARDENING.md): selector audit contract and repeated-run proof for selected/rejected workflow, skill, and tool candidates.
 - [Context Retrieval Upgrade README](../README.context-retrieval-upgrade.md): route-owned context-source selection for AST, text, config, test, and curated relationship lookup.
 - [Implementation-Prep Expansion README](../README.implementation-prep-expansion.md): draft-only exact packet proposal generation for small text edits and approved investigation continuations.
@@ -512,6 +516,8 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Code Structure Index Examples](examples/code-structure-indexes.md)
 - [Implementation Workflow Examples](examples/implementation-workflow.md)
 - [Tool Policy Examples](examples/tool-policy.md)
+- [Connector Catalog Examples](examples/connector-catalog.md)
+- [Connector Eval Release Gate Examples](examples/connector-eval-release-gate.md)
 
 ## 5. State, Modes, And Roadmaps
 

@@ -459,6 +459,42 @@
       "model_visible_tool_ids": []
     },
     {
+      "id": "connector_catalog.validate",
+      "description": "Controller-owned read-only connector admission validation workflow for governed external integration contracts.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "connector.invoke",
+      "description": "Controller-owned connector operation mediation workflow for approved local stub connector invocations.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
+      "id": "connector_catalog.register",
+      "description": "Controller-owned approval-gated connector catalog registration workflow that appends validated runtime connector metadata only.",
+      "default_role_id": "architect/default",
+      "allowed_role_ids": [
+        "architect/default"
+      ],
+      "controller_tool_ids": [],
+      "conditional_controller_tool_ids": [],
+      "controller_actions": [],
+      "model_visible_tool_ids": []
+    },
+    {
       "id": "tool_catalog.register",
       "description": "Controller-owned approval-gated tool catalog registration workflow that appends validated runtime tool metadata only.",
       "default_role_id": "architect/default",

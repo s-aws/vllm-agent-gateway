@@ -21,6 +21,9 @@ POST /v1/controller/code-context/lookups
 POST /v1/controller/code-investigation/plans
 POST /v1/controller/refactor/single-path
 POST /v1/controller/workflow-feedback/records
+POST /v1/controller/connector-catalog/validations
+POST /v1/controller/connector-catalog/registrations
+POST /v1/controller/connectors/invocations
 POST /v1/controller/harness/chat/completions
 GET  /v1/controller/runs/{run_id}
 POST /v1/controller/runs/{run_id}/cancel
@@ -61,6 +64,12 @@ The controller resolves tool policy before workflow execution:
 For `workflow_router.plan`, the default `dispatcher/default` role has no controller tools or model-visible tools; Phase 1 reads registry metadata only. For `documenter.review`, the default `documenter/default` role can use `git_ls_files` and `read_file`; `document_scope: "all"` also enables `scan_files`. For `execution_planning.plan`, `code_investigation.plan`, and `refactor.single_path`, the default `architect/default` role can use controller-owned `structure_index`, `git_grep`, and `read_file` context gathering. `code_context.lookup` can also use the curated read-only `codegraph_context` relationship adapter for callers, callees, and imports when the request includes `relationship_queries`. `workflow_feedback.record` uses the same `architect/default` role policy but has no controller tool or model-visible tool dependencies. Model-visible tools are disabled for these workflows until a later phase wires a bounded model tool loop into the service.
 
 If a request selects a role that is not allowed for the workflow, or asks for model-visible tools that the workflow does not allow, the service rejects the request with `tool_policy_denied` before creating workflow artifacts.
+
+`connector_catalog.validate` is a read-only validation workflow for future external integration contracts. It validates typed connector manifests and writes artifacts, but it does not register connectors, execute connectors, call external APIs, expose raw MCP, or modify runtime registries.
+
+`connector_catalog.register` is the approval-gated registration workflow for validated connector metadata. It appends only to `runtime/connectors.json`; draft registration installs `enabled=false`, and enabled registration requires a passed connector eval release-gate report. It does not modify tools, workflows, roles, target repositories, or external services.
+
+`connector.invoke` is the controller-owned mediation workflow for enabled local stub connectors. It writes audit artifacts and proves operation allowlists, approval checks, and bypass rejection. It does not call external APIs or expose connector operations as model-visible tools.
 
 ## Which Interface To Use
 
@@ -145,6 +154,36 @@ curl -s http://127.0.0.1:8400/v1/controller/workflow-feedback/records \
 ```
 
 Concrete payloads are in [docs/examples/workflow-feedback.md](docs/examples/workflow-feedback.md).
+
+Use the connector catalog validation endpoint when a future external integration needs a governed manifest check before registration or execution work exists:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/connector-catalog/validations \
+  -H 'Content-Type: application/json' \
+  -d '<connector_catalog.validate JSON>'
+```
+
+Concrete payloads are in [docs/examples/connector-catalog.md](docs/examples/connector-catalog.md).
+
+Use the connector catalog registration endpoint when a validated connector should be appended to the runtime connector registry:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/connector-catalog/registrations \
+  -H 'Content-Type: application/json' \
+  -d '<connector_catalog.register JSON>'
+```
+
+Concrete payloads are in [docs/examples/connector-catalog.md](docs/examples/connector-catalog.md).
+
+Use the connector invocation endpoint only for enabled local stub connectors:
+
+```bash
+curl -s http://127.0.0.1:8400/v1/controller/connectors/invocations \
+  -H 'Content-Type: application/json' \
+  -d '<connector.invoke JSON>'
+```
+
+Concrete payloads are in [docs/examples/connector-catalog.md](docs/examples/connector-catalog.md).
 
 Use the harness adapter only when a client expects an OpenAI-style chat completion response but can send an explicit `agentic_controller_request` envelope:
 

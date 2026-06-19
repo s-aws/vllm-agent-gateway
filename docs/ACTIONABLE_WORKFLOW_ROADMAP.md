@@ -11601,3 +11601,145 @@ Result:
 - Phase 280 live gateway and AnythingLLM validation passed for all five unseen fixtures.
 - The generic answer path contains no Phase 278 fixture literals.
 - Full Bash regression passed.
+
+### Approved Phase 281: Connector Contract Validation
+
+Status: Complete.
+
+Milestone mapping: M17 Connector Contract And Registry.
+
+Goal: create the first governed connector admission contract so future external API connectors can be validated without exposing raw MCP, raw network calls, or direct model-to-tool execution.
+
+Scope:
+
+- Add a read-only connector manifest validator.
+- Require typed connector capability and operation metadata before any connector can be registered or executed.
+- Validate connector IDs, operation IDs, read/write class, auth requirements, schemas, safety constraints, owner, and eval fixture references.
+- Reject raw MCP bypass, missing auth policy, missing eval fixtures, unsafe write operations without approval requirements, duplicate connector IDs, duplicate operation IDs, and unsupported operation classes.
+- Write validation request, report, and run-state artifacts under the controller output root.
+- Add a controller endpoint for explicit validation requests only.
+- Do not register connectors, execute connectors, call external APIs, add OAuth propagation, add PII/memory policy, or change normal workflow routing.
+
+Acceptance target: a contextless maintainer can submit a connector admission manifest to the controller and receive deterministic pass/fail validation plus artifacts, with zero runtime registry or target repository mutation.
+
+Result:
+
+- Added `runtime/connectors.json` as the empty governed connector registry.
+- Added `vllm_agent_gateway.connectors.catalog` with connector admission manifest validation, connector-specific errors, typed enum-backed policy values, duplicate checks, workflow checks, operation checks, and runtime-mutation summary fields.
+- Added `connector_catalog.validate` controller workflow and `/v1/controller/connector-catalog/validations` endpoint.
+- Added the workflow registry entry with no controller tools and no model-visible tools.
+- Added focused regression coverage for valid stub contracts, raw MCP bypass rejection, unsafe write rejection, missing eval fixtures, duplicate connector ID rejection, unknown workflow rejection, and runtime registry mutation proof.
+- Added `README.connector-catalog.md` and `docs/examples/connector-catalog.md`.
+- Updated the controller service docs, docs index, and current architecture diagram.
+- Focused connector/tool catalog regression passed with `12 passed`.
+- Docs index validation passed with `375` linked docs and zero orphaned docs.
+- JSON validation passed for `runtime/connectors.json` and `runtime/workflows.json`.
+- Full Bash regression passed with `1702 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 282: Connector Mediation Contract
+
+Status: Complete.
+
+Milestone mapping: M18 Connector Execution Mediation.
+
+Goal: define and implement the single controller-owned mediation path for approved connector operations before any real external connector is enabled.
+
+Scope:
+
+- Reuse the Phase 281 manifest contract.
+- Add dry-run/read-only connector invocation proof against stub connectors only.
+- Enforce operation allowlists and approval requirements for mutation-class operations.
+- Reject raw MCP, arbitrary URL, direct model tool bypass, unregistered connector, unsupported operation, and missing approval.
+- Emit audit artifacts for every attempted connector operation.
+- Do not add production connectors, OAuth propagation, persistent memory, or sensitive-data handling beyond current redaction policies.
+
+Acceptance target: approved stub connector operations can be mediated through one controller path, while all bypass and mutation-negative controls fail closed.
+
+Result:
+
+- Added `vllm_agent_gateway.connectors.mediator` as the single connector operation mediation path.
+- Added `connector.invoke` controller workflow and `/v1/controller/connectors/invocations` endpoint.
+- Added the workflow registry entry with no controller tools and no model-visible tools.
+- Limited current invocation to `enabled=true` `local_stub` connectors.
+- Enforced controller-owned mediation, no raw MCP, no direct model-to-connector tool access, no external network calls, no runtime registry mutation, and no target repository mutation.
+- Added input argument validation against operation schemas.
+- Added write-operation approval checks and dry-run-only write enforcement.
+- Added request, invocation, and run-state artifacts for successful and failed attempts.
+- Added focused regression coverage for successful enabled local stub invocation, unknown connector, disabled connector, raw MCP bypass, unsupported arguments, missing write approval, approved write dry run, and rejected real write execution.
+- Updated connector docs, controller service docs, examples, and architecture diagram.
+- Focused connector/tool catalog regression passed with `19 passed`.
+- Docs index validation passed with `375` linked docs and zero orphaned docs.
+
+Full EIG-1 regression proof is recorded under Phase 283.
+
+### Approved Phase 283: Connector Eval And Release Gate
+
+Status: Complete.
+
+Milestone mapping: M19 Connector Eval And Release Gate.
+
+Goal: prevent connector enablement without repeatable chat-quality, safety, and failure-mode proof.
+
+Scope:
+
+- Add connector eval metadata and runner contracts.
+- Require prompt coverage, holdouts, blind-baseline scoring, unsupported-scope tests, and negative controls for each connector.
+- Add release decision artifacts for connector enablement.
+- Validate through gateway and AnythingLLM when a connector is exposed to natural-language workflows.
+- Do not add enterprise-specific connectors or production deployment scope.
+
+Acceptance target: a new connector cannot be marked enabled unless its eval suite and release decision proof pass.
+
+Result:
+
+- Added `runtime/connector_eval_release_gate_policy.json`.
+- Added `vllm_agent_gateway.acceptance.connector_eval_release_gate`.
+- Added `scripts/validate_connector_eval_release_gate.py`.
+- Added a release-packet gate requiring passing connector validation, per-operation prompt coverage, holdouts, blind-baseline-before-local-output proof, required negative controls, controller-surface proof, unresolved high/critical finding rejection, and `ship` decision before connector enablement.
+- Required workflow-router gateway and AnythingLLM proof when a connector is exposed to natural-language workflows.
+- Added focused regression coverage for the passing sample packet, missing connector validation, late blind baseline, missing negative controls, missing natural workflow surfaces, natural workflow surface pass, enablement without ship, unresolved high finding, and bad-packet CLI failure.
+- Added `README.connector-eval-release-gate.md` and `docs/examples/connector-eval-release-gate.md`.
+- Updated docs index and current architecture diagram.
+- Phase 283 CLI passed with `validation_status=passed`, `connector_id=ticketing_stub`, `release_decision=ship`, and `phase284_ready=true`.
+- Focused connector regression passed with `28 passed`.
+- Docs index validation passed with `377` linked docs and zero orphaned docs.
+- Full Bash regression passed with `1718 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 284: Connector Registration And Enablement Gate
+
+Status: Complete.
+
+Milestone mapping: M17 Connector Contract And Registry, M19 Connector Eval And Release Gate.
+
+Goal: add the approval-gated path that writes connector metadata into `runtime/connectors.json` only after connector validation and release-gate proof have passed.
+
+Scope:
+
+- Register connector metadata through one controller-owned workflow.
+- Require explicit approval for connector registration.
+- Require a passed connector validation report for the connector ID and operation IDs.
+- Require a passed connector eval release-gate report before `enabled=true` is allowed.
+- Allow draft registration with `enabled=false` only when validation passes and the approval explicitly scopes draft registration.
+- Append only to `runtime/connectors.json`; do not mutate tools, workflows, roles, target repositories, or external services.
+- Write request, validation, registration, hash proof, rollback instructions, and run-state artifacts.
+- Reject duplicate connector IDs, missing approval, stale validation, enablement without release proof, and attempts to change other runtime registries.
+- Do not execute connectors, call external APIs, add OAuth propagation, or add PII/memory policy.
+
+Acceptance target: a contextless maintainer can register a draft connector or enable a connector with proof, and failed registration attempts leave all runtime and target files unchanged.
+
+Result:
+
+- Added `connector_catalog.register` to `runtime/workflows.json` and `/v1/controller/connector-catalog/registrations` to the controller service.
+- Added `vllm_agent_gateway.controllers.connector_catalog.register` with one approval-gated registration path.
+- Draft registration installs validated connector metadata with `enabled=false`.
+- Enabled registration requires explicit `connector_enablement` approval plus a passed connector eval release-gate report for the same connector ID with `release_decision=ship`.
+- Registration appends only to `runtime/connectors.json` and records hash proof for `runtime/connectors.json`, `runtime/tools.json`, `runtime/workflows.json`, and `runtime/roles.json`.
+- Registration writes request, validation-before-registration, registration, rollback-instructions, and run-state artifacts.
+- Negative controls reject missing approval, malformed approval scope, duplicate connector ID, enablement without release proof, and release-gate connector mismatch without runtime or target mutation.
+- Updated `README.connector-catalog.md`, `README.controller-service.md`, `docs/examples/connector-catalog.md`, `docs/CURRENT_PROJECT_ARCHITECTURE.md`, and `docs/README.md`.
+- Confirmed durable naming uses connector/external-integration language, with no source-job or source-company wording in tracked project files.
+- Focused connector/tool regression passed with `34 passed`.
+- Connector eval release-gate CLI passed with `validation_status=passed`, `connector_id=ticketing_stub`, `release_decision=ship`, and `phase284_ready=true`.
+- Docs index validation passed with `377` linked docs and zero orphaned docs.
+- JSON validation passed for `runtime/connectors.json`, `runtime/workflows.json`, and `runtime/connector_eval_release_gate_policy.json`.
+- Full Bash regression passed with `1724 passed`, `4 skipped`, and `23 deselected`.

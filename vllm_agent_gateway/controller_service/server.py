@@ -132,6 +132,24 @@ from vllm_agent_gateway.controllers.tool_catalog.validate import (
     ToolCatalogValidationRequest,
     invoke_tool_catalog_validation,
 )
+from vllm_agent_gateway.controllers.connector_catalog.validate import (
+    WORKFLOW_ID as CONNECTOR_CATALOG_VALIDATION_WORKFLOW_ID,
+    ConnectorCatalogValidationError,
+    ConnectorCatalogValidationRequest,
+    invoke_connector_catalog_validation,
+)
+from vllm_agent_gateway.controllers.connector_catalog.invoke import (
+    WORKFLOW_ID as CONNECTOR_INVOCATION_WORKFLOW_ID,
+    ConnectorInvocationError,
+    ConnectorInvocationRequest,
+    invoke_connector_invocation,
+)
+from vllm_agent_gateway.controllers.connector_catalog.register import (
+    WORKFLOW_ID as CONNECTOR_CATALOG_REGISTRATION_WORKFLOW_ID,
+    ConnectorCatalogRegistrationError,
+    ConnectorCatalogRegistrationRequest,
+    invoke_connector_catalog_registration,
+)
 from vllm_agent_gateway.controllers.tool_catalog.register import (
     WORKFLOW_ID as TOOL_CATALOG_REGISTRATION_WORKFLOW_ID,
     ToolCatalogRegistrationError,
@@ -199,6 +217,9 @@ SKILL_PACK_VALIDATION_PATH = "/v1/controller/skill-packs/validations"
 SKILL_PACK_INSTALL_PATH = "/v1/controller/skill-packs/installations"
 SKILL_SCAFFOLD_PATH = "/v1/controller/skill-scaffolds"
 TOOL_CATALOG_VALIDATION_PATH = "/v1/controller/tool-catalog/validations"
+CONNECTOR_CATALOG_VALIDATION_PATH = "/v1/controller/connector-catalog/validations"
+CONNECTOR_INVOCATION_PATH = "/v1/controller/connectors/invocations"
+CONNECTOR_CATALOG_REGISTRATION_PATH = "/v1/controller/connector-catalog/registrations"
 TOOL_CATALOG_REGISTRATION_PATH = "/v1/controller/tool-catalog/registrations"
 TASK_DECOMPOSITION_PATH = "/v1/controller/task-decompositions"
 IMPLEMENTATION_WORKFLOW_ID = "implementation.workflow"
@@ -454,6 +475,35 @@ TOOL_CATALOG_VALIDATION_FIELDS = {
     "schema_version",
     "tool_manifest",
     "tool_manifest_path",
+    "metadata",
+    "role_id",
+}
+CONNECTOR_CATALOG_VALIDATION_FIELDS = {
+    "workflow",
+    "schema_version",
+    "connector_manifest",
+    "connector_manifest_path",
+    "metadata",
+    "role_id",
+}
+CONNECTOR_INVOCATION_FIELDS = {
+    "workflow",
+    "schema_version",
+    "connector_id",
+    "operation_id",
+    "arguments",
+    "dry_run",
+    "approval",
+    "metadata",
+    "role_id",
+}
+CONNECTOR_CATALOG_REGISTRATION_FIELDS = {
+    "workflow",
+    "schema_version",
+    "connector_manifest",
+    "connector_manifest_path",
+    "release_gate_report_path",
+    "approval",
     "metadata",
     "role_id",
 }
@@ -828,6 +878,24 @@ class BuiltToolCatalogValidation:
 
 
 @dataclass(frozen=True)
+class BuiltConnectorCatalogValidation:
+    request: ConnectorCatalogValidationRequest
+    tool_policy: ResolvedControllerToolPolicy
+
+
+@dataclass(frozen=True)
+class BuiltConnectorInvocation:
+    request: ConnectorInvocationRequest
+    tool_policy: ResolvedControllerToolPolicy
+
+
+@dataclass(frozen=True)
+class BuiltConnectorCatalogRegistration:
+    request: ConnectorCatalogRegistrationRequest
+    tool_policy: ResolvedControllerToolPolicy
+
+
+@dataclass(frozen=True)
 class BuiltToolCatalogRegistration:
     request: ToolCatalogRegistrationRequest
     tool_policy: ResolvedControllerToolPolicy
@@ -1142,6 +1210,27 @@ def tool_catalog_validation_summary(report: dict[str, Any] | None) -> dict[str, 
     return summary if isinstance(summary, dict) else None
 
 
+def connector_catalog_validation_summary(report: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(report, dict) or report.get("kind") != "connector_catalog_validation_report":
+        return None
+    summary = report.get("summary")
+    return summary if isinstance(summary, dict) else None
+
+
+def connector_invocation_summary(report: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(report, dict) or report.get("kind") != "connector_invocation_report":
+        return None
+    summary = report.get("summary")
+    return summary if isinstance(summary, dict) else None
+
+
+def connector_catalog_registration_summary(report: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(report, dict) or report.get("kind") != "connector_catalog_registration_report":
+        return None
+    summary = report.get("summary")
+    return summary if isinstance(summary, dict) else None
+
+
 def tool_catalog_registration_summary(report: dict[str, Any] | None) -> dict[str, Any] | None:
     if not isinstance(report, dict) or report.get("kind") != "tool_catalog_registration_report":
         return None
@@ -1383,6 +1472,9 @@ def service_response_from_result(
     skill_pack_install = skill_pack_install_summary(result.report)
     skill_scaffold = skill_scaffold_summary(result.report)
     tool_catalog_validation = tool_catalog_validation_summary(result.report)
+    connector_catalog_validation = connector_catalog_validation_summary(result.report)
+    connector_invocation = connector_invocation_summary(result.report)
+    connector_catalog_registration = connector_catalog_registration_summary(result.report)
     tool_catalog_registration = tool_catalog_registration_summary(result.report)
     task_decomposition = task_decomposition_summary(result.report)
     implementation_summary = implementation_workflow_summary(result.report)
@@ -1425,6 +1517,12 @@ def service_response_from_result(
             if skill_scaffold is not None
             else tool_catalog_validation
             if tool_catalog_validation is not None
+            else connector_catalog_validation
+            if connector_catalog_validation is not None
+            else connector_invocation
+            if connector_invocation is not None
+            else connector_catalog_registration
+            if connector_catalog_registration is not None
             else tool_catalog_registration
             if tool_catalog_registration is not None
             else task_decomposition
@@ -8312,6 +8410,96 @@ def build_tool_catalog_validation(payload: dict[str, Any], config: ControllerSer
     return BuiltToolCatalogValidation(request=request, tool_policy=tool_policy)
 
 
+def build_connector_catalog_validation(payload: dict[str, Any], config: ControllerServiceConfig) -> BuiltConnectorCatalogValidation:
+    unknown = sorted(set(payload) - CONNECTOR_CATALOG_VALIDATION_FIELDS)
+    if unknown:
+        raise ControllerServiceError(f"Unsupported request field(s): {', '.join(unknown)}")
+    workflow = payload.get("workflow", CONNECTOR_CATALOG_VALIDATION_WORKFLOW_ID)
+    if workflow != CONNECTOR_CATALOG_VALIDATION_WORKFLOW_ID:
+        raise ControllerServiceError("workflow must be connector_catalog.validate.", code="unsupported_workflow")
+    role_id = optional_string(payload, "role_id") or "architect/default"
+    try:
+        tool_policy = resolve_controller_tool_policy(
+            config.config_root,
+            CONNECTOR_CATALOG_VALIDATION_WORKFLOW_ID,
+            role_id,
+            {},
+            [],
+        )
+    except ControllerToolPolicyError as exc:
+        raise ControllerServiceError(
+            str(exc),
+            status=HTTPStatus.UNPROCESSABLE_ENTITY,
+            code="tool_policy_denied",
+        ) from exc
+    request = ConnectorCatalogValidationRequest.from_payload(
+        payload,
+        config_root=config.config_root,
+        output_root=config.output_root,
+    )
+    return BuiltConnectorCatalogValidation(request=request, tool_policy=tool_policy)
+
+
+def build_connector_invocation(payload: dict[str, Any], config: ControllerServiceConfig) -> BuiltConnectorInvocation:
+    unknown = sorted(set(payload) - CONNECTOR_INVOCATION_FIELDS)
+    if unknown:
+        raise ControllerServiceError(f"Unsupported request field(s): {', '.join(unknown)}")
+    workflow = payload.get("workflow", CONNECTOR_INVOCATION_WORKFLOW_ID)
+    if workflow != CONNECTOR_INVOCATION_WORKFLOW_ID:
+        raise ControllerServiceError("workflow must be connector.invoke.", code="unsupported_workflow")
+    role_id = optional_string(payload, "role_id") or "architect/default"
+    try:
+        tool_policy = resolve_controller_tool_policy(
+            config.config_root,
+            CONNECTOR_INVOCATION_WORKFLOW_ID,
+            role_id,
+            {},
+            [],
+        )
+    except ControllerToolPolicyError as exc:
+        raise ControllerServiceError(
+            str(exc),
+            status=HTTPStatus.UNPROCESSABLE_ENTITY,
+            code="tool_policy_denied",
+        ) from exc
+    request = ConnectorInvocationRequest.from_payload(
+        payload,
+        config_root=config.config_root,
+        output_root=config.output_root,
+    )
+    return BuiltConnectorInvocation(request=request, tool_policy=tool_policy)
+
+
+def build_connector_catalog_registration(payload: dict[str, Any], config: ControllerServiceConfig) -> BuiltConnectorCatalogRegistration:
+    unknown = sorted(set(payload) - CONNECTOR_CATALOG_REGISTRATION_FIELDS)
+    if unknown:
+        raise ControllerServiceError(f"Unsupported request field(s): {', '.join(unknown)}")
+    workflow = payload.get("workflow", CONNECTOR_CATALOG_REGISTRATION_WORKFLOW_ID)
+    if workflow != CONNECTOR_CATALOG_REGISTRATION_WORKFLOW_ID:
+        raise ControllerServiceError("workflow must be connector_catalog.register.", code="unsupported_workflow")
+    role_id = optional_string(payload, "role_id") or "architect/default"
+    try:
+        tool_policy = resolve_controller_tool_policy(
+            config.config_root,
+            CONNECTOR_CATALOG_REGISTRATION_WORKFLOW_ID,
+            role_id,
+            {},
+            [],
+        )
+    except ControllerToolPolicyError as exc:
+        raise ControllerServiceError(
+            str(exc),
+            status=HTTPStatus.UNPROCESSABLE_ENTITY,
+            code="tool_policy_denied",
+        ) from exc
+    request = ConnectorCatalogRegistrationRequest.from_payload(
+        payload,
+        config_root=config.config_root,
+        output_root=config.output_root,
+    )
+    return BuiltConnectorCatalogRegistration(request=request, tool_policy=tool_policy)
+
+
 def build_tool_catalog_registration(payload: dict[str, Any], config: ControllerServiceConfig) -> BuiltToolCatalogRegistration:
     unknown = sorted(set(payload) - TOOL_CATALOG_REGISTRATION_FIELDS)
     if unknown:
@@ -8927,6 +9115,30 @@ def handle_tool_catalog_validation(payload: dict[str, Any], config: ControllerSe
     return response
 
 
+def handle_connector_catalog_validation(payload: dict[str, Any], config: ControllerServiceConfig) -> dict[str, Any]:
+    built = build_connector_catalog_validation(payload, config)
+    result = invoke_connector_catalog_validation(built.request)
+    response = service_response_from_result(result, built.tool_policy)
+    persist_run_record(config, response)
+    return response
+
+
+def handle_connector_invocation(payload: dict[str, Any], config: ControllerServiceConfig) -> dict[str, Any]:
+    built = build_connector_invocation(payload, config)
+    result = invoke_connector_invocation(built.request)
+    response = service_response_from_result(result, built.tool_policy)
+    persist_run_record(config, response)
+    return response
+
+
+def handle_connector_catalog_registration(payload: dict[str, Any], config: ControllerServiceConfig) -> dict[str, Any]:
+    built = build_connector_catalog_registration(payload, config)
+    result = invoke_connector_catalog_registration(built.request)
+    response = service_response_from_result(result, built.tool_policy)
+    persist_run_record(config, response)
+    return response
+
+
 def handle_tool_catalog_registration(payload: dict[str, Any], config: ControllerServiceConfig) -> dict[str, Any]:
     built = build_tool_catalog_registration(payload, config)
     result = invoke_tool_catalog_registration(built.request)
@@ -9283,6 +9495,15 @@ class ControllerRequestHandler(BaseHTTPRequestHandler):
             if self.path == TOOL_CATALOG_VALIDATION_PATH:
                 self.write_json(HTTPStatus.OK, handle_tool_catalog_validation(payload, self.server.config))
                 return
+            if self.path == CONNECTOR_CATALOG_VALIDATION_PATH:
+                self.write_json(HTTPStatus.OK, handle_connector_catalog_validation(payload, self.server.config))
+                return
+            if self.path == CONNECTOR_INVOCATION_PATH:
+                self.write_json(HTTPStatus.OK, handle_connector_invocation(payload, self.server.config))
+                return
+            if self.path == CONNECTOR_CATALOG_REGISTRATION_PATH:
+                self.write_json(HTTPStatus.OK, handle_connector_catalog_registration(payload, self.server.config))
+                return
             if self.path == TOOL_CATALOG_REGISTRATION_PATH:
                 self.write_json(HTTPStatus.OK, handle_tool_catalog_registration(payload, self.server.config))
                 return
@@ -9350,6 +9571,12 @@ class ControllerRequestHandler(BaseHTTPRequestHandler):
         except SkillScaffoldError as exc:
             self.write_error(ControllerServiceError(str(exc), status=exc.status, code=exc.code))
         except ToolCatalogValidationError as exc:
+            self.write_error(ControllerServiceError(str(exc), status=exc.status, code=exc.code))
+        except ConnectorCatalogValidationError as exc:
+            self.write_error(ControllerServiceError(str(exc), status=exc.status, code=exc.code))
+        except ConnectorInvocationError as exc:
+            self.write_error(ControllerServiceError(str(exc), status=exc.status, code=exc.code))
+        except ConnectorCatalogRegistrationError as exc:
             self.write_error(ControllerServiceError(str(exc), status=exc.status, code=exc.code))
         except ToolCatalogRegistrationError as exc:
             self.write_error(ControllerServiceError(str(exc), status=exc.status, code=exc.code))
