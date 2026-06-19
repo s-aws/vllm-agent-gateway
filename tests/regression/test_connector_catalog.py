@@ -215,12 +215,21 @@ def invoke_connector(
         return request_json(*service.base_url, "/v1/controller/connectors/invocations", payload)
 
 
-def connector_invocation_approval(connector_id: str, operation_id: str) -> dict[str, Any]:
+def connector_invocation_approval(
+    connector_id: str,
+    operation_id: str,
+    *,
+    actor_context: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    actor_context = connector_actor_context() if actor_context is None else actor_context
     return {
         "status": "approved_for_connector_invocation",
         "scope": "connector_invocation",
         "connector_id": connector_id,
         "operation_id": operation_id,
+        "actor_id": actor_context["actor_id"],
+        "session_id": actor_context["session_id"],
+        "request_id": actor_context["request_id"],
         "approval_refs": ["phase282-test-approval"],
     }
 
@@ -623,6 +632,32 @@ def test_connector_invocation_rejects_insufficient_user_scope_without_mutation(t
     assert report["audit"]["decision"] == "denied"
     assert report["audit"]["required_scopes"] == ["tickets:write"]
     assert report["audit"]["missing_scopes"] == ["tickets:write"]
+    assert validate_connector_invocation_audit_report(report)["status"] == "passed"
+    assert runtime_snapshot(config_root) == before
+
+
+def test_connector_invocation_rejects_stale_cross_actor_approval_without_mutation(tmp_path: Path) -> None:
+    config_root = make_connector_catalog_root(tmp_path)
+    install_connector(config_root, registered_write_stub_connector())
+    before = runtime_snapshot(config_root)
+    approval = connector_invocation_approval("ticketing_writer_stub", "update_ticket")
+    approval["actor_id"] = "other-actor"
+    status, body = invoke_connector(
+        config_root,
+        tmp_path,
+        connector_id="ticketing_writer_stub",
+        operation_id="update_ticket",
+        approval=approval,
+    )
+
+    assert status == 200
+    assert body["status"] == "failed"
+    assert body["failures"][0]["code"] == "stale_connector_invocation_approval"
+    assert body["summary"]["authorization_status"] == "allowed"
+    report = json.loads(Path(body["artifacts"]["connector_invocation"]).read_text(encoding="utf-8"))
+    assert report["audit"]["actor_id"] == "tester-actor"
+    assert report["audit"]["decision"] == "denied"
+    assert report["audit"]["required_scopes"] == ["tickets:write"]
     assert validate_connector_invocation_audit_report(report)["status"] == "passed"
     assert runtime_snapshot(config_root) == before
 

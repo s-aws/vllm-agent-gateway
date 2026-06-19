@@ -123,7 +123,13 @@ def validate_arguments(operation: dict[str, Any], arguments: dict[str, Any]) -> 
             raise ConnectorMediationError(f"Connector argument {name} must be an object.", code="invalid_connector_argument")
 
 
-def validate_approval(approval: Any, *, connector_id: str, operation_id: str) -> dict[str, Any]:
+def validate_approval(
+    approval: Any,
+    *,
+    connector_id: str,
+    operation_id: str,
+    actor_context: dict[str, Any],
+) -> dict[str, Any]:
     if not isinstance(approval, dict):
         raise ConnectorMediationError(
             "connector write operations require approval.",
@@ -150,12 +156,25 @@ def validate_approval(approval: Any, *, connector_id: str, operation_id: str) ->
             code="stale_connector_invocation_approval",
             status=HTTPStatus.FORBIDDEN,
         )
+    if (
+        approval.get("actor_id") != actor_context["actor_id"]
+        or approval.get("session_id") != actor_context["session_id"]
+        or approval.get("request_id") != actor_context["request_id"]
+    ):
+        raise ConnectorMediationError(
+            "connector invocation approval must match actor_id, session_id, and request_id.",
+            code="stale_connector_invocation_approval",
+            status=HTTPStatus.FORBIDDEN,
+        )
     approval_refs = string_list(approval.get("approval_refs"), "approval.approval_refs")
     return {
         "status": "approved_for_connector_invocation",
         "scope": sorted(scopes),
         "connector_id": connector_id,
         "operation_id": operation_id,
+        "actor_id": actor_context["actor_id"],
+        "session_id": actor_context["session_id"],
+        "request_id": actor_context["request_id"],
         "approval_refs": approval_refs,
     }
 
@@ -274,7 +293,12 @@ def mediate_connector_operation(
     approval_record = None
     if operation_class == ConnectorOperationClass.WRITE.value:
         try:
-            approval_record = validate_approval(approval, connector_id=connector_id, operation_id=operation_id)
+            approval_record = validate_approval(
+                approval,
+                connector_id=connector_id,
+                operation_id=operation_id,
+                actor_context=actor_context,
+            )
         except ConnectorMediationError as exc:
             exc.details = {**exc.details, "authorization": authorization}
             raise

@@ -11800,7 +11800,7 @@ Result:
 - Rejected insufficient scope with `connector_scope_denied`, `authorization_status=denied`, and missing-scope recovery guidance.
 - Preserved read/write scope split proof with write connector fixtures requiring `tickets:write`.
 - Preserved write approval behavior after scope authorization and carried the scope decision into missing-approval audit records.
-- Focused connector tests proved allowed scope, insufficient scope, write dry-run approval, missing write approval, and no registry/target mutation.
+- Focused connector tests proved allowed scope, insufficient scope, write dry-run approval, missing write approval, stale cross-actor approval rejection, and no registry/target mutation.
 
 ### Approved Phase 287: Connector User-Scoped Audit And Replay Proof
 
@@ -11831,7 +11831,7 @@ Result:
 - Regression tests also prove the audit validator rejects raw argument storage.
 - Direct CLI validation passed against a generated connector invocation artifact with `CONNECTOR USER SCOPE AUDIT PASS`.
 - Updated `README.connector-catalog.md`, `README.controller-service.md`, `docs/examples/connector-catalog.md`, `docs/CURRENT_PROJECT_ARCHITECTURE.md`, and `docs/README.md`.
-- Focused connector/tool regression passed with `40 passed`.
+- Focused connector/tool regression passed with `41 passed`.
 - Docs index validation passed with `377` linked docs and zero orphaned docs.
 - JSON validation passed for `runtime/connectors.json`, `runtime/workflows.json`, and `runtime/connector_eval_release_gate_policy.json`.
-- Full Bash regression passed with `1730 passed`, `4 skipped`, and `23 deselected`.
+- Full Bash regression passed with `1731 passed`, `4 skipped`, and `23 deselected`.

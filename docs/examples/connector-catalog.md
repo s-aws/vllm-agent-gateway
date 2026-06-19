@@ -291,6 +291,9 @@ Write-class connector dry-run approval:
     "scope": "connector_invocation",
     "connector_id": "ticketing_writer_stub",
     "operation_id": "update_ticket",
+    "actor_id": "tester-actor",
+    "session_id": "session-001",
+    "request_id": "request-002",
     "approval_refs": ["approved-change-record"]
   }
 }
@@ -305,6 +308,7 @@ missing_connector_actor_context
 anonymous_connector_actor_context
 stale_connector_actor_context
 connector_scope_denied
+stale_connector_invocation_approval
 raw_mcp_bypass_not_allowed
 direct_model_tool_bypass_not_allowed
 unsupported_connector_argument

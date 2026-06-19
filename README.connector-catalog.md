@@ -250,6 +250,9 @@ Write-class dry runs require approval:
     "scope": "connector_invocation",
     "connector_id": "ticketing_writer_stub",
     "operation_id": "update_ticket",
+    "actor_id": "tester-actor",
+    "session_id": "session-001",
+    "request_id": "request-002",
     "approval_refs": ["approved-change-record"]
   }
 }
