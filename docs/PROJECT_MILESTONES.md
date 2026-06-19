@@ -50,12 +50,12 @@ M7 supports M6 and M8 by measuring the real context ceiling. M16 is required bef
 
 M15 completed the approved 500k-token project usability candidate promotion to stable. It preserves the completed 384k baseline as lineage. The current product value is still governed context strategy, not proving that every request should be sent as a raw long-context prompt.
 
-The JD-derived future goals sit outside the current primary path until a roadmap phase explicitly targets connector, identity, or privacy/memory expansion. Their internal dependency paths are:
+The external-integration future goals sit outside the current primary path until a roadmap phase explicitly targets connector, identity, or privacy/memory expansion. Their internal dependency paths are:
 
 ```text
-JD-G1 Governed connectors: M17 -> M18 -> M19
-JD-G2 User-scoped authorization: M20 -> M21 -> M22
-JD-G3 PII and memory safety: M23 -> M24 -> M25
+EIG-1 Governed connectors: M17 -> M18 -> M19
+EIG-2 User-scoped authorization: M20 -> M21 -> M22
+EIG-3 PII and memory safety: M23 -> M24 -> M25
 ```
 
 M20-M22 depend on M17-M18 before user-scoped connector execution can be meaningful. M23-M25 should gate sensitive enterprise connectors, external private corpora, or persistent memory expansion.
@@ -64,15 +64,15 @@ M20-M22 depend on M17-M18 before user-scoped connector execution can be meaningf
 
 M16 was added because M6/M8 large-context work requires durable indexing and retrieval. That creates persistent derived copies of repository content and can leak ignored files, private paths, secret-like strings, stale chunks, or unapproved roots into chat and artifacts if governance is only handled inside implementation details. M16 is therefore a prerequisite safety milestone for context-index and retrieval-backed chat work, not a separate product expansion.
 
-M17-M25 were added from the approved JD-derived future-goal review. They do not authorize raw MCP access, enterprise-specific connectors, Kubernetes deployment, or persistent hidden memory. They convert the useful parts of the JD into bounded product states that preserve the existing objective: natural-language local-model work through deterministic skills, tools, evidence, safety boundaries, and repeatable validation proof.
+M17-M25 were added from the approved external-integration future-goal review. They do not authorize raw MCP access, enterprise-specific connectors, Kubernetes deployment, or persistent hidden memory. They convert the useful external-integration capabilities into bounded product states that preserve the existing objective: natural-language local-model work through deterministic skills, tools, evidence, safety boundaries, and repeatable validation proof.
 
-## JD-Derived Future Goal Mapping
+## External Integration Future Goal Mapping
 
 | Goal | Milestone Series | Goal State | Required Dependency Notes |
 | --- | --- | --- | --- |
-| JD-G1: Governed connector framework for external APIs | M17, M18, M19 | Future connectors are typed, allowlisted, mediated by the controller, audited, and gated by evals before release. | Raw MCP or direct model-to-tool access remains out of scope. Connector work must preserve the single controller-owned execution path. |
-| JD-G2: OAuth/user-scope identity propagation for connector execution | M20, M21, M22 | Any future connector action is bound to the requesting actor and allowed scopes, with fail-closed authorization and replayable audit proof. | Depends on connector contracts and mediation from M17-M18. It must not use shared privileged service accounts as a substitute for user scope. |
-| JD-G3: PII and memory safety policy before sensitive data or persistent memory expansion | M23, M24, M25 | Sensitive values, private corpus content, and persistent memory are governed by masking/refusal, retention, deletion, provenance, and regression gates. | Gates persistent memory, sensitive external connectors, private enterprise corpora, and any future data-clean-room work. |
+| EIG-1: Governed connector framework for external APIs | M17, M18, M19 | Future connectors are typed, allowlisted, mediated by the controller, audited, and gated by evals before release. | Raw MCP or direct model-to-tool access remains out of scope. Connector work must preserve the single controller-owned execution path. |
+| EIG-2: OAuth/user-scope identity propagation for connector execution | M20, M21, M22 | Any future connector action is bound to the requesting actor and allowed scopes, with fail-closed authorization and replayable audit proof. | Depends on connector contracts and mediation from M17-M18. It must not use shared privileged service accounts as a substitute for user scope. |
+| EIG-3: PII and memory safety policy before sensitive data or persistent memory expansion | M23, M24, M25 | Sensitive values, private corpus content, and persistent memory are governed by masking/refusal, retention, deletion, provenance, and regression gates. | Gates persistent memory, sensitive external connectors, private enterprise corpora, and any future data-clean-room work. |
 
 ## Initial Roadmap Mapping
 

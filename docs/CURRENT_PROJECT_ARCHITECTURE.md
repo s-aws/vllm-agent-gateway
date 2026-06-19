@@ -43,7 +43,7 @@ flowchart TD
     Validation --> AnythingLLMProof["AnythingLLM Proof"]
     Validation --> FixtureProof["Frozen Fixture Mutation Checks"]
 
-    Milestones["Future JD-Derived Milestone Goals"] --> Connectors["M17-M19 Governed Connectors"]
+    Milestones["Future External Integration Milestone Goals"] --> Connectors["M17-M19 Governed Connectors"]
     Milestones --> Identity["M20-M22 User-Scoped Authorization"]
     Milestones --> Privacy["M23-M25 PII And Memory Safety"]
 ```
@@ -58,11 +58,11 @@ flowchart TD
 
 ## Future Goal Position
 
-The approved JD-derived future goals are milestone goals, not implemented behavior:
+The approved external-integration future goals are milestone goals, not implemented behavior:
 
-- `JD-G1`: governed connector framework maps to `M17 -> M18 -> M19`.
-- `JD-G2`: OAuth/user-scope identity propagation maps to `M20 -> M21 -> M22`.
-- `JD-G3`: PII and memory safety maps to `M23 -> M24 -> M25`.
+- `EIG-1`: governed connector framework maps to `M17 -> M18 -> M19`.
+- `EIG-2`: OAuth/user-scope identity propagation maps to `M20 -> M21 -> M22`.
+- `EIG-3`: PII and memory safety maps to `M23 -> M24 -> M25`.
 
 These goals should be implemented only through phases that preserve the existing single controller-owned path, fail-closed safety model, chat-quality validation, and contextless proof standards.
 
