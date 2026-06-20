@@ -28,6 +28,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [EIG Baseline Candidate Live Replay README](../README.eig-baseline-candidate-live-replay.md): Phase 308 live gateway and AnythingLLM replay for EIG baseline candidates before promotion.
 - [EIG PR Merge Readiness README](../README.eig-pr-merge-readiness.md): Phase 310 non-merge readiness gate for the EIG handoff pull request.
 - [EIG Baseline Candidate Promotion Readiness README](../README.eig-baseline-candidate-promotion-readiness.md): Phase 311 fail-closed promotion-readiness decision for EIG baseline candidates.
+- [EIG Baseline Candidate Blind Baselines README](../README.eig-baseline-candidate-blind-baselines.md): Phase 312 contextless blind-baseline evidence for EIG baseline candidates.
 - [Current Project Architecture](CURRENT_PROJECT_ARCHITECTURE.md): current gateway/controller/workflow/model validation map plus approved future connector, identity, and privacy milestone goals.
 - [Getting Started With AnythingLLM](../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup README](../README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
@@ -433,6 +434,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [EIG Baseline Candidate Live Replay Examples](examples/eig-baseline-candidate-live-replay.md)
 - [EIG PR Merge Readiness Examples](examples/eig-pr-merge-readiness.md)
 - [EIG Baseline Candidate Promotion Readiness Examples](examples/eig-baseline-candidate-promotion-readiness.md)
+- [EIG Baseline Candidate Blind Baselines Examples](examples/eig-baseline-candidate-blind-baselines.md)
 - [Controller Service Examples](examples/controller-service.md)
 - [Workflow Router Examples](examples/workflow-router.md)
 - [Runtime Skill Selection Hardening Examples](examples/skill-selection-hardening.md)

@@ -28,7 +28,7 @@ stable_corpus_mutation_allowed=false
 founder_approval_recorded=false
 ```
 
-The expected missing evidence set is:
+The Phase 311 expected missing evidence set was:
 
 ```text
 blind_baseline
@@ -40,6 +40,8 @@ founder_approval
 ```
 
 Phase 308 live replay is useful evidence, but it is not enough by itself to promote these candidates into the stable corpus because the promotion system requires committed per-candidate evidence refs and explicit founder approval.
+
+Phase 312 adds the first follow-up promotion evidence artifact for `blind_baseline`. After Phase 312, use [README.eig-baseline-candidate-blind-baselines.md](README.eig-baseline-candidate-blind-baselines.md) to inspect that evidence and the remaining missing evidence set.
 
 ## Validation
 

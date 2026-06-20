@@ -12588,3 +12588,35 @@ Completed work:
 - Added `README.eig-baseline-candidate-promotion-readiness.md` and `docs/examples/eig-baseline-candidate-promotion-readiness.md`.
 - Updated root, docs, examples, and milestone indexes.
 - Direct validation passed with `candidate_count=2`, `blocked_candidate_count=2`, `approved_candidate_count=0`, `promoted_candidate_count=0`, `promotion_allowed=false`, `stable_corpus_mutated=false`, `founder_approval_recorded=false`, and `validation_error_count=0`.
+
+### Approved Phase 312: EIG Baseline Candidate Blind Baselines
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: record the contextless blind-baseline expectations for every Phase 307/308 EIG baseline-candidate prompt before local-model comparison.
+
+Scope:
+
+- Use a bounded contextless subagent before showing local-model output.
+- Record answer shape, required content, prohibited content, evidence expectations, hard failures, and scoring notes for all seven EIG runtime candidate cases.
+- Validate source-pack hashes and case ordering.
+- Prove `local_model_output_seen=false`.
+- Mark `blind_baseline` as recorded evidence while keeping promotion blocked on local-model comparison, holdout, route proof, no-mutation proof, and founder approval.
+- Do not run local-model comparison in this phase.
+- Do not edit `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+
+Acceptance target: the EIG promotion-candidate set has durable blind-baseline evidence that can be used by the next local-model comparison phase without relying on this chat session.
+
+Completed work:
+
+- Collected blind-baseline output from bounded contextless subagent `Hypatia`.
+- Added `runtime/eig_baseline_candidate_blind_baselines.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_blind_baselines`.
+- Added `scripts/validate_eig_baseline_candidate_blind_baselines.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_blind_baselines.py`.
+- Added `README.eig-baseline-candidate-blind-baselines.md` and `docs/examples/eig-baseline-candidate-blind-baselines.md`.
+- Updated Phase 311 docs, root docs, examples, and milestone indexes.
+- Direct validation passed with `case_count=7`, `contextless_agent_first=true`, `local_model_output_seen=false`, `recorded_evidence=[blind_baseline]`, `promotion_allowed=false`, and `remaining_missing_evidence=[founder_approval, holdout, local_model_comparison, no_mutation_proof, route_proof]`.
