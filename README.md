@@ -169,6 +169,7 @@ Feature docs:
 - [README.release-notes.md](README.release-notes.md): founder-testing release scope, limitations, validation evidence, and rerun commands
 - [README.release-adherence.md](README.release-adherence.md): one JSON/Markdown gate for current local model release readiness
 - [README.eig-stable-handoff-integration.md](README.eig-stable-handoff-integration.md): stable handoff integration for local-stub connector and synthetic privacy proof boundaries
+- [README.eig-baseline-candidate-intake.md](README.eig-baseline-candidate-intake.md): candidate intake gate for EIG runtime prompts before live replay or stable corpus promotion
 - [README.release-candidate-baseline-corpus-promotion.md](README.release-candidate-baseline-corpus-promotion.md): promoted release-candidate chat-quality cases in the governed baseline corpus
 - [README.external-tester-feedback-loop-from-clone.md](README.external-tester-feedback-loop-from-clone.md): release-candidate clone feedback proof for positive and defect tester records
 - [README.v1-release-candidate-decision-gate.md](README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate

@@ -78,6 +78,7 @@ Examples are grouped by feature so the root README can stay small.
 - [EIG-3 Privacy Runtime Chat](eig3-privacy-runtime-chat.md): Phase 302 live gateway and AnythingLLM privacy prompt proof.
 - [EIG-3 Breadth Closeout](eig3-breadth-closeout.md): Phase 303 closeout packet and final regression command set.
 - [EIG Stable Handoff Integration](eig-stable-handoff-integration.md): Phase 304 release-facing handoff gate for EIG proof visibility and boundaries.
+- [EIG Baseline Candidate Intake](eig-baseline-candidate-intake.md): Phase 307 candidate intake gate before live replay or stable corpus promotion.
 - [Gateway](gateway.md): startup, shutdown, budget overrides, client URLs, and role ports.
 - [Controller Service](controller-service.md): explicit documenter workflow requests, end-to-end service runner, allowlisted targets, harness adapter, and run lookup.
 - [Workflow Router](workflow-router.md): natural-language route planning, read-only execution, blocked requests, and live validator command.

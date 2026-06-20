@@ -12437,3 +12437,36 @@ Completed work:
 - PR body includes Phase 304 gate status, docs index status, full Bash split regression status, clean-clone replay status, and EIG scope boundaries.
 - The PR explicitly states that real external connector execution, raw MCP access, arbitrary connector chat, production OAuth token exchange, real sensitive-data ingestion, production DLP/data-clean-room infrastructure, and persistent hidden memory are not shipped.
 - `main` was not changed or merged by this phase.
+
+### Approved Phase 307: EIG Baseline Candidate Intake
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: admit the EIG runtime connector and privacy prompt packs as stable-baseline candidates without mutating `runtime/baseline_corpus.json`.
+
+Scope:
+
+- Define the EIG baseline candidate intake policy.
+- Include the three Phase 295 local-stub connector runtime prompt cases and the four Phase 302 synthetic privacy runtime prompt cases.
+- Prove both proposed EIG entry IDs are absent from the stable baseline corpus.
+- Mark each candidate as blocked pending blind baseline, local model comparison, holdout, route proof, no-mutation proof, and founder approval.
+- Keep stable corpus promotion in a separate future phase.
+- Do not run live gateway/AnythingLLM replay in this phase.
+
+Acceptance target: Phase 308 can run live replay against a deterministic, pre-promotional EIG candidate set, and the stable corpus remains unchanged.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_intake_policy.json` with two EIG baseline candidates.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_intake`.
+- Added `scripts/validate_eig_baseline_candidate_intake.py`.
+- Added regression coverage in `tests/regression/test_eig_baseline_candidate_intake.py`.
+- Added `README.eig-baseline-candidate-intake.md` and `docs/examples/eig-baseline-candidate-intake.md`.
+- Updated root, docs, and examples indexes.
+- Direct validation passed with `candidate_count=2`, `total_source_case_count=7`, `stable_corpus_entry_count=5`, `stable_corpus_mutated=false`, `candidate_pending_live_replay_count=2`, `validation_error_count=0`, and `phase308_ready=true`.
+- Focused regression passed with `4 passed`.
+- Docs index validation passed with `linked_count=414` and no orphan docs.
+- Baseline corpus governance passed with `entry_count=5`, `stable_entry_count=5`, and `error_count=0`.
+- `runtime/baseline_corpus.json` remained unchanged.
