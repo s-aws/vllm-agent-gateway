@@ -12694,3 +12694,38 @@ Completed work:
 - Restarted the stack with `WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0` so AnythingLLM could reach its configured `http://100.100.12.45:8500/v1` target.
 - Repaired live replay passed with `candidate_count=2`, `live_result_count=14`, `covered_surface_count=2`, `missing_surface_count=0`, `stable_corpus_mutated=false`, `stable_corpus_promotion_allowed=false`, and `validation_error_count=0`.
 - Repaired local comparison passed with `response_count=14`, `passed_response_count=14`, `failed_response_count=0`, `minimum_score=95`, `hard_failure_count=0`, `comparison_decision=passed`, `recorded_evidence=[blind_baseline, local_model_comparison]`, and `remaining_missing_evidence=[founder_approval, holdout, no_mutation_proof, route_proof]`.
+
+### Approved Phase 315: EIG Baseline Candidate Route And Mutation Proof
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: record route and no-mutation proof for the repaired EIG baseline candidates before holdout or promotion work.
+
+Scope:
+
+- Validate the repaired Phase 314 live replay and child reports.
+- Prove connector candidates route through `connector.invoke`.
+- Prove privacy candidates route to `eig3_privacy_policy_no_target` with `selected_workflow=none`.
+- Prove gateway and AnythingLLM surfaces are both present.
+- Prove connector source registry remained unchanged.
+- Prove privacy runtime reports retained no raw source content.
+- Prove stable baseline corpus was not mutated or promoted.
+- Record `route_proof` and `no_mutation_proof`.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: a contextless reviewer can run one command against the repaired live replay and see that route and no-mutation evidence is closed while holdout and founder approval remain open.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_route_mutation_proof_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_route_mutation_proof`.
+- Added `scripts/validate_eig_baseline_candidate_route_mutation_proof.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_route_mutation_proof.py`.
+- Added `README.eig-baseline-candidate-route-mutation-proof.md` and `docs/examples/eig-baseline-candidate-route-mutation-proof.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Focused regression passed with `5 passed`.
+- Direct Phase 315 validation passed against `phase314-after-pii-repair-live.json` with `connector_result_count=6`, `privacy_result_count=8`, `route_proof_recorded=true`, `no_mutation_proof_recorded=true`, `stable_corpus_mutated=false`, `stable_corpus_promotion_allowed=false`, `recorded_evidence=[route_proof, no_mutation_proof]`, `remaining_missing_evidence=[founder_approval, holdout]`, and `validation_error_count=0`.
