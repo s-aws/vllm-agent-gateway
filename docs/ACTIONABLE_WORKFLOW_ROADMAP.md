@@ -12912,8 +12912,11 @@ Completed work:
 - Added `scripts/validate_context_strategy_router_clone_replay.py`.
 - Added focused regression coverage in `tests/regression/test_context_strategy_router_clone_replay.py`.
 - Updated the Phase 319 regression tests to use the shared fixture bootstrap helper instead of importing another test module.
+- Tightened the Phase 220 chat-case acceptance gate so it passes the configured context-index policy into the chat adapter instead of falling back to active-workspace defaults.
+- Tightened Phase 320 so it derives both Phase 319 and Phase 220 policies from the disposable bootstrapped fixture.
 - Added `README.context-strategy-router-clone-replay.md` and `docs/examples/context-strategy-router-clone-replay.md`.
 - Updated root, docs, examples, roadmap, and milestone indexes.
 - Focused Phase 319/320 regression passed with `10 passed`.
+- Focused Phase 220/320 regression after clone-safety repair passed with `16 passed`.
 - Docs index passed with `linked_count=438` and `orphaned_docs=[]`.
 - Direct Phase 320 validation passed with `phase319_status=passed`, `phase319_case_count=11`, `phase319_passed_case_count=11`, `phase319_failed_case_count=0`, `all_strategies_covered=true`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, `persistent_runtime_state_required=false`, and `validation_error_count=0`.

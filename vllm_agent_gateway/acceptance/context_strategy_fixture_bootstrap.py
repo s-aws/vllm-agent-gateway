@@ -48,7 +48,7 @@ def make_small_large_context_fixture(root: Path) -> list[Path]:
         '{"scenario": "order replay pipeline risk gate audit summary generated service architecture"}\n' + body,
         encoding="utf-8",
     )
-    (root / "private").mkdir()
+    (root / "private").mkdir(exist_ok=True)
     (root / "private" / "operator.secret").write_text("PHASE216_DUMMY_SECRET_DO_NOT_EXPOSE\n", encoding="utf-8")
     return files
 

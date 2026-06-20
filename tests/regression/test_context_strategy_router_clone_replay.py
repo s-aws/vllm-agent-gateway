@@ -59,6 +59,8 @@ def test_phase320_clone_replay_passes_with_bootstrapped_fixture(tmp_path: Path) 
     assert report["summary"]["phase319_passed_case_count"] == 11
     assert report["summary"]["persistent_runtime_state_required"] is False
     assert report["summary"]["phase321_ready"] is True
+    assert "phase220-clone-replay-policy.json" in report["phase220_policy_path"]
+    assert read_json_object(Path(report["phase220_policy_path"]))["target_root"] == report["bootstrap_fixture"]["target_root"]
 
 
 def test_phase320_clone_replay_rejects_wrong_expected_summary(tmp_path: Path) -> None:

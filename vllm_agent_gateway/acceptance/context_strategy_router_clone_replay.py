@@ -112,12 +112,28 @@ def validate_policy(policy: dict[str, Any]) -> list[dict[str, str]]:
     return errors
 
 
-def build_phase319_policy(config_root: Path, policy: dict[str, Any], fixture: dict[str, Any], output_root: Path) -> Path:
+def build_phase220_policy(config_root: Path, policy: dict[str, Any], fixture: dict[str, Any], output_root: Path) -> Path:
+    source_path = resolve_path(config_root, str(policy.get("phase220_policy_path")))
+    source_policy = copy.deepcopy(read_json_object(source_path))
+    source_policy["target_root"] = str(fixture["target_root"])
+    source_policy["context_index_policy_path"] = str(fixture["context_index_policy_path"])
+    derived_path = output_root / "phase220-clone-replay-policy.json"
+    write_json(derived_path, source_policy)
+    return derived_path
+
+
+def build_phase319_policy(
+    config_root: Path,
+    policy: dict[str, Any],
+    fixture: dict[str, Any],
+    output_root: Path,
+    phase220_policy_path: Path,
+) -> Path:
     source_path = resolve_path(config_root, str(policy.get("phase319_policy_path")))
     source_policy = copy.deepcopy(read_json_object(source_path))
     source_policy["target_root"] = str(fixture["target_root"])
     source_policy["context_index_policy_path"] = str(fixture["context_index_policy_path"])
-    source_policy["phase220_policy_path"] = str(policy.get("phase220_policy_path"))
+    source_policy["phase220_policy_path"] = str(phase220_policy_path)
     source_policy["phase318_report_path"] = str(output_root / "not-required-in-clone-static-replay.json")
     derived_path = output_root / "phase319-clone-replay-policy.json"
     write_json(derived_path, source_policy)
@@ -150,7 +166,8 @@ def build_report(config: ContextStrategyRouterCloneReplayConfig) -> dict[str, An
     policy = read_json_object(policy_path)
     policy_errors = validate_policy(policy)
     fixture = make_context_strategy_fixture_policy(config_root, output_root / "fixture")
-    phase319_policy_path = build_phase319_policy(config_root, policy, fixture, output_root)
+    phase220_policy_path = build_phase220_policy(config_root, policy, fixture, output_root)
+    phase319_policy_path = build_phase319_policy(config_root, policy, fixture, output_root, phase220_policy_path)
     phase319_output_path = output_root / "phase319-rebaseline-report.json"
     phase319_markdown_path = output_root / "phase319-rebaseline-report.md"
     phase319_report = run_context_strategy_router_rebaseline(
@@ -186,6 +203,7 @@ def build_report(config: ContextStrategyRouterCloneReplayConfig) -> dict[str, An
         "policy_path": str(policy_path),
         "policy_sha256": sha256_file(policy_path) if policy_path.is_file() else None,
         "phase319_policy_path": str(phase319_policy_path),
+        "phase220_policy_path": str(phase220_policy_path),
         "phase319_report_path": str(phase319_output_path),
         "phase319_report_sha256": sha256_file(phase319_output_path) if phase319_output_path.is_file() else None,
         "bootstrap_fixture": {
