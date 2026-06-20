@@ -223,6 +223,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 319 | M8 | Complete. Rebaselined the existing context strategy router after the Phase 318 benchmark, proving deterministic strategy selection for small, medium, huge, ambiguous, unsupported, missing-index, stale-index, sensitive/secret, artifact-paging, chunked, and summarization requests without creating a second router or claiming raw 500k prompt support. |
 | Phase 320 | M8/M14 | Complete. Added a clone-safe replay for the Phase 319 context strategy router rebaseline by bootstrapping a disposable large-context fixture and metadata-only index from committed source, proving the M8 static replay no longer depends on ignored runtime-state. |
 | Phase 321 | M8/M14 | Complete. Replayed the pushed Phase 320 clone-safe M8 gate from a fresh WSL clone at commit `1aa0464`, with docs-index proof, Phase 320 validator proof, no active-workspace runtime-state dependency, and clean clone status. |
+| Phase 322 | M8/M13/M14 | Complete. Proved the live workflow-router gateway path still answers after the M8 clone replay and repaired the existing health-drift classifier so the current AnythingLLM blocker is cleanly reported as API-base/backend-target drift instead of auth or unclassified failure. |
 
 ## Usage Rules
 

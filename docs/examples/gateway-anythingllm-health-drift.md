@@ -47,3 +47,19 @@ Expected pass shape:
   }
 }
 ```
+
+Expected wrong API-base drift shape when port `3001` is serving a non-AnythingLLM app:
+
+```json
+{
+  "status": "failed",
+  "summary": {
+    "kind_counts": {
+      "wrong_backend_target": 3
+    },
+    "unclassified_finding_count": 0
+  }
+}
+```
+
+The three findings should map to `anythingllm.ping`, `anythingllm.workspace`, and `anythingllm.target_url`. This means the local model and workflow-router gateway can still be evaluated separately; AnythingLLM prompt testing is blocked until the API base points at the real AnythingLLM API.

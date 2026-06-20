@@ -591,14 +591,27 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
             headers=headers,
             timeout_seconds=config.timeout_seconds,
         )
-        workspaces = workspace_body.get("workspaces") if isinstance(workspace_body, dict) else []
+        raw_workspaces = workspace_body.get("workspaces") if isinstance(workspace_body, dict) else []
+        workspaces = raw_workspaces if isinstance(raw_workspaces, list) else []
         slugs = [str(item.get("slug")) for item in workspaces if isinstance(item, dict) and item.get("slug")]
         found = config.workspace in slugs
+        workspace_message = (
+            f"AnythingLLM workspace {config.workspace!r} {'was found' if found else 'was not found'}."
+            if workspace_status == 200
+            else f"AnythingLLM workspace lookup returned HTTP {workspace_status}."
+        )
+        workspace_next_action = (
+            ""
+            if found
+            else "Create the workspace or pass --workspace with an existing AnythingLLM workspace slug."
+            if workspace_status == 200
+            else "Start AnythingLLM or correct --anythingllm-api-base-url."
+        )
         checks.append(
             check(
                 "anythingllm.workspace",
                 DoctorStatus.PASSED if workspace_status == 200 and found else DoctorStatus.FAILED,
-                f"AnythingLLM workspace {config.workspace!r} {'was found' if found else 'was not found'}.",
+                workspace_message,
                 category="anythingllm",
                 details={
                     "url": f"{api_root}/api/v1/workspaces",
@@ -607,7 +620,7 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                     "workspace_found": found,
                     "workspace_slugs": slugs,
                 },
-                next_action="" if found else "Create the workspace or pass --workspace with an existing AnythingLLM workspace slug.",
+                next_action=workspace_next_action,
             )
         )
     except Exception as exc:  # noqa: BLE001

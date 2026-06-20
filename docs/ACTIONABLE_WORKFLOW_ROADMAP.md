@@ -12947,3 +12947,32 @@ Completed work:
 - Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
 - Phase 320 clone replay passed in the clone with `phase319_status=passed`, `phase319_case_count=11`, `phase319_passed_case_count=11`, `phase319_failed_case_count=0`, `all_strategies_covered=true`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, `persistent_runtime_state_required=false`, and `validation_error_count=0`.
 - Clone `git status --short` was clean after validation.
+
+### Approved Phase 322: Context Strategy Live Surface Drift Check
+
+Status: Complete.
+
+Milestone mapping: M8 Context Strategy Router, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: verify the post-clone-replay context strategy work against live local surfaces, prove the workflow-router gateway path still answers, and classify the current AnythingLLM blocker as API-base/backend-target drift rather than model or router failure.
+
+Scope:
+
+- Run a Bash-side live workflow-router gateway smoke through the existing large-context usability closeout validator.
+- Probe the AnythingLLM API surface with the existing live validator and health-drift guard.
+- Use the existing first-time doctor plus health-drift guard as the single diagnostic path.
+- Tighten the existing doctor/classifier so an AnythingLLM API-base `404` is reported as `wrong_backend_target`, not `auth_failure` or `unclassified_failure`.
+- Preserve the Phase 319/320/321 static M8 proof and avoid a second context router or second health probe path.
+- Do not mutate `main`, protected fixtures, stable baseline corpus, or EIG baseline candidates.
+
+Acceptance target: a contextless reviewer can tell whether the blocker is gateway/model quality or a local AnythingLLM API-base drift, with no ambiguous auth/unclassified diagnostics.
+
+Completed work:
+
+- Bash-side workflow-router gateway one-case live smoke passed through `scripts/validate_large_context_usability_live_closeout.py` with `gateway_enabled=true`, `anythingllm_enabled=false`, `case_count=1`, `failed_response_count=0`, `m6_ready=true`, `m8_ready=true`, `phase222_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+- AnythingLLM one-case live smoke reached `http://127.0.0.1:3001` but received HTTP `404` HTML from a different local web app instead of the AnythingLLM API, so AnythingLLM prompt testing is blocked by runtime target drift.
+- Updated `vllm_agent_gateway.acceptance.first_time_user_doctor` so non-list workspace responses do not crash the workspace check and HTTP `404` workspace probes recommend correcting the API base.
+- Updated `vllm_agent_gateway.acceptance.gateway_anythingllm_health_drift` so AnythingLLM API-base `404` findings classify as `wrong_backend_target` before auth checks.
+- Added regression coverage proving AnythingLLM API-base `404` is classified as `wrong_backend_target` with `unclassified_finding_count=0`.
+- Focused regression passed with `18 passed` across `tests/regression/test_gateway_anythingllm_health_drift.py` and `tests/regression/test_first_time_user_doctor.py`.
+- Live health-drift rerun failed as expected because the AnythingLLM API base is currently wrong, but it produced `kind_counts={wrong_backend_target: 3, auth_failure: 0, unclassified_failure: 0}`, `unclassified_finding_count=0`, and no guard errors.

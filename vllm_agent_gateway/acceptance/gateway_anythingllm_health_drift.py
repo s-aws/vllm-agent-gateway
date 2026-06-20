@@ -169,9 +169,11 @@ def classify_drift_kind(check: dict[str, Any]) -> HealthDriftKind:
         return HealthDriftKind.UNEXPECTED_RESPONSE
     if cid == "anythingllm.api_key":
         return HealthDriftKind.AUTH_FAILURE
+    if category == "anythingllm" and status_code == 404:
+        return HealthDriftKind.WRONG_BACKEND_TARGET
     if category == "anythingllm" and (
         status_code in {401, 403}
-        or contains_any(combined, ("unauthorized", "forbidden", "invalid api key", "api key", "bearer"))
+        or contains_any(combined, ("unauthorized", "forbidden", "invalid api key", "invalid bearer", "expired bearer"))
     ):
         return HealthDriftKind.AUTH_FAILURE
     if contains_any(
