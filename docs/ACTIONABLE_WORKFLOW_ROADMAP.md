@@ -13121,3 +13121,30 @@ Completed work:
 - Browser-visible `UI167-GENCHAT-001` one-case proof passed in the AnythingLLM UI with `fixture_unchanged=true`.
 - Browser-visible Phase 167 no-target slice passed with `case_count=3`, `error_count=0`, and `fixture_unchanged=true`.
 - Browser-visible Phase 184 Priority 0 repaired slice passed with `case_count=6`, `error_count=0`, and `fixture_unchanged=true`.
+
+### Approved Phase 328: Fresh-Clone AnythingLLM Chat-Mode Guard Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 327 AnythingLLM chat-mode guard and documentation replay from a fresh clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run focused regression for the AnythingLLM UI E2E and first-time user doctor chat-mode guard.
+- Confirm clone source status remains clean.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts in this static handoff replay.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or EIG baseline candidates.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 327 chat-mode setup guard, docs links, and focused tests without relying on local runtime artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase328_clone`.
+- Replayed commit: `9a5ade360e8a3aadce7fa3918c99b4885b3832fe`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Focused regression passed in the clone with `39 passed` across `tests/regression/test_anythingllm_ui_e2e.py` and `tests/regression/test_first_time_user_doctor.py`.
+- Clone `git status --short` was clean after validation.
