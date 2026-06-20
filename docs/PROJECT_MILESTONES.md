@@ -227,6 +227,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 323 | M2/M8/M13/M14 | Complete. Recovered live AnythingLLM validation by proving the network API bases bypass the local loopback port conflict, rerunning health drift with zero findings, and passing one-case live closeout through AnythingLLM plus workflow-router gateway. |
 | Phase 324 | M2/M6/M8/M13/M14/M15/M16 | Complete. Replayed the full recovered 500k live acceptance path after fixing split-address target settings, proving 18 live responses across gateway and AnythingLLM, all five strategies, JSON/default parity, target settings, and zero high/critical findings. |
 | Phase 325 | M13/M14 | Complete. Replayed the pushed split-address recovery from a fresh WSL clone with docs-index proof, focused target-settings and health-drift tests, Phase 258/270 static validators, and clean clone status. |
+| Phase 326 | M13/M14 | Complete. Replayed post-restart runtime readiness and stable handoff smoke through the recovered AnythingLLM API base, proving zero health/session blockers and passing stable handoff child reports for first-time doctor, release channel, security policy, and external tester onboarding. |
 
 ## Usage Rules
 

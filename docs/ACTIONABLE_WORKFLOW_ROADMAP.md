@@ -13063,3 +13063,29 @@ Completed work:
 - Phase 258 static validator passed in the clone with `phase258_ready=true` and `error_count=0`.
 - Phase 270 static validator passed in the clone with `phase270_ready=true` and `error_count=0`.
 - Clone `git status --short` was clean after validation.
+
+### Approved Phase 326: Recovered Stable Handoff Live Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the tester-facing stable handoff path works against the current running stack after the AnythingLLM split-address recovery.
+
+Scope:
+
+- Run post-restart runtime readiness with the recovered AnythingLLM API base and expected WSL network workflow-router target.
+- Run stable handoff smoke with the recovered AnythingLLM API base and both frozen Coinbase fixtures.
+- Use existing validators only; do not add another handoff or health probe path.
+- Keep Bash-side workflow-router validation on `http://127.0.0.1:8500/v1`.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or EIG baseline candidates.
+
+Acceptance target: a contextless tester can follow the stable handoff path through the current running stack using the recovered AnythingLLM API base and get passing setup, health, session, release-channel, security, and onboarding proof.
+
+Completed work:
+
+- Post-restart runtime readiness passed using `--anythingllm-api-base-url http://192.168.0.208:3001`, `--expected-anythingllm-llm-base-url http://100.100.12.45:8500/v1`, and internal workflow-router URL `http://127.0.0.1:8500/v1`.
+- Readiness summary reported `decision=ready_after_restart`, `source_report_count=3`, `covered_surface_count=16`, `missing_required_surface_count=0`, `health_drift_finding_count=0`, `session_recovery_blocker_finding_count=0`, `blocking_diagnostic_action_count=0`, and `validation_error_count=0`.
+- Health-drift child report passed with `check_count=29`, `failed_check_count=0`, `finding_count=0`, `wrong_backend_target=0`, `auth_failure=0`, and `unclassified_finding_count=0`.
+- Session recovery child report passed with `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `anythingllm_case_count=2`, `direct_controller_case_count=2`, and `blocker_finding_count=0`.
+- Stable handoff smoke passed with `check_count=6`, `command_count=4`, `failed_check_ids=[]`, both frozen Coinbase target roots, and child reports for first-time user doctor, release channel, security policy, and external tester onboarding.
