@@ -12976,3 +12976,32 @@ Completed work:
 - Added regression coverage proving AnythingLLM API-base `404` is classified as `wrong_backend_target` with `unclassified_finding_count=0`.
 - Focused regression passed with `18 passed` across `tests/regression/test_gateway_anythingllm_health_drift.py` and `tests/regression/test_first_time_user_doctor.py`.
 - Live health-drift rerun failed as expected because the AnythingLLM API base is currently wrong, but it produced `kind_counts={wrong_backend_target: 3, auth_failure: 0, unclassified_failure: 0}`, `unclassified_finding_count=0`, and no guard errors.
+
+### Approved Phase 323: AnythingLLM Network API Base Recovery
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: recover live AnythingLLM prompt testing after Phase 322 by proving the correct AnythingLLM API base and documenting the split-address validation path.
+
+Scope:
+
+- Probe local listeners without stopping user processes.
+- Identify whether `127.0.0.1:3001` is actually AnythingLLM.
+- Validate reachable AnythingLLM API network addresses from Windows and Bash.
+- Rerun the existing health-drift guard against the recovered API base.
+- Rerun the existing large-context live closeout one-case smoke through AnythingLLM and then through both gateway and AnythingLLM.
+- Update durable tester guidance for the API-base override.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or AnythingLLM workspace content beyond normal validation messages.
+
+Acceptance target: future agents and testers can distinguish loopback API-base conflicts from model/router failures and run live AnythingLLM validation through the reachable API base.
+
+Completed work:
+
+- Non-mutating listener inspection found `node.exe` listening on `127.0.0.1:3001` and `AnythingLLM.exe` listening on `0.0.0.0:3001`.
+- Windows and Bash probes confirmed `http://127.0.0.1:3001/api/ping` returned HTTP `404` HTML, while `http://192.168.0.208:3001/api/ping` and `http://100.100.12.45:3001/api/ping` returned HTTP `200` with `{"online":true}`.
+- Health-drift validation passed with zero findings using both network API bases and expected workflow-router target `http://100.100.12.45:8500/v1`.
+- AnythingLLM-only one-case live closeout passed with `anythingllm_enabled=true`, `gateway_enabled=false`, `case_count=1`, `response_count=1`, `failed_response_count=0`, `m6_ready=true`, `m8_ready=true`, `phase222_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+- Combined gateway plus AnythingLLM one-case live closeout passed with `surface_count=2`, `response_count=2`, `failed_response_count=0`, `small_repo_regression_count=4`, `failed_small_repo_regression_count=0`, `m6_ready=true`, `m8_ready=true`, `phase222_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+- Updated AGENTS memory, first-time doctor docs, health-drift docs, large-context live-closeout docs, getting-started docs, stable-handoff docs, and examples with the recovered API-base rule.

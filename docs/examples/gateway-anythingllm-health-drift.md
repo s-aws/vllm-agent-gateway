@@ -63,3 +63,22 @@ Expected wrong API-base drift shape when port `3001` is serving a non-AnythingLL
 ```
 
 The three findings should map to `anythingllm.ping`, `anythingllm.workspace`, and `anythingllm.target_url`. This means the local model and workflow-router gateway can still be evaluated separately; AnythingLLM prompt testing is blocked until the API base points at the real AnythingLLM API.
+
+Rerun against the reachable network API base:
+
+```powershell
+$env:WSLENV='ANYTHINGLLM_API_KEY/u'
+wsl bash -lc 'cd /mnt/c/agentic_agents && . .venv/bin/activate && python scripts/validate_gateway_anythingllm_health_drift.py --anythingllm-api-base-url http://192.168.0.208:3001 --expected-anythingllm-llm-base-url http://100.100.12.45:8500/v1'
+```
+
+Expected recovered shape:
+
+```json
+{
+  "status": "passed",
+  "summary": {
+    "finding_count": 0,
+    "unclassified_finding_count": 0
+  }
+}
+```

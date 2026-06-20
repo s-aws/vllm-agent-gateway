@@ -37,6 +37,15 @@ Live closeout:
 python3 scripts/validate_large_context_usability_live_closeout.py --live --timeout-seconds 900
 ```
 
+If `127.0.0.1:3001` is not the AnythingLLM API, pass the reachable AnythingLLM API network URL:
+
+```bash
+python3 scripts/validate_large_context_usability_live_closeout.py \
+  --live \
+  --anythingllm-api-base-url http://192.168.0.208:3001 \
+  --timeout-seconds 900
+```
+
 Focused regression:
 
 ```bash

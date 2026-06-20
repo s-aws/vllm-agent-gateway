@@ -53,6 +53,13 @@ The gate passes only when the doctor passes and all required health surfaces are
 
 If `http://127.0.0.1:3001` is reachable but is not the AnythingLLM API, the guard should fail with `wrong_backend_target`, not `auth_failure` or `unclassified_failure`.
 
+On the current Windows/WSL host, the failure was caused by `node.exe` listening on `127.0.0.1:3001` while `AnythingLLM.exe` listened on `0.0.0.0:3001`. The working API bases were:
+
+- `http://192.168.0.208:3001`
+- `http://100.100.12.45:3001`
+
+Use the working API base with `--anythingllm-api-base-url` and keep Bash-side gateway validation on `http://127.0.0.1:8500/v1`.
+
 Expected failed summary shape:
 
 ```json

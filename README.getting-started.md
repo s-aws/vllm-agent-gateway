@@ -30,7 +30,7 @@ The EIG handoff is intentionally bounded: real external connector execution is n
 ## Prerequisites
 
 - vLLM OpenAI-compatible server is already running on `http://127.0.0.1:8000/v1`.
-- AnythingLLM is running on `http://127.0.0.1:3001`.
+- AnythingLLM is running. The usual API base is `http://127.0.0.1:3001`; if that returns HTML or `404`, use the reachable network API base such as `http://192.168.0.208:3001`.
 - The test fixtures exist:
   - `/mnt/c/coinbase_testing_repo_frozen_tmp`
   - `/mnt/c/coinbase_testing_repo_frozen_tmp.github`
@@ -355,6 +355,12 @@ $body = @{
 Invoke-RestMethod -Uri "http://127.0.0.1:3001/api/system/update-env" -Headers $headers -Method Post -Body $body
 ```
 
+If `127.0.0.1:3001` is a different local app, use the working AnythingLLM API base for API calls:
+
+```powershell
+Invoke-RestMethod -Uri "http://192.168.0.208:3001/api/system/update-env" -Headers $headers -Method Post -Body $body
+```
+
 ## 3. Send One Natural Test Message
 
 Phase 232 curated prompt trio:
@@ -417,7 +423,7 @@ Optional automated Desktop UI E2E from PowerShell:
 ```powershell
 $env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
 python scripts\validate_anythingllm_ui_e2e.py `
-  --anythingllm-api-base-url http://127.0.0.1:3001 `
+  --anythingllm-api-base-url http://192.168.0.208:3001 `
   --workspace my-workspace `
   --prompt-catalog-path runtime\anythingllm_ui_prompt_cases.json `
   --timeout-seconds 900 `

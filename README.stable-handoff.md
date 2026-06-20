@@ -29,7 +29,7 @@ Stable EIG proof remains local and synthetic. Real external connector execution 
 
 - vLLM model endpoint is healthy at `http://127.0.0.1:8000/v1`.
 - Harness ports are healthy at `8300`, `8500`, `8400`, and role ports.
-- AnythingLLM is running at `http://127.0.0.1:3001`.
+- AnythingLLM is running. Use `http://127.0.0.1:3001` only when it is actually the AnythingLLM API; if loopback is owned by another local app, use the reachable network API base such as `http://192.168.0.208:3001`.
 - AnythingLLM is configured to use `http://127.0.0.1:8500/v1`.
 - `ANYTHINGLLM_API_KEY` is available.
 - Both frozen fixtures exist:
@@ -47,6 +47,7 @@ cd /mnt/c/agentic_agents
 export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
 python3 scripts/validate_stable_handoff.py \
   --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
+  --anythingllm-api-base-url http://192.168.0.208:3001 \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --expected-anythingllm-llm-base-url http://127.0.0.1:8500/v1 \
   --controller-base-url http://127.0.0.1:8400 \
