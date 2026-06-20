@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "kind": "context_strategy_router_clone_replay_policy",
+  "phase": 320,
+  "priority_backlog_id": "P0-M8-320",
+  "milestone_ids": [
+    "M8",
+    "M14"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Prove the Phase 319 context strategy router rebaseline can replay from a clean clone by bootstrapping a disposable large-context fixture and metadata index instead of relying on ignored runtime-state.",
+  "phase319_policy_path": "runtime/context_strategy_router_rebaseline_policy.json",
+  "phase220_policy_path": "runtime/context_strategy_router_policy.json",
+  "bootstrap_fixture": {
+    "enabled": true,
+    "source_text_retention": "metadata_only",
+    "secret_fixture_must_not_leak": "PHASE216_DUMMY_SECRET_DO_NOT_EXPOSE"
+  },
+  "required_phase319_summary": {
+    "case_count": 11,
+    "passed_case_count": 11,
+    "failed_case_count": 0,
+    "all_strategies_covered": true,
+    "raw_500k_prompt_support_proven": false,
+    "raw_prompt_stuffing_allowed": false,
+    "sensitive_or_secret_request_refused": true,
+    "deterministic_replay_passed": true
+  },
+  "out_of_scope": [
+    "live_vllm_context_ceiling_benchmark",
+    "raw_500k_prompt_support_claim",
+    "second_large_context_router",
+    "persistent_runtime_state_dependency",
+    "protected_fixture_mutation",
+    "stable_corpus_promotion",
+    "advanced_refactor_reactivation"
+  ],
+  "acceptance_marker": "PHASE320 CONTEXT STRATEGY ROUTER CLONE REPLAY PASS"
+}

@@ -5,13 +5,13 @@ import json
 from pathlib import Path
 
 from vllm_agent_gateway.acceptance.context_index_prototype import read_json_object, write_json
+from vllm_agent_gateway.acceptance.context_strategy_fixture_bootstrap import make_context_strategy_fixture_policy
 from vllm_agent_gateway.acceptance.context_strategy_router_rebaseline import (
     DEFAULT_POLICY_PATH,
     ContextStrategyRouterRebaselineConfig,
     run_context_strategy_router_rebaseline,
     validate_policy,
 )
-from tests.regression.test_retrieval_backed_chat_answer_gate import make_context_index_policy
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -38,10 +38,10 @@ def phase318_report(path: Path) -> Path:
 
 
 def custom_policy(tmp_path: Path) -> Path:
-    target_root, context_policy_path = make_context_index_policy(tmp_path)
+    fixture = make_context_strategy_fixture_policy(REPO_ROOT, tmp_path / "fixture")
     mutated = copy.deepcopy(policy())
-    mutated["target_root"] = str(target_root)
-    mutated["context_index_policy_path"] = str(context_policy_path)
+    mutated["target_root"] = str(fixture["target_root"])
+    mutated["context_index_policy_path"] = str(fixture["context_index_policy_path"])
     mutated["phase318_report_path"] = str(phase318_report(tmp_path / "phase318.json"))
     path = tmp_path / "phase319-policy.json"
     write_json(path, mutated)

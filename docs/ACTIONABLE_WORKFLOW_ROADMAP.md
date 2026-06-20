@@ -12881,3 +12881,39 @@ Completed work:
 - Docs index passed with `linked_count=436` and `orphaned_docs=[]`.
 - Direct Phase 319 validation passed with `case_count=11`, `passed_case_count=11`, `failed_case_count=0`, `all_strategies_covered=true`, `input_size_classes=[huge, medium, small]`, `phase220_status=passed`, `phase318_status=passed`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, and `validation_error_count=0`.
 - Full split Bash regression passed with `1814 passed, 4 skipped` in the parallel lane and `45 passed` in the serial lane.
+
+### Approved Phase 320: Context Strategy Router Clone Replay
+
+Status: Complete.
+
+Milestone mapping: M8 Context Strategy Router and M14 Release Packaging And Onboarding.
+
+Goal: prove the Phase 319 context strategy router rebaseline can replay from a clean clone without relying on ignored `runtime-state/phase214` artifacts.
+
+Scope:
+
+- Add a reusable disposable large-context fixture bootstrap under acceptance code.
+- Generate a metadata-only context index from committed source.
+- Derive a Phase 319 policy pointed at the disposable fixture.
+- Run Phase 319 with live Phase 318 artifacts disabled for clone-safe static replay.
+- Prove source text and the synthetic secret sentinel are not stored in index or report output.
+- Preserve the Phase 319 raw 500k boundary.
+- Do not run a live vLLM context ceiling benchmark.
+- Do not create a second large-context router.
+- Do not mutate protected fixtures, stable baseline corpus, or `main`.
+
+Acceptance target: a contextless reviewer can run one command from a clone and prove the current M8 strategy-router rebaseline without private active-workspace runtime-state.
+
+Completed work:
+
+- Added `vllm_agent_gateway.acceptance.context_strategy_fixture_bootstrap`.
+- Added `runtime/context_strategy_router_clone_replay_policy.json`.
+- Added `vllm_agent_gateway.acceptance.context_strategy_router_clone_replay`.
+- Added `scripts/validate_context_strategy_router_clone_replay.py`.
+- Added focused regression coverage in `tests/regression/test_context_strategy_router_clone_replay.py`.
+- Updated the Phase 319 regression tests to use the shared fixture bootstrap helper instead of importing another test module.
+- Added `README.context-strategy-router-clone-replay.md` and `docs/examples/context-strategy-router-clone-replay.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Focused Phase 319/320 regression passed with `10 passed`.
+- Docs index passed with `linked_count=438` and `orphaned_docs=[]`.
+- Direct Phase 320 validation passed with `phase319_status=passed`, `phase319_case_count=11`, `phase319_passed_case_count=11`, `phase319_failed_case_count=0`, `all_strategies_covered=true`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, `persistent_runtime_state_required=false`, and `validation_error_count=0`.
