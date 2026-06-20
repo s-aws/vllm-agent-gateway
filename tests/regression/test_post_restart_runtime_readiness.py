@@ -8,6 +8,7 @@ from vllm_agent_gateway.acceptance.anythingllm_session_recovery import build_rep
 from vllm_agent_gateway.acceptance.gateway_anythingllm_health_drift import build_gateway_anythingllm_health_drift_report
 from vllm_agent_gateway.acceptance.post_restart_runtime_readiness import (
     PostRestartRuntimeReadinessConfig,
+    READY_NEXT_ACTION,
     build_post_restart_runtime_readiness_report,
     run_post_restart_runtime_readiness,
     validate_post_restart_runtime_readiness_report,
@@ -201,10 +202,7 @@ def test_post_restart_runtime_readiness_passes_clean_sources(tmp_path: Path) -> 
     assert report["status"] == "passed"
     assert report["decision"] == "ready_after_restart"
     assert report["summary"]["missing_required_surface_count"] == 0
-    assert (
-        report["summary"]["next_action"]
-        == "continue founder testing on the stable path; work approved Phase 196 Priority 0 repair next"
-    )
+    assert report["summary"]["next_action"] == READY_NEXT_ACTION
     assert report["summary"]["diagnostic_action_count"] == 0
     assert report["summary"]["blocking_diagnostic_action_count"] == 0
     assert report["diagnostic_actions"] == []
