@@ -234,6 +234,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 330 | M2/M13/M14 | Complete. Replayed fresh AnythingLLM chat responsiveness on the current split-address host, repaired the existing target-settings gate to accept the live AnythingLLM API-base override while preserving policy audit data, and proved doctor, UI `hi`, gateway/API chat cases, target settings, and fixture safety all pass. |
 | Phase 331 | M13/M14 | Complete. Replayed the pushed Phase 330 fresh-chat split-address repair from a fresh WSL clone with docs-index proof, focused fresh-chat regression, no active-workspace runtime-state dependency, and clean clone status. |
 | Phase 332 | M13/M14 | Complete. Replayed the current stable handoff smoke through the recovered AnythingLLM API base and WSL network workflow-router target, aligned the stable handoff command with the proven split-address configuration, and passed setup, release-channel, security, onboarding, and fixture checks. |
+| Phase 333 | M2/M13/M14 | Complete. Replayed the bounded accepted Priority 0 chat-quality drift gate through the recovered split-address gateway and AnythingLLM stack, proved no local-model drift across both frozen Coinbase roots, and aligned the stable handoff example command with the Phase 332 split-address proof. |
 
 ## Usage Rules
 

@@ -168,13 +168,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-330 | fresh AnythingLLM chat split-address replay | Complete in Phase 330. Replayed first-time doctor, browser-visible UI `hi`, and fresh direct/AnythingLLM chat cases on the current split-address host, then repaired the existing fresh-chat target-settings gate so the live AnythingLLM API-base override is accepted without hiding the policy default. | Proof: doctor `30/30` checks passed; UI `UI167-GENCHAT-001` passed with fixtures unchanged; fresh-chat responsiveness passed with `4/4` cases, `target_settings_status=passed`, `ui_report_status=passed`, and `fixture_unchanged=true`. |
 | P0-M14-331 | fresh-clone fresh-chat split-address replay | Complete in Phase 331. Replayed the pushed Phase 330 fresh-chat split-address repair from a clean WSL clone without active-workspace runtime-state. | Proof: clone commit `de64a5de6f2adef6b17c04fc222fc13b97785931`; docs index passed with `linked_count=438`; focused fresh-chat regression passed with `8 passed`; clone source status stayed clean. |
 | P0-M14-332 | current stable handoff smoke replay | Complete in Phase 332. Replayed the stable handoff smoke on the current split-address host after the Phase 327-331 AnythingLLM repairs and aligned the tester-facing command with the proven expected AnythingLLM workflow-router target. | Proof: stable handoff smoke passed with `6` checks, `4` child commands, `failed_check_ids=[]`, both frozen Coinbase roots, and child reports for doctor, release channel, security policy, and onboarding. |
+| P0-M2-333 | fresh Priority 0 local-model drift replay | Complete in Phase 333. Replayed the bounded accepted Priority 0 chat-quality subset through the recovered split-address gateway and AnythingLLM stack, then aligned the stable handoff example command found stale by contextless review. | Proof: fresh drift replay passed with `drift_status=no_drift_detected`, `16/16` responses passed across gateway and AnythingLLM, both frozen Coinbase roots covered, zero critical/high findings, and family minimum route scores of `90`, `95`, `100`, and `100`. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-332 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-332 runtime/AnythingLLM recovery proof as the active proof floor.
+1. Phases 157-333 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-333 runtime/AnythingLLM recovery proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -191,7 +192,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 332 Current Stable Handoff Smoke Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
+Phase 333 Fresh Priority 0 Drift Replay And Stable Example Alignment is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 
