@@ -49,7 +49,7 @@ python3 scripts/validate_stable_handoff.py \
   --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
   --anythingllm-api-base-url http://192.168.0.208:3001 \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
-  --expected-anythingllm-llm-base-url http://127.0.0.1:8500/v1 \
+  --expected-anythingllm-llm-base-url http://100.100.12.45:8500/v1 \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
