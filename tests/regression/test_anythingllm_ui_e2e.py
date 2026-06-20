@@ -13,6 +13,7 @@ from vllm_agent_gateway.anythingllm_ui_e2e import (
     free_port,
     host_path,
     ignored_request_failures,
+    is_workspace_stream_chat_url,
     json_request,
     load_ui_prompt_cases,
     marker_hits,
@@ -26,6 +27,7 @@ from vllm_agent_gateway.anythingllm_ui_e2e import (
     usefulness_status_for_segment,
     validate_ui_prompt_catalog,
     wait_for_http,
+    workspace_object_from_body,
 )
 
 from vllm_agent_gateway.acceptance.anythingllm_answer_usefulness import (
@@ -481,6 +483,15 @@ def test_api_base_for_ui_normalizes_without_double_slash() -> None:
     assert api_base_for_ui("http://127.0.0.1:3001/") == "http://127.0.0.1:3001/api"
 
 
+def test_workspace_object_from_body_accepts_dict_or_list_shapes() -> None:
+    assert workspace_object_from_body({"workspace": {"slug": "my-workspace", "chatMode": "chat"}})["chatMode"] == "chat"
+    assert (
+        workspace_object_from_body({"workspace": [{"slug": "my-workspace", "chatMode": "automatic"}]})["chatMode"]
+        == "automatic"
+    )
+    assert workspace_object_from_body({"workspace": None}) == {}
+
+
 def test_request_failure_split_ignores_logo_abort_only() -> None:
     failures = [
         {"url": "http://localhost:3001/api/system/logo?theme=system", "failure": "net::ERR_ABORTED"},
@@ -489,6 +500,21 @@ def test_request_failure_split_ignores_logo_abort_only() -> None:
 
     assert ignored_request_failures(failures) == [failures[0]]
     assert non_ignored_request_failures(failures) == [failures[1]]
+
+
+def test_stream_chat_url_detection_accepts_default_and_thread_routes() -> None:
+    assert is_workspace_stream_chat_url(
+        "http://localhost:3001/api/workspace/my-workspace/stream-chat",
+        "my-workspace",
+    )
+    assert is_workspace_stream_chat_url(
+        "http://localhost:3001/api/workspace/my-workspace/thread/thread-1/stream-chat",
+        "my-workspace",
+    )
+    assert not is_workspace_stream_chat_url(
+        "http://localhost:3001/api/workspace/other/thread/thread-1/stream-chat",
+        "my-workspace",
+    )
 
 
 def test_host_path_converts_wsl_mount_path_on_windows() -> None:

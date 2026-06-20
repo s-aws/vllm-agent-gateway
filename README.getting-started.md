@@ -343,6 +343,9 @@ In AnythingLLM, configure the LLM provider as a Generic OpenAI-compatible provid
 - Base URL: `http://127.0.0.1:8500/v1`
 - Model: `Qwen3-Coder-30B-A3B-Instruct`
 - API key: any non-empty value if the UI requires one
+- Workspace chat mode: `chat`, not `automatic`
+
+`automatic` chat mode invokes AnythingLLM's agent layer on `/stream-chat`, which can display `@agent` session messages instead of the workflow-router answer. For workflow-router testing through the AnythingLLM UI, keep the workspace in normal chat mode.
 
 Optional API update from PowerShell:
 
@@ -359,6 +362,15 @@ If `127.0.0.1:3001` is a different local app, use the working AnythingLLM API ba
 
 ```powershell
 Invoke-RestMethod -Uri "http://192.168.0.208:3001/api/system/update-env" -Headers $headers -Method Post -Body $body
+```
+
+Optional workspace chat-mode update from PowerShell:
+
+```powershell
+$apiBase = "http://192.168.0.208:3001"
+$headers = @{ Authorization = "Bearer $env:ANYTHINGLLM_API_KEY"; "Content-Type" = "application/json" }
+$workspaceBody = @{ chatMode = "chat" } | ConvertTo-Json
+Invoke-RestMethod -Uri "$apiBase/api/workspace/my-workspace/update" -Headers $headers -Method Post -Body $workspaceBody
 ```
 
 ## 3. Send One Natural Test Message

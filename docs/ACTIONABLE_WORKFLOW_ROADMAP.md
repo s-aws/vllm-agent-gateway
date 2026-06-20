@@ -13089,3 +13089,35 @@ Completed work:
 - Health-drift child report passed with `check_count=29`, `failed_check_count=0`, `finding_count=0`, `wrong_backend_target=0`, `auth_failure=0`, and `unclassified_finding_count=0`.
 - Session recovery child report passed with `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `anythingllm_case_count=2`, `direct_controller_case_count=2`, and `blocker_finding_count=0`.
 - Stable handoff smoke passed with `check_count=6`, `command_count=4`, `failed_check_ids=[]`, both frozen Coinbase target roots, and child reports for first-time user doctor, release channel, security policy, and external tester onboarding.
+
+### Approved Phase 327: Recovered AnythingLLM UI E2E Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: prove the browser-visible AnythingLLM Desktop UI path works through the recovered AnythingLLM API base and normal chat mode, including the user-reported `hi` path and Priority 0 repaired prompt slice.
+
+Scope:
+
+- Use the existing AnythingLLM UI E2E validator and Desktop UI bundle path; do not introduce a second browser harness.
+- Diagnose the current `@agent` UI failure as AnythingLLM workspace `chatMode=automatic`, not as a gateway/model failure.
+- Add fail-closed validator and first-time doctor checks so `chatMode=automatic` is caught before long UI replay.
+- Capture `/stream-chat` request payloads in the existing UI E2E report for future diagnosis.
+- Rerun browser-visible no-target and repaired Priority 0 UI slices using the recovered AnythingLLM API base.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or EIG baseline candidates.
+
+Acceptance target: a contextless tester can run browser-visible AnythingLLM UI validation after split-address recovery, get useful chat-visible workflow-router answers, and diagnose AnythingLLM setup drift before confusing it with local-model quality.
+
+Completed work:
+
+- Identified that `http://127.0.0.1:3001` remains a wrong backend target while `http://192.168.0.208:3001` remains a working AnythingLLM API base.
+- Reproduced the browser-visible `@agent: Swapping over to agent chat` failure and proved the same prompt passed through the AnythingLLM workspace API `/chat` path.
+- Proved direct `/stream-chat` requests returned `agentInitWebsocketConnection` while workspace `chatMode=automatic`.
+- Set the AnythingLLM workspace `chatMode` to `chat` and proved direct `/stream-chat` returned the workflow-router answer beginning with `Answer:`.
+- Updated `vllm_agent_gateway.anythingllm_ui_e2e` to require `chatMode=chat`, accept thread-scoped stream-chat URLs, and capture stream-chat request payloads.
+- Updated the first-time user doctor to fail on `chatMode=automatic` with recovery guidance.
+- Focused regression passed with `39 passed` across `tests/regression/test_anythingllm_ui_e2e.py` and `tests/regression/test_first_time_user_doctor.py`.
+- Browser-visible `UI167-GENCHAT-001` one-case proof passed in the AnythingLLM UI with `fixture_unchanged=true`.
+- Browser-visible Phase 167 no-target slice passed with `case_count=3`, `error_count=0`, and `fixture_unchanged=true`.
+- Browser-visible Phase 184 Priority 0 repaired slice passed with `case_count=6`, `error_count=0`, and `fixture_unchanged=true`.

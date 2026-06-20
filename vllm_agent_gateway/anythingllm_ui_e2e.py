@@ -472,26 +472,59 @@ def fixture_state(target_roots: tuple[str, ...]) -> dict[str, dict[str, Any]]:
     }
 
 
+def workspace_object_from_body(body: dict[str, Any]) -> dict[str, Any]:
+    workspace = body.get("workspace")
+    if isinstance(workspace, dict):
+        return workspace
+    if isinstance(workspace, list):
+        for item in workspace:
+            if isinstance(item, dict):
+                return item
+    return {}
+
+
 def anythingllm_preflight(config: AnythingLLMUiE2EConfig, api_key: str) -> dict[str, Any]:
     api_root = config.anythingllm_api_base_url.rstrip("/")
+    headers = {"Authorization": f"Bearer {api_key}"}
     ping_status, ping_body = json_request(f"{api_root}/api/ping", timeout_seconds=min(30, config.timeout_seconds))
     workspaces_status, workspaces_body = json_request(
         f"{api_root}/api/v1/workspaces",
-        headers={"Authorization": f"Bearer {api_key}"},
+        headers=headers,
+        timeout_seconds=min(30, config.timeout_seconds),
+    )
+    workspace_detail_status, workspace_detail_body = json_request(
+        f"{api_root}/api/workspace/{config.workspace}",
+        headers=headers,
         timeout_seconds=min(30, config.timeout_seconds),
     )
     workspaces = workspaces_body.get("workspaces") if isinstance(workspaces_body, dict) else []
     slugs = [item.get("slug") for item in workspaces if isinstance(item, dict)]
+    workspace_detail = workspace_object_from_body(workspace_detail_body if isinstance(workspace_detail_body, dict) else {})
+    chat_mode = workspace_detail.get("chatMode") if isinstance(workspace_detail.get("chatMode"), str) else None
+    errors: list[str] = []
+    if ping_status != 200:
+        errors.append("AnythingLLM /api/ping failed")
+    if workspaces_status != 200:
+        errors.append("AnythingLLM /api/v1/workspaces failed")
+    if config.workspace not in slugs:
+        errors.append(f"workspace {config.workspace!r} was not found")
+    if workspace_detail_status != 200:
+        errors.append("AnythingLLM browser workspace detail endpoint failed")
+    if chat_mode != "chat":
+        errors.append("workspace chatMode must be 'chat'; 'automatic' invokes AnythingLLM agent mode on /stream-chat")
     return {
         "status": AnythingLLMUiE2EStatus.PASSED.value
-        if ping_status == 200 and workspaces_status == 200 and config.workspace in slugs
+        if not errors
         else AnythingLLMUiE2EStatus.FAILED.value,
         "ping_status": ping_status,
         "workspace_status": workspaces_status,
+        "workspace_detail_status": workspace_detail_status,
         "workspace": config.workspace,
         "workspace_found": config.workspace in slugs,
         "workspace_slugs": slugs,
+        "chat_mode": chat_mode,
         "ping": ping_body,
+        "errors": errors,
     }
 
 
@@ -847,6 +880,14 @@ def body_text(page: Any) -> str:
     return page.evaluate("document.body ? document.body.innerText : ''") or ""
 
 
+def is_workspace_stream_chat_url(url: str, workspace: str) -> bool:
+    return (
+        f"/api/workspace/{workspace}/stream-chat" in url
+        or f"/api/workspace/{workspace}/thread/" in url
+        and url.endswith("/stream-chat")
+    )
+
+
 def request_failure_text(request: Any) -> str:
     try:
         failure = request.failure
@@ -857,6 +898,16 @@ def request_failure_text(request: Any) -> str:
         return str(failure)
     except Exception as exc:  # pragma: no cover - diagnostic detail only
         return f"failure-capture-error:{exc}"
+
+
+def request_post_data_text(request: Any) -> str:
+    try:
+        data = request.post_data
+        if callable(data):
+            data = data()
+        return str(data or "")[:4000]
+    except Exception as exc:  # pragma: no cover - diagnostic detail only
+        return f"post-data-capture-error:{exc}"
 
 
 def run_browser_case(
@@ -918,7 +969,7 @@ def run_browser_case(
         )
         responses = page.context._phase71_responses[response_start_index:]  # type: ignore[attr-defined]
         stream_chat_seen = any(
-            str(item.get("url", "")).endswith(f"/api/workspace/{workspace}/stream-chat")
+            is_workspace_stream_chat_url(str(item.get("url", "")), workspace)
             and int(item.get("status", 0)) == 200
             for item in responses
         )
@@ -935,7 +986,7 @@ def run_browser_case(
     page.screenshot(path=str(after_screenshot), full_page=True)
     responses = page.context._phase71_responses[response_start_index:]  # type: ignore[attr-defined]
     stream_chat_seen = any(
-        str(item.get("url", "")).endswith(f"/api/workspace/{workspace}/stream-chat")
+        is_workspace_stream_chat_url(str(item.get("url", "")), workspace)
         and int(item.get("status", 0)) == 200
         for item in responses
     )
@@ -1003,6 +1054,7 @@ def run_browser_validation(
     console_messages: list[dict[str, str]] = []
     page_errors: list[str] = []
     request_failures: list[dict[str, str]] = []
+    stream_chat_requests: list[dict[str, Any]] = []
     responses: list[dict[str, Any]] = []
 
     with sync_playwright() as playwright:
@@ -1025,6 +1077,18 @@ def run_browser_validation(
             lambda request: request_failures.append(
                 {"url": request.url, "failure": request_failure_text(request)}
             ),
+        )
+        page.on(
+            "request",
+            lambda request: stream_chat_requests.append(
+                {
+                    "url": request.url,
+                    "method": request.method,
+                    "post_data": request_post_data_text(request),
+                }
+            )
+            if "/stream-chat" in request.url
+            else None,
         )
         page.on(
             "response",
@@ -1074,6 +1138,7 @@ def run_browser_validation(
         "request_failures": request_failures,
         "ignored_request_failures": ignored_failures,
         "non_ignored_request_failures": unexpected_failures,
+        "stream_chat_requests": stream_chat_requests,
         "response_count": len(responses),
         "responses_tail": responses[-30:],
     }

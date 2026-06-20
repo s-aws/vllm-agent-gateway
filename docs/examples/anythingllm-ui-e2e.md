@@ -2,7 +2,7 @@
 
 ## Full UI Proof
 
-Run from PowerShell after the harness is started and AnythingLLM is pointed at `http://127.0.0.1:8500/v1`:
+Run from PowerShell after the harness is started, AnythingLLM is pointed at `http://127.0.0.1:8500/v1`, and the workspace chat mode is `chat`:
 
 ```powershell
 $env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
@@ -152,8 +152,10 @@ Install Node.js/npm or pass `--npx-command` to a working `npx` executable.
 
 `AnythingLLM preflight failed`
 
-Check that AnythingLLM Desktop is running on `http://127.0.0.1:3001`, the API key is correct, and the workspace slug exists.
+Check that AnythingLLM Desktop is running on the selected API base, the API key is correct, the workspace slug exists, and the workspace `chatMode` is `chat`. If `127.0.0.1:3001` is a different local app, pass the working network API base, such as `http://192.168.0.208:3001`.
 
 `AnythingLLM browser UI validation failed`
 
 Open the JSON report and screenshots under `runtime-state/anythingllm-ui/`. Check `page_errors`, `non_ignored_request_failures`, `responses_tail`, and the per-case `segment_after_tag_tail`.
+
+If `segment_after_tag_tail` contains `@agent: Swapping over to agent chat`, change the AnythingLLM workspace chat mode from `automatic` to `chat`; automatic mode invokes AnythingLLM's agent layer before the workflow-router answer can render.

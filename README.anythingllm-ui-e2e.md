@@ -22,6 +22,7 @@ AnythingLLM Desktop exposes its backend API on `http://127.0.0.1:3001`, but the 
 
 - AnythingLLM Desktop is installed and running.
 - AnythingLLM is configured to use `http://127.0.0.1:8500/v1`.
+- The AnythingLLM workspace chat mode is `chat`, not `automatic`.
 - `ANYTHINGLLM_API_KEY` is available in the Windows user environment.
 - Python Playwright is installed: `pip install playwright`.
 - A Playwright browser is installed. The default uses bundled Chromium; run `python -m playwright install chromium` if needed.
@@ -100,5 +101,7 @@ It records watched-file hashes and git status before and after the UI run. The r
 ## Notes
 
 The validator can run from Bash or PowerShell when the selected Playwright browser is available. Pass `--browser-channel chrome` only when intentionally using a Windows/system Chrome channel.
+
+If the report shows `@agent: Swapping over to agent chat`, the AnythingLLM workspace is in agent/automatic mode. Set the workspace `chatMode` to `chat` before UI testing; `automatic` mode does not exercise the workflow-router chat answer path.
 
 See [docs/examples/anythingllm-ui-e2e.md](docs/examples/anythingllm-ui-e2e.md) for commands and troubleshooting.
