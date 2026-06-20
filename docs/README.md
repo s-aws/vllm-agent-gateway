@@ -75,6 +75,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Multi-Repo Live Generalization Rerun README](../README.multi-repo-live-generalization-rerun.md): Phase 212 live M5 rerun across Staterail and Coinbase holdouts.
 - [M5 Generalization Closeout README](../README.m5-generalization-closeout.md): Phase 213 M5 closeout decision and next-scope boundary.
 - [Large-Corpus Context Budget Inventory README](../README.large-corpus-context-budget-inventory.md): Phase 214 generated large-corpus fixture and context-budget inventory for M6/M7.
+- [Context Ceiling Benchmark README](../README.context-ceiling-benchmark.md): Phase 318 raw 32K/64K/128K/256K local-model context measurement for M7 without raw 500k support claims.
 - [Retrieval-First Context Strategy Design README](../README.retrieval-first-context-strategy-design.md): Phase 215 retrieval-first context strategy contract for M6/M8 before indexing or retrieval-backed chat implementation.
 - [Corpus Index Safety Governance README](../README.corpus-index-safety-governance.md): Phase 216 M16 safety gate for allowed roots, ignore rules, secret-like content, stale metadata, and leak prevention before durable indexing.
 - [Context Index Prototype README](../README.context-index-prototype.md): Phase 217 metadata-first local index prototype with Phase 216 safety enforcement and query smoke proof.
@@ -555,6 +556,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Multi-Repo Live Generalization Rerun Examples](examples/multi-repo-live-generalization-rerun.md)
 - [M5 Generalization Closeout Examples](examples/m5-generalization-closeout.md)
 - [Large-Corpus Context Budget Inventory Examples](examples/large-corpus-context-budget-inventory.md)
+- [Context Ceiling Benchmark Examples](examples/context-ceiling-benchmark.md)
 - [Retrieval-First Context Strategy Design Examples](examples/retrieval-first-context-strategy-design.md)
 - [Corpus Index Safety Governance Examples](examples/corpus-index-safety-governance.md)
 - [Context Index Prototype Examples](examples/context-index-prototype.md)

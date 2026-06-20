@@ -12806,3 +12806,41 @@ Completed work:
 - Focused regression passed with `5 passed`.
 - Direct Phase 317 validation passed with `candidate_count=2`, `blocked_candidate_count=2`, `recorded_evidence=[blind_baseline, holdout, local_model_comparison, no_mutation_proof, route_proof]`, `missing_evidence=[founder_approval]`, `ready_for_founder_decision=true`, `founder_approval_recorded=false`, `promotion_allowed=false`, `stable_corpus_mutated=false`, and `validation_error_count=0`.
 - Full split regression passed with `1804 passed, 4 skipped` in the parallel lane and `45 passed` in the serial lane.
+
+### Approved Phase 318: Context Ceiling Benchmark
+
+Status: Complete.
+
+Milestone mapping: M7 Context Ceiling Benchmark.
+
+Goal: measure the current local model raw context behavior at 32K, 64K, 128K, and 256K classes without changing the supported governed 500k-token project-usability path or claiming raw 500k prompt support.
+
+Scope:
+
+- Add a deterministic benchmark policy for 32K, 64K, 128K, and 256K context classes.
+- Use `/v1/models` to prove the expected model and reported `max_model_len`.
+- Use `/tokenize` to record actual prompt token counts.
+- Use `/v1/chat/completions` to measure accepted/rejected behavior, latency, answer quality, and failure class.
+- Capture hardware memory snapshots and selected vLLM metrics at report level.
+- Treat model timeouts, context-length rejection, and answer-quality misses as measured M7 outcomes, not harness failures.
+- Keep `raw_500k_prompt_support_proven=false`.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not change the stable governed 500k project-usability path.
+- Do not promote EIG baseline candidates or merge PR #1.
+
+Acceptance target: a contextless reviewer can run one command and get a report with four classified context-class results, prompt token counts, latency, answer score, memory evidence, stable-corpus mutation proof, and an explicit raw-500k support boundary.
+
+Completed work:
+
+- Added `runtime/context_ceiling_benchmark_policy.json`.
+- Added `vllm_agent_gateway.acceptance.context_ceiling_benchmark`.
+- Added `scripts/validate_context_ceiling_benchmark.py`.
+- Added focused regression coverage in `tests/regression/test_context_ceiling_benchmark.py`.
+- Added `README.context-ceiling-benchmark.md` and `docs/examples/context-ceiling-benchmark.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Tightened no-live validation so shape-only checks do not mark `phase319_ready=true`.
+- Tightened the live harness so metrics collection cannot block the benchmark critical path.
+- Focused regression passed with `5 passed`.
+- Shape-only validation passed with `run_live=false`, `result_count=0`, `raw_500k_prompt_support_proven=false`, `stable_corpus_mutated=false`, and `phase319_ready=false`.
+- Live validation passed with `result_count=4`, `passed_result_count=3`, `failed_result_count=1`, `failure_classes=[passed, timeout]`, `max_prompt_tokens=249354`, `max_latency_seconds=180.046`, `raw_500k_prompt_support_proven=false`, `stable_corpus_mutated=false`, and `validation_error_count=0`.
+- Live context-class results were `ctx-32k timeout at 180.046 seconds with 30407 prompt tokens`, `ctx-64k passed with score=100 at 178.405 seconds and 62012 prompt tokens`, `ctx-128k passed with score=100 at 1.976 seconds and 125013 prompt tokens`, and `ctx-256k passed with score=100 at 169.699 seconds and 249354 prompt tokens`.

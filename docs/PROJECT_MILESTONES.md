@@ -219,6 +219,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 315 | M2/M4/M9/M14/M19/M25/M31/M36 | Complete. Added route and no-mutation proof for repaired EIG baseline candidates, recording `route_proof` and `no_mutation_proof` while leaving holdout and founder approval as the remaining promotion blockers. |
 | Phase 316 | M2/M4/M9/M13/M14/M19/M25/M31/M36 | Complete. Added contextless paraphrased holdout cases, repaired privacy trigger breadth for holdout wording, and passed live gateway plus AnythingLLM holdout proof with `holdout` recorded and only founder approval remaining. |
 | Phase 317 | M2/M9/M14/M19/M25/M31/M36 | Complete. Added the founder-approval readiness aggregator over Phase 312-316 evidence, proving all non-founder promotion evidence is recorded, the stable corpus remains unchanged, promotion is still blocked, and the current state is ready for founder decision only. |
+| Phase 318 | M7 | Complete. Added and ran the raw context ceiling benchmark for 32K, 64K, 128K, and 256K classes, recording tokenized prompt size, latency, answer score, failure class, hardware memory snapshots, and the explicit boundary that raw 500k prompt support remains unproven. |
 
 ## Usage Rules
 

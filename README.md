@@ -194,6 +194,7 @@ Feature docs:
 - [README.multi-repo-live-generalization-rerun.md](README.multi-repo-live-generalization-rerun.md): Phase 212 live M5 rerun across Staterail and Coinbase holdouts
 - [README.m5-generalization-closeout.md](README.m5-generalization-closeout.md): Phase 213 M5 closeout decision and next-scope boundary
 - [README.large-corpus-context-budget-inventory.md](README.large-corpus-context-budget-inventory.md): Phase 214 large local corpus and context-budget inventory
+- [README.context-ceiling-benchmark.md](README.context-ceiling-benchmark.md): Phase 318 raw 32K/64K/128K/256K context ceiling measurement without raw 500k support claims
 - [README.prompt-family-drift-detection.md](README.prompt-family-drift-detection.md): prompt-family drift classification against catalog, skill coverage, holdouts, and founder prompt pack
 - [README.chat-answer-scoring-v2.md](README.chat-answer-scoring-v2.md): repeatable chat-answer scoring, classification, and repair-target guidance
 - [README.skill-registry-readiness-review.md](README.skill-registry-readiness-review.md): keep, split, merge, retire, or defer review for current skills before scaling
