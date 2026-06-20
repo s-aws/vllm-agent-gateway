@@ -33,6 +33,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [EIG Baseline Candidate Privacy Repair README](../README.eig-baseline-candidate-privacy-repair.md): Phase 314 deterministic privacy-answer repair closing EIG local-model comparison evidence.
 - [EIG Baseline Candidate Route And Mutation Proof README](../README.eig-baseline-candidate-route-mutation-proof.md): Phase 315 route and no-mutation evidence for repaired EIG baseline candidates.
 - [EIG Baseline Candidate Holdout Proof README](../README.eig-baseline-candidate-holdout-proof.md): Phase 316 paraphrased gateway and AnythingLLM holdout proof for EIG baseline candidates.
+- [EIG Baseline Candidate Founder Approval Readiness README](../README.eig-baseline-candidate-founder-approval-readiness.md): Phase 317 aggregate evidence gate showing founder approval is the only remaining promotion blocker.
 - [Current Project Architecture](CURRENT_PROJECT_ARCHITECTURE.md): current gateway/controller/workflow/model validation map plus approved future connector, identity, and privacy milestone goals.
 - [Getting Started With AnythingLLM](../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup README](../README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
@@ -499,6 +500,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [EIG Baseline Candidate Privacy Repair Examples](examples/eig-baseline-candidate-privacy-repair.md)
 - [EIG Baseline Candidate Route And Mutation Proof Examples](examples/eig-baseline-candidate-route-mutation-proof.md)
 - [EIG Baseline Candidate Holdout Proof Examples](examples/eig-baseline-candidate-holdout-proof.md)
+- [EIG Baseline Candidate Founder Approval Readiness Examples](examples/eig-baseline-candidate-founder-approval-readiness.md)
 - [External Tester Feedback Loop From Clone Examples](examples/external-tester-feedback-loop-from-clone.md)
 - [V1 Release-Candidate Decision Gate Examples](examples/v1-release-candidate-decision-gate.md)
 - [Release-Candidate Runtime Health Restoration Examples](examples/release-candidate-runtime-health-restoration.md)

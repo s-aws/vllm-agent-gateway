@@ -218,6 +218,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 314 | M2/M4/M9/M13/M14/M25/M36 | Complete. Repaired the deterministic EIG-3 privacy no-target answer so it preserves fixture classification, raw-value refusal, hallucinated-authorization rejection, memory lifecycle markers, and no-workflow boundaries; live gateway plus AnythingLLM replay passed and local comparison recorded `local_model_comparison` evidence. |
 | Phase 315 | M2/M4/M9/M14/M19/M25/M31/M36 | Complete. Added route and no-mutation proof for repaired EIG baseline candidates, recording `route_proof` and `no_mutation_proof` while leaving holdout and founder approval as the remaining promotion blockers. |
 | Phase 316 | M2/M4/M9/M13/M14/M19/M25/M31/M36 | Complete. Added contextless paraphrased holdout cases, repaired privacy trigger breadth for holdout wording, and passed live gateway plus AnythingLLM holdout proof with `holdout` recorded and only founder approval remaining. |
+| Phase 317 | M2/M9/M14/M19/M25/M31/M36 | Complete. Added the founder-approval readiness aggregator over Phase 312-316 evidence, proving all non-founder promotion evidence is recorded, the stable corpus remains unchanged, promotion is still blocked, and the current state is ready for founder decision only. |
 
 ## Usage Rules
 

@@ -178,6 +178,7 @@ Feature docs:
 - [README.eig-baseline-candidate-privacy-repair.md](README.eig-baseline-candidate-privacy-repair.md): deterministic privacy-answer repair closing EIG local-model comparison evidence
 - [README.eig-baseline-candidate-route-mutation-proof.md](README.eig-baseline-candidate-route-mutation-proof.md): route and no-mutation evidence for repaired EIG baseline candidates
 - [README.eig-baseline-candidate-holdout-proof.md](README.eig-baseline-candidate-holdout-proof.md): paraphrased gateway and AnythingLLM holdout proof for EIG baseline candidates
+- [README.eig-baseline-candidate-founder-approval-readiness.md](README.eig-baseline-candidate-founder-approval-readiness.md): aggregated EIG evidence readiness gate showing founder approval is the only remaining blocker
 - [README.release-candidate-baseline-corpus-promotion.md](README.release-candidate-baseline-corpus-promotion.md): promoted release-candidate chat-quality cases in the governed baseline corpus
 - [README.external-tester-feedback-loop-from-clone.md](README.external-tester-feedback-loop-from-clone.md): release-candidate clone feedback proof for positive and defect tester records
 - [README.v1-release-candidate-decision-gate.md](README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate

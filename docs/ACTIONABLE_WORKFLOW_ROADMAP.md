@@ -12769,3 +12769,40 @@ Completed work:
 - Shape-only holdout validation passed without recording evidence.
 - Focused regression passed with `10 passed` after trigger repair.
 - Live holdout proof passed through workflow-router gateway and AnythingLLM with `holdout_case_count=7`, `result_count=14`, `passed_result_count=14`, `failed_result_count=0`, `stable_corpus_mutated=false`, `connector_registry_mutated=false`, `recorded_evidence=[holdout]`, `remaining_missing_evidence=[founder_approval]`, and `validation_error_count=0`.
+
+### Approved Phase 317: EIG Baseline Candidate Founder Approval Readiness
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: aggregate the Phase 312-316 EIG baseline-candidate proof chain and make the current founder-decision state auditable without promoting candidates or recording approval.
+
+Scope:
+
+- Validate the Phase 312 blind-baseline report.
+- Validate the repaired Phase 314 local-model comparison report.
+- Validate the Phase 315 route and no-mutation report.
+- Validate the Phase 316 live holdout report.
+- Verify the two EIG baseline candidates and seven source cases are still present.
+- Verify all non-founder promotion evidence is recorded.
+- Verify `founder_approval` is the only missing evidence item.
+- Verify the stable baseline corpus hash is unchanged.
+- Keep `promotion_allowed=false`.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: a contextless reviewer can run one command and see `ready_for_founder_decision=true`, `missing_evidence=[founder_approval]`, `promotion_allowed=false`, and `stable_corpus_mutated=false`.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_founder_approval_readiness_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_founder_approval_readiness`.
+- Added `scripts/validate_eig_baseline_candidate_founder_approval_readiness.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_founder_approval_readiness.py`.
+- Added `README.eig-baseline-candidate-founder-approval-readiness.md` and `docs/examples/eig-baseline-candidate-founder-approval-readiness.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Focused regression passed with `5 passed`.
+- Direct Phase 317 validation passed with `candidate_count=2`, `blocked_candidate_count=2`, `recorded_evidence=[blind_baseline, holdout, local_model_comparison, no_mutation_proof, route_proof]`, `missing_evidence=[founder_approval]`, `ready_for_founder_decision=true`, `founder_approval_recorded=false`, `promotion_allowed=false`, `stable_corpus_mutated=false`, and `validation_error_count=0`.
+- Full split regression passed with `1804 passed, 4 skipped` in the parallel lane and `45 passed` in the serial lane.
