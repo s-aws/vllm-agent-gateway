@@ -172,6 +172,7 @@ Feature docs:
 - [README.eig-baseline-candidate-intake.md](README.eig-baseline-candidate-intake.md): candidate intake gate for EIG runtime prompts before live replay or stable corpus promotion
 - [README.eig-baseline-candidate-live-replay.md](README.eig-baseline-candidate-live-replay.md): live gateway and AnythingLLM replay for EIG baseline candidates before promotion
 - [README.eig-pr-merge-readiness.md](README.eig-pr-merge-readiness.md): non-merge readiness gate for the EIG handoff pull request
+- [README.eig-baseline-candidate-promotion-readiness.md](README.eig-baseline-candidate-promotion-readiness.md): fail-closed promotion-readiness decision for EIG baseline candidates
 - [README.release-candidate-baseline-corpus-promotion.md](README.release-candidate-baseline-corpus-promotion.md): promoted release-candidate chat-quality cases in the governed baseline corpus
 - [README.external-tester-feedback-loop-from-clone.md](README.external-tester-feedback-loop-from-clone.md): release-candidate clone feedback proof for positive and defect tester records
 - [README.v1-release-candidate-decision-gate.md](README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate

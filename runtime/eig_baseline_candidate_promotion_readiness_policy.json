@@ -1,0 +1,63 @@
+{
+  "baseline_corpus": {
+    "expected_entry_count": 5,
+    "path": "runtime/baseline_corpus.json",
+    "sha256": "2a1b433b6cc5aa45b2fbfa2cd35273fb98c88f9d58c03d06baefacbc4cca133f"
+  },
+  "candidate_source": {
+    "expected_candidate_count": 2,
+    "expected_total_source_case_count": 7,
+    "path": "runtime/eig_baseline_candidate_intake_policy.json",
+    "sha256": "b8d8ef30c2fb05364cced5e0e57c4f873b4cebe7e2d52be9e4fd8ddf5a76daf6"
+  },
+  "kind": "eig_baseline_candidate_promotion_readiness_policy",
+  "live_replay_source": {
+    "expected_candidate_count": 2,
+    "expected_live_result_count": 14,
+    "expected_total_source_case_count": 7,
+    "path": "runtime/eig_baseline_candidate_live_replay_policy.json",
+    "required_surfaces": [
+      "workflow_router_gateway",
+      "anythingllm"
+    ],
+    "sha256": "660791315fe47fcf97d196381af6715d1f7e648d545a5818fdc41ff53d8137c8"
+  },
+  "phase": 311,
+  "pr_evidence": {
+    "expected_base_ref": "main",
+    "expected_head_ref": "codex/eig-stable-handoff",
+    "number": 1,
+    "required_body_markers": [
+      "Phase 307 candidate intake: passed",
+      "Phase 308 live replay: passed with live_result_count=14",
+      "Stable baseline corpus promotion remains a separate future phase requiring founder approval",
+      "does not ship real external connector execution"
+    ],
+    "required_state": "OPEN"
+  },
+  "promotion_policy": {
+    "auto_promote_allowed": false,
+    "committed_evidence_refs_required_for_promotion": true,
+    "founder_approval_required_for_promotion": true,
+    "required_evidence": [
+      "blind_baseline",
+      "local_model_comparison",
+      "holdout",
+      "route_proof",
+      "no_mutation_proof",
+      "founder_approval"
+    ],
+    "stable_corpus_mutation_allowed": false,
+    "stable_corpus_update_requires_separate_phase": true
+  },
+  "required_milestones": [
+    "M2",
+    "M9",
+    "M14",
+    "M19",
+    "M25",
+    "M31",
+    "M36"
+  ],
+  "schema_version": 1
+}

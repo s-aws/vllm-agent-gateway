@@ -12558,3 +12558,33 @@ Completed work:
 - Updated root, docs, examples, and milestone indexes.
 - The gate requires Phase 304 through Phase 309 to be complete before PR readiness can pass.
 - The gate requires the PR body to include Phase 307/308 evidence, `live_result_count=14`, stable baseline corpus promotion approval boundary, and no-real-external-connector-execution boundary.
+
+### Approved Phase 311: EIG Baseline Candidate Promotion Readiness
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: create a fail-closed, non-mutating promotion-readiness decision for the Phase 307/308 EIG baseline candidates before any stable corpus promotion work is attempted.
+
+Scope:
+
+- Add an EIG baseline-candidate promotion-readiness policy.
+- Validate Phase 307 candidate intake, Phase 308 static preflight, baseline corpus governance, PR evidence markers, and stable-corpus non-mutation.
+- Require the existing baseline corpus promotion evidence set: blind baseline, local model comparison, holdout, route proof, no-mutation proof, and founder approval.
+- Report the current candidates as blocked, not approved, and not promoted.
+- Do not edit `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: a contextless reviewer can run one command and see that both EIG candidate groups are known, replay-backed, outside the stable corpus, and still blocked pending committed promotion evidence and explicit founder approval.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_promotion_readiness_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_promotion_readiness`.
+- Added `scripts/validate_eig_baseline_candidate_promotion_readiness.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_promotion_readiness.py`.
+- Added `README.eig-baseline-candidate-promotion-readiness.md` and `docs/examples/eig-baseline-candidate-promotion-readiness.md`.
+- Updated root, docs, examples, and milestone indexes.
+- Direct validation passed with `candidate_count=2`, `blocked_candidate_count=2`, `approved_candidate_count=0`, `promoted_candidate_count=0`, `promotion_allowed=false`, `stable_corpus_mutated=false`, `founder_approval_recorded=false`, and `validation_error_count=0`.

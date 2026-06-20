@@ -81,6 +81,7 @@ Examples are grouped by feature so the root README can stay small.
 - [EIG Baseline Candidate Intake](eig-baseline-candidate-intake.md): Phase 307 candidate intake gate before live replay or stable corpus promotion.
 - [EIG Baseline Candidate Live Replay](eig-baseline-candidate-live-replay.md): Phase 308 live gateway and AnythingLLM replay before promotion.
 - [EIG PR Merge Readiness](eig-pr-merge-readiness.md): Phase 310 non-merge readiness gate for the EIG handoff pull request.
+- [EIG Baseline Candidate Promotion Readiness](eig-baseline-candidate-promotion-readiness.md): Phase 311 fail-closed promotion-readiness decision for EIG baseline candidates.
 - [Gateway](gateway.md): startup, shutdown, budget overrides, client URLs, and role ports.
 - [Controller Service](controller-service.md): explicit documenter workflow requests, end-to-end service runner, allowlisted targets, harness adapter, and run lookup.
 - [Workflow Router](workflow-router.md): natural-language route planning, read-only execution, blocked requests, and live validator command.

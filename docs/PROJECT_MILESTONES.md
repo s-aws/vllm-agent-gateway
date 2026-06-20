@@ -212,6 +212,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 308 | M2/M4/M9/M13/M14/M19/M25/M31/M36 | Complete. Replayed the seven EIG baseline candidates through live workflow-router gateway and AnythingLLM proof surfaces without stable corpus promotion. |
 | Phase 309 | M14 | Complete. Refreshed the open EIG handoff PR with Phase 307/308 evidence and replayed static gates from a clean clone of the updated branch head. |
 | Phase 310 | M14 | Complete. Added and ran the non-merge EIG PR readiness gate for PR #1, proving the branch, PR state, required docs/scripts, prior phase completion, PR evidence markers, source hygiene, and explicit no-merge/no-main-mutation/no-stable-corpus-promotion boundaries. |
+| Phase 311 | M2/M9/M14/M19/M25/M31/M36 | Complete. Added a fail-closed EIG baseline-candidate promotion-readiness gate that proves both EIG candidate groups remain blocked, unpromoted, outside the stable corpus, and missing required committed promotion evidence plus founder approval. |
 
 ## Usage Rules
 
