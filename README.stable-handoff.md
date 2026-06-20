@@ -10,7 +10,7 @@ Use this handoff only for the current product surface: natural-language L1/L2 re
 - Stable activation points at the committed proof `runtime/release_proofs/v1-1-release-candidate-stable-proof.json`.
 - Generated `runtime-state/` reports are local-only; committed proof metadata is the clean-clone source of truth.
 - The activation report is a passed `v1_acceptance_report` with profile `v1.1-release-candidate`.
-- First-time testers still use AnythingLLM pointed at `http://127.0.0.1:8500/v1`.
+- First-time testers use AnythingLLM pointed at the workflow-router gateway. On split Windows/WSL hosts, use the WSL network workflow-router URL printed by `start-agent-prompt-proxies.sh`; Bash-side validators keep their internal workflow-router URL on `http://127.0.0.1:8500/v1`.
 - The stable smoke command reruns setup, release-channel validation, security policy, one live onboarding prompt, feedback capture, and protected-fixture checks.
 - Phase 273 proves the current 500k-token project usability target live through the workflow-router gateway and AnythingLLM with retrieval, artifact paging, summarization, chunked investigation, refusal routing, split-url target settings, stale-index rejection, clean-clone lineage, blind-baseline comparison, and JSON/default parity.
 - Phase 276 aggregates the current 500k proof chain into decision `ship` with an explicit Phase 275 clean-clone report path, zero blockers, healthy runtime probes, and `phase277_ready=true`.
@@ -30,7 +30,7 @@ Stable EIG proof remains local and synthetic. Real external connector execution 
 - vLLM model endpoint is healthy at `http://127.0.0.1:8000/v1`.
 - Harness ports are healthy at `8300`, `8500`, `8400`, and role ports.
 - AnythingLLM is running. Use `http://127.0.0.1:3001` only when it is actually the AnythingLLM API; if loopback is owned by another local app, use the reachable network API base such as `http://192.168.0.208:3001`.
-- AnythingLLM is configured to use `http://127.0.0.1:8500/v1`.
+- AnythingLLM is configured to use the workflow-router gateway. Use `http://127.0.0.1:8500/v1` only when the AnythingLLM client can reliably read response bodies from loopback; otherwise use the printed WSL network workflow-router URL.
 - `ANYTHINGLLM_API_KEY` is available.
 - Both frozen fixtures exist:
   - `/mnt/c/coinbase_testing_repo_frozen_tmp`

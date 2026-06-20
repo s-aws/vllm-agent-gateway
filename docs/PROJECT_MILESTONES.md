@@ -240,6 +240,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 336 | M13/M14 | Complete. Replayed post-UI runtime readiness through the split-address stack, proved all 16 required surfaces remain healthy with zero drift/session blockers, and repaired stale readiness success guidance so it points to the canonical roadmap tail rather than old Phase 196. |
 | Phase 337 | M13/M14 | Complete. Replayed the pushed Phase 336 readiness guidance repair from a clean WSL clone with docs-index proof, focused post-restart readiness and PR readiness regression, no active-workspace runtime-state dependency, and clean clone status. |
 | Phase 338 | M14 | Complete. Replayed the current non-merge PR readiness gate for PR #1, proving the branch remains open, clean, founder-decision-ready, and still blocks merge, `main` mutation, and stable-corpus promotion. |
+| Phase 339 | M14 | Complete. Refreshed founder-facing getting-started, stable-handoff, and release-note status and endpoint guidance so the active Phase 338 proof floor and split Windows/WSL address model are visible without chat history. |
 
 ## Usage Rules
 

@@ -6,7 +6,9 @@ Current status: `ship`.
 
 Stable channel compatibility marker: `ready_for_founder_testing`.
 
-Latest proof floor: Phase 246 reran the Phase 244 V1 release-candidate decision gate after Phase 245 restored runtime health. The release clone at decision source commit `bb0c6b0` returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`. Phase 247 packages that decision into committed handoff metadata and tester-facing docs.
+Latest proof floor: Phase 338 refreshes the current `codex/eig-stable-handoff` PR/stable-handoff review state. The current chain includes Phase 332 stable handoff smoke replay, Phase 333 fresh Priority 0 local-model drift replay, Phase 334 clean-clone static replay, Phase 335 browser-visible AnythingLLM UI replay, Phase 336 post-UI runtime readiness replay, Phase 337 clean-clone readiness replay, and Phase 338 non-merge PR readiness. PR #1 remains open and clean, with merge, `main` mutation, and stable-corpus promotion still blocked pending founder decision.
+
+Earlier stable proof floor: Phase 246 reran the Phase 244 V1 release-candidate decision gate after Phase 245 restored runtime health. The release clone at decision source commit `bb0c6b0` returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`. Phase 247 packages that decision into committed handoff metadata and tester-facing docs.
 
 Earlier proof floor: Phase 226 made M6/M8 large-context usability release-usable through retrieval-backed chat, artifact paging, context strategy routing, live gateway proof, and live AnythingLLM proof. M9 founder feedback rebaseline and repair rerun gates are in place. M12 small skill admission completed for the Python-service fixture without manual skill injection. Phase 231 proved runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack, including post-restart small-repo and large-context prompts through gateway and AnythingLLM.
 
@@ -14,17 +16,21 @@ EIG proof floor: Phase 296 closes EIG-1/EIG-2 local-stub connector breadth for g
 
 Earlier founder-field closeout: Phase 170 refreshed the stable proof floor after the Phase 163-169 chat-quality batch and kept the decision at `release_for_founder_testing`. Phases 171 through 176 closed the six Phase 169 product-gap proposals, and Phases 180 through 185 added chat-quality hardening: answer-first chat contract hardening, natural output-format selector stabilization, evidence relevance ranking, related-test discovery reliability, browser-visible AnythingLLM UI replay for repaired Priority 0 prompt families, and a reusable contextless-agent audit pack. Phase 230 admitted the first small skill-library fixture/eval coverage candidate using existing skills. Phase 231 proves the restarted runtime is ready with `decision=ready_after_recovery`.
 
-This release is a local coding-agent harness for chat-quality testing through the workflow-router gateway. The tested user-facing path is AnythingLLM configured to use:
+This release is a local coding-agent harness for chat-quality testing through the workflow-router gateway. Bash-side validation keeps the internal workflow-router URL on:
 
 ```text
 http://127.0.0.1:8500/v1
 ```
 
-AnythingLLM itself is expected at:
+On split Windows/WSL hosts, the Windows AnythingLLM client may need the WSL network workflow-router URL printed by `start-agent-prompt-proxies.sh` instead of loopback.
+
+AnythingLLM itself is usually expected at Windows loopback:
 
 ```text
 http://127.0.0.1:3001
 ```
+
+Bash/WSL validators may need the reachable Windows host network API base, such as `http://192.168.0.208:3001`.
 
 The AnythingLLM API checks use `ANYTHINGLLM_API_KEY` from the local environment.
 
@@ -85,7 +91,7 @@ Validated fixture roots:
 - This is a local founder-testing release, not a production deployment.
 - Validation is centered on the current local model and the two frozen Coinbase fixtures.
 - Live runtime validators should be run from Bash/WSL because Windows clients can hit Bash-hosted localhost body-timeout behavior.
-- AnythingLLM must point at `http://127.0.0.1:8500/v1` for natural workflow routing. `8300` is ordinary model gateway chat, and `8400` is the controller service.
+- AnythingLLM must point at the workflow-router gateway for natural workflow routing. Use `http://127.0.0.1:8500/v1` only when the AnythingLLM client can reliably read loopback response bodies; otherwise use the printed WSL network workflow-router URL. `8300` is ordinary model gateway chat, and `8400` is the controller service.
 - `format_a` and `json` are the only governed output formats currently released.
 - Draft and apply flows are intentionally narrow. Unsupported mutation requests should block or require exact approved packet details.
 - The git-enabled frozen fixture can show Windows/WSL line-ending noise; watched-hash and protected-fixture mutation proof are the release checks.

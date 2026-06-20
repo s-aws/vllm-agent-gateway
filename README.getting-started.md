@@ -4,7 +4,7 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
-Current handoff status: Phase 277 is the active stable tester handoff refresh for governed 500k-token project usability, and Phase 304 integrates the completed EIG proof chain into this handoff. Phase 296 closes EIG-1/EIG-2 local-stub connector, actor/scope, approval replay, and runtime chat breadth. Phase 303 closes EIG-3 synthetic privacy and memory-safety breadth. The 384k-token project usability baseline remains preserved as lineage. The Phase 273 live 500k candidate proof passed through the workflow-router gateway and AnythingLLM with all five large-context strategies covered, split-url target settings verified, JSON/default parity verified, and zero high or critical findings. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor.
+Current handoff status: Phase 338 is the active PR/stable-handoff review floor on branch `codex/eig-stable-handoff`. The current proof chain includes stable handoff smoke replay, fresh Priority 0 drift replay, browser-visible AnythingLLM UI replay, post-UI runtime readiness, clean-clone static replay, and non-merge PR readiness. Phase 277 remains the stable governed 500k-token project-usability handoff, and Phase 304 integrates the completed EIG proof chain into that handoff. The 384k-token project usability baseline remains preserved as lineage. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor.
 
 The EIG handoff is intentionally bounded: real external connector execution is not shipped, arbitrary connector chat is not shipped, production OAuth token exchange is not shipped, real sensitive-data ingestion is not shipped, and persistent hidden memory is not shipped. Current EIG testing uses deterministic local-stub connector fixtures and synthetic privacy fixtures only.
 
@@ -24,8 +24,9 @@ The EIG handoff is intentionally bounded: real external connector execution is n
 - The controller can draft small config-default, exact-message, and assertion-update test proposals through the existing implementation workflow without mutating source files.
 - The controller can apply exact approved packet operations to a disposable copy, roll the copy back, and prove frozen source files did not change.
 - Source fixture files remain unchanged.
-- Current Phase 184 UI replay cases for evidence relevance and related-test discovery pass through the browser-visible AnythingLLM path.
-- Future blind-baseline audits can start from the Phase 185 contextless-agent audit pack.
+- Current Phase 335 UI replay cases prove representative accepted Priority 0 prompts plus a no-target `hi` greeting through the browser-visible AnythingLLM path.
+- Current Phase 336 runtime readiness proves all required post-UI localhost, gateway, controller, AnythingLLM, session, and fixture surfaces remain healthy.
+- Future blind-baseline audits can start from the Phase 185 contextless-agent audit pack and the newer Phase 333 fresh Priority 0 drift replay.
 
 ## Prerequisites
 
