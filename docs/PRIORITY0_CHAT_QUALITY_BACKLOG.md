@@ -175,13 +175,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-337 | clean-clone Phase 336 readiness replay | Complete in Phase 337. Replayed the pushed Phase 336 readiness guidance repair from a clean clone without active-workspace runtime-state. | Proof: clone commit `cb1a2667cc4e10ab4468b9365957f601d5457c2d`; docs index passed with `linked_count=438`; focused post-restart readiness and PR readiness regression passed with `11 passed`; stale Phase 196 success guidance is absent from code and tests. |
 | P0-M14-338 | current PR merge-decision readiness refresh | Complete in Phase 338. Replayed the existing non-merge EIG PR readiness gate after the Phase 332-337 updates. | Proof: PR #1 is open and `CLEAN`, `ready_for_founder_merge_decision=true`, zero forbidden tracked paths, zero incomplete phases, zero missing docs/scripts/body markers, and merge/main/stable-corpus promotion remain disallowed. |
 | P0-M14-339 | founder-facing status and endpoint refresh | Complete in Phase 339. Refreshed current getting-started, stable-handoff, and release-note status/endpoint guidance around the Phase 338 proof floor and split Windows/WSL address model. | Proof: founder-facing docs now identify the active PR/stable-handoff review floor, preserve older proof floors as lineage, and distinguish Windows AnythingLLM network URLs from Bash internal loopback URLs. |
+| P0-M14-340 | clean-clone founder docs replay | Complete in Phase 340. Replayed the pushed Phase 339 founder-facing docs from a clean clone without active-workspace runtime-state. | Proof: clone commit `1bf3c690241a1f01d11a7e4717f25b2d96c270f2`; docs index passed with `linked_count=438`; current proof-floor and split-address markers were present in getting-started, release-notes, and stable-handoff docs. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-339 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-339 runtime/AnythingLLM recovery proof as the active proof floor.
+1. Phases 157-340 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-340 runtime/AnythingLLM recovery proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -198,7 +199,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 339 Founder-Facing Status And Endpoint Refresh is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
+Phase 340 Clean-Clone Founder Docs Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 
