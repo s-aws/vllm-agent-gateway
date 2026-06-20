@@ -13034,3 +13034,32 @@ Completed work:
 - Added focused regression proving a network AnythingLLM API-base override passes when the Generic OpenAI workflow-router target is correct.
 - Focused 384k/500k live-acceptance regression passed with `11 passed`.
 - Full recovered Phase 273 live acceptance passed with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, `strategy_ids=[artifact_paging, chunked_investigation, refusal, retrieval, summarization]`, `json_default_parity_status=passed`, `target_settings_status=passed`, `critical_or_high_finding_count=0`, `phase272_status=passed`, `phase261_status=passed`, `phase274_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+
+### Approved Phase 325: Fresh-Clone Split-Address Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed split-address recovery and lineage-marker repair can replay from a fresh clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone `codex/eig-stable-handoff` from GitHub into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run focused regression for the split-address target-settings behavior and health-drift classifier.
+- Run Phase 258 and Phase 270 static validators from the clone with output paths outside the repository.
+- Confirm clone git status remains clean.
+- Do not run live vLLM, gateway, or AnythingLLM tests in this static handoff phase.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the split-address docs, target-settings override, health-drift classifier, and historical lineage markers without private runtime-state.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase325_clone`.
+- Replayed commit: `4555480eff72b469acf980efabecda08092ad684`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Focused regression passed in the clone with `17 passed` across `test_large_context_384k_live_acceptance.py` and `test_gateway_anythingllm_health_drift.py`.
+- Phase 258 static validator passed in the clone with `phase258_ready=true` and `error_count=0`.
+- Phase 270 static validator passed in the clone with `phase270_ready=true` and `error_count=0`.
+- Clone `git status --short` was clean after validation.
