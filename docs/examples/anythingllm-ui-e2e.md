@@ -27,6 +27,35 @@ The report should include:
 - `fixture_unchanged=true`
 - before/after screenshots for each prompt
 
+## Current Bash/WSL Split-Address Replay
+
+Use this shape when the validator runs from Bash/WSL and AnythingLLM is reachable from Bash on the Windows host network address:
+
+```bash
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/validate_anythingllm_ui_e2e.py \
+  --anythingllm-api-base-url http://192.168.0.208:3001 \
+  --workspace my-workspace \
+  --ui-dist-root runtime-state/anythingllm-ui/asar-dist/dist \
+  --timeout-seconds 900 \
+  --output-path runtime-state/anythingllm-ui/phase335/phase335-priority0-ui-replay.json \
+  --case-id UI126-CQ116-001 \
+  --case-id UI126-CQ116-009 \
+  --case-id UI126-DD117-001 \
+  --case-id UI126-DD117-002 \
+  --case-id UI126-EJ118-001 \
+  --case-id UI126-EJ118-002 \
+  --case-id UI126-DM119-001 \
+  --case-id UI126-DM119-002 \
+  --case-id UI167-GENCHAT-001
+```
+
+Expected result:
+
+```text
+ANYTHINGLLM UI E2E PASS
+```
+
 ## Phase 126 Stable Corpus UI Subset
 
 Run the bounded stable-corpus UI proof:
