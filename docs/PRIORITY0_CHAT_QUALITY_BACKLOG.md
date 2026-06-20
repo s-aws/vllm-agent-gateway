@@ -164,16 +164,17 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M15-275 | clean-clone 500k candidate replay | Complete in Phase 275. Replayed the 500k candidate path from a fresh remote branch clone without active workspace state. | Proof: Phase 275 policy, validator, docs, controller preflight proving the live stack was clone-hosted, Phase 270 through Phase 274 replay, live gateway, live AnythingLLM, clone clean before/after, focused regression, docs index, and clean-clone proof at commit `9dc768f`. |
 | P0-M15-276 | 500k candidate decision gate | Complete in Phase 276. Aggregated the 500k proof chain into deterministic decision `ship`. | Proof: Phase 276 policy, validator, docs, explicit Phase 275 clean-clone report path, runtime health, `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `candidate_estimated_project_tokens=500000`, `stable_estimated_project_tokens=384000`, `raw_prompt_stuffing_allowed=false`, and `phase277_ready=true`. |
 | P0-M15-277 | stable 500k handoff refresh | Complete in Phase 277. Refreshed stable handoff metadata, docs, examples, and completion audit for governed 500k-token project usability after Phase 276 returned `ship`. | Proof: Phase 277 policy, validator, docs, completion audit, release-channel metadata, stable proof metadata, `decision=stable_500k_handoff_refreshed`, `blocker_count=0`, `candidate_estimated_project_tokens=500000`, `phase276_decision=ship`, and explicit raw-500k prompt-serving boundary. |
+| P0-M14-329 | milestone continuity and next-state refresh | Complete in Phase 329. Removed stale current-next-action instructions that still pointed at old Phase 244/245 runtime recovery and refreshed durable guidance around the current Phase 328 PR/handoff state. | Proof: canonical roadmap, Priority 0 backlog, and milestone ledger now identify Phase 328 as the current completed tail and require any next work to support PR/stable handoff review or a new milestone-mapped Priority 0 chat-quality phase. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Current approved Phase 157-162 batch is complete.
-2. Use the Phase 157-179 reports as the active field-test and chat-quality proof chain.
-3. Keep using the stable release gate, founder smoke suite, Phase 156 final decision, Phase 170 refresh, Phase 177 post-repair stable proof refresh, Phase 178 blind-baseline delta report, and Phase 179 prompt-corpus governance report as the active proof floor.
-4. Phases 180-224 are complete. The next Priority 0 phase should continue improving large-context chat quality before any advanced refactor work resumes.
-5. Do not begin advanced refactor work during this batch.
+1. Phases 157-328 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-328 runtime/AnythingLLM recovery proof as the active proof floor.
+3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
+4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
+5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
 
 ## Stop Conditions
 
@@ -187,7 +188,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 244 V1 Release-Candidate Decision Gate is complete with decision `hold`. Phase 245 Release-Candidate Runtime Health Restoration is the active next Priority 0 action. Do not begin advanced refactor work unless the canonical roadmap explicitly marks that phase active.
+Phase 328 Fresh-Clone AnythingLLM Chat-Mode Guard Replay is complete. Phase 329 records this continuity correction so future agents do not follow stale Phase 244/245 recovery instructions. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review or fresh Priority 0 chat-quality validation.
 
 ## Completed Work
 

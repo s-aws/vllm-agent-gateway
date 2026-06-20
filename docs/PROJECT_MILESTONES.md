@@ -230,6 +230,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 326 | M13/M14 | Complete. Replayed post-restart runtime readiness and stable handoff smoke through the recovered AnythingLLM API base, proving zero health/session blockers and passing stable handoff child reports for first-time doctor, release channel, security policy, and external tester onboarding. |
 | Phase 327 | M2/M13/M14 | Complete. Recovered browser-visible AnythingLLM UI E2E after diagnosing `chatMode=automatic` as the `@agent` stream-chat failure, requiring `chatMode=chat` in UI preflight and first-time doctor, capturing stream-chat request payloads, and passing Phase 167 no-target plus Phase 184 Priority 0 UI slices with fixture proof. |
 | Phase 328 | M13/M14 | Complete. Replayed the pushed Phase 327 AnythingLLM chat-mode guard from a fresh WSL clone with docs-index proof, focused UI/doctor regression, no active-workspace runtime-state dependency, and clean clone status. |
+| Phase 329 | M9/M14 | Complete. Refreshed stale durable next-action guidance so the roadmap and Priority 0 backlog identify Phase 328 as the current completed tail, PR #1 as the reviewable branch state, and the next allowed work as PR/stable handoff support or a milestone-mapped Priority 0 chat-quality phase. |
 
 ## Usage Rules
 
