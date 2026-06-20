@@ -12620,3 +12620,40 @@ Completed work:
 - Added `README.eig-baseline-candidate-blind-baselines.md` and `docs/examples/eig-baseline-candidate-blind-baselines.md`.
 - Updated Phase 311 docs, root docs, examples, and milestone indexes.
 - Direct validation passed with `case_count=7`, `contextless_agent_first=true`, `local_model_output_seen=false`, `recorded_evidence=[blind_baseline]`, `promotion_allowed=false`, and `remaining_missing_evidence=[founder_approval, holdout, local_model_comparison, no_mutation_proof, route_proof]`.
+
+### Approved Phase 313: EIG Baseline Candidate Local Comparison
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: compare the EIG baseline-candidate live replay outputs against the Phase 312 contextless blind baselines and decide whether `local_model_comparison` promotion evidence can be recorded.
+
+Scope:
+
+- Add a local-model comparison policy for the seven EIG baseline-candidate prompt cases.
+- Compare the saved Phase 313 post-blind-baseline live replay across workflow-router gateway and AnythingLLM.
+- Use structured connector runtime validator output for connector cases.
+- Use privacy runtime chat output against blind-baseline must-have facts, output-format expectations, and hard-failure boundaries for privacy cases.
+- Record `local_model_comparison` evidence only when every candidate response passes the comparison.
+- If comparison misses remain, return `repair_required` and keep `local_model_comparison` in the missing-evidence list.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: a contextless reviewer can run one command and see whether the current EIG baseline candidates actually match the blind baselines before any stable corpus promotion is considered.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_local_comparison_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_local_comparison`.
+- Added `scripts/validate_eig_baseline_candidate_local_comparison.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_local_comparison.py`.
+- Added `README.eig-baseline-candidate-local-comparison.md` and `docs/examples/eig-baseline-candidate-local-comparison.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Tightened the comparator so `local_model_comparison` is not recorded when the comparison decision is `repair_required`.
+- Added WSL-to-Windows report path resolution for live replay child reports.
+- Avoided false JSON failures from bounded privacy `text_sample` fields by respecting the upstream Phase 302 full-response JSON validation.
+- Focused regression passed with `5 passed`.
+- Direct Phase 313 validation passed structurally with `response_count=14`, `passed_response_count=12`, `failed_response_count=2`, `minimum_score=80`, `hard_failure_count=0`, `comparison_decision=repair_required`, `recorded_evidence=[blind_baseline]`, and `remaining_missing_evidence=[local_model_comparison, founder_approval, holdout, no_mutation_proof, route_proof]`.
+- The concrete Phase 314 repair target is `EIG3-RUNTIME-PII-AUTH` on both workflow-router gateway and AnythingLLM. The current answer refuses safely but misses `do not hallucinate authorization` and `fixture EIG3-PII-N2 classified as personal_data`.

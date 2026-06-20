@@ -214,6 +214,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 310 | M14 | Complete. Added and ran the non-merge EIG PR readiness gate for PR #1, proving the branch, PR state, required docs/scripts, prior phase completion, PR evidence markers, source hygiene, and explicit no-merge/no-main-mutation/no-stable-corpus-promotion boundaries. |
 | Phase 311 | M2/M9/M14/M19/M25/M31/M36 | Complete. Added a fail-closed EIG baseline-candidate promotion-readiness gate that proves both EIG candidate groups remain blocked, unpromoted, outside the stable corpus, and missing required committed promotion evidence plus founder approval. |
 | Phase 312 | M2/M4/M9/M14/M19/M25/M31/M36 | Complete. Recorded contextless blind-baseline expectations for all seven EIG baseline-candidate prompt cases before local-model comparison, closing the `blind_baseline` evidence item while leaving promotion blocked on comparison, holdout, route proof, no-mutation proof, and founder approval. |
+| Phase 313 | M2/M4/M9/M14/M19/M25/M31/M36 | Complete. Added the EIG baseline-candidate local-model comparison gate and ran it against the post-blind-baseline gateway plus AnythingLLM replay; the gate passed structurally but returned `repair_required` because the PII authorization privacy answer missed case-specific authorization and classification markers. |
 
 ## Usage Rules
 
