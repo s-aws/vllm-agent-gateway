@@ -12416,7 +12416,7 @@ Completed work:
 
 ### Approved Phase 306: EIG Branch Review Packet
 
-Status: In Progress.
+Status: Complete.
 
 Milestone mapping: M14 Release Packaging And Onboarding.
 
@@ -12430,3 +12430,10 @@ Scope:
 - Do not add runtime behavior beyond the already pushed branch contents.
 
 Acceptance target: the branch is reviewable through GitHub without relying on this chat session, and the PR makes the exact supported and unsupported EIG scope clear.
+
+Completed work:
+
+- Created GitHub pull request `https://github.com/s-aws/vllm-agent-gateway/pull/1` from `codex/eig-stable-handoff` to `main`.
+- PR body includes Phase 304 gate status, docs index status, full Bash split regression status, clean-clone replay status, and EIG scope boundaries.
+- The PR explicitly states that real external connector execution, raw MCP access, arbitrary connector chat, production OAuth token exchange, real sensitive-data ingestion, production DLP/data-clean-room infrastructure, and persistent hidden memory are not shipped.
+- `main` was not changed or merged by this phase.
