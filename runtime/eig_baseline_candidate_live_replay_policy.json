@@ -1,0 +1,35 @@
+{
+  "candidate_source": {
+    "expected_candidate_count": 2,
+    "expected_total_source_case_count": 7,
+    "path": "runtime/eig_baseline_candidate_intake_policy.json",
+    "sha256": "b8d8ef30c2fb05364cced5e0e57c4f873b4cebe7e2d52be9e4fd8ddf5a76daf6"
+  },
+  "kind": "eig_baseline_candidate_live_replay_policy",
+  "phase": 308,
+  "replay_policy": {
+    "founder_approval_recorded": false,
+    "live_replay_required": true,
+    "required_candidate_ids": [
+      "eig-connector-runtime-chat-phase307",
+      "eig-privacy-runtime-chat-phase307"
+    ],
+    "required_surfaces": [
+      "workflow_router_gateway",
+      "anythingllm"
+    ],
+    "stable_corpus_promotion_allowed": false
+  },
+  "required_milestones": [
+    "M2",
+    "M4",
+    "M9",
+    "M13",
+    "M14",
+    "M19",
+    "M25",
+    "M31",
+    "M36"
+  ],
+  "schema_version": 1
+}

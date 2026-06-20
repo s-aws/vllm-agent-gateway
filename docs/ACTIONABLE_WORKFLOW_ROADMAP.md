@@ -12470,3 +12470,37 @@ Completed work:
 - Docs index validation passed with `linked_count=414` and no orphan docs.
 - Baseline corpus governance passed with `entry_count=5`, `stable_entry_count=5`, and `error_count=0`.
 - `runtime/baseline_corpus.json` remained unchanged.
+
+### Approved Phase 308: EIG Baseline Candidate Live Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: replay the seven Phase 307 EIG baseline candidates through live workflow-router gateway and AnythingLLM proof surfaces without promoting them into the stable corpus.
+
+Scope:
+
+- Compose the existing EIG connector runtime chat and EIG privacy runtime chat validators.
+- Require Phase 307 candidate intake and baseline corpus governance to pass first.
+- Run the three connector runtime candidates through workflow-router gateway and AnythingLLM.
+- Run the four privacy runtime candidates through workflow-router gateway and AnythingLLM.
+- Record live evidence and surface coverage for later promotion review.
+- Keep stable corpus promotion disabled and founder approval unrecorded.
+
+Acceptance target: EIG baseline candidates have live replay evidence on both required surfaces, with no stable corpus mutation and no promotion claim.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_live_replay_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_live_replay`.
+- Added `scripts/validate_eig_baseline_candidate_live_replay.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_live_replay.py`.
+- Added `README.eig-baseline-candidate-live-replay.md` and `docs/examples/eig-baseline-candidate-live-replay.md`.
+- Updated root, docs, and examples indexes.
+- Static preflight passed with Phase 307 candidate intake and baseline corpus governance valid.
+- Live Bash replay passed through `http://127.0.0.1:8500/v1` and AnythingLLM API `http://192.168.0.208:3001` with `candidate_count=2`, `total_source_case_count=7`, `live_result_count=14`, `covered_surface_count=2`, `missing_surface_count=0`, `stable_corpus_entry_count=5`, `stable_corpus_mutated=false`, `stable_corpus_promotion_allowed=false`, `founder_approval_recorded=false`, `validation_error_count=0`, and `phase309_ready=true`.
+- Docs index validation passed with `linked_count=416` and no orphan docs.
+- Focused regression passed with `3 passed`.
+- Baseline corpus remained unchanged.
+- Full Bash split regression passed with `1765 passed`, `4 skipped` in the parallel lane and `45 passed` in the serial lane.

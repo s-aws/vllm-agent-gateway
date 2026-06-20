@@ -25,6 +25,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [EIG-3 Breadth Closeout README](../README.eig3-breadth-closeout.md): Phase 303 contextless closeout packet for EIG-3 privacy and memory-safety breadth proof.
 - [EIG Stable Handoff Integration README](../README.eig-stable-handoff-integration.md): Phase 304 release-facing handoff gate for Phase 296 local-stub connector proof and Phase 303 synthetic privacy proof boundaries.
 - [EIG Baseline Candidate Intake README](../README.eig-baseline-candidate-intake.md): Phase 307 candidate intake gate for EIG runtime prompts before live replay or stable corpus promotion.
+- [EIG Baseline Candidate Live Replay README](../README.eig-baseline-candidate-live-replay.md): Phase 308 live gateway and AnythingLLM replay for EIG baseline candidates before promotion.
 - [Current Project Architecture](CURRENT_PROJECT_ARCHITECTURE.md): current gateway/controller/workflow/model validation map plus approved future connector, identity, and privacy milestone goals.
 - [Getting Started With AnythingLLM](../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup README](../README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
@@ -427,6 +428,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [EIG-3 Breadth Closeout Examples](examples/eig3-breadth-closeout.md)
 - [EIG Stable Handoff Integration Examples](examples/eig-stable-handoff-integration.md)
 - [EIG Baseline Candidate Intake Examples](examples/eig-baseline-candidate-intake.md)
+- [EIG Baseline Candidate Live Replay Examples](examples/eig-baseline-candidate-live-replay.md)
 - [Controller Service Examples](examples/controller-service.md)
 - [Workflow Router Examples](examples/workflow-router.md)
 - [Runtime Skill Selection Hardening Examples](examples/skill-selection-hardening.md)
