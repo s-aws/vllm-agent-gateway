@@ -12920,3 +12920,30 @@ Completed work:
 - Focused Phase 220/320 regression after clone-safety repair passed with `16 passed`.
 - Docs index passed with `linked_count=438` and `orphaned_docs=[]`.
 - Direct Phase 320 validation passed with `phase319_status=passed`, `phase319_case_count=11`, `phase319_passed_case_count=11`, `phase319_failed_case_count=0`, `all_strategies_covered=true`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, `persistent_runtime_state_required=false`, and `validation_error_count=0`.
+
+### Approved Phase 321: Fresh-Clone Context Strategy Router Replay
+
+Status: Complete.
+
+Milestone mapping: M8 Context Strategy Router and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 320 clone-safe context strategy router replay works from a fresh clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone `codex/eig-stable-handoff` from GitHub into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run the Phase 320 clone-safe context strategy router replay from the clone.
+- Confirm the clone worktree remains clean after validation.
+- Do not run live vLLM or AnythingLLM tests in this static replay phase.
+- Do not mutate `main`, protected fixtures, or stable baseline corpus.
+
+Acceptance target: a contextless reviewer can reproduce the M8 static strategy-router proof from the pushed branch without private local runtime-state.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase321_clone`.
+- Replayed commit: `1aa04641e30c3252ce0c27ce2e4a328eb19dda8d`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Phase 320 clone replay passed in the clone with `phase319_status=passed`, `phase319_case_count=11`, `phase319_passed_case_count=11`, `phase319_failed_case_count=0`, `all_strategies_covered=true`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, `persistent_runtime_state_required=false`, and `validation_error_count=0`.
+- Clone `git status --short` was clean after validation.
