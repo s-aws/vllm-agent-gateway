@@ -1,0 +1,42 @@
+{
+  "description": "Phase 303 EIG-3 breadth confidence closeout policy.",
+  "kind": "eig3_breadth_closeout_policy",
+  "phase": 303,
+  "required_docs": [
+    "docs/EIG3_SENSITIVE_DATA_ARCHETYPE_MATRIX.md",
+    "README.eig3-sensitive-data-fixtures.md",
+    "README.eig3-output-surface-policy.md",
+    "README.eig3-memory-lifecycle.md",
+    "README.eig3-privacy-evalops.md",
+    "README.eig3-privacy-runtime-chat.md",
+    "docs/examples/eig3-sensitive-data-fixtures.md",
+    "docs/examples/eig3-output-surface-policy.md",
+    "docs/examples/eig3-memory-lifecycle.md",
+    "docs/examples/eig3-privacy-evalops.md",
+    "docs/examples/eig3-privacy-runtime-chat.md"
+  ],
+  "required_milestones": [
+    "M32",
+    "M33",
+    "M34",
+    "M35",
+    "M36"
+  ],
+  "required_phases": [
+    297,
+    298,
+    299,
+    300,
+    301,
+    302
+  ],
+  "required_runtime_files": [
+    "runtime/eig3_sensitive_data_fixtures.json",
+    "runtime/eig3_output_surface_policy.json",
+    "runtime/eig3_memory_lifecycle_fixtures.json",
+    "runtime/eig3_privacy_evalops_policy.json",
+    "runtime/eig3_privacy_evalops_prompt_pack.json",
+    "runtime/eig3_privacy_runtime_chat_cases.json"
+  ],
+  "schema_version": 1
+}

@@ -15,11 +15,15 @@ Use this handoff only for the current product surface: natural-language L1/L2 re
 - Phase 273 proves the current 500k-token project usability target live through the workflow-router gateway and AnythingLLM with retrieval, artifact paging, summarization, chunked investigation, refusal routing, split-url target settings, stale-index rejection, clean-clone lineage, blind-baseline comparison, and JSON/default parity.
 - Phase 276 aggregates the current 500k proof chain into decision `ship` with an explicit Phase 275 clean-clone report path, zero blockers, healthy runtime probes, and `phase277_ready=true`.
 - Phase 277 refreshes stable handoff metadata and docs for 500k-token project usability through governed context strategy. The 384k-token project usability baseline remains preserved.
+- Phase 296 closes the EIG-1/EIG-2 local-stub connector breadth proof for governed connector manifests, controller-owned mediation, actor/scope enforcement, approval replay, and selected natural-language connector chat.
+- Phase 303 closes the EIG-3 synthetic privacy breadth proof for sensitive-data classification, output-surface handling, governed memory lifecycle, privacy EvalOps, and privacy-sensitive runtime chat.
 - Phase 230 admits the first M12 small skill-library fixture/eval coverage candidate without manual skill injection.
 - Phase 231 proves runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack.
 - Feedback still records through `workflow_feedback.record`; Phase 227 classifies feedback outcomes and Phase 228 prevents accepted repairs from closing without target and holdout rerun proof.
 
 Stable does not mean every coding-agent task is supported. It means the current documented tester path is ready for external use under the stated boundaries.
+
+Stable EIG proof remains local and synthetic. Real external connector execution is not shipped, arbitrary natural-language connector calls are not shipped, production OAuth token exchange is not shipped, real sensitive-data ingestion is not shipped, and persistent hidden memory is not shipped.
 
 ## Prerequisites
 
@@ -143,6 +147,23 @@ phase278_ready=true
 ```
 
 Raw 500k prompt serving is not claimed. Raw 1M-token prompt serving is not claimed. Advanced broad refactor orchestration remains deferred.
+
+## EIG Stable Handoff Integration
+
+Run this static gate before describing EIG connector, identity/scope, privacy, or memory-safety work as visible in stable handoff docs:
+
+```bash
+python3 scripts/validate_eig_stable_handoff_integration.py \
+  --output-path runtime-state/eig-stable-handoff-integration/phase304-validation.json
+```
+
+Expected marker:
+
+```text
+EIG STABLE HANDOFF INTEGRATION PASS
+```
+
+This confirms that release-facing docs reference Phase 296 and Phase 303, required EIG runtime proof files are present, and the handoff preserves the local-stub connector and synthetic privacy scope boundaries.
 
 ## First Tester Prompt
 

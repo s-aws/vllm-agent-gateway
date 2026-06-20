@@ -87,5 +87,7 @@ Do not treat a prompt tweak as a fix unless controller artifacts and live localh
 Default full Bash regression command:
 
 ```bash
-python3 -m pytest tests/regression/ -v
+. .venv/bin/activate && python scripts/run_regression.py --workers 4
 ```
+
+If `.venv` is missing, create it with `python3 -m venv --system-site-packages .venv`, activate it, and run `python -m pip install -r requirements-dev.txt`. The full regression runner uses pytest-xdist for tests that are not marked `serial`, then runs `serial` tests in a separate sequential lane. Mark tests `serial` when they touch shared repo state, fixed runtime-state paths, fixed external resources, process-global state, or timing-sensitive reset/recovery behavior.

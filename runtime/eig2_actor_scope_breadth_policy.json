@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "kind": "eig2_actor_scope_breadth_policy",
+  "milestones": [
+    "M20",
+    "M21",
+    "M29"
+  ],
+  "fixture_pack": "runtime/eig1_connector_breadth_fixtures.json",
+  "scope_boundary": {
+    "execution": "local_stub_only",
+    "identity_source": "deterministic_actor_context_fixture",
+    "authorization_model": "operation_level_required_scopes_with_connector_scope_fallback",
+    "real_oauth_provider_allowed": false,
+    "shared_privileged_service_account_allowed": false,
+    "external_network_allowed": false,
+    "raw_mcp_allowed": false,
+    "direct_model_tool_access_allowed": false,
+    "runtime_registry_mutation_allowed": false,
+    "target_repository_mutation_allowed": false
+  },
+  "operation_scope_assignments": [
+    {
+      "connector_id": "work_tracking_stub",
+      "operation_id": "lookup_work_item",
+      "required_scopes": [
+        "work:read"
+      ],
+      "reason": "Read-only lookup must not require write permission."
+    },
+    {
+      "connector_id": "work_tracking_stub",
+      "operation_id": "dry_run_update_work_item",
+      "required_scopes": [
+        "work:write"
+      ],
+      "reason": "Write-class dry-run preparation must not require unrelated read permission."
+    },
+    {
+      "connector_id": "business_record_stub",
+      "operation_id": "lookup_business_record",
+      "required_scopes": [
+        "records:read"
+      ],
+      "reason": "Structured business-record lookup is read-only."
+    },
+    {
+      "connector_id": "business_record_stub",
+      "operation_id": "query_business_records",
+      "required_scopes": [
+        "records:read"
+      ],
+      "reason": "Structured business-record query is read-only."
+    }
+  ],
+  "actor_scope_cases": [
+    {
+      "id": "EIG2-WORK-READ-ALLOW",
+      "scenario": "read_success",
+      "archetype": "work_tracking",
+      "source_case_id": "EIG1-WORK-R2",
+      "granted_scopes": [
+        "work:read"
+      ],
+      "approval_required": false,
+      "expected_status": "allowed",
+      "expected_required_scopes": [
+        "work:read"
+      ],
+      "expected_missing_scopes": [],
+      "recovery_required": false
+    },
+    {
+      "id": "EIG2-WORK-READ-DENY",
+      "scenario": "missing_read_scope",
+      "archetype": "work_tracking",
+      "source_case_id": "EIG1-WORK-R2",
+      "granted_scopes": [
+        "work:write"
+      ],
+      "approval_required": false,
+      "expected_status": "denied",
+      "expected_error_code": "connector_scope_denied",
+      "expected_required_scopes": [
+        "work:read"
+      ],
+      "expected_missing_scopes": [
+        "work:read"
+      ],
+      "recovery_required": true
+    },
+    {
+      "id": "EIG2-WORK-WRITE-ALLOW",
+      "scenario": "write_dry_run_success",
+      "archetype": "work_tracking",
+      "source_case_id": "EIG1-WORK-R3",
+      "granted_scopes": [
+        "work:write"
+      ],
+      "approval_required": true,
+      "expected_status": "allowed",
+      "expected_required_scopes": [
+        "work:write"
+      ],
+      "expected_missing_scopes": [],
+      "recovery_required": false
+    },
+    {
+      "id": "EIG2-WORK-WRITE-DENY",
+      "scenario": "missing_write_scope",
+      "archetype": "work_tracking",
+      "source_case_id": "EIG1-WORK-R3",
+      "granted_scopes": [
+        "work:read"
+      ],
+      "approval_required": true,
+      "expected_status": "denied",
+      "expected_error_code": "connector_scope_denied",
+      "expected_required_scopes": [
+        "work:write"
+      ],
+      "expected_missing_scopes": [
+        "work:write"
+      ],
+      "recovery_required": true
+    },
+    {
+      "id": "EIG2-RECORD-READ-ALLOW",
+      "scenario": "business_read_success",
+      "archetype": "business_record",
+      "source_case_id": "EIG1-REC-R2",
+      "granted_scopes": [
+        "records:read"
+      ],
+      "approval_required": false,
+      "expected_status": "allowed",
+      "expected_required_scopes": [
+        "records:read"
+      ],
+      "expected_missing_scopes": [],
+      "recovery_required": false
+    },
+    {
+      "id": "EIG2-RECORD-READ-DENY",
+      "scenario": "business_missing_read_scope",
+      "archetype": "business_record",
+      "source_case_id": "EIG1-REC-R2",
+      "granted_scopes": [
+        "work:read"
+      ],
+      "approval_required": false,
+      "expected_status": "denied",
+      "expected_error_code": "connector_scope_denied",
+      "expected_required_scopes": [
+        "records:read"
+      ],
+      "expected_missing_scopes": [
+        "records:read"
+      ],
+      "recovery_required": true
+    },
+    {
+      "id": "EIG2-CROSS-CONNECTOR-DENY",
+      "scenario": "cross_connector_scope_denial",
+      "archetype": "work_tracking",
+      "source_case_id": "EIG1-WORK-R2",
+      "granted_scopes": [
+        "records:read"
+      ],
+      "approval_required": false,
+      "expected_status": "denied",
+      "expected_error_code": "connector_scope_denied",
+      "expected_required_scopes": [
+        "work:read"
+      ],
+      "expected_missing_scopes": [
+        "work:read"
+      ],
+      "recovery_required": true
+    }
+  ],
+  "actor_context_negative_cases": [
+    {
+      "id": "EIG2-ACTOR-MALFORMED",
+      "scenario": "malformed_actor_context",
+      "archetype": "work_tracking",
+      "source_case_id": "EIG1-WORK-R2",
+      "granted_scopes": [
+        "work:read"
+      ],
+      "approval_required": false,
+      "expected_status": "denied",
+      "expected_error_code": "invalid_connector_actor_context",
+      "expected_required_scopes": [],
+      "expected_missing_scopes": [],
+      "recovery_required": false
+    },
+    {
+      "id": "EIG2-ACTOR-EXPIRED",
+      "scenario": "expired_actor_context",
+      "archetype": "work_tracking",
+      "source_case_id": "EIG1-WORK-R2",
+      "granted_scopes": [
+        "work:read"
+      ],
+      "approval_required": false,
+      "expected_status": "denied",
+      "expected_error_code": "stale_connector_actor_context",
+      "expected_required_scopes": [],
+      "expected_missing_scopes": [],
+      "recovery_required": false
+    },
+    {
+      "id": "EIG2-ACTOR-ANONYMOUS",
+      "scenario": "anonymous_actor_context",
+      "archetype": "work_tracking",
+      "source_case_id": "EIG1-WORK-R2",
+      "granted_scopes": [
+        "work:read"
+      ],
+      "approval_required": false,
+      "expected_status": "denied",
+      "expected_error_code": "anonymous_connector_actor_context",
+      "expected_required_scopes": [],
+      "expected_missing_scopes": [],
+      "recovery_required": false
+    },
+    {
+      "id": "EIG2-ACTOR-MISSING",
+      "scenario": "missing_actor_context",
+      "archetype": "work_tracking",
+      "source_case_id": "EIG1-WORK-R2",
+      "granted_scopes": [
+        "work:read"
+      ],
+      "approval_required": false,
+      "expected_status": "denied",
+      "expected_error_code": "missing_connector_actor_context",
+      "expected_required_scopes": [],
+      "expected_missing_scopes": [],
+      "recovery_required": false
+    }
+  ],
+  "knowledge_archetype_scope_status": {
+    "status": "not_scoped_service_read_only",
+    "reason": "The Phase 289 knowledge/document lookup connector is service_read_only with no user scopes, so Phase 293 does not force a fake OAuth scope onto that archetype."
+  },
+  "deferred_items": [
+    {
+      "id": "EIG2-D1",
+      "item": "real_oauth_provider_integration",
+      "reason": "Phase 293 proves deterministic actor-context and scope enforcement only."
+    },
+    {
+      "id": "EIG2-D2",
+      "item": "vendor_specific_identity_propagation",
+      "reason": "Connector breadth fixtures remain local-stub and vendor-neutral."
+    },
+    {
+      "id": "EIG2-D3",
+      "item": "approval_replay_matrix",
+      "reason": "Cross-actor and stale-approval replay breadth is Phase 294."
+    }
+  ]
+}

@@ -6,12 +6,31 @@ This index is ordered for contextless entities: people or agents entering the pr
 
 - [Project README](../README.md): what this project is, tested setup, quick start, basic usage, and repository layout.
 - [Project Milestones](PROJECT_MILESTONES.md): approved product-state gates for reaching the local-model coding-agent objective, including large-context usability.
+- [External Integration Breadth Goals](EXTERNAL_INTEGRATION_BREADTH_GOALS.md): approved EIG-1, EIG-2, and EIG-3 breadth-confidence goals for common connector, identity, privacy, and memory-safety use cases.
+- [EIG-1 Connector Archetype Breadth Matrix](EIG1_CONNECTOR_ARCHETYPE_BREADTH_MATRIX.md): Phase 288 deterministic connector archetype matrix for work tracking, knowledge lookup, and structured business-record fixtures.
+- [EIG-1 Connector Breadth Fixtures README](../README.eig1-connector-breadth-fixtures.md): Phase 289 fixture pack and validator for deterministic local-stub connector breadth.
+- [EIG-1 Protocol Auth Schema Matrix README](../README.eig1-protocol-auth-schema-matrix.md): Phase 290 protocol, auth, and schema classification gate for EIG-1 connector admission and mediation.
+- [EIG-1 Connector Release Gate Breadth README](../README.eig1-connector-release-gate-breadth.md): Phase 291 release-packet breadth and release-gate failure-class proof for EIG-1 connectors.
+- [EIG-1 Registry Lifecycle Breadth README](../README.eig1-registry-lifecycle-breadth.md): Phase 292 disposable registry lifecycle proof for EIG-1 connector registration and enablement.
+- [EIG-2 Actor Scope Breadth README](../README.eig2-actor-scope-breadth.md): Phase 293 actor-context, operation-level scope, least-privilege, and fail-closed recovery proof for governed connector invocation.
+- [EIG-2 Approval Replay Breadth README](../README.eig2-approval-replay-breadth.md): Phase 294 approval binding, stale replay denial, granted-scope state, and replay-safe audit proof for governed connector invocation.
+- [EIG Runtime Breadth Chat README](../README.eig-runtime-breadth-chat.md): Phase 295 natural-language chat proof for selected EIG local-stub connector fixtures through `connector.invoke`.
+- [EIG Breadth Closeout README](../README.eig-breadth-closeout.md): Phase 296 contextless closeout packet for EIG-1 and EIG-2 connector breadth proof.
+- [EIG-3 Sensitive Data Archetype Matrix](EIG3_SENSITIVE_DATA_ARCHETYPE_MATRIX.md): Phase 297 synthetic privacy and memory-safety matrix for personal data, secret-like credentials, and confidential business records.
+- [EIG-3 Sensitive Data Fixtures README](../README.eig3-sensitive-data-fixtures.md): Phase 298 synthetic fixture pack, validator command, report shape, and safety boundary.
+- [EIG-3 Output Surface Policy README](../README.eig3-output-surface-policy.md): Phase 299 masking/refusal matrix for chat, JSON, artifacts, connector audit, run-state, and memory surfaces.
+- [EIG-3 Memory Lifecycle README](../README.eig3-memory-lifecycle.md): Phase 300 governed memory lifecycle fixture pack and validator for retention, deletion, provenance, inspection, and isolation.
+- [EIG-3 Privacy EvalOps README](../README.eig3-privacy-evalops.md): Phase 301 release-blocking privacy EvalOps gate for blind-baseline, holdout, negative-control, leak, memory, and output-format proof.
+- [EIG-3 Privacy Runtime Chat README](../README.eig3-privacy-runtime-chat.md): Phase 302 live gateway and AnythingLLM proof for safe privacy-sensitive chat answers.
+- [EIG-3 Breadth Closeout README](../README.eig3-breadth-closeout.md): Phase 303 contextless closeout packet for EIG-3 privacy and memory-safety breadth proof.
+- [EIG Stable Handoff Integration README](../README.eig-stable-handoff-integration.md): Phase 304 release-facing handoff gate for Phase 296 local-stub connector proof and Phase 303 synthetic privacy proof boundaries.
 - [Current Project Architecture](CURRENT_PROJECT_ARCHITECTURE.md): current gateway/controller/workflow/model validation map plus approved future connector, identity, and privacy milestone goals.
 - [Getting Started With AnythingLLM](../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup README](../README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
 - [External Tester Onboarding README](../README.external-tester-onboarding.md): contextless release-candidate tester path with curated read-only prompts and linked feedback capture.
 - [External Tester Dry Run README](../README.external-tester-dry-run.md): Phase 147 minimum stable external tester dry run through setup, AnythingLLM, onboarding, feedback, and fixture proof.
 - [First-Time User Doctor README](../README.first-time-user-doctor.md): setup preflight for localhost ports, controller roots, AnythingLLM, and frozen fixtures.
+- [Regression Process README](../README.regression.md): split-lane pytest-xdist regression runner, serial marker policy, and closeout commands.
 - [Release Channels README](../README.release-channels.md): dev, release-candidate, and stable channel metadata, setup validator, stable readiness, and rollback path.
 - [Stable Handoff README](../README.stable-handoff.md): stable-channel smoke validation, first external tester prompt, feedback capture, and rollback.
 - [Runtime-State Hygiene README](../README.runtime-state.md): local-only generated report policy, committed release proof metadata, and hygiene validation.
@@ -204,6 +223,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Chunked Investigation Executor Contract README](../README.chunked-investigation-executor-contract.md): current M6/M8 contract for moving chunked investigation from selected-but-blocked to implementable.
 - [Chunked Investigation Executor Implementation README](../README.chunked-investigation-executor-implementation.md): current M6/M8 implementation for selected chunked-investigation prompts through the existing workflow-router path.
 - [Skill Regression Tiers README](../README.skill-regression-tiers.md): explicit offline, controller, gateway, AnythingLLM, UI, fixture-mutation, and release-candidate proof tiers.
+- [Regression Examples](examples/regression.md): full split regression, focused pytest iteration, and serial/parallel lane debugging commands.
 - [Skill Packaging README](../README.skill-packaging.md): governed skill-pack layout, namespace ownership, dependency policy, versioning, import/export, and retirement rules.
 - [L1 Coding Agent Prompt Backlog](L1_CODING_AGENT_PROMPTS.md): validated simple prompt/skill/tool targets, full L1 suite proof boundaries, and gates before advanced refactor work resumes.
 - [L2 Coding Agent Prompt Backlog](L2_CODING_AGENT_PROMPTS.md): validated next-layer prompt expansion, failing-test diagnosis, multi-file investigation, dependency impact, test-selection rationale, Batch E CI/table/reproduction/message-target skills, acceptance standard, and deferred advanced boundaries.
@@ -390,6 +410,21 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Founder Feedback Repair Rerun Gate Examples](examples/founder-feedback-repair-rerun-gate.md)
 - [Engineering Tenet Coverage Examples](examples/engineering-tenets.md)
 - [Security Policy Examples](examples/security-policy.md)
+- [EIG-3 Sensitive Data Fixture Examples](examples/eig3-sensitive-data-fixtures.md)
+- [EIG-1 Connector Breadth Fixture Examples](examples/eig1-connector-breadth-fixtures.md)
+- [EIG-1 Protocol Auth Schema Matrix Examples](examples/eig1-protocol-auth-schema-matrix.md)
+- [EIG-1 Connector Release Gate Breadth Examples](examples/eig1-connector-release-gate-breadth.md)
+- [EIG-1 Registry Lifecycle Breadth Examples](examples/eig1-registry-lifecycle-breadth.md)
+- [EIG-2 Actor Scope Breadth Examples](examples/eig2-actor-scope-breadth.md)
+- [EIG-2 Approval Replay Breadth Examples](examples/eig2-approval-replay-breadth.md)
+- [EIG Runtime Breadth Chat Examples](examples/eig-runtime-breadth-chat.md)
+- [EIG Breadth Closeout Examples](examples/eig-breadth-closeout.md)
+- [EIG-3 Output Surface Policy Examples](examples/eig3-output-surface-policy.md)
+- [EIG-3 Memory Lifecycle Examples](examples/eig3-memory-lifecycle.md)
+- [EIG-3 Privacy EvalOps Examples](examples/eig3-privacy-evalops.md)
+- [EIG-3 Privacy Runtime Chat Examples](examples/eig3-privacy-runtime-chat.md)
+- [EIG-3 Breadth Closeout Examples](examples/eig3-breadth-closeout.md)
+- [EIG Stable Handoff Integration Examples](examples/eig-stable-handoff-integration.md)
 - [Controller Service Examples](examples/controller-service.md)
 - [Workflow Router Examples](examples/workflow-router.md)
 - [Runtime Skill Selection Hardening Examples](examples/skill-selection-hardening.md)

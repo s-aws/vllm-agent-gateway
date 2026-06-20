@@ -193,8 +193,10 @@ For workflow-router and execution-planning work, do not treat a prompt tweak as 
 Default full Bash regression command:
 
 ```bash
-python3 -m pytest tests/regression/ -v
+. .venv/bin/activate && python scripts/run_regression.py --workers 4
 ```
+
+If `.venv` is missing, create it with `python3 -m venv --system-site-packages .venv`, activate it, and run `python -m pip install -r requirements-dev.txt`. The full regression runner uses pytest-xdist for tests that are not marked `serial`, then runs `serial` tests in a separate sequential lane. Mark tests `serial` when they touch shared repo state, fixed runtime-state paths, fixed external resources, process-global state, or timing-sensitive reset/recovery behavior.
 
 ## L1 Prompt Development Plan
 
@@ -11835,3 +11837,568 @@ Result:
 - Docs index validation passed with `377` linked docs and zero orphaned docs.
 - JSON validation passed for `runtime/connectors.json`, `runtime/workflows.json`, and `runtime/connector_eval_release_gate_policy.json`.
 - Full Bash regression passed with `1731 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 288: EIG-1 Connector Archetype Breadth Matrix
+
+Status: Complete.
+
+Milestone mapping: M26 EIG-1 Connector Archetype Breadth.
+
+Goal: define the breadth-confidence matrix that proves EIG-1 is not overfit to one `ticketing_stub` manifest.
+
+Scope:
+
+- Define three deterministic connector archetypes that represent common enterprise integration shapes:
+  - work tracking or support-ticket lookup and dry-run update,
+  - knowledge or document search/read-only retrieval,
+  - structured business-record or analytics lookup.
+- For each archetype, define connector intent, operations, read/write class, expected auth mode, operation schema shape, eval fixtures, negative controls, and expected audit fields.
+- Keep all execution local and deterministic. Do not call real external APIs, exchange real OAuth tokens, expose raw MCP tools, or add enterprise-specific connectors.
+- Classify every planned case as required, holdout, negative control, or deferred.
+- Produce a contextless-auditable matrix that maps cases to M17, M18, and M19 proof requirements.
+
+Acceptance target: a future agent can implement breadth fixtures and tests from the matrix without guessing which use cases matter or accidentally expanding into production integration scope.
+
+Result:
+
+- Added `docs/EIG1_CONNECTOR_ARCHETYPE_BREADTH_MATRIX.md` as the Phase 288 matrix.
+- Defined three deterministic local-stub archetypes: `work_tracking_stub`, `knowledge_lookup_stub`, and `business_record_stub`.
+- Documented planned read/write-class operation shapes, auth modes, schema fields, eval fixture IDs, required cases, holdouts, cross-archetype negative controls, and deferred out-of-scope items.
+- Updated the documentation index and architecture reference so contextless agents can find the EIG-1 breadth plan.
+- Phase 289 remains the next EIG-1 implementation phase: create fixture manifests and prove local-stub mediation through the existing connector catalog and `connector.invoke` paths.
+
+### Approved Phase 289: EIG-1 Breadth Fixture Implementation
+
+Status: Complete.
+
+Milestone mapping: M26 EIG-1 Connector Archetype Breadth, M17 Connector Contract And Registry, M18 Connector Execution Mediation.
+
+Goal: implement deterministic connector fixture manifests and local-stub mediation proofs for the Phase 288 archetypes.
+
+Scope:
+
+- Add fixture manifests for the three approved archetypes.
+- Include at least one read-only operation for every archetype and at least one write-class dry-run operation across the set.
+- Validate every manifest through `connector_catalog.validate`.
+- Invoke enabled local-stub operations only through `connector.invoke`.
+- Prove unknown connector, disabled connector, unsupported operation, unsupported argument, unsafe write, and raw bypass attempts fail closed.
+- Preserve the single connector mediation path and do not add external network execution.
+
+Acceptance target: the connector framework accepts and mediates all approved breadth fixtures through the same controller-owned path while rejecting unsupported or unsafe variants without runtime or target mutation.
+
+Result:
+
+- Added `runtime/eig1_connector_breadth_fixtures.json` with three approved deterministic connector archetypes: `work_tracking_stub`, `knowledge_lookup_stub`, and `business_record_stub`.
+- Added `vllm_agent_gateway.acceptance.eig1_connector_breadth` as the single Phase 289 validation path over the existing connector catalog, identity, and mediation modules.
+- Added `scripts/validate_eig1_connector_breadth.py` and `tests/regression/test_eig1_connector_breadth.py`.
+- Added `README.eig1-connector-breadth-fixtures.md` and `docs/examples/eig1-connector-breadth-fixtures.md`, then linked both through the documentation index.
+- Positive mediation proof covers 6 invocations across read and write-class dry-run operations through `connector.invoke` semantics.
+- Negative-control proof covers unknown connector, disabled connector, unknown operation, unsupported argument, missing required argument, missing write approval, non-dry-run write, non-`local_stub` runtime execution, raw MCP allowance, and direct model-tool bypass.
+- Direct validation passed with `EIG1 CONNECTOR BREADTH PASS` and `phase290_ready=true`.
+- Focused regression passed with `5 passed`.
+- JSON validation passed for `runtime/eig1_connector_breadth_fixtures.json`.
+- The generated report keeps runtime registry mutation, target repository mutation, external network calls, raw MCP use, direct model-tool access, and raw fixture argument retention false.
+
+### Approved Phase 290: EIG-1 Protocol Auth Schema Matrix
+
+Status: Complete.
+
+Milestone mapping: M27 EIG-1 Protocol Auth Schema Matrix, M17 Connector Contract And Registry, M18 Connector Execution Mediation.
+
+Goal: prove connector contract handling is explicit for common protocol, auth, and schema variants instead of accidentally accepting or rejecting them.
+
+Scope:
+
+- Add a protocol matrix for `local_stub`, `https_json`, and `mcp_mediated` states.
+- Keep `local_stub` as the only executable protocol unless a later approved milestone changes that boundary.
+- Require non-executable protocols to be classified as validation-only, rejected, or deferred with deterministic errors.
+- Add auth-policy matrix coverage for no-auth stubs, service-read-only declarations, and user-scope-required declarations.
+- Add operation schema tests for required fields, optional fields, nested objects, arrays, booleans, integers, unknown fields, and malformed argument types.
+- Reject ambiguous or unsupported schema/protocol/auth combinations fail-closed.
+
+Acceptance target: a connector author can tell which protocol, auth, and schema combinations are currently supported, validation-only, deferred, or rejected, and every classification has a test.
+
+Result:
+
+- Added `runtime/eig1_protocol_auth_schema_matrix.json` with protocol, auth, and schema classification cases tied to the Phase 289 fixture pack.
+- Added `vllm_agent_gateway.acceptance.eig1_protocol_auth_schema_matrix` as the Phase 290 validation path over the existing connector catalog and mediator.
+- Added `scripts/validate_eig1_protocol_auth_schema_matrix.py` and `tests/regression/test_eig1_protocol_auth_schema_matrix.py`.
+- Added `README.eig1-protocol-auth-schema-matrix.md` and `docs/examples/eig1-protocol-auth-schema-matrix.md`, then linked both through the documentation index.
+- Proved `local_stub` is executable while `https_json` and `mcp_mediated` are validation-only and fail at mediation with `connector_protocol_not_executable`.
+- Proved unsupported protocol, unsafe auth combinations, missing OAuth scopes, service-read-only write exposure, unknown arguments, missing required arguments, and malformed string/boolean/integer/array/object argument types fail closed.
+- Documented deep nested object property validation as deferred because current mediation validates object type at the declared property boundary.
+- Direct validation passed with `EIG1 PROTOCOL AUTH SCHEMA PASS` and `phase291_ready=true`.
+- Focused regression passed with `4 passed`.
+- JSON validation passed for `runtime/eig1_protocol_auth_schema_matrix.json`.
+
+### Approved Phase 291: EIG-1 Release Gate Breadth
+
+Status: Complete.
+
+Milestone mapping: M28 EIG-1 Release And Registry Breadth, M19 Connector Eval And Release Gate.
+
+Goal: prove connector release-gate behavior across multiple archetypes, not just one sample release packet.
+
+Scope:
+
+- Build connector eval release packets for every Phase 289 breadth fixture.
+- Require per-operation prompt coverage, holdouts, blind-baseline-before-local-output proof, unsupported-scope tests, and negative controls for every archetype.
+- Include at least one failed release packet for each major failure class: missing validation, late blind baseline, missing holdout, missing negative control, unresolved high/critical finding, and enablement without `ship`.
+- Require gateway and AnythingLLM proof only for fixtures intentionally exposed to natural-language workflows.
+- Do not add real external connector execution.
+
+Acceptance target: connector enablement remains blocked unless every breadth fixture has repeatable chat-quality, safety, and failure-mode proof.
+
+Result:
+
+- Added `runtime/eig1_connector_release_gate_breadth_policy.json` for Phase 291 release-gate breadth expectations.
+- Added `vllm_agent_gateway.acceptance.eig1_connector_release_gate_breadth` to generate release packets from the Phase 289 fixture pack and validate them through the existing connector eval release gate.
+- Added `scripts/validate_eig1_connector_release_gate_breadth.py` and `tests/regression/test_eig1_connector_release_gate_breadth.py`.
+- Added `README.eig1-connector-release-gate-breadth.md` and `docs/examples/eig1-connector-release-gate-breadth.md`, then linked both through the documentation index.
+- Proved 3 generated ship packets pass, one for each EIG-1 breadth connector fixture.
+- Proved the release gate rejects missing connector validation, late blind baseline, missing holdout, missing negative control, unresolved high finding, and enablement without `ship`.
+- Kept natural workflow exposure false for Phase 291; gateway and AnythingLLM connector prompt proof remains Phase 295 only if a connector fixture is intentionally exposed to chat.
+- Direct validation passed with `EIG1 CONNECTOR RELEASE GATE BREADTH PASS` and `phase292_ready=true`.
+- Focused regression passed with `4 passed`.
+- JSON validation passed for `runtime/eig1_connector_release_gate_breadth_policy.json`.
+
+### Approved Phase 292: EIG-1 Registry Lifecycle Breadth
+
+Status: Complete.
+
+Milestone mapping: M28 EIG-1 Release And Registry Breadth, M17 Connector Contract And Registry, M19 Connector Eval And Release Gate.
+
+Goal: prove registry behavior across realistic connector lifecycle states without introducing parallel registry paths.
+
+Scope:
+
+- Prove draft registration, enabled registration, disabled connector invocation denial, duplicate connector rejection, stale validation rejection, and release-gate mismatch rejection across the breadth fixture set.
+- Record runtime registry hash proof before and after each attempted registration.
+- Produce rollback instructions for successful registration attempts.
+- If update or deprecation semantics are needed but not currently supported, document the gap as a future milestone candidate instead of adding ad hoc behavior inside this phase.
+- Do not mutate `runtime/tools.json`, `runtime/workflows.json`, `runtime/roles.json`, target repositories, or external services.
+
+Acceptance target: a contextless maintainer can trust that connector lifecycle behavior is governed, auditable, and not tied to one fixture.
+
+Result:
+
+- Added `runtime/eig1_registry_lifecycle_breadth_policy.json` for Phase 292 lifecycle scenario and scope-boundary requirements.
+- Added `vllm_agent_gateway.acceptance.eig1_registry_lifecycle_breadth` to exercise `connector_catalog.register` on disposable runtime copies.
+- Added `scripts/validate_eig1_registry_lifecycle_breadth.py` and `tests/regression/test_eig1_registry_lifecycle_breadth.py`.
+- Added `README.eig1-registry-lifecycle-breadth.md` and `docs/examples/eig1-registry-lifecycle-breadth.md`, then linked both through the documentation index.
+- Tightened the shared connector release-gate report to include `operation_ids` and registration validation to reject stale release-gate reports whose operation IDs do not match the connector being registered.
+- Proved draft registration, enabled registration, disabled invocation denial, duplicate registration rejection, stale release-gate validation rejection, and release-gate connector mismatch rejection across all three Phase 289 connector fixtures.
+- Proved successful lifecycle scenarios change only disposable `runtime/connectors.json`, produce rollback instructions, and leave tools/workflows/roles, target repositories, and external services unchanged.
+- Documented connector update/deprecation semantics as a deferred future milestone candidate rather than adding ad hoc behavior.
+- Direct validation passed with `EIG1 REGISTRY LIFECYCLE BREADTH PASS` and `phase296_ready=true`.
+- Contextless audit initially found a real overclaim: the lifecycle validator exercised only the first connector fixture. The validator and tests were corrected to run all 6 lifecycle scenarios for each of the 3 EIG-1 connector fixtures.
+- Corrected Phase 292 validation passed with `connector_count=3`, `scenario_count=18`, and `phase296_ready=true`.
+- Focused Phase 292 regression passed with `4 passed`.
+- Existing connector catalog and release-gate regression passed with `35 passed`.
+- JSON validation passed for `runtime/eig1_registry_lifecycle_breadth_policy.json` and `runtime/connector_eval_release_gate_policy.json`.
+- Fresh contextless audit passed the corrected EIG-1 M26-M28 proof scope and confirmed stale operation-set rejection is meaningful for all three connector fixtures.
+- Combined focused EIG-1 and connector regression passed with `52 passed`.
+- Full Bash regression passed with `1781 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 293: EIG-2 Actor Scope Breadth
+
+Status: Complete.
+
+Milestone mapping: M29 EIG-2 Actor Scope Breadth, M20 Identity Context Contract, M21 User-Scope Authorization Enforcement.
+
+Goal: prove actor identity and user-scope enforcement across the breadth connector archetypes.
+
+Scope:
+
+- Define and implement actor/scope scenarios for read-only success, missing read scope, write dry-run success, missing write scope, malformed actor context, expired actor context, and anonymous actor rejection.
+- Cover at least the work-tracking and structured business-record archetypes, and include the knowledge/document archetype when it has scoped operations.
+- Preserve least-privilege behavior: granted scopes must satisfy only the requested operation and must not imply unrelated connector permissions.
+- Include chat-visible recovery guidance for denied connector operations.
+- Do not add real OAuth providers, token refresh, shared privileged service-account substitution, or production identity infrastructure.
+
+Acceptance target: connector execution succeeds only for the requesting actor with sufficient declared scope and fails closed with useful recovery guidance otherwise.
+
+Completed work:
+
+- Added operation-level `required_scopes` support to connector admission and mediation while preserving connector-level scopes as the fallback for older manifests.
+- Added `runtime/eig2_actor_scope_breadth_policy.json` as the Phase 293 local-stub actor/scope breadth policy.
+- Added `vllm_agent_gateway.acceptance.eig2_actor_scope_breadth` as the single Phase 293 validation path.
+- Added `scripts/validate_eig2_actor_scope_breadth.py` for CLI validation.
+- Added focused regression coverage for read without write scope, write dry-run without read scope, cross-connector scope denial, malformed/expired/anonymous/missing actor context, undeclared operation scopes, and wrong least-privilege expectations.
+- Added `README.eig2-actor-scope-breadth.md` and `docs/examples/eig2-actor-scope-breadth.md`.
+- Documented operation-level scope narrowing in the connector catalog README and examples.
+- Direct validation passed with `EIG2 ACTOR SCOPE BREADTH PASS`, `read_without_write_allowed=true`, `write_without_read_allowed=true`, `cross_connector_scope_denied=true`, `scope_denials_have_recovery=true`, and `phase294_ready=true`.
+- Focused Phase 293 regression passed with `5 passed`.
+- Broadened connector regression passed with `39 passed`.
+- Docs index validation passed with `1 passed`.
+- Marked the parallel-sensitive local-controller L2 message-source chat test as `serial` after it failed only in the xdist lane and passed isolated plus serial-lane reruns.
+- Full Bash split regression passed with `1745 passed`, `4 skipped` in the parallel lane and `45 passed`, `1772 deselected` in the serial lane.
+
+### Approved Phase 294: EIG-2 Approval Replay Breadth
+
+Status: Complete.
+
+Milestone mapping: M30 EIG-2 Approval Replay Breadth, M21 User-Scope Authorization Enforcement, M22 User-Scoped Action Audit And Replay.
+
+Goal: prove approval binding and replay-safe audit behavior against realistic cross-actor and stale-approval failure modes.
+
+Scope:
+
+- Cover wrong actor, wrong session, wrong request, wrong connector, wrong operation, stale approval, scope-change, and non-dry-run write attempts.
+- Require every denied and allowed connector attempt to write replay-safe audit artifacts.
+- Prove raw auth subjects, raw secret-like values, and raw arguments are not stored in audit summaries.
+- Validate audit artifacts through the existing connector user-scope audit validator.
+- Keep external log sinks, SIEM integrations, persistent memory, and additional PII policy out of scope.
+
+Acceptance target: connector approval decisions are bound to the exact actor/session/request/operation context and can be audited without leaking sensitive inputs.
+
+Completed work:
+
+- Tightened connector write approval validation so approvals are bound to actor, session, request, connector, operation, and granted-scope state.
+- Added `runtime/eig2_approval_replay_breadth_policy.json` as the Phase 294 replay breadth policy.
+- Added `vllm_agent_gateway.acceptance.eig2_approval_replay_breadth` as the single Phase 294 validation path.
+- Added `scripts/validate_eig2_approval_replay_breadth.py` for CLI validation.
+- Added focused regression coverage for approved write dry-run success, wrong actor/session/request/connector/operation, missing granted-scope state, scope-change denial, non-dry-run write denial, and audit validation.
+- Added `README.eig2-approval-replay-breadth.md` and `docs/examples/eig2-approval-replay-breadth.md`.
+- Updated connector catalog docs/examples to include approval granted-scope binding.
+- Direct validation passed with `EIG2 APPROVAL REPLAY BREADTH PASS`, `all_required_scenarios_passed=true`, `audit_validation_passed=true`, `scope_change_denied=true`, `non_dry_run_write_denied=true`, and `phase295_ready=true`.
+- Focused Phase 294 regression passed with `4 passed`.
+- Broadened connector/EIG regression passed with `40 passed`.
+- Docs index validation passed with `1 passed`.
+- Full Bash split regression passed with `1749 passed`, `4 skipped` in the parallel lane and `45 passed`, `1776 deselected` in the serial lane.
+
+### Approved Phase 295: EIG Runtime Breadth Chat Proof
+
+Status: Complete.
+
+Milestone mapping: M31 EIG Runtime Breadth Chat Proof, M2 Chat-Visible Answer Contract, M3 Workflow/Skill/Tool Selection Reliability, M18 Connector Execution Mediation, M19 Connector Eval And Release Gate, M21 User-Scope Authorization Enforcement, M22 User-Scoped Action Audit And Replay.
+
+Goal: prove that breadth-tested connector behavior can produce useful chat-visible answers when exposed through natural language.
+
+Scope:
+
+- Select only the breadth fixtures intentionally exposed to natural-language workflows.
+- For each selected prompt, run the blind-baseline-first process before local-model output is inspected.
+- Run the prompt through the workflow-router gateway and AnythingLLM when applicable.
+- Compare routing, chat-visible usefulness, evidence, authorization behavior, output format, and audit artifact links against the blind baseline.
+- Repair the smallest controller, router, workflow, connector, or formatter gap discovered by the proof.
+- Do not expose raw connector tools directly to the model or bypass controller mediation.
+
+Acceptance target: a tester can ask a semi-well-defined natural-language connector prompt and receive a useful, safe answer in chat with traceable audit proof.
+
+Completed work:
+
+- Added a bounded natural-language connector fixture route for selected deterministic local-stub prompts only.
+- Kept execution on the existing `connector.invoke` controller-owned mediation path.
+- Added chat-visible connector result rendering with connector/operation, status, authorization, result fields, audit state, and no-mutation markers.
+- Built a disposable runtime connector catalog from `runtime/eig1_connector_breadth_fixtures.json` and `runtime/eig2_actor_scope_breadth_policy.json` so the source `runtime/connectors.json` remains unchanged.
+- Added `runtime/eig_runtime_breadth_chat_cases.json` with the blind-baseline answer contract and three selected prompt cases: work item lookup, business record lookup, and knowledge/document search.
+- Added `vllm_agent_gateway.acceptance.eig_runtime_breadth_chat` and `scripts/validate_eig_runtime_breadth_chat.py`.
+- Added focused regression coverage for direct validator pass/fail behavior and workflow-router chat output across all three selected connector archetypes.
+- Added `README.eig-runtime-breadth-chat.md` and `docs/examples/eig-runtime-breadth-chat.md`.
+- Direct validation passed with `EIG RUNTIME BREADTH CHAT PASSED`, `case_count=3`, `passed_case_count=3`, `failed_case_count=0`, `source_connector_registry_changed=False`, and `phase296_ready=True`.
+- Focused regression passed with `5 passed`.
+- Contextless blind baseline confirmed the expected answer standard: user-facing result, authorization/read-only status, local fixture source, audit summary, artifact traceability, no mutation, no external network, and no raw tool/credential leakage.
+
+### Approved Phase 296: EIG Breadth Confidence Closeout
+
+Status: Complete.
+
+Milestone mapping: M26 EIG-1 Connector Archetype Breadth, M27 EIG-1 Protocol Auth Schema Matrix, M28 EIG-1 Release And Registry Breadth, M29 EIG-2 Actor Scope Breadth, M30 EIG-2 Approval Replay Breadth, M31 EIG Runtime Breadth Chat Proof.
+
+Goal: close the EIG-1 and EIG-2 breadth-confidence proof chain with contextless audit and regression evidence.
+
+Scope:
+
+- Aggregate Phase 288-295 evidence into a contextless audit packet.
+- Confirm every approved breadth use case, negative control, and deferred item has an explicit status.
+- Run focused connector/catalog/eval/audit regression.
+- Run live gateway and AnythingLLM proof for any connector breadth prompt exposed to chat.
+- Run full Bash regression at closeout because the breadth work touches shared connector, controller, routing, and audit behavior.
+- Update connector docs, examples, architecture docs, and the documentation index.
+
+Acceptance target: EIG-1 and EIG-2 can be described as breadth-tested for the approved common connector use cases, with remaining gaps explicitly deferred instead of hidden.
+
+Completed work:
+
+- Added `runtime/eig_breadth_closeout_policy.json` with required milestones, phases, docs, runtime fixtures, coverage markers, and scope boundaries for EIG-1/EIG-2 closeout.
+- Added `vllm_agent_gateway.acceptance.eig_breadth_closeout` as the Phase 296 closeout aggregator.
+- Added `scripts/validate_eig_breadth_closeout.py` for offline, live workflow-router, and AnythingLLM-inclusive closeout proof.
+- Extended the Phase 295 runtime chat validator with an AnythingLLM API mode that scores chat text and pulls the controller run record by run ID.
+- Added focused regression coverage for Phase 296 closeout pass/fail behavior.
+- Added `README.eig-breadth-closeout.md` and `docs/examples/eig-breadth-closeout.md`.
+- Direct closeout validation passed with `phase_report_count=7`, `coverage_missing_count=0`, `source_connector_registry_changed=false`, and `phase296_closeout_ready=true`.
+- Live Bash workflow-router closeout passed through `http://127.0.0.1:8500/v1` after restarting the controller/gateway stack to load Phase 295 route changes.
+- AnythingLLM API proof passed for all three Phase 295 connector prompts through the reachable AnythingLLM API address `http://192.168.0.208:3001`.
+- Combined live workflow-router plus AnythingLLM closeout passed with `phase_report_count=8`, `failed_phase_report_count=0`, `coverage_missing_count=0`, `source_connector_registry_changed=false`, and `phase296_closeout_ready=true`.
+- Docs index validation passed with `linked_count=410` and no orphan docs.
+- Focused EIG runtime/closeout regression passed with `7 passed`.
+- Full Bash split regression passed with `1756 passed`, `4 skipped` in the parallel lane and `45 passed`, `1783 deselected` in the serial lane.
+
+### Approved Phase 297: EIG-3 Sensitive Data Archetype Matrix
+
+Status: Complete.
+
+Milestone mapping: M32 EIG-3 Sensitive Data Archetype Breadth.
+
+Goal: define the breadth-confidence matrix that proves EIG-3 privacy and memory safety are not limited to one leakage scenario.
+
+Scope:
+
+- Define three deterministic sensitive-data archetypes:
+  - personal, employee, member, or customer-like data,
+  - secret-like credentials such as tokens, API keys, passwords, and private keys,
+  - confidential business records such as account, contract, financial, legal, or internal operational data.
+- For each archetype, define allowed handling, prohibited handling, chat-visible behavior, artifact behavior, audit behavior, memory behavior, false-positive risks, false-negative risks, and required negative controls.
+- Use only synthetic local fixtures. Do not ingest real private user, employee, member, customer, credential, or business-confidential data.
+- Map cases to M23, M24, and M25 proof requirements.
+- Classify every planned case as required, holdout, negative control, or deferred.
+
+Acceptance target: a future agent can implement EIG-3 breadth fixtures and tests from the matrix without guessing what sensitive-data classes matter or accidentally adding production DLP/data-clean-room scope.
+
+Result:
+
+- Added `docs/EIG3_SENSITIVE_DATA_ARCHETYPE_MATRIX.md` as the Phase 297 matrix.
+- Defined the three synthetic sensitive-data archetypes: personal/employee/member/customer-like data, secret-like credentials, and confidential business records.
+- For each archetype, defined allowed handling, prohibited handling, chat-visible behavior, artifact behavior, audit behavior, memory behavior, false-positive risks, false-negative risks, required cases, holdouts, negative controls, and deferred cases.
+- Mapped the matrix to M23, M24, M25, M32, M33, M34, M35, and M36 proof requirements.
+- Defined Phase 298 fixture implementation inputs with minimum case counts and required fixture metadata.
+- Linked the matrix from `docs/README.md`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 298: EIG-3 Sensitive Fixture And Detection Breadth
+
+Status: Complete.
+
+Milestone mapping: M32 EIG-3 Sensitive Data Archetype Breadth, M23 PII And Secret Detection Policy.
+
+Goal: implement deterministic sensitive-data fixture packs and detection/classification tests for the Phase 297 archetypes.
+
+Scope:
+
+- Add synthetic fixture packs for personal data, secret-like values, and confidential business records.
+- Include positive detection cases, safe non-sensitive cases, near-miss cases, and malformed/encoded variants where practical.
+- Classify findings by sensitive-data class, confidence, allowed handling, and target output surface.
+- Track false-positive and false-negative cases explicitly instead of silently treating them as pass/fail noise.
+- Prove ignored/private/secret-like fixture content is not surfaced raw in chat-visible responses or artifacts.
+- Do not add real external scanners, vendor DLP integrations, persistent hidden memory, or production data storage.
+
+Acceptance target: synthetic sensitive-data classes are detected or classified consistently enough to drive masking, refusal, memory, and EvalOps gates.
+
+Result:
+
+- Added `runtime/eig3_sensitive_data_fixtures.json` with 30 synthetic fixtures across personal-data, secret-like, and confidential-business archetypes.
+- Added `vllm_agent_gateway.acceptance.eig3_sensitive_data` as the single Phase 298 fixture validation and classifier path.
+- Added `scripts/validate_eig3_sensitive_data.py` for CLI validation.
+- Added focused regression coverage in `tests/regression/test_eig3_sensitive_data.py` for the passing fixture pack, missing required counts, false-negative expectations, unsafe secret chat surfaces, and non-synthetic fixtures.
+- The fixture validator report stores fixture IDs, expected/detected classes, output decisions, status, error IDs, and text hashes; it does not retain raw fixture text.
+- Added `README.eig3-sensitive-data-fixtures.md` and `docs/examples/eig3-sensitive-data-fixtures.md`.
+- Direct CLI validation passed with `fixture_count=30`, `archetype_count=3`, `failed_fixture_count=0`, `validation_error_count=0`, and `phase299_ready=true`.
+- Focused regression passed with `5 passed`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 299: EIG-3 Masking Refusal Output Matrix
+
+Status: Complete.
+
+Milestone mapping: M33 EIG-3 Masking Refusal Output Matrix, M23 PII And Secret Detection Policy, M25 Privacy And Memory Safety EvalOps.
+
+Goal: prove sensitive-value handling is consistent across chat, artifacts, connector audit summaries, and output formats.
+
+Scope:
+
+- Define and test output-surface decisions: allow, mask, refuse, summarize, or omit.
+- Cover chat-visible default output, JSON output, generated artifacts, connector audit summaries, and run-state summaries.
+- Prove raw sensitive values are not emitted where policy requires masking or refusal.
+- Prove refusal messages are useful and provide safe recovery guidance without repeating the sensitive value.
+- Prove JSON/default parity for privacy decisions.
+- Include unsupported disclosure prompts that attempt to extract, reformat, decode, or reconcile sensitive values.
+
+Acceptance target: sensitive data is handled by one explicit policy matrix, and every supported output surface follows the same decision.
+
+Result:
+
+- Added `runtime/eig3_output_surface_policy.json` as the Phase 299 output-surface policy matrix.
+- Added `vllm_agent_gateway.acceptance.eig3_output_surface_policy` as the single validator path for EIG-3 output decisions.
+- Added `scripts/validate_eig3_output_surface_policy.py` for CLI validation.
+- Covered chat-visible default output, JSON output, generated artifacts, connector audit summaries, run-state summaries, and memory decisions.
+- Required JSON/default parity for every fixture and explicit refuse behavior for unsupported disclosure negative controls.
+- Validated safe output sample hashes without retaining raw fixture text in reports.
+- Added focused regression coverage for the passing policy, JSON/default drift, secret chat allow, missing run-state policy, and negative-control refusal drift.
+- Added `README.eig3-output-surface-policy.md` and `docs/examples/eig3-output-surface-policy.md`.
+- Direct CLI validation passed with `fixture_count=30`, `surface_count=6`, `failed_fixture_count=0`, `validation_error_count=0`, and `phase300_ready=true`.
+- Focused EIG-3 regression passed with `10 passed`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 300: EIG-3 Governed Memory Lifecycle Breadth
+
+Status: Complete.
+
+Milestone mapping: M34 EIG-3 Memory Lifecycle Breadth, M24 Governed Memory Store Policy.
+
+Goal: define and validate memory lifecycle behavior before persistent memory can influence chat, retrieval, or connector decisions.
+
+Scope:
+
+- Define memory scope, purpose, source provenance, retention, deletion, inspection, and expiration fields.
+- Prove allowed memory can be inspected and traced to source.
+- Prove deleted, expired, stale, hidden, wrong-session, and wrong-user memory cannot influence current answers.
+- Prove private or sensitive fixture content cannot be retained as hidden durable memory.
+- Include cross-session and cross-actor isolation tests.
+- Keep production vector databases, durable enterprise memory stores, external storage services, and hidden memory out of scope.
+
+Acceptance target: any future persistent memory feature has deterministic lifecycle gates before it can affect local-model behavior.
+
+Result:
+
+- Added `runtime/eig3_memory_lifecycle_fixtures.json` with eight synthetic lifecycle records.
+- Added `vllm_agent_gateway.acceptance.eig3_memory_lifecycle` as the single Phase 300 memory lifecycle validation path.
+- Added `scripts/validate_eig3_memory_lifecycle.py` for CLI validation.
+- Covered active inspectable scoped memory, deleted memory, expired memory, stale-source memory, hidden memory, wrong actor, wrong session, and raw sensitive memory.
+- Validator reports store record IDs, lifecycle decisions, reasons, metadata, and content hashes without retaining raw memory content.
+- Added focused regression coverage for the passing fixture pack, hidden memory marked allowed, stale memory marked allowed, raw sensitive memory marked allowed, and unknown source fixture rejection.
+- Added `README.eig3-memory-lifecycle.md` and `docs/examples/eig3-memory-lifecycle.md`.
+- Direct CLI validation passed with `record_count=8`, `allowed_record_count=1`, `denied_record_count=7`, `failed_record_count=0`, `validation_error_count=0`, and `phase301_ready=true`.
+- Focused EIG-3 regression passed with `15 passed`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 301: EIG-3 Privacy EvalOps Breadth
+
+Status: Complete.
+
+Milestone mapping: M35 EIG-3 Privacy EvalOps Breadth, M25 Privacy And Memory Safety EvalOps.
+
+Goal: make privacy and memory-safety failures release-blocking instead of advisory.
+
+Scope:
+
+- Build privacy EvalOps prompt packs from the Phase 297-300 fixtures.
+- Use blind-baseline-first scoring before local-model output is inspected.
+- Cover leakage, stale memory use, cross-session contamination, unsupported reconciliation, hallucinated authorization, refusal quality, masking correctness, and output-format parity.
+- Include holdouts and negative controls for each sensitive-data archetype.
+- Define release-blocking thresholds for high/critical privacy failures.
+- Require AnythingLLM proof when the privacy-sensitive behavior is exposed to chat.
+
+Acceptance target: privacy and memory regressions are detected through repeatable eval gates before release.
+
+Result:
+
+- Added `runtime/eig3_privacy_evalops_policy.json` with release-blocking thresholds, required privacy dimensions, natural-workflow proof requirements, and allowed release decisions.
+- Added `runtime/eig3_privacy_evalops_prompt_pack.json` with 16 synthetic prompt cases built from the Phase 297-300 fixture IDs.
+- Covered target, holdout, and negative-control cases for personal data, secret-like values, and confidential business records.
+- Covered leakage, stale memory use, cross-session contamination, unsupported reconciliation, hallucinated authorization, refusal quality, masking correctness, and output-format parity.
+- Added `vllm_agent_gateway.acceptance.eig3_privacy_evalops` as the single Phase 301 EvalOps validation path.
+- Added `scripts/validate_eig3_privacy_evalops.py` for CLI validation.
+- Added focused regression coverage for passing packs, late blind baselines, missing holdouts, raw source leaks, missing AnythingLLM proof for chat-exposed cases, unresolved high findings, and missing dimension coverage.
+- Added `README.eig3-privacy-evalops.md` and `docs/examples/eig3-privacy-evalops.md`.
+
+### Approved Phase 302: EIG Privacy Runtime Chat Proof
+
+Status: Complete.
+
+Milestone mapping: M36 EIG Privacy Runtime Closeout, M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M13 Runtime Reliability And Recovery, M23 PII And Secret Detection Policy, M24 Governed Memory Store Policy, M25 Privacy And Memory Safety EvalOps.
+
+Goal: prove privacy-sensitive prompts return useful, safe chat-visible answers through the same runtime path testers use.
+
+Scope:
+
+- Select representative privacy-sensitive prompts from the EIG-3 breadth fixture set.
+- Run the blind-baseline-first process for each prompt.
+- Run local-stack proof through the workflow-router gateway and AnythingLLM when applicable.
+- Score leak behavior, refusal quality, evidence boundaries, output format, artifact safety, stale-memory rejection, and recovery guidance.
+- Repair the smallest controller, workflow, formatter, privacy policy, or EvalOps gap discovered by the proof.
+- Do not add production data-clean-room infrastructure or ingest real private data.
+
+Acceptance target: a tester can ask a semi-well-defined privacy-sensitive prompt and receive a useful answer or refusal in chat without leaking sensitive values or relying on hidden memory.
+
+Result:
+
+- Added `runtime/eig3_privacy_runtime_chat_cases.json` with four synthetic runtime prompt cases for secret-like refusal, personal-data authorization refusal, confidential-business JSON refusal, and memory lifecycle rejection.
+- Added `vllm_agent_gateway.acceptance.eig3_privacy_runtime_chat` as the single Phase 302 live proof validator.
+- Added `scripts/validate_eig3_privacy_runtime_chat.py` for CLI validation.
+- Added `README.eig3-privacy-runtime-chat.md` and `docs/examples/eig3-privacy-runtime-chat.md`.
+- Added a narrow controller router branch for self-contained EIG-3 privacy prompts so they return a safe no-workflow answer instead of incorrectly asking for a repository `target_root`.
+- Preserved the normal coding no-target behavior: ordinary coding prompts without `target_root` still fail closed with `missing_target_root_for_coding_request`.
+- Focused runtime routing and classifier regression passed with `8 passed`.
+- Live Bash validation passed through the workflow-router gateway and AnythingLLM using the WSL network AnythingLLM API URL, with `case_count=4`, `result_count=8`, `surfaces=["anythingllm", "workflow_router_gateway"]`, `failed_result_count=0`, `validation_error_count=0`, and `phase303_ready=true`.
+
+### Approved Phase 303: EIG-3 Breadth Confidence Closeout
+
+Status: Complete.
+
+Milestone mapping: M32 EIG-3 Sensitive Data Archetype Breadth, M33 EIG-3 Masking Refusal Output Matrix, M34 EIG-3 Memory Lifecycle Breadth, M35 EIG-3 Privacy EvalOps Breadth, M36 EIG Privacy Runtime Closeout.
+
+Goal: close the EIG-3 breadth-confidence proof chain with contextless audit and regression evidence.
+
+Scope:
+
+- Aggregate Phase 297-302 evidence into a contextless audit packet.
+- Confirm every sensitive-data archetype, memory lifecycle case, output-surface decision, holdout, negative control, and deferred item has an explicit status.
+- Run focused privacy, memory, output-surface, and EvalOps tests.
+- Run live gateway and AnythingLLM proof for privacy-sensitive prompts exposed to chat.
+- Run full Bash regression at closeout because privacy/memory safety affects shared chat, artifact, audit, and runtime behavior.
+- Update privacy/memory docs, examples, architecture docs, breadth goals, and the documentation index.
+
+Acceptance target: EIG-3 can be described as breadth-tested for the approved synthetic privacy and memory-safety use cases, with remaining gaps explicitly deferred instead of hidden.
+
+Result:
+
+- Added `runtime/eig3_breadth_closeout_policy.json` with required EIG-3 docs, runtime files, phases, and milestones.
+- Added `vllm_agent_gateway.acceptance.eig3_breadth_closeout` as the Phase 303 closeout aggregator.
+- Added `scripts/validate_eig3_breadth_closeout.py` for CLI validation.
+- Added `README.eig3-breadth-closeout.md` and `docs/examples/eig3-breadth-closeout.md`.
+- Contextless audit confirmed alignment with M32-M36 and flagged the correct limitation: this is synthetic breadth proof, not production DLP, real memory-store enforcement, or semantic leak detection.
+- Documented the false-pass boundary: declared EvalOps scores, heuristic raw-token leak checks, and offline/no-AnythingLLM modes must not be treated as production privacy proof.
+- Focused EIG-3 regression passed with `33 passed`.
+- Live Phase 303 closeout passed with `required_doc_count=11`, `required_runtime_file_count=6`, `phase_report_count=5`, `failed_phase_report_count=0`, `validation_error_count=0`, and `phase303_closeout_ready=true`.
+- Docs index validation passed with zero orphaned docs.
+- Full Bash regression passed with `1764 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 304: EIG Stable Handoff Integration
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M17 Connector Contract And Registry, M18 Connector Execution Mediation, M19 Connector Eval And Release Gate, M20 Identity Context Contract, M21 User-Scope Authorization Enforcement, M22 User-Scoped Action Audit And Replay, M23 PII And Secret Detection Policy, M24 Governed Memory Store Policy, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: make the completed EIG breadth proof visible from the stable tester handoff path without expanding into real external API, production OAuth, real sensitive-data, arbitrary connector-chat, or hidden-memory scope.
+
+Scope:
+
+- Add a stable handoff integration policy for Phase 296 and Phase 303 proof visibility.
+- Add a static validator that checks required release-facing docs, runtime proof policies, scripts, and scope-boundary markers.
+- Update getting-started, stable handoff, release notes, architecture orientation, root README, ordered docs index, and examples.
+- Preserve the local-stub connector and synthetic privacy boundaries.
+- Do not add runtime connector behavior or production-scope claims.
+
+Acceptance target: a contextless tester can enter from the stable handoff docs and understand that EIG connector and privacy proof is available, validated, and bounded to deterministic local/synthetic fixtures.
+
+Completed work:
+
+- Added `runtime/eig_stable_handoff_integration_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_stable_handoff_integration`.
+- Added `scripts/validate_eig_stable_handoff_integration.py`.
+- Added focused regression coverage in `tests/regression/test_eig_stable_handoff_integration.py`.
+- Added `README.eig-stable-handoff-integration.md` and `docs/examples/eig-stable-handoff-integration.md`.
+- Updated stable handoff, getting-started, release notes, architecture, root README, docs index, and examples index.
+- Direct validation passed with `missing_doc_count=0`, `missing_runtime_file_count=0`, `missing_script_count=0`, `missing_marker_count=0`, `validation_error_count=0`, and `phase305_ready=true`.
+- Focused regression passed with `2 passed`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 305: EIG Clean Branch Packaging And Static Replay
+
+Status: In Progress.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: make the Phase 288-304 EIG-integrated state durable on a reviewable branch and prove a fresh clone can discover and validate the stable handoff integration without active-workspace runtime state.
+
+Scope:
+
+- Package the EIG breadth and Phase 304 handoff integration files on a dedicated `codex/` branch.
+- Exclude ignored `runtime-state/` and temporary pytest artifacts from source control.
+- Commit and push the branch to `s-aws/vllm-agent-gateway`.
+- Clone the pushed branch into a disposable directory.
+- Run docs index validation and the Phase 304 static handoff gate from the clone.
+- Do not run live external connector, production OAuth, real sensitive-data, or hidden-memory proof.
+
+Acceptance target: a contextless reviewer can clone the pushed branch, run the static EIG handoff gate, and see the same local-stub connector and synthetic privacy boundaries without needing this session history.

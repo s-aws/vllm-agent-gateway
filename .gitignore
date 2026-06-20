@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
+.venv/
 
 # Local runtime state belongs outside this public repo.
 *.log

@@ -17,6 +17,7 @@ Use connector catalog validation when proposing a future connector contract and 
 - validation produces artifacts without mutating runtime registries or target repositories
 - connector invocation is bound to an explicit actor/session/request context
 - `oauth_user_scope` connectors enforce required scopes against `actor_context.granted_scopes`
+- operation-level `required_scopes` may narrow an `oauth_user_scope` connector's declared scopes for least-privilege read/write operations
 - invocation artifacts include replay-safe audit records without raw auth subjects or raw argument values
 
 Do not use it for live API calls. Current invocation support is limited to enabled `local_stub` connector entries in `runtime/connectors.json`.
@@ -139,7 +140,10 @@ PII policies:
 - connector invocation is supported only for `enabled=true` `local_stub` connectors.
 - connector invocation requires `actor_context` with actor ID, auth subject, session ID, request ID, granted scopes, issue time, and expiration time.
 - expired, anonymous, missing, or malformed actor context fails closed before connector execution.
-- `oauth_user_scope.required_scopes` must be present in `actor_context.granted_scopes`.
+- `oauth_user_scope.required_scopes` declares the connector's allowed scope vocabulary.
+- operation-level `required_scopes` may narrow that vocabulary for a specific operation; if omitted, connector-level `auth.required_scopes` remains the fallback.
+- operation-level `required_scopes` must be a non-empty subset of connector-level `auth.required_scopes`.
+- the effective required scopes must be present in `actor_context.granted_scopes`.
 - insufficient user scope fails closed with missing-scope recovery guidance.
 - connector invocation writes request, invocation, and run-state artifacts.
 - connector invocation artifacts record replay-safe argument hashes instead of raw argument values.
@@ -253,6 +257,7 @@ Write-class dry runs require approval:
     "actor_id": "tester-actor",
     "session_id": "session-001",
     "request_id": "request-002",
+    "granted_scopes": ["tickets:write"],
     "approval_refs": ["approved-change-record"]
   }
 }
@@ -278,7 +283,7 @@ The response summary includes `invocation_status`, `connector_id`, `operation_id
 
 For actor-bound invocations, the response summary also includes `actor_bound`, `actor_id`, `session_id`, `request_id`, `authorization_status`, `required_scopes`, `missing_scopes`, and `approval_state`.
 
-Each invocation report contains an `audit` object with actor/session/request identity, required and granted scopes, authorization decision, approval state, replay-safe input hash, output summary, and explicit `raw_auth_subject_stored=false` plus `raw_arguments_stored=false` markers.
+Each write approval is bound to connector, operation, actor, session, request, and granted-scope state. Each invocation report contains an `audit` object with actor/session/request identity, required and granted scopes, authorization decision, approval state, replay-safe input hash, output summary, and explicit `raw_auth_subject_stored=false` plus `raw_arguments_stored=false` markers.
 
 Each registration run writes:
 

@@ -4,7 +4,9 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
-Current handoff status: Phase 277 is the active stable tester handoff refresh for governed 500k-token project usability. It supersedes the Phase 266 384k stable handoff after the Phase 276 decision returned `ship`. The 384k-token project usability baseline remains preserved as lineage. The Phase 273 live 500k candidate proof passed through the workflow-router gateway and AnythingLLM with all five large-context strategies covered, split-url target settings verified, JSON/default parity verified, and zero high or critical findings. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor, but first-time large-context testing should follow the current 500k path below.
+Current handoff status: Phase 277 is the active stable tester handoff refresh for governed 500k-token project usability, and Phase 304 integrates the completed EIG proof chain into this handoff. Phase 296 closes EIG-1/EIG-2 local-stub connector, actor/scope, approval replay, and runtime chat breadth. Phase 303 closes EIG-3 synthetic privacy and memory-safety breadth. The 384k-token project usability baseline remains preserved as lineage. The Phase 273 live 500k candidate proof passed through the workflow-router gateway and AnythingLLM with all five large-context strategies covered, split-url target settings verified, JSON/default parity verified, and zero high or critical findings. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor.
+
+The EIG handoff is intentionally bounded: real external connector execution is not shipped, arbitrary connector chat is not shipped, production OAuth token exchange is not shipped, real sensitive-data ingestion is not shipped, and persistent hidden memory is not shipped. Current EIG testing uses deterministic local-stub connector fixtures and synthetic privacy fixtures only.
 
 ## What This Proves
 
@@ -13,6 +15,8 @@ Current handoff status: Phase 277 is the active stable tester handoff refresh fo
 - The current Priority 0 chat-quality proof can be revalidated after restart.
 - Runtime recovery reliability passes with small-repo and large-context prompt proof.
 - Large-context prompts target usable 500k-token projects through governed context strategy: retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing instead of raw prompt stuffing.
+- Current EIG connector prompts prove selected local-stub connector chat behavior through Phase 296 closeout.
+- Current EIG privacy prompts prove synthetic privacy and memory-safety behavior through Phase 303 closeout.
 - Small skill admission works for the Python-service fixture without manual skill injection.
 - A normal natural-language request routes to `workflow_router.plan`.
 - The controller can run small read-only L1 investigations against the frozen Coinbase fixtures.

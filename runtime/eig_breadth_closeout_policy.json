@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "eig_breadth_closeout_policy",
+  "phase": 296,
+  "description": "Phase 296 EIG-1 and EIG-2 breadth confidence closeout policy.",
+  "required_milestones": [
+    "M26",
+    "M27",
+    "M28",
+    "M29",
+    "M30",
+    "M31"
+  ],
+  "required_phases": [
+    288,
+    289,
+    290,
+    291,
+    292,
+    293,
+    294,
+    295
+  ],
+  "required_docs": [
+    "docs/EIG1_CONNECTOR_ARCHETYPE_BREADTH_MATRIX.md",
+    "README.eig1-connector-breadth-fixtures.md",
+    "README.eig1-protocol-auth-schema-matrix.md",
+    "README.eig1-connector-release-gate-breadth.md",
+    "README.eig1-registry-lifecycle-breadth.md",
+    "README.eig2-actor-scope-breadth.md",
+    "README.eig2-approval-replay-breadth.md",
+    "README.eig-runtime-breadth-chat.md",
+    "docs/examples/eig1-connector-breadth-fixtures.md",
+    "docs/examples/eig1-protocol-auth-schema-matrix.md",
+    "docs/examples/eig1-connector-release-gate-breadth.md",
+    "docs/examples/eig1-registry-lifecycle-breadth.md",
+    "docs/examples/eig2-actor-scope-breadth.md",
+    "docs/examples/eig2-approval-replay-breadth.md",
+    "docs/examples/eig-runtime-breadth-chat.md"
+  ],
+  "required_runtime_files": [
+    "runtime/eig1_connector_breadth_fixtures.json",
+    "runtime/eig1_protocol_auth_schema_matrix.json",
+    "runtime/eig1_connector_release_gate_breadth_policy.json",
+    "runtime/eig1_registry_lifecycle_breadth_policy.json",
+    "runtime/eig2_actor_scope_breadth_policy.json",
+    "runtime/eig2_approval_replay_breadth_policy.json",
+    "runtime/eig_runtime_breadth_chat_cases.json",
+    "runtime/connectors.json"
+  ],
+  "required_status_coverage": [
+    "work_tracking_stub",
+    "knowledge_lookup_stub",
+    "business_record_stub",
+    "read_operation",
+    "write_dry_run_operation",
+    "positive_invocation",
+    "negative_control",
+    "protocol_auth_schema_matrix",
+    "release_gate",
+    "registry_lifecycle",
+    "actor_scope",
+    "approval_replay",
+    "natural_language_chat"
+  ],
+  "scope_boundary": {
+    "real_external_connector_execution": false,
+    "raw_mcp_allowed": false,
+    "direct_model_tool_access_allowed": false,
+    "runtime_registry_mutation_allowed": false,
+    "target_repository_mutation_allowed": false,
+    "arbitrary_natural_connector_calls_allowed": false
+  }
+}

@@ -109,8 +109,12 @@ bash stop-agent-prompt-proxies.sh
 Run regression tests:
 
 ```bash
-pytest tests/regression/ -v
+. .venv/bin/activate
+python scripts/run_regression.py --workers 4
 ```
+
+For focused iteration, run the specific regression file with `python3 -m pytest`.
+The full regression setup and process are documented in [README.regression.md](README.regression.md).
 
 ## Basic Usage
 
@@ -164,6 +168,7 @@ Feature docs:
 - [README.stable-release-reset-rehearsal.md](README.stable-release-reset-rehearsal.md): stable reset/start/recovery rehearsal with source, fixture, runtime-state, and stable handoff proof
 - [README.release-notes.md](README.release-notes.md): founder-testing release scope, limitations, validation evidence, and rerun commands
 - [README.release-adherence.md](README.release-adherence.md): one JSON/Markdown gate for current local model release readiness
+- [README.eig-stable-handoff-integration.md](README.eig-stable-handoff-integration.md): stable handoff integration for local-stub connector and synthetic privacy proof boundaries
 - [README.release-candidate-baseline-corpus-promotion.md](README.release-candidate-baseline-corpus-promotion.md): promoted release-candidate chat-quality cases in the governed baseline corpus
 - [README.external-tester-feedback-loop-from-clone.md](README.external-tester-feedback-loop-from-clone.md): release-candidate clone feedback proof for positive and defect tester records
 - [README.v1-release-candidate-decision-gate.md](README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate

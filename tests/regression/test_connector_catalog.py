@@ -230,6 +230,7 @@ def connector_invocation_approval(
         "actor_id": actor_context["actor_id"],
         "session_id": actor_context["session_id"],
         "request_id": actor_context["request_id"],
+        "granted_scopes": sorted(set(actor_context["granted_scopes"])),
         "approval_refs": ["phase282-test-approval"],
     }
 

@@ -198,7 +198,9 @@ def validate_release_packet(packet: dict[str, Any], policy: dict[str, Any]) -> d
         "summary": {
             "validation_status": status,
             "connector_id": connector_id,
+            "operation_ids": operation_ids,
             "operation_count": len(operation_ids),
+            "operation_eval_ids": sorted(str(item) for item in evals_by_operation),
             "operation_eval_count": len(operation_evals),
             "connector_enabled_requested": packet.get("connector_enabled_requested") is True,
             "natural_workflow_exposed": packet.get("natural_workflow_exposed") is True,

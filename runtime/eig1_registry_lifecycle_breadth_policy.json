@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "eig1_registry_lifecycle_breadth_policy",
+  "milestones": [
+    "M17",
+    "M19",
+    "M28"
+  ],
+  "fixture_pack": "runtime/eig1_connector_breadth_fixtures.json",
+  "release_gate_policy": "runtime/connector_eval_release_gate_policy.json",
+  "required_scenarios": [
+    "draft_registration",
+    "enabled_registration",
+    "disabled_invocation_denial",
+    "duplicate_registration_rejection",
+    "stale_validation_rejection",
+    "release_gate_mismatch_rejection"
+  ],
+  "scope_boundary": {
+    "uses_disposable_runtime_copy": true,
+    "real_runtime_registry_mutation_allowed": false,
+    "tools_workflows_roles_mutation_allowed": false,
+    "target_repository_mutation_allowed": false,
+    "external_service_mutation_allowed": false
+  },
+  "documented_future_gap": {
+    "id": "EIG1-LIFE-D1",
+    "item": "connector_update_and_deprecation_semantics",
+    "status": "deferred_future_milestone_candidate",
+    "reason": "Current registry behavior supports append-only registration and enablement proof. Update/deprecation semantics need a separate approved design before implementation."
+  }
+}

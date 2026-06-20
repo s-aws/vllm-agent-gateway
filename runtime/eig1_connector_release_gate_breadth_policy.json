@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "kind": "eig1_connector_release_gate_breadth_policy",
+  "milestones": [
+    "M19",
+    "M28"
+  ],
+  "fixture_pack": "runtime/eig1_connector_breadth_fixtures.json",
+  "release_gate_policy": "runtime/connector_eval_release_gate_policy.json",
+  "natural_workflow_exposed": false,
+  "expected_connector_count": 3,
+  "required_failure_classes": [
+    {
+      "id": "missing_validation",
+      "expected_error_code": "missing_connector_validation"
+    },
+    {
+      "id": "late_blind_baseline",
+      "expected_error_code": "late_blind_baseline"
+    },
+    {
+      "id": "missing_holdout",
+      "expected_error_code": "missing_holdout_coverage"
+    },
+    {
+      "id": "missing_negative_control",
+      "expected_error_code": "missing_negative_controls"
+    },
+    {
+      "id": "unresolved_high_finding",
+      "expected_error_code": "blocking_connector_eval_finding"
+    },
+    {
+      "id": "enablement_without_ship",
+      "expected_error_code": "enabled_without_ship_decision"
+    }
+  ],
+  "scope_boundary": {
+    "real_external_connector_execution": false,
+    "runtime_registry_mutation_allowed": false,
+    "target_repository_mutation_allowed": false,
+    "natural_language_exposure_required": false
+  }
+}

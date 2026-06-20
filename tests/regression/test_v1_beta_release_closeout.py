@@ -21,6 +21,7 @@ from vllm_agent_gateway.acceptance.v1_beta_release_closeout import (
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 POLICY_PATH = REPO_ROOT / DEFAULT_POLICY_PATH
+pytestmark = pytest.mark.serial
 
 
 def policy() -> dict[str, Any]:
