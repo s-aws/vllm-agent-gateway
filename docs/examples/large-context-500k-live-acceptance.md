@@ -12,6 +12,17 @@ python3 scripts/validate_large_context_500k_live_acceptance.py \
   --timeout-seconds 1200
 ```
 
+Run the same gate when `127.0.0.1:3001` is not the AnythingLLM API and AnythingLLM is configured to the WSL network workflow-router URL:
+
+```bash
+python3 scripts/validate_large_context_500k_live_acceptance.py \
+  --live \
+  --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --anythingllm-api-base-url http://192.168.0.208:3001 \
+  --anythingllm-workflow-router-base-url http://100.100.12.45:8500/v1 \
+  --timeout-seconds 1200
+```
+
 Inspect the generated report:
 
 ```bash

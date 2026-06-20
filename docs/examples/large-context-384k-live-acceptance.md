@@ -27,6 +27,7 @@ Then run with the reachable workflow-router network URL printed by the startup s
 python3 scripts/validate_large_context_384k_live_acceptance.py \
   --live \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
+  --anythingllm-api-base-url http://192.168.0.208:3001 \
   --anythingllm-workflow-router-base-url http://PRINTED_WSL_WORKFLOW_ROUTER_HOST:8500/v1 \
   --timeout-seconds 1200
 ```

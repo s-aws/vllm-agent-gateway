@@ -225,6 +225,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 321 | M8/M14 | Complete. Replayed the pushed Phase 320 clone-safe M8 gate from a fresh WSL clone at commit `1aa0464`, with docs-index proof, Phase 320 validator proof, no active-workspace runtime-state dependency, and clean clone status. |
 | Phase 322 | M8/M13/M14 | Complete. Proved the live workflow-router gateway path still answers after the M8 clone replay and repaired the existing health-drift classifier so the current AnythingLLM blocker is cleanly reported as API-base/backend-target drift instead of auth or unclassified failure. |
 | Phase 323 | M2/M8/M13/M14 | Complete. Recovered live AnythingLLM validation by proving the network API bases bypass the local loopback port conflict, rerunning health drift with zero findings, and passing one-case live closeout through AnythingLLM plus workflow-router gateway. |
+| Phase 324 | M2/M6/M8/M13/M14/M15/M16 | Complete. Replayed the full recovered 500k live acceptance path after fixing split-address target settings, proving 18 live responses across gateway and AnythingLLM, all five strategies, JSON/default parity, target settings, and zero high/critical findings. |
 
 ## Usage Rules
 

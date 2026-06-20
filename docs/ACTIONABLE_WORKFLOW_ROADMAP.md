@@ -13005,3 +13005,32 @@ Completed work:
 - AnythingLLM-only one-case live closeout passed with `anythingllm_enabled=true`, `gateway_enabled=false`, `case_count=1`, `response_count=1`, `failed_response_count=0`, `m6_ready=true`, `m8_ready=true`, `phase222_ready=true`, and `raw_prompt_stuffing_allowed=false`.
 - Combined gateway plus AnythingLLM one-case live closeout passed with `surface_count=2`, `response_count=2`, `failed_response_count=0`, `small_repo_regression_count=4`, `failed_small_repo_regression_count=0`, `m6_ready=true`, `m8_ready=true`, `phase222_ready=true`, and `raw_prompt_stuffing_allowed=false`.
 - Updated AGENTS memory, first-time doctor docs, health-drift docs, large-context live-closeout docs, getting-started docs, stable-handoff docs, and examples with the recovered API-base rule.
+
+### Approved Phase 324: Recovered 500k Live Acceptance Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate, and M16 Corpus And Index Safety Governance.
+
+Goal: run the full 500k live acceptance gate after the AnythingLLM API-base recovery and close the remaining split-address target-settings gap.
+
+Scope:
+
+- Replay the default 384k precondition chain so Phase 261 can run from current runtime-state.
+- Replay the default 500k precondition chain so Phase 273 can run from current runtime-state.
+- Fix the existing Phase 261 target-settings check so an explicit `--anythingllm-api-base-url` override is accepted while the Generic OpenAI workflow-router target remains strict.
+- Rerun full Phase 273 live acceptance through both workflow-router gateway and AnythingLLM using the recovered AnythingLLM API base.
+- Preserve the single Phase 261/273 validation path; do not add a parallel live acceptance harness.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or EIG baseline candidates.
+
+Acceptance target: full 500k live acceptance passes after split-address recovery with all required strategies, JSON/default parity, target settings, and zero high/critical findings.
+
+Completed work:
+
+- Restored historical 384k/500k lineage markers in AGENTS and the root README so Phase 258 and Phase 270 replay from current docs.
+- Replayed Phase 258, Phase 259, and Phase 260 into default runtime-state locations; all passed, with Phase 260 reporting `case_count=6`, `passed_case_count=6`, and `phase261_ready=true`.
+- Replayed Phase 270, Phase 271, and Phase 272 into default runtime-state locations; all passed, with Phase 272 reporting `phase273_ready=true`.
+- Updated `vllm_agent_gateway.acceptance.large_context_384k_live_acceptance.target_settings_result` so `required.api_base_url` reflects the configured AnythingLLM API base and `required.policy_api_base_url` preserves the policy default for audit.
+- Added focused regression proving a network AnythingLLM API-base override passes when the Generic OpenAI workflow-router target is correct.
+- Focused 384k/500k live-acceptance regression passed with `11 passed`.
+- Full recovered Phase 273 live acceptance passed with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, `strategy_ids=[artifact_paging, chunked_investigation, refusal, retrieval, summarization]`, `json_default_parity_status=passed`, `target_settings_status=passed`, `critical_or_high_finding_count=0`, `phase272_status=passed`, `phase261_status=passed`, `phase274_ready=true`, and `raw_prompt_stuffing_allowed=false`.

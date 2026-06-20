@@ -347,7 +347,8 @@ def target_settings_result(config: LargeContext384kLiveAcceptanceConfig, policy:
         "generic_openai_base_path": settings.get("GenericOpenAiBasePath"),
     }
     required = {
-        "api_base_url": required_policy.get("api_base_url"),
+        "api_base_url": config.anythingllm_api_base_url,
+        "policy_api_base_url": required_policy.get("api_base_url"),
         "workspace": required_policy.get("workspace"),
         "provider": required_policy.get("provider"),
         "model": required_policy.get("model"),
