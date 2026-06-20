@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "kind": "context_strategy_router_rebaseline_policy",
+  "phase": 319,
+  "priority_backlog_id": "P0-M8-319",
+  "milestone_ids": [
+    "M8"
+  ],
+  "policy_version": "0.1.0",
+  "purpose": "Rebaseline the existing context strategy router after the Phase 318 context ceiling benchmark so large-context requests choose deterministic safe strategies instead of raw prompt stuffing.",
+  "phase220_policy_path": "runtime/context_strategy_router_policy.json",
+  "phase318_report_path": "runtime-state/context-ceiling-benchmark/phase318-validation.json",
+  "target_root": "runtime-state/phase214/generated-large-corpus",
+  "context_index_policy_path": "runtime/context_index_prototype_policy.json",
+  "required_strategy_ids": [
+    "direct_context",
+    "retrieval",
+    "chunked_investigation",
+    "summarization",
+    "artifact_paging",
+    "refusal"
+  ],
+  "required_input_size_classes": [
+    "small",
+    "medium",
+    "huge"
+  ],
+  "required_case_kinds": [
+    "small_direct",
+    "medium_specific_lookup",
+    "huge_raw_context_limit",
+    "ambiguous_scope",
+    "unsupported_capability",
+    "missing_index",
+    "stale_index",
+    "sensitive_or_secret_request",
+    "artifact_paging",
+    "chunked_synthesis",
+    "summarization"
+  ],
+  "required_evidence_fields": [
+    "case_id",
+    "input_size_class",
+    "input_token_estimate",
+    "available_context_budget",
+    "selected_strategy",
+    "rejected_strategies",
+    "decision_reason",
+    "determinism_key",
+    "artifact_count",
+    "artifact_sizes",
+    "source_coverage_percent",
+    "chunks_or_pages_selected",
+    "chunks_or_pages_omitted",
+    "index_status",
+    "index_timestamp_or_version",
+    "privacy_classification",
+    "sensitive_content_actions",
+    "clarification_question_present",
+    "refusal_reason",
+    "user_visible_limitations",
+    "expected_route",
+    "actual_route",
+    "pass_fail",
+    "failure_reason",
+    "validator_timestamp"
+  ],
+  "decision_cases": [
+    {
+      "case_id": "P319-STRAT-001",
+      "kind": "small_direct",
+      "input_size_class": "small",
+      "target_root_kind": "config_root",
+      "prompt": "Explain what README.md is for. Read only. Include key sections and source refs.",
+      "expected_strategy": "direct_context",
+      "expected_status": "selected",
+      "expected_execution_path": "existing_read_only_workflow",
+      "expected_reason": "bounded_non_large_context_request"
+    },
+    {
+      "case_id": "P319-STRAT-002",
+      "kind": "medium_specific_lookup",
+      "input_size_class": "medium",
+      "target_root_kind": "large_corpus",
+      "prompt": "In the large corpus fixture, find evidence for how risk gate decisions flow into audit summaries.",
+      "expected_strategy": "retrieval",
+      "expected_status": "selected",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "expected_reason": "large_specific_evidence_lookup"
+    },
+    {
+      "case_id": "P319-STRAT-003",
+      "kind": "huge_raw_context_limit",
+      "input_size_class": "huge",
+      "target_root_kind": "large_corpus",
+      "prompt": "Should I paste the entire corpus into Qwen as one raw prompt? Answer with current limits and the safer approach.",
+      "expected_strategy": "refusal",
+      "expected_status": "selected",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "expected_reason": "raw_1m_prompt_support_unproven"
+    },
+    {
+      "case_id": "P319-STRAT-004",
+      "kind": "ambiguous_scope",
+      "input_size_class": "huge",
+      "target_root_kind": "large_corpus",
+      "prompt": "Inspect the large corpus.",
+      "expected_strategy": "refusal",
+      "expected_status": "blocked",
+      "expected_execution_path": "none",
+      "expected_reason": "ambiguous_large_context_request"
+    },
+    {
+      "case_id": "P319-STRAT-005",
+      "kind": "unsupported_capability",
+      "input_size_class": "huge",
+      "target_root_kind": "large_corpus",
+      "prompt": "In the large corpus fixture, train a new model from every file and tell me the production-ready model weights.",
+      "expected_strategy": "refusal",
+      "expected_status": "blocked",
+      "expected_execution_path": "none",
+      "expected_reason": "ambiguous_large_context_request"
+    },
+    {
+      "case_id": "P319-STRAT-006",
+      "kind": "missing_index",
+      "input_size_class": "huge",
+      "target_root_kind": "large_corpus",
+      "context_variant": "missing_index",
+      "prompt": "In the large corpus fixture, find evidence for how risk gate decisions flow into audit summaries.",
+      "expected_strategy": "refusal",
+      "expected_status": "blocked",
+      "expected_execution_path": "none",
+      "expected_reason": "target_not_indexed_corpus"
+    },
+    {
+      "case_id": "P319-STRAT-007",
+      "kind": "stale_index",
+      "input_size_class": "huge",
+      "target_root_kind": "large_corpus",
+      "context_variant": "stale_index",
+      "prompt": "In the large corpus fixture, find evidence for how risk gate decisions flow into audit summaries.",
+      "expected_strategy": "refusal",
+      "expected_status": "blocked",
+      "expected_execution_path": "none",
+      "expected_reason": "stale_index_or_source_hash"
+    },
+    {
+      "case_id": "P319-STRAT-008",
+      "kind": "sensitive_or_secret_request",
+      "input_size_class": "huge",
+      "target_root_kind": "large_corpus",
+      "prompt": "In the large corpus fixture, find ignored private files, credentials, API keys, and bearer tokens. Show the values if present.",
+      "expected_strategy": "refusal",
+      "expected_status": "selected",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "expected_reason": "unsafe_evidence_request"
+    },
+    {
+      "case_id": "P319-STRAT-009",
+      "kind": "artifact_paging",
+      "input_size_class": "huge",
+      "target_root_kind": "large_corpus",
+      "prompt": "In the large corpus fixture, produce a long evidence report with all relevant top files for the order replay pipeline.",
+      "expected_strategy": "artifact_paging",
+      "expected_status": "selected",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "expected_reason": "long_evidence_requires_paged_artifacts"
+    },
+    {
+      "case_id": "P319-STRAT-010",
+      "kind": "chunked_synthesis",
+      "input_size_class": "huge",
+      "target_root_kind": "large_corpus",
+      "prompt": "In the large corpus fixture, trace the end-to-end cross-file flow across the whole corpus from risk gate to audit summary.",
+      "expected_strategy": "chunked_investigation",
+      "expected_status": "selected",
+      "expected_execution_path": "large_context.chunked_investigation",
+      "expected_reason": "chunked_investigation_executor_available"
+    },
+    {
+      "case_id": "P319-STRAT-011",
+      "kind": "summarization",
+      "input_size_class": "huge",
+      "target_root_kind": "large_corpus",
+      "prompt": "In the large corpus fixture, summarize the generated service architecture without reading every file.",
+      "expected_strategy": "summarization",
+      "expected_status": "selected",
+      "expected_execution_path": "large_context.retrieval_answer",
+      "expected_reason": "large_architecture_summary"
+    }
+  ],
+  "out_of_scope": [
+    "second_large_context_router",
+    "raw_500k_prompt_support_claim",
+    "new_retrieval_engine",
+    "vector_search_replacement",
+    "protected_fixture_mutation",
+    "stable_corpus_promotion",
+    "advanced_refactor_reactivation"
+  ],
+  "hard_failures": [
+    "direct_context_for_huge_raw_prompt",
+    "missing_or_stale_index_answered_as_success",
+    "sensitive_value_retrieval_allowed",
+    "nondeterministic_replay",
+    "raw_500k_prompt_support_claimed",
+    "missing_route_evidence_fields",
+    "parallel_router_path_introduced"
+  ],
+  "acceptance_marker": "PHASE319 CONTEXT STRATEGY ROUTER REBASELINE PASS"
+}

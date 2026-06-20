@@ -82,6 +82,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Retrieval-Backed Chat Answer Gate README](../README.retrieval-backed-chat-answer-gate.md): Phase 218 chat-visible retrieval-backed large-corpus answers through the existing workflow-router path.
 - [Artifact Paging And Long Answer Usability README](../README.artifact-paging-long-answer-usability.md): Phase 219 paged evidence artifacts with answer-first chat and output-format parity.
 - [Context Strategy Router README](../README.context-strategy-router.md): Phase 220 deterministic selection of direct context, retrieval, chunking, summarization, artifact paging, or refusal.
+- [Context Strategy Router Rebaseline README](../README.context-strategy-router-rebaseline.md): Phase 319 current-model M8 rebaseline for small, medium, huge, ambiguous, unsupported, missing-index, stale-index, and sensitive large-context strategy routing after the Phase 318 benchmark.
 - [Large-Context Usability Live Closeout README](../README.large-context-usability-live-closeout.md): Phase 221 live gateway and AnythingLLM closeout for M6/M8 large-context usability.
 - [Chunked Investigation Executor Contract README](../README.chunked-investigation-executor-contract.md): Phase 222 executable contract for selected chunked-investigation strategy before implementation.
 - [Chunked Investigation Executor Implementation README](../README.chunked-investigation-executor-implementation.md): Phase 223 read-only chunked-investigation executor with answer-first chat, traceable artifacts, gateway proof, and AnythingLLM proof.
@@ -563,6 +564,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Retrieval-Backed Chat Answer Gate Examples](examples/retrieval-backed-chat-answer-gate.md)
 - [Artifact Paging And Long Answer Usability Examples](examples/artifact-paging-long-answer-usability.md)
 - [Context Strategy Router Examples](examples/context-strategy-router.md)
+- [Context Strategy Router Rebaseline Examples](examples/context-strategy-router-rebaseline.md)
 - [Large-Context Usability Live Closeout Examples](examples/large-context-usability-live-closeout.md)
 - [Chunked Investigation Executor Contract Examples](examples/chunked-investigation-executor-contract.md)
 - [Chunked Investigation Executor Implementation Examples](examples/chunked-investigation-executor-implementation.md)

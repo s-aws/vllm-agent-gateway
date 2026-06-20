@@ -12844,3 +12844,40 @@ Completed work:
 - Shape-only validation passed with `run_live=false`, `result_count=0`, `raw_500k_prompt_support_proven=false`, `stable_corpus_mutated=false`, and `phase319_ready=false`.
 - Live validation passed with `result_count=4`, `passed_result_count=3`, `failed_result_count=1`, `failure_classes=[passed, timeout]`, `max_prompt_tokens=249354`, `max_latency_seconds=180.046`, `raw_500k_prompt_support_proven=false`, `stable_corpus_mutated=false`, and `validation_error_count=0`.
 - Live context-class results were `ctx-32k timeout at 180.046 seconds with 30407 prompt tokens`, `ctx-64k passed with score=100 at 178.405 seconds and 62012 prompt tokens`, `ctx-128k passed with score=100 at 1.976 seconds and 125013 prompt tokens`, and `ctx-256k passed with score=100 at 169.699 seconds and 249354 prompt tokens`.
+
+### Approved Phase 319: Context Strategy Router Rebaseline
+
+Status: Complete.
+
+Milestone mapping: M8 Context Strategy Router.
+
+Goal: rebaseline the existing context strategy router after the Phase 318 benchmark so current-model large-context routing proves deterministic strategy selection without raw prompt stuffing or a second router path.
+
+Scope:
+
+- Validate the existing Phase 220 router gate still passes.
+- Require Phase 318 benchmark evidence with `phase319_ready=true` and `raw_500k_prompt_support_proven=false`.
+- Cover small, medium, huge, ambiguous, unsupported, missing-index, stale-index, sensitive/secret, artifact-paging, chunked, and summarization cases.
+- Validate every report includes the blind-audit evidence fields for route decisions, budget, index status, privacy handling, expected/actual route, deterministic replay, and user-visible limitations.
+- Prove repeated inputs produce the same route decision.
+- Keep raw prompt stuffing disallowed.
+- Do not create a second large-context router.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not promote EIG baseline candidates or merge PR #1.
+
+Acceptance target: a contextless reviewer can run one command and see the controller chooses the correct context strategy for current M8 cases, refuses unsafe or unsupported variants, preserves Phase 318 raw-context boundaries, and records route evidence sufficient for chat-quality review.
+
+Completed work:
+
+- Added `runtime/context_strategy_router_rebaseline_policy.json`.
+- Added `vllm_agent_gateway.acceptance.context_strategy_router_rebaseline`.
+- Added `scripts/validate_context_strategy_router_rebaseline.py`.
+- Added focused regression coverage in `tests/regression/test_context_strategy_router_rebaseline.py`.
+- Added `README.context-strategy-router-rebaseline.md` and `docs/examples/context-strategy-router-rebaseline.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Contextless blind audit from subagent `Fermat` was used to set required evidence fields, hard failures, and case coverage.
+- Focused Phase 319 regression passed with `5 passed`.
+- Combined context strategy and context-ceiling focused regression passed with `21 passed`.
+- Docs index passed with `linked_count=436` and `orphaned_docs=[]`.
+- Direct Phase 319 validation passed with `case_count=11`, `passed_case_count=11`, `failed_case_count=0`, `all_strategies_covered=true`, `input_size_classes=[huge, medium, small]`, `phase220_status=passed`, `phase318_status=passed`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, and `validation_error_count=0`.
+- Full split Bash regression passed with `1814 passed, 4 skipped` in the parallel lane and `45 passed` in the serial lane.
