@@ -44,7 +44,7 @@
     "Phase 307 baseline-candidate intake",
     "Phase 308 live gateway and AnythingLLM replay",
     "live_result_count=14",
-    "stable baseline corpus promotion remains a separate future phase requiring founder approval",
+    "Stable baseline corpus promotion remains a separate future phase requiring founder approval",
     "does not ship real external connector execution"
   ],
   "required_scripts": [

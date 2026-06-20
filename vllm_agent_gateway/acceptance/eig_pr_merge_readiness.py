@@ -109,6 +109,19 @@ def file_records(config_root: Path, paths: list[str]) -> list[dict[str, Any]]:
     return records
 
 
+def tracked_paths_matching_root_prefixes(tracked_paths: list[str], prefixes: list[str]) -> list[str]:
+    normalized_prefixes = [prefix.strip("/") for prefix in prefixes if prefix.strip("/")]
+    matches: list[str] = []
+    for path in tracked_paths:
+        normalized_path = path.replace("\\", "/")
+        if any(
+            normalized_path == prefix or normalized_path.startswith(prefix + "/")
+            for prefix in normalized_prefixes
+        ):
+            matches.append(path)
+    return matches
+
+
 def validate_policy(policy: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     if policy.get("schema_version") != SCHEMA_VERSION:
@@ -296,7 +309,7 @@ def run_eig_pr_merge_readiness(config: EIGPrMergeReadinessConfig) -> dict[str, A
     )
     tracked = git_lines(config_root, "ls-files", check=False)
     fragments = string_list(policy.get("forbidden_tracked_path_fragments"))
-    tracked_forbidden_paths = [path for path in tracked if any(fragment in path for fragment in fragments)]
+    tracked_forbidden_paths = tracked_paths_matching_root_prefixes(tracked, fragments)
     pr_policy = policy.get("pr") if isinstance(policy.get("pr"), dict) else {}
     required_merge_states = string_list(pr_policy.get("required_merge_state_statuses"))
     pr = {

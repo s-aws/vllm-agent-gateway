@@ -5,6 +5,7 @@ from pathlib import Path
 
 from vllm_agent_gateway.acceptance.eig_pr_merge_readiness import (
     build_report,
+    tracked_paths_matching_root_prefixes,
     validate_policy,
     validate_report,
 )
@@ -137,3 +138,21 @@ def test_eig_pr_merge_readiness_rejects_missing_pr_body_marker() -> None:
 
     assert report["status"] == "failed"
     assert report["pr_body"]["missing_markers"]
+
+
+def test_eig_pr_merge_readiness_forbidden_paths_are_root_relative() -> None:
+    tracked_paths = [
+        "runtime-state/report.json",
+        ".tmp_pytest/cache.json",
+        "vllm-agent-gateway/nested/file.py",
+        "tests/fixtures/skill_batches/phase29_valid/runtime-state/skill-batches/example.json",
+    ]
+
+    assert tracked_paths_matching_root_prefixes(
+        tracked_paths,
+        ["runtime-state/", ".tmp_pytest/", "vllm-agent-gateway/"],
+    ) == [
+        "runtime-state/report.json",
+        ".tmp_pytest/cache.json",
+        "vllm-agent-gateway/nested/file.py",
+    ]
