@@ -12504,3 +12504,27 @@ Completed work:
 - Focused regression passed with `3 passed`.
 - Baseline corpus remained unchanged.
 - Full Bash split regression passed with `1765 passed`, `4 skipped` in the parallel lane and `45 passed` in the serial lane.
+
+### Approved Phase 309: EIG PR Evidence Refresh
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: refresh the open EIG handoff pull request so reviewers see the Phase 307 baseline-candidate intake proof and Phase 308 live replay proof, then replay static gates from a clean clone of the updated branch head.
+
+Scope:
+
+- Update PR `https://github.com/s-aws/vllm-agent-gateway/pull/1` with Phase 307 and Phase 308 evidence.
+- Include the new docs-index count, full regression count, live replay count, and stable-corpus non-promotion boundary.
+- Replay docs index, Phase 304 stable handoff integration, Phase 307 candidate intake, and Phase 308 static preflight from a disposable clean clone.
+- Do not merge the PR or change `main`.
+
+Acceptance target: the PR body and clean-clone static proof represent the current branch head after EIG candidate intake and live replay work.
+
+Completed work:
+
+- Updated PR `https://github.com/s-aws/vllm-agent-gateway/pull/1` with Phase 307 and Phase 308 proof.
+- PR body now includes docs index `linked_count=416`, Phase 308 `live_result_count=14`, full Bash split regression `1765 passed`, `4 skipped` parallel and `45 passed` serial, and stable-corpus non-promotion boundary.
+- PR body explicitly states that stable baseline corpus promotion remains a separate future phase requiring founder approval.
+- `main` was not changed or merged by this phase.

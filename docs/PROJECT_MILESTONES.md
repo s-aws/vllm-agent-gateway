@@ -210,6 +210,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 306 | M14 | Complete. Created PR `https://github.com/s-aws/vllm-agent-gateway/pull/1` for the pushed EIG handoff branch with proof summary and explicit non-production EIG scope boundaries. |
 | Phase 307 | M2/M9/M14/M19/M25/M31/M36 | Complete. Admitted EIG connector and privacy runtime prompt packs as stable-baseline candidates without mutating the stable corpus or running live replay yet. |
 | Phase 308 | M2/M4/M9/M13/M14/M19/M25/M31/M36 | Complete. Replayed the seven EIG baseline candidates through live workflow-router gateway and AnythingLLM proof surfaces without stable corpus promotion. |
+| Phase 309 | M14 | Complete. Refreshed the open EIG handoff PR with Phase 307/308 evidence and replayed static gates from a clean clone of the updated branch head. |
 
 ## Usage Rules
 
