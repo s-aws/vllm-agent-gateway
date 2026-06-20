@@ -5,6 +5,8 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from vllm_agent_gateway.acceptance.fresh_local_model_drift import (
     EXPECTED_OUTPUT_ROOT,
     FreshLocalModelDriftStatus,
@@ -251,6 +253,7 @@ def test_catalog_rejects_overwriting_accepted_artifact_path() -> None:
     assert any("must not overwrite accepted baseline corpus artifacts" in error for error in errors)
 
 
+@pytest.mark.requires_baseline_artifacts
 def test_report_accepts_fresh_passed_artifacts() -> None:
     catalog, report = fresh_catalog_and_report()
     errors = validate_fresh_local_model_drift_report(

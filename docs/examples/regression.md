@@ -34,3 +34,10 @@ Debug only tests that are unsafe for process parallelism:
 . .venv/bin/activate
 python scripts/run_regression.py --serial-only
 ```
+
+Run a clean-clone static replay while excluding tests that require ignored local proof artifacts:
+
+```bash
+. .venv/bin/activate
+python -m pytest tests/regression/test_fresh_local_model_drift.py -m "not requires_baseline_artifacts"
+```

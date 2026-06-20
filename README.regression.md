@@ -63,3 +63,13 @@ pytestmark = pytest.mark.serial
 ```
 
 Keep isolated unit-style regression tests out of the serial lane. Tests that use `tmp_path`, random ports, mocked external clients, or file-local resources are expected to stay xdist-safe.
+
+## Baseline Artifact Marker Policy
+
+Mark a regression test with `pytest.mark.requires_baseline_artifacts` when it validates accepted proof artifacts stored under ignored `runtime-state/` paths. These tests are valid in the active maintainer workspace after the required proof has been generated, but they are not clean-clone static replay tests because those local artifacts are intentionally not tracked.
+
+Clean-clone static replay commands should exclude that marker:
+
+```bash
+python -m pytest tests/regression/test_fresh_local_model_drift.py -m "not requires_baseline_artifacts"
+```
