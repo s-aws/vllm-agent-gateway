@@ -238,6 +238,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 334 | M13/M14 | Complete. Replayed the pushed Phase 333 state from a clean WSL clone, aligned artifact-required regression markers with clean-clone static replay policy, and proved docs, stable handoff command consistency, fresh-drift clone-safe selection, stable handoff tests, and PR readiness tests without active-workspace runtime-state. |
 | Phase 335 | M2/M13/M14 | Complete. Replayed representative accepted Priority 0 cases and a no-target greeting through the browser-rendered AnythingLLM UI on the recovered split-address host, with both frozen Coinbase roots unchanged and the UI E2E docs aligned to the proven Bash/WSL command. |
 | Phase 336 | M13/M14 | Complete. Replayed post-UI runtime readiness through the split-address stack, proved all 16 required surfaces remain healthy with zero drift/session blockers, and repaired stale readiness success guidance so it points to the canonical roadmap tail rather than old Phase 196. |
+| Phase 337 | M13/M14 | Complete. Replayed the pushed Phase 336 readiness guidance repair from a clean WSL clone with docs-index proof, focused post-restart readiness and PR readiness regression, no active-workspace runtime-state dependency, and clean clone status. |
 
 ## Usage Rules
 
