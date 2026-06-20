@@ -175,6 +175,7 @@ Feature docs:
 - [README.eig-baseline-candidate-promotion-readiness.md](README.eig-baseline-candidate-promotion-readiness.md): fail-closed promotion-readiness decision for EIG baseline candidates
 - [README.eig-baseline-candidate-blind-baselines.md](README.eig-baseline-candidate-blind-baselines.md): contextless blind-baseline evidence for EIG baseline candidates
 - [README.eig-baseline-candidate-local-comparison.md](README.eig-baseline-candidate-local-comparison.md): local-model comparison against EIG blind baselines with repair-required promotion blocking
+- [README.eig-baseline-candidate-privacy-repair.md](README.eig-baseline-candidate-privacy-repair.md): deterministic privacy-answer repair closing EIG local-model comparison evidence
 - [README.release-candidate-baseline-corpus-promotion.md](README.release-candidate-baseline-corpus-promotion.md): promoted release-candidate chat-quality cases in the governed baseline corpus
 - [README.external-tester-feedback-loop-from-clone.md](README.external-tester-feedback-loop-from-clone.md): release-candidate clone feedback proof for positive and defect tester records
 - [README.v1-release-candidate-decision-gate.md](README.v1-release-candidate-decision-gate.md): Phase 244 ship, hold, or repair-required decision gate for the current release candidate

@@ -28,7 +28,7 @@ print(json.dumps(report["failed_records"], indent=2, sort_keys=True))
 PY
 ```
 
-Current expected decision:
+Expected decision for the historical Phase 313 replay:
 
 ```text
 comparison_decision=repair_required
@@ -47,3 +47,19 @@ fixture EIG3-PII-N2 classified as personal_data
 ```
 
 Do not promote EIG candidates into `runtime/baseline_corpus.json` until this comparison decision becomes `passed` and the remaining promotion evidence is also present.
+
+After Phase 314, run the same comparison against:
+
+```text
+runtime-state/eig-baseline-candidate-live-replay/phase314-after-pii-repair-live.json
+```
+
+The expected decision for the repaired replay is:
+
+```text
+comparison_decision=passed
+passed_response_count=14
+failed_response_count=0
+recorded_evidence=["blind_baseline","local_model_comparison"]
+remaining_missing_evidence=["founder_approval","holdout","no_mutation_proof","route_proof"]
+```

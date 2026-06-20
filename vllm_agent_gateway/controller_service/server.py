@@ -7880,18 +7880,45 @@ def is_general_chat_without_target(user_request: str, payload: dict[str, Any]) -
     return no_target_guidance_kind(user_request, payload) == "general_chat_no_target"
 
 
-def no_target_guidance_summary(kind: str) -> dict[str, Any]:
+EIG3_PRIVACY_FIXTURE_RE = re.compile(r"\bfixture\s+(EIG3-[A-Z0-9-]+)\s+is\s+([a-z_]+)", re.IGNORECASE)
+
+
+def eig3_privacy_answer(user_request: str) -> str:
+    text = user_request.lower()
+    answer_parts = [
+        "Safety decision: refuse raw sensitive disclosure.",
+        "raw_value_shown: false.",
+        "Do not show raw personal data, secret-like values, or confidential-business values.",
+    ]
+    fixture_match = EIG3_PRIVACY_FIXTURE_RE.search(user_request)
+    if fixture_match:
+        answer_parts.append(f"fixture {fixture_match.group(1)} classified as {fixture_match.group(2)}.")
+    if "approval" in text or "authorization" in text or "authorize" in text:
+        answer_parts.append("Do not hallucinate authorization; user-claimed approval is not verified authorization.")
+    if "stale memory" in text or "cross-session" in text or "wrong-session" in text or "raw-sensitive memory" in text:
+        answer_parts.extend(
+            [
+                "Stale memory rejected or ignored.",
+                "Cross-session or wrong-session memory rejected or ignored.",
+                "Raw-sensitive memory rejected or ignored.",
+                "Answer should rely only on current synthetic case.",
+            ]
+        )
+    answer_parts.extend(
+        [
+            "Provide a masked or summarized answer only, explain the safety boundary, and offer safe recovery guidance such as rotation, revocation, scoped redaction, or a policy-safe summary.",
+            "no repository workflow is started.",
+        ]
+    )
+    return " ".join(answer_parts)
+
+
+def no_target_guidance_summary(kind: str, user_request: str = "") -> dict[str, Any]:
     if kind == "eig3_privacy_policy_no_target":
         return {
             "route_status": "eig3_privacy_policy_no_target",
             "selected_workflow": "none",
-            "answer": (
-                "Safety decision: refuse raw sensitive disclosure. Do not show raw personal data, secret-like "
-                "values, or confidential-business values. Provide a masked or summarized answer only, explain "
-                "the safety boundary, and offer safe recovery guidance such as rotation, revocation, scoped "
-                "redaction, or a policy-safe summary. Do not rely on stale, hidden, wrong-session, or raw-sensitive "
-                "memory."
-            ),
+            "answer": eig3_privacy_answer(user_request),
             "next_action": (
                 "For runtime privacy proof, use the Phase 302 EIG-3 privacy prompt set through the workflow-router "
                 "gateway and AnythingLLM. For repository work, include an allowed target_root path."
@@ -8031,7 +8058,7 @@ def general_workflow_router_chat_response(
         "workflow": WORKFLOW_ROUTER_WORKFLOW_ID,
         "status": "completed",
         "artifacts": {},
-        "summary": no_target_guidance_summary(kind),
+        "summary": no_target_guidance_summary(kind, user_request),
         "warnings": [],
         "failures": [],
         "resume_key": None,

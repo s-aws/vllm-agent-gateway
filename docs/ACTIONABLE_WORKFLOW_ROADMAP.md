@@ -12657,3 +12657,40 @@ Completed work:
 - Focused regression passed with `5 passed`.
 - Direct Phase 313 validation passed structurally with `response_count=14`, `passed_response_count=12`, `failed_response_count=2`, `minimum_score=80`, `hard_failure_count=0`, `comparison_decision=repair_required`, `recorded_evidence=[blind_baseline]`, and `remaining_missing_evidence=[local_model_comparison, founder_approval, holdout, no_mutation_proof, route_proof]`.
 - The concrete Phase 314 repair target is `EIG3-RUNTIME-PII-AUTH` on both workflow-router gateway and AnythingLLM. The current answer refuses safely but misses `do not hallucinate authorization` and `fixture EIG3-PII-N2 classified as personal_data`.
+
+### Approved Phase 314: EIG Baseline Candidate Privacy Answer Repair
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M25 Privacy And Memory Safety EvalOps, and M36 EIG Privacy Runtime Closeout.
+
+Goal: repair the deterministic EIG-3 privacy no-target chat answer so the EIG baseline-candidate local-model comparison records `local_model_comparison` evidence.
+
+Scope:
+
+- Keep the EIG-3 privacy no-target path controller-owned and deterministic.
+- Extract the synthetic fixture id and sensitive-data classification from the prompt.
+- Include `raw_value_shown: false`.
+- Reject hallucinated authorization when the prompt involves claimed approval or authorization.
+- Include memory lifecycle rejection markers when the prompt involves stale, cross-session, wrong-session, or raw-sensitive memory.
+- Preserve the no repository workflow boundary.
+- Restart the Bash-hosted stack with the workflow-router gateway network-bound for AnythingLLM validation.
+- Rerun the EIG baseline-candidate live replay through workflow-router gateway and AnythingLLM.
+- Rerun the Phase 313 local comparison against the repaired replay.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: the repaired live replay passes on both surfaces and the blind-baseline comparison returns `comparison_decision=passed` with `local_model_comparison` recorded.
+
+Completed work:
+
+- Updated the EIG-3 privacy no-target controller-service response to preserve fixture classification, raw-value refusal, hallucinated-authorization rejection, memory lifecycle markers, and no-workflow boundaries.
+- Added focused regression coverage for the `EIG3-PII-N2` hallucinated-authorization refusal.
+- Added `README.eig-baseline-candidate-privacy-repair.md` and `docs/examples/eig-baseline-candidate-privacy-repair.md`.
+- Updated the Phase 313 comparison docs with the repaired Phase 314 replay result.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Focused regression passed with `14 passed`.
+- Restarted the stack with `WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0` so AnythingLLM could reach its configured `http://100.100.12.45:8500/v1` target.
+- Repaired live replay passed with `candidate_count=2`, `live_result_count=14`, `covered_surface_count=2`, `missing_surface_count=0`, `stable_corpus_mutated=false`, `stable_corpus_promotion_allowed=false`, and `validation_error_count=0`.
+- Repaired local comparison passed with `response_count=14`, `passed_response_count=14`, `failed_response_count=0`, `minimum_score=95`, `hard_failure_count=0`, `comparison_decision=passed`, `recorded_evidence=[blind_baseline, local_model_comparison]`, and `remaining_missing_evidence=[founder_approval, holdout, no_mutation_proof, route_proof]`.

@@ -30,6 +30,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [EIG Baseline Candidate Promotion Readiness README](../README.eig-baseline-candidate-promotion-readiness.md): Phase 311 fail-closed promotion-readiness decision for EIG baseline candidates.
 - [EIG Baseline Candidate Blind Baselines README](../README.eig-baseline-candidate-blind-baselines.md): Phase 312 contextless blind-baseline evidence for EIG baseline candidates.
 - [EIG Baseline Candidate Local Comparison README](../README.eig-baseline-candidate-local-comparison.md): Phase 313 local-model comparison against EIG blind baselines with repair-required promotion blocking.
+- [EIG Baseline Candidate Privacy Repair README](../README.eig-baseline-candidate-privacy-repair.md): Phase 314 deterministic privacy-answer repair closing EIG local-model comparison evidence.
 - [Current Project Architecture](CURRENT_PROJECT_ARCHITECTURE.md): current gateway/controller/workflow/model validation map plus approved future connector, identity, and privacy milestone goals.
 - [Getting Started With AnythingLLM](../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup README](../README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
@@ -493,6 +494,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Supplied Corpus QA Examples](examples/supplied-corpus-qa.md)
 - [Release-Candidate Baseline Corpus Promotion Examples](examples/release-candidate-baseline-corpus-promotion.md)
 - [EIG Baseline Candidate Local Comparison Examples](examples/eig-baseline-candidate-local-comparison.md)
+- [EIG Baseline Candidate Privacy Repair Examples](examples/eig-baseline-candidate-privacy-repair.md)
 - [External Tester Feedback Loop From Clone Examples](examples/external-tester-feedback-loop-from-clone.md)
 - [V1 Release-Candidate Decision Gate Examples](examples/v1-release-candidate-decision-gate.md)
 - [Release-Candidate Runtime Health Restoration Examples](examples/release-candidate-runtime-health-restoration.md)
