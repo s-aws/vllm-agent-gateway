@@ -12528,3 +12528,33 @@ Completed work:
 - PR body now includes docs index `linked_count=416`, Phase 308 `live_result_count=14`, full Bash split regression `1765 passed`, `4 skipped` parallel and `45 passed` serial, and stable-corpus non-promotion boundary.
 - PR body explicitly states that stable baseline corpus promotion remains a separate future phase requiring founder approval.
 - `main` was not changed or merged by this phase.
+
+### Approved Phase 310: EIG PR Merge Readiness Gate
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove PR `https://github.com/s-aws/vllm-agent-gateway/pull/1` is ready for a founder merge decision while explicitly keeping merge, `main` mutation, and stable baseline corpus promotion outside this phase.
+
+Scope:
+
+- Add a non-merge PR readiness policy for the EIG handoff branch.
+- Validate current branch, source cleanliness, upstream branch, PR state, PR merge state, PR head/base refs, required docs/scripts, prior phase completion, forbidden tracked paths, and PR body evidence markers.
+- Keep `merge_allowed=false`, `main_mutation_allowed=false`, and `stable_corpus_promotion_allowed=false`.
+- Do not merge the PR.
+- Do not change `main`.
+- Do not promote EIG candidates into `runtime/baseline_corpus.json`.
+
+Acceptance target: a contextless reviewer can run one readiness command and see whether PR #1 is clean, reviewable, and ready for the founder merge decision without accidentally authorizing merge or corpus promotion.
+
+Completed work:
+
+- Added `runtime/eig_pr_merge_readiness_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_pr_merge_readiness`.
+- Added `scripts/validate_eig_pr_merge_readiness.py`.
+- Added focused regression coverage in `tests/regression/test_eig_pr_merge_readiness.py`.
+- Added `README.eig-pr-merge-readiness.md` and `docs/examples/eig-pr-merge-readiness.md`.
+- Updated root, docs, examples, and milestone indexes.
+- The gate requires Phase 304 through Phase 309 to be complete before PR readiness can pass.
+- The gate requires the PR body to include Phase 307/308 evidence, `live_result_count=14`, stable baseline corpus promotion approval boundary, and no-real-external-connector-execution boundary.
