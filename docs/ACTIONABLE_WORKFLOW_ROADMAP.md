@@ -12729,3 +12729,43 @@ Completed work:
 - Updated root, docs, examples, roadmap, and milestone indexes.
 - Focused regression passed with `5 passed`.
 - Direct Phase 315 validation passed against `phase314-after-pii-repair-live.json` with `connector_result_count=6`, `privacy_result_count=8`, `route_proof_recorded=true`, `no_mutation_proof_recorded=true`, `stable_corpus_mutated=false`, `stable_corpus_promotion_allowed=false`, `recorded_evidence=[route_proof, no_mutation_proof]`, `remaining_missing_evidence=[founder_approval, holdout]`, and `validation_error_count=0`.
+
+### Approved Phase 316: EIG Baseline Candidate Holdout Proof
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: record paraphrased holdout evidence for the repaired EIG baseline candidates so only founder approval remains before any promotion decision.
+
+Scope:
+
+- Use a bounded contextless subagent to design paraphrased connector and privacy holdouts before local output review.
+- Adapt holdout wording only enough to hit the current deterministic router trigger contract.
+- Add three connector holdouts and four privacy holdouts.
+- Run holdouts through workflow-router gateway and AnythingLLM.
+- Reuse established connector and privacy classifiers.
+- Repair privacy trigger breadth when holdout wording exposes a genuine routing gap.
+- Prove connector registry and stable baseline corpus were not mutated.
+- Record `holdout` evidence.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: all holdout cases pass on both gateway and AnythingLLM, and `remaining_missing_evidence` becomes `[founder_approval]`.
+
+Completed work:
+
+- Collected holdout design from bounded contextless subagent `Carver`.
+- Added `runtime/eig_baseline_candidate_holdout_cases.json`.
+- Added `runtime/eig_baseline_candidate_holdout_proof_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_holdout_proof`.
+- Added `scripts/validate_eig_baseline_candidate_holdout_proof.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_holdout_proof.py`.
+- Expanded the deterministic EIG-3 privacy no-target trigger to cover holdout wording such as raw token and raw JSON dump requests.
+- Added focused routing coverage for raw-token and confidential JSON holdouts.
+- Added `README.eig-baseline-candidate-holdout-proof.md` and `docs/examples/eig-baseline-candidate-holdout-proof.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Shape-only holdout validation passed without recording evidence.
+- Focused regression passed with `10 passed` after trigger repair.
+- Live holdout proof passed through workflow-router gateway and AnythingLLM with `holdout_case_count=7`, `result_count=14`, `passed_result_count=14`, `failed_result_count=0`, `stable_corpus_mutated=false`, `connector_registry_mutated=false`, `recorded_evidence=[holdout]`, `remaining_missing_evidence=[founder_approval]`, and `validation_error_count=0`.

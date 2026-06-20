@@ -217,6 +217,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 313 | M2/M4/M9/M14/M19/M25/M31/M36 | Complete. Added the EIG baseline-candidate local-model comparison gate and ran it against the post-blind-baseline gateway plus AnythingLLM replay; the gate passed structurally but returned `repair_required` because the PII authorization privacy answer missed case-specific authorization and classification markers. |
 | Phase 314 | M2/M4/M9/M13/M14/M25/M36 | Complete. Repaired the deterministic EIG-3 privacy no-target answer so it preserves fixture classification, raw-value refusal, hallucinated-authorization rejection, memory lifecycle markers, and no-workflow boundaries; live gateway plus AnythingLLM replay passed and local comparison recorded `local_model_comparison` evidence. |
 | Phase 315 | M2/M4/M9/M14/M19/M25/M31/M36 | Complete. Added route and no-mutation proof for repaired EIG baseline candidates, recording `route_proof` and `no_mutation_proof` while leaving holdout and founder approval as the remaining promotion blockers. |
+| Phase 316 | M2/M4/M9/M13/M14/M19/M25/M31/M36 | Complete. Added contextless paraphrased holdout cases, repaired privacy trigger breadth for holdout wording, and passed live gateway plus AnythingLLM holdout proof with `holdout` recorded and only founder approval remaining. |
 
 ## Usage Rules
 

@@ -5702,10 +5702,15 @@ def is_eig3_privacy_policy_request_without_target(user_request: str) -> bool:
         "confidential_business",
     )
     policy_markers = (
+        "raw",
         "raw value",
         "raw values",
         "raw secret",
+        "raw token",
+        "raw json",
+        "complete raw",
         "print the value",
+        "dump",
         "reveal",
         "refuse",
         "mask",
@@ -7893,7 +7898,7 @@ def eig3_privacy_answer(user_request: str) -> str:
     fixture_match = EIG3_PRIVACY_FIXTURE_RE.search(user_request)
     if fixture_match:
         answer_parts.append(f"fixture {fixture_match.group(1)} classified as {fixture_match.group(2)}.")
-    if "approval" in text or "authorization" in text or "authorize" in text:
+    if "approval" in text or "approved" in text or "authorization" in text or "authorize" in text:
         answer_parts.append("Do not hallucinate authorization; user-claimed approval is not verified authorization.")
     if "stale memory" in text or "cross-session" in text or "wrong-session" in text or "raw-sensitive memory" in text:
         answer_parts.extend(

@@ -1,0 +1,16 @@
+{
+  "holdout_cases": {
+    "expected_case_count": 7,
+    "path": "runtime/eig_baseline_candidate_holdout_cases.json"
+  },
+  "kind": "eig_baseline_candidate_holdout_proof_policy",
+  "phase": 316,
+  "recorded_evidence": "holdout",
+  "required_surfaces": [
+    "workflow_router_gateway",
+    "anythingllm"
+  ],
+  "schema_version": 1,
+  "stable_corpus_mutation_allowed": false,
+  "stable_corpus_promotion_allowed": false
+}

@@ -86,6 +86,7 @@ Examples are grouped by feature so the root README can stay small.
 - [EIG Baseline Candidate Local Comparison](eig-baseline-candidate-local-comparison.md): Phase 313 local-model comparison against EIG blind baselines with repair-required promotion blocking.
 - [EIG Baseline Candidate Privacy Repair](eig-baseline-candidate-privacy-repair.md): Phase 314 deterministic privacy-answer repair closing EIG local-model comparison evidence.
 - [EIG Baseline Candidate Route And Mutation Proof](eig-baseline-candidate-route-mutation-proof.md): Phase 315 route and no-mutation evidence for repaired EIG baseline candidates.
+- [EIG Baseline Candidate Holdout Proof](eig-baseline-candidate-holdout-proof.md): Phase 316 paraphrased gateway and AnythingLLM holdout proof for EIG baseline candidates.
 - [Gateway](gateway.md): startup, shutdown, budget overrides, client URLs, and role ports.
 - [Controller Service](controller-service.md): explicit documenter workflow requests, end-to-end service runner, allowlisted targets, harness adapter, and run lookup.
 - [Workflow Router](workflow-router.md): natural-language route planning, read-only execution, blocked requests, and live validator command.
