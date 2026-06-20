@@ -12410,6 +12410,6 @@ Completed work:
 - `git diff --cached --check` passed before commit.
 - Full Bash split regression passed with `1758 passed, 4 skipped` in the parallel lane and `45 passed` in the serial lane.
 - Committed and pushed the branch to `origin/codex/eig-stable-handoff`.
-- Replayed clean-clone proof from `/tmp/agentic_agents_phase305_eig_clean_clone_660db43_r3`.
+- Replayed clean-clone proof from a disposable `/tmp` clone of the pushed branch.
 - Clean clone docs index validation passed with `linked_count=412`, `orphaned_docs=[]`, and `status=passed`.
 - Clean clone Phase 304 static handoff validation passed with `missing_doc_count=0`, `missing_runtime_file_count=0`, `missing_script_count=0`, `missing_marker_count=0`, `validation_error_count=0`, and `phase305_ready=true`.
