@@ -13199,3 +13199,30 @@ Completed work:
 - AnythingLLM UI `UI167-GENCHAT-001` replay passed with `case_count=1`, `error_count=0`, and `fixture_unchanged=true`.
 - Repaired fresh-chat responsiveness replay passed with `decision=fresh_chat_responsive`, `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `target_settings_status=passed`, `ui_report_status=passed`, and `fixture_unchanged=true`.
 - Updated the fresh-chat README and examples with the split AnythingLLM API-base and workflow-router target command shape.
+
+### Approved Phase 331: Fresh-Clone Fresh-Chat Split-Address Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 330 fresh-chat split-address repair and documentation replay from a fresh clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run focused regression for the fresh-chat split-address target-settings repair from the clone.
+- Confirm clone source status remains clean.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts in this static handoff replay.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 330 fresh-chat split-address repair, docs links, and focused test without relying on local runtime artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase331_clone`.
+- Replayed commit: `de64a5de6f2adef6b17c04fc222fc13b97785931`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Focused regression passed in the clone with `8 passed` for `tests/regression/test_anythingllm_fresh_chat_responsiveness.py`.
+- Clone `git status --short` was clean after validation.

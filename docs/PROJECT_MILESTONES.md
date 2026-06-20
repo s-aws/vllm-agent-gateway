@@ -232,6 +232,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 328 | M13/M14 | Complete. Replayed the pushed Phase 327 AnythingLLM chat-mode guard from a fresh WSL clone with docs-index proof, focused UI/doctor regression, no active-workspace runtime-state dependency, and clean clone status. |
 | Phase 329 | M9/M14 | Complete. Refreshed stale durable next-action guidance so the roadmap and Priority 0 backlog identify Phase 328 as the current completed tail, PR #1 as the reviewable branch state, and the next allowed work as PR/stable handoff support or a milestone-mapped Priority 0 chat-quality phase. |
 | Phase 330 | M2/M13/M14 | Complete. Replayed fresh AnythingLLM chat responsiveness on the current split-address host, repaired the existing target-settings gate to accept the live AnythingLLM API-base override while preserving policy audit data, and proved doctor, UI `hi`, gateway/API chat cases, target settings, and fixture safety all pass. |
+| Phase 331 | M13/M14 | Complete. Replayed the pushed Phase 330 fresh-chat split-address repair from a fresh WSL clone with docs-index proof, focused fresh-chat regression, no active-workspace runtime-state dependency, and clean clone status. |
 
 ## Usage Rules
 
