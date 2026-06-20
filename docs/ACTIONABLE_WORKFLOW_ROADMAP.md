@@ -12413,3 +12413,20 @@ Completed work:
 - Replayed clean-clone proof from a disposable `/tmp` clone of the pushed branch.
 - Clean clone docs index validation passed with `linked_count=412`, `orphaned_docs=[]`, and `status=passed`.
 - Clean clone Phase 304 static handoff validation passed with `missing_doc_count=0`, `missing_runtime_file_count=0`, `missing_script_count=0`, `missing_marker_count=0`, `validation_error_count=0`, and `phase305_ready=true`.
+
+### Approved Phase 306: EIG Branch Review Packet
+
+Status: In Progress.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: expose the pushed EIG handoff branch through a reviewable GitHub pull request with proof, scope boundaries, and release notes that a contextless reviewer can inspect.
+
+Scope:
+
+- Create a pull request from `codex/eig-stable-handoff` to `main`.
+- Include the Phase 304/305 proof summary, full regression status, clean-clone replay result, and explicit non-production EIG boundaries in the PR body.
+- Do not merge the PR or change `main`.
+- Do not add runtime behavior beyond the already pushed branch contents.
+
+Acceptance target: the branch is reviewable through GitHub without relying on this chat session, and the PR makes the exact supported and unsupported EIG scope clear.

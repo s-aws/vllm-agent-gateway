@@ -207,6 +207,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 303 | M32/M33/M34/M35/M36 | Complete. Closed EIG-3 breadth confidence with contextless audit, docs updates, focused privacy/memory tests, required live proofs, documented synthetic-only limits, and full Bash regression. |
 | Phase 304 | M14/M17/M18/M19/M20/M21/M22/M23/M24/M25/M31/M36 | Complete. Integrated Phase 296 and Phase 303 EIG proof into stable tester handoff docs with explicit local-stub connector, synthetic privacy, no-real-external-API, no-production-OAuth, no-real-sensitive-data, and no-hidden-memory boundaries. |
 | Phase 305 | M14/M31/M36 | Complete. Packaged the EIG-integrated state on `codex/eig-stable-handoff`, pushed it, and replayed docs-index plus Phase 304 static handoff validation from a fresh clone without active-workspace runtime state. |
+| Phase 306 | M14 | In Progress. Create a reviewable GitHub pull request for the pushed EIG handoff branch with proof summary and explicit non-production EIG scope boundaries. |
 
 ## Usage Rules
 
