@@ -242,6 +242,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 338 | M14 | Complete. Replayed the current non-merge PR readiness gate for PR #1, proving the branch remains open, clean, founder-decision-ready, and still blocks merge, `main` mutation, and stable-corpus promotion. |
 | Phase 339 | M14 | Complete. Refreshed founder-facing getting-started, stable-handoff, and release-note status and endpoint guidance so the active Phase 338 proof floor and split Windows/WSL address model are visible without chat history. |
 | Phase 340 | M14 | Complete. Replayed the pushed Phase 339 founder-facing docs from a clean WSL clone with docs-index proof, current proof-floor markers, split-address endpoint markers, no active-workspace runtime-state dependency, and clean clone status. |
+| Phase 341 | M14 | Complete. Repaired stale Phase 247 ship-handoff policy and README markers after the Phase 339 status/endpoint refresh, then passed ship-handoff validation, focused ship-handoff regression, stable release-channel validation, and docs index validation. |
 
 ## Usage Rules
 
