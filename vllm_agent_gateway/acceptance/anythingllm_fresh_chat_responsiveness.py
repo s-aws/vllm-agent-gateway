@@ -305,6 +305,8 @@ def target_settings_result(
 ) -> dict[str, Any]:
     policy_required = policy.get("required_anythingllm") if isinstance(policy.get("required_anythingllm"), dict) else {}
     required = dict(policy_required)
+    required["policy_api_base_url"] = str(policy_required.get("api_base_url") or "")
+    required["api_base_url"] = config.anythingllm_api_base_url
     required["workflow_router_base_url"] = (
         config.anythingllm_workflow_router_base_url or str(policy_required.get("workflow_router_base_url") or "")
     )

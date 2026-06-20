@@ -165,13 +165,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M15-276 | 500k candidate decision gate | Complete in Phase 276. Aggregated the 500k proof chain into deterministic decision `ship`. | Proof: Phase 276 policy, validator, docs, explicit Phase 275 clean-clone report path, runtime health, `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `candidate_estimated_project_tokens=500000`, `stable_estimated_project_tokens=384000`, `raw_prompt_stuffing_allowed=false`, and `phase277_ready=true`. |
 | P0-M15-277 | stable 500k handoff refresh | Complete in Phase 277. Refreshed stable handoff metadata, docs, examples, and completion audit for governed 500k-token project usability after Phase 276 returned `ship`. | Proof: Phase 277 policy, validator, docs, completion audit, release-channel metadata, stable proof metadata, `decision=stable_500k_handoff_refreshed`, `blocker_count=0`, `candidate_estimated_project_tokens=500000`, `phase276_decision=ship`, and explicit raw-500k prompt-serving boundary. |
 | P0-M14-329 | milestone continuity and next-state refresh | Complete in Phase 329. Removed stale current-next-action instructions that still pointed at old Phase 244/245 runtime recovery and refreshed durable guidance around the current Phase 328 PR/handoff state. | Proof: canonical roadmap, Priority 0 backlog, and milestone ledger now identify Phase 328 as the current completed tail and require any next work to support PR/stable handoff review or a new milestone-mapped Priority 0 chat-quality phase. |
+| P0-M14-330 | fresh AnythingLLM chat split-address replay | Complete in Phase 330. Replayed first-time doctor, browser-visible UI `hi`, and fresh direct/AnythingLLM chat cases on the current split-address host, then repaired the existing fresh-chat target-settings gate so the live AnythingLLM API-base override is accepted without hiding the policy default. | Proof: doctor `30/30` checks passed; UI `UI167-GENCHAT-001` passed with fixtures unchanged; fresh-chat responsiveness passed with `4/4` cases, `target_settings_status=passed`, `ui_report_status=passed`, and `fixture_unchanged=true`. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-328 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-328 runtime/AnythingLLM recovery proof as the active proof floor.
+1. Phases 157-330 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-330 runtime/AnythingLLM recovery proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -188,7 +189,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 328 Fresh-Clone AnythingLLM Chat-Mode Guard Replay is complete. Phase 329 records this continuity correction so future agents do not follow stale Phase 244/245 recovery instructions. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review or fresh Priority 0 chat-quality validation.
+Phase 330 Fresh AnythingLLM Chat Split-Address Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 

@@ -13171,3 +13171,31 @@ Completed work:
 - Refreshed the canonical roadmap next-target text to identify branch `codex/eig-stable-handoff`, PR #1, and the requirement that next work support PR/stable handoff review or a milestone-mapped Priority 0 chat-quality phase.
 - Refreshed the Priority 0 backlog execution plan around the current proof floor: remote-clone chat quality, governed 500k usability, supplied-corpus QA, EIG closeouts, and Phase 322-328 runtime/AnythingLLM recovery.
 - Preserved explicit boundaries: do not merge PR #1, mutate `main`, promote stable baseline corpus, or resume advanced-refactor work without a canonical approved phase.
+
+### Approved Phase 330: Fresh AnythingLLM Chat Split-Address Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: prove the current pushed branch still returns useful fresh chat answers through the live workflow-router gateway and AnythingLLM after the Phase 327 chat-mode repair, while closing the remaining split-address validation gap in the existing fresh-chat gate.
+
+Scope:
+
+- Run the first-time user doctor from Bash/WSL with the recovered AnythingLLM API base and expected WSL network workflow-router target.
+- Run the existing fresh-chat responsiveness gate through direct workflow-router gateway and AnythingLLM API for `hi` plus the representative code-explanation prompt.
+- Run the existing AnythingLLM UI E2E validator for required `UI167-GENCHAT-001` browser-visible `/stream-chat` proof.
+- Repair only the existing Phase 237 target-settings comparison so an explicit `--anythingllm-api-base-url` override is accepted while the policy default remains recorded for audit.
+- Do not add a second fresh-chat validator, merge PR #1, mutate `main`, promote the stable baseline corpus, or resume advanced-refactor work.
+
+Acceptance target: a contextless tester can run the fresh-chat responsiveness gate on the current split-address host and get a passing report when the live chat cases, UI case, target settings, and fixture mutation proof all pass.
+
+Completed work:
+
+- First-time user doctor passed from WSL/Bash with `check_count=30`, `failed_check_ids=[]`, and `status=passed`.
+- Initial fresh-chat replay proved all four direct/AnythingLLM chat cases passed and fixtures remained unchanged, but the report failed because `target_settings.api_base_url` still compared the live network API base against the old policy default and no UI report path was supplied.
+- Updated `vllm_agent_gateway.acceptance.anythingllm_fresh_chat_responsiveness.target_settings_result` to set `required.api_base_url` from the configured live API base and preserve `required.policy_api_base_url` for audit.
+- Focused regression for `tests/regression/test_anythingllm_fresh_chat_responsiveness.py` passed with `8 passed`.
+- AnythingLLM UI `UI167-GENCHAT-001` replay passed with `case_count=1`, `error_count=0`, and `fixture_unchanged=true`.
+- Repaired fresh-chat responsiveness replay passed with `decision=fresh_chat_responsive`, `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `target_settings_status=passed`, `ui_report_status=passed`, and `fixture_unchanged=true`.
+- Updated the fresh-chat README and examples with the split AnythingLLM API-base and workflow-router target command shape.
