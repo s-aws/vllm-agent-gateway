@@ -252,6 +252,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 348 | M2/M13/M14 | Complete. Replayed the pushed Phase 347 stable handoff smoke proof metadata and clone-safe stable-handoff policy tests from a clean WSL clone with docs-index proof, PR-readiness regression, Phase 347 marker confirmation, stable-smoke marker confirmation, no active-workspace runtime-state dependency, and clean clone status. |
 | Phase 349 | M2/M13/M14 | Complete. Replayed a bounded browser-visible AnythingLLM UI smoke through the existing UI E2E validator, proving no-target greeting and read-only function explanation cases render useful chat-visible answers with unchanged frozen fixtures. |
 | Phase 350 | M2/M13/M14 | Complete. Replayed the pushed Phase 349 browser-visible UI smoke proof metadata and clone-safe UI policy tests from a clean WSL clone with docs-index proof, PR-readiness regression, Phase 349 marker confirmation, fixture-unchanged marker confirmation, no active-workspace runtime-state dependency, and clean clone status. |
+| Phase 351 | M2/M13/M14 | Complete. Replayed the full governed browser-visible AnythingLLM UI prompt catalog through the existing UI E2E validator, proving all 21 case/root executions pass with zero errors, unchanged frozen fixtures, and current AnythingLLM workspace/browser coverage. |
 
 ## Usage Rules
 
