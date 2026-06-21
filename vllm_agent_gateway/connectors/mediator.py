@@ -166,6 +166,17 @@ def validate_approval(
             code="stale_connector_invocation_approval",
             status=HTTPStatus.FORBIDDEN,
         )
+    approval_granted_scopes = approval.get("granted_scopes")
+    if (
+        not isinstance(approval_granted_scopes, list)
+        or not all(isinstance(item, str) and item.strip() for item in approval_granted_scopes)
+        or sorted(set(item.strip() for item in approval_granted_scopes)) != actor_context["granted_scopes"]
+    ):
+        raise ConnectorMediationError(
+            "connector invocation approval must match the actor granted scope state.",
+            code="stale_connector_invocation_approval",
+            status=HTTPStatus.FORBIDDEN,
+        )
     approval_refs = string_list(approval.get("approval_refs"), "approval.approval_refs")
     return {
         "status": "approved_for_connector_invocation",
@@ -175,6 +186,7 @@ def validate_approval(
         "actor_id": actor_context["actor_id"],
         "session_id": actor_context["session_id"],
         "request_id": actor_context["request_id"],
+        "granted_scopes": actor_context["granted_scopes"],
         "approval_refs": approval_refs,
     }
 
@@ -186,9 +198,19 @@ def connector_required_scopes(auth: dict[str, Any]) -> list[str]:
         raise ConnectorMediationError(str(exc), code=exc.code, status=exc.status) from exc
 
 
-def authorize_actor_for_connector(auth: dict[str, Any], actor_context: dict[str, Any]) -> dict[str, Any]:
+def operation_required_scopes(operation: dict[str, Any], auth: dict[str, Any]) -> list[str]:
+    raw_scopes = operation.get("required_scopes")
+    if raw_scopes is None:
+        return connector_required_scopes(auth)
+    try:
+        return string_list(raw_scopes, "connector.operation.required_scopes", allow_empty=True)
+    except ConnectorCatalogError as exc:
+        raise ConnectorMediationError(str(exc), code=exc.code, status=exc.status) from exc
+
+
+def authorize_actor_for_connector(auth: dict[str, Any], actor_context: dict[str, Any], operation: dict[str, Any]) -> dict[str, Any]:
     auth_type = auth.get("type")
-    required_scopes = connector_required_scopes(auth)
+    required_scopes = operation_required_scopes(operation, auth)
     granted_scopes = actor_context.get("granted_scopes", [])
     if not isinstance(granted_scopes, list) or not all(isinstance(item, str) for item in granted_scopes):
         raise ConnectorMediationError(
@@ -287,7 +309,7 @@ def mediate_connector_operation(
     validate_arguments(operation, arguments)
     operation_class = operation.get("operation_class")
     auth = require_object(connector.get("auth"), "connector.auth")
-    authorization = authorize_actor_for_connector(auth, actor_context)
+    authorization = authorize_actor_for_connector(auth, actor_context, operation)
     if auth.get("type") == ConnectorAuthType.SERVICE_READ_ONLY.value and operation_class == ConnectorOperationClass.WRITE.value:
         raise ConnectorMediationError("service_read_only connectors cannot expose write operations.", code="unsafe_connector_auth")
     approval_record = None

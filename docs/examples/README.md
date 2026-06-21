@@ -7,6 +7,7 @@ Examples are grouped by feature so the root README can stay small.
 - [External Tester Onboarding](external-tester-onboarding.md): release-candidate first-test prompts, live AnythingLLM validation, and linked feedback capture.
 - [External Tester Dry Run](external-tester-dry-run.md): minimum stable external tester dry run through setup, AnythingLLM, onboarding, feedback, and fixture proof.
 - [First-Time User Doctor](first-time-user-doctor.md): setup preflight for ports, controller roots, AnythingLLM, and fixtures.
+- [Regression Process](regression.md): split-lane xdist regression, focused pytest iteration, and serial/parallel debugging commands.
 - [Release Channels](release-channels.md): dev, release-candidate, stable readiness, setup doctor, and acceptance gate examples.
 - [Stable Handoff](stable-handoff.md): stable-channel validation, handoff smoke, first tester prompt, feedback, and rollback.
 - [Runtime State](runtime-state.md): local-only runtime reports, git hygiene commands, and stable proof metadata validation.
@@ -62,6 +63,30 @@ Examples are grouped by feature so the root README can stay small.
 - [Founder Feedback Repair Rerun Gate](founder-feedback-repair-rerun-gate.md): validate the Phase 228 proof gate for accepted feedback repairs.
 - [Engineering Tenet Coverage](engineering-tenets.md): Phase 112 tenet matrix validation and review workflow.
 - [Security Policy](security-policy.md): release-candidate secret, root, fixture, command, and onboarding prompt safety gate examples.
+- [EIG-3 Sensitive Data Fixtures](eig3-sensitive-data-fixtures.md): Phase 298 synthetic privacy fixture validator and focused regression command.
+- [EIG-1 Connector Breadth Fixtures](eig1-connector-breadth-fixtures.md): Phase 289 deterministic local-stub connector breadth validator and focused regression command.
+- [EIG-1 Protocol Auth Schema Matrix](eig1-protocol-auth-schema-matrix.md): Phase 290 connector protocol/auth/schema classification validator and focused regression command.
+- [EIG-1 Connector Release Gate Breadth](eig1-connector-release-gate-breadth.md): Phase 291 release-packet breadth validator and focused regression command.
+- [EIG-1 Registry Lifecycle Breadth](eig1-registry-lifecycle-breadth.md): Phase 292 disposable registry lifecycle validator and focused regression command.
+- [EIG-2 Actor Scope Breadth](eig2-actor-scope-breadth.md): Phase 293 actor-context and operation-level least-privilege scope validator.
+- [EIG-2 Approval Replay Breadth](eig2-approval-replay-breadth.md): Phase 294 approval binding, stale replay denial, and replay-safe audit validator.
+- [EIG Runtime Breadth Chat](eig-runtime-breadth-chat.md): Phase 295 natural-language workflow-router chat proof for selected local-stub connector fixtures.
+- [EIG Breadth Closeout](eig-breadth-closeout.md): Phase 296 EIG-1/EIG-2 contextless closeout packet and coverage gate.
+- [EIG-3 Output Surface Policy](eig3-output-surface-policy.md): Phase 299 masking/refusal output matrix validator and focused regression command.
+- [EIG-3 Memory Lifecycle](eig3-memory-lifecycle.md): Phase 300 governed memory lifecycle validator and focused regression command.
+- [EIG-3 Privacy EvalOps](eig3-privacy-evalops.md): Phase 301 release-blocking privacy EvalOps validator and focused regression command.
+- [EIG-3 Privacy Runtime Chat](eig3-privacy-runtime-chat.md): Phase 302 live gateway and AnythingLLM privacy prompt proof.
+- [EIG-3 Breadth Closeout](eig3-breadth-closeout.md): Phase 303 closeout packet and final regression command set.
+- [EIG Stable Handoff Integration](eig-stable-handoff-integration.md): Phase 304 release-facing handoff gate for EIG proof visibility and boundaries.
+- [EIG Baseline Candidate Intake](eig-baseline-candidate-intake.md): Phase 307 candidate intake gate before live replay or stable corpus promotion.
+- [EIG Baseline Candidate Live Replay](eig-baseline-candidate-live-replay.md): Phase 308 live gateway and AnythingLLM replay before promotion.
+- [EIG PR Merge Readiness](eig-pr-merge-readiness.md): Phase 310 non-merge readiness gate for the EIG handoff pull request.
+- [EIG Baseline Candidate Promotion Readiness](eig-baseline-candidate-promotion-readiness.md): Phase 311 fail-closed promotion-readiness decision for EIG baseline candidates.
+- [EIG Baseline Candidate Blind Baselines](eig-baseline-candidate-blind-baselines.md): Phase 312 contextless blind-baseline evidence for EIG baseline candidates.
+- [EIG Baseline Candidate Local Comparison](eig-baseline-candidate-local-comparison.md): Phase 313 local-model comparison against EIG blind baselines with repair-required promotion blocking.
+- [EIG Baseline Candidate Privacy Repair](eig-baseline-candidate-privacy-repair.md): Phase 314 deterministic privacy-answer repair closing EIG local-model comparison evidence.
+- [EIG Baseline Candidate Route And Mutation Proof](eig-baseline-candidate-route-mutation-proof.md): Phase 315 route and no-mutation evidence for repaired EIG baseline candidates.
+- [EIG Baseline Candidate Holdout Proof](eig-baseline-candidate-holdout-proof.md): Phase 316 paraphrased gateway and AnythingLLM holdout proof for EIG baseline candidates.
 - [Gateway](gateway.md): startup, shutdown, budget overrides, client URLs, and role ports.
 - [Controller Service](controller-service.md): explicit documenter workflow requests, end-to-end service runner, allowlisted targets, harness adapter, and run lookup.
 - [Workflow Router](workflow-router.md): natural-language route planning, read-only execution, blocked requests, and live validator command.

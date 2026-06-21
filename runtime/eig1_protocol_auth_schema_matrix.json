@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "kind": "eig1_protocol_auth_schema_matrix",
+  "milestones": [
+    "M17",
+    "M18",
+    "M27"
+  ],
+  "fixture_pack": "runtime/eig1_connector_breadth_fixtures.json",
+  "scope_boundary": {
+    "only_executable_protocol": "local_stub",
+    "non_executable_protocols_must_fail_at_mediation": true,
+    "external_network_allowed": false,
+    "raw_mcp_allowed": false,
+    "direct_model_tool_access_allowed": false,
+    "runtime_registry_mutation_allowed": false
+  },
+  "protocol_cases": [
+    {
+      "id": "EIG1-PROTO-LOCAL-EXEC",
+      "protocol": "local_stub",
+      "classification": "executable",
+      "expected_validation_status": "passed",
+      "expected_mediation_status": "allowed"
+    },
+    {
+      "id": "EIG1-PROTO-HTTPS-VALIDATION",
+      "protocol": "https_json",
+      "classification": "validation_only",
+      "expected_validation_status": "passed",
+      "expected_mediation_error": "connector_protocol_not_executable"
+    },
+    {
+      "id": "EIG1-PROTO-MCP-VALIDATION",
+      "protocol": "mcp_mediated",
+      "classification": "validation_only",
+      "expected_validation_status": "passed",
+      "expected_mediation_error": "connector_protocol_not_executable"
+    },
+    {
+      "id": "EIG1-PROTO-UNSUPPORTED",
+      "protocol": "raw_http",
+      "classification": "rejected",
+      "expected_validation_error": "unsupported_connector_protocol"
+    }
+  ],
+  "auth_cases": [
+    {
+      "id": "EIG1-AUTH-STUB-LOCAL",
+      "auth_type": "none_for_stub",
+      "protocol": "local_stub",
+      "operation_shape": "read_only",
+      "classification": "accepted",
+      "expected_validation_status": "passed"
+    },
+    {
+      "id": "EIG1-AUTH-STUB-HTTPS",
+      "auth_type": "none_for_stub",
+      "protocol": "https_json",
+      "operation_shape": "read_only",
+      "classification": "rejected",
+      "expected_validation_error": "unsafe_connector_auth"
+    },
+    {
+      "id": "EIG1-AUTH-SERVICE-READ",
+      "auth_type": "service_read_only",
+      "protocol": "local_stub",
+      "operation_shape": "read_only",
+      "classification": "accepted",
+      "expected_validation_status": "passed"
+    },
+    {
+      "id": "EIG1-AUTH-SERVICE-WRITE",
+      "auth_type": "service_read_only",
+      "protocol": "local_stub",
+      "operation_shape": "includes_write",
+      "classification": "rejected",
+      "expected_validation_error": "unsafe_connector_auth"
+    },
+    {
+      "id": "EIG1-AUTH-OAUTH-SCOPED",
+      "auth_type": "oauth_user_scope",
+      "protocol": "local_stub",
+      "operation_shape": "read_only",
+      "required_scopes": [
+        "records:read"
+      ],
+      "classification": "accepted",
+      "expected_validation_status": "passed"
+    },
+    {
+      "id": "EIG1-AUTH-OAUTH-MISSING-SCOPES",
+      "auth_type": "oauth_user_scope",
+      "protocol": "local_stub",
+      "operation_shape": "read_only",
+      "required_scopes": [],
+      "classification": "rejected",
+      "expected_validation_error": "missing_connector_auth_scopes"
+    }
+  ],
+  "schema_cases": [
+    {
+      "id": "EIG1-SCHEMA-REQUIRED-STRING",
+      "field_shape": "required_string",
+      "classification": "accepted",
+      "source_case_id": "EIG1-WORK-R2"
+    },
+    {
+      "id": "EIG1-SCHEMA-OPTIONAL-BOOLEAN",
+      "field_shape": "optional_boolean",
+      "classification": "accepted",
+      "source_case_id": "EIG1-WORK-R2"
+    },
+    {
+      "id": "EIG1-SCHEMA-INTEGER",
+      "field_shape": "integer",
+      "classification": "accepted",
+      "source_case_id": "EIG1-KNOW-R2"
+    },
+    {
+      "id": "EIG1-SCHEMA-ARRAY",
+      "field_shape": "array",
+      "classification": "accepted",
+      "source_case_id": "EIG1-KNOW-R3"
+    },
+    {
+      "id": "EIG1-SCHEMA-OBJECT",
+      "field_shape": "object",
+      "classification": "accepted",
+      "source_case_id": "EIG1-REC-R2"
+    },
+    {
+      "id": "EIG1-SCHEMA-UNKNOWN-ARGUMENT",
+      "field_shape": "unknown_argument",
+      "classification": "rejected",
+      "expected_mediation_error": "unsupported_connector_argument"
+    },
+    {
+      "id": "EIG1-SCHEMA-MISSING-REQUIRED",
+      "field_shape": "missing_required",
+      "classification": "rejected",
+      "expected_mediation_error": "missing_connector_argument"
+    },
+    {
+      "id": "EIG1-SCHEMA-MALFORMED-STRING",
+      "field_shape": "malformed_string",
+      "classification": "rejected",
+      "expected_mediation_error": "invalid_connector_argument"
+    },
+    {
+      "id": "EIG1-SCHEMA-MALFORMED-BOOLEAN",
+      "field_shape": "malformed_boolean",
+      "classification": "rejected",
+      "expected_mediation_error": "invalid_connector_argument"
+    },
+    {
+      "id": "EIG1-SCHEMA-MALFORMED-INTEGER",
+      "field_shape": "malformed_integer",
+      "classification": "rejected",
+      "expected_mediation_error": "invalid_connector_argument"
+    },
+    {
+      "id": "EIG1-SCHEMA-MALFORMED-ARRAY",
+      "field_shape": "malformed_array",
+      "classification": "rejected",
+      "expected_mediation_error": "invalid_connector_argument"
+    },
+    {
+      "id": "EIG1-SCHEMA-MALFORMED-OBJECT",
+      "field_shape": "malformed_object",
+      "classification": "rejected",
+      "expected_mediation_error": "invalid_connector_argument"
+    },
+    {
+      "id": "EIG1-SCHEMA-DEEP-OBJECT-PROPERTIES",
+      "field_shape": "deep_object_property_validation",
+      "classification": "deferred",
+      "deferred_reason": "Current schema mediation validates object type at the declared property boundary and does not validate nested object internals."
+    }
+  ]
+}

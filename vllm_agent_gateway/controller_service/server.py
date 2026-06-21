@@ -11,7 +11,9 @@ import argparse
 import json
 import os
 import re
+import shutil
 import sys
+import tempfile
 import threading
 import time
 from dataclasses import dataclass, replace
@@ -623,6 +625,7 @@ class InlineArtifactKind(str, Enum):
     SKILL_PACK_INSTALLATION = "skill_pack_installation"
     SKILL_SCAFFOLD = "skill_scaffold"
     TASK_DECOMPOSITION = "task_decomposition"
+    CONNECTOR_INVOCATION = "connector_invocation"
 
 
 INLINE_ARTIFACT_BYTE_LIMIT = 256 * 1024
@@ -759,6 +762,7 @@ INLINE_ARTIFACT_KEYS: tuple[tuple[InlineArtifactKind, tuple[str, ...]], ...] = (
     ),
     (InlineArtifactKind.SKILL_SCAFFOLD, ("skill_scaffold", "downstream_skill_scaffold")),
     (InlineArtifactKind.TASK_DECOMPOSITION, ("task_decomposition", "downstream_task_decomposition")),
+    (InlineArtifactKind.CONNECTOR_INVOCATION, ("connector_invocation", "downstream_connector_invocation")),
 )
 
 
@@ -4687,6 +4691,64 @@ def append_disposable_mutation_diff_answer(lines: list[str], artifact: dict[str,
     return True
 
 
+def append_connector_invocation_answer(lines: list[str], artifact: dict[str, Any]) -> bool:
+    if artifact.get("kind") != "connector_invocation_report":
+        return False
+    summary = artifact.get("summary") if isinstance(artifact.get("summary"), dict) else {}
+    audit = artifact.get("audit") if isinstance(artifact.get("audit"), dict) else {}
+    invocation = artifact.get("invocation") if isinstance(artifact.get("invocation"), dict) else {}
+    result = invocation.get("result") if isinstance(invocation.get("result"), dict) else {}
+    connector_id = summary.get("connector_id") or audit.get("connector_id")
+    operation_id = summary.get("operation_id") or audit.get("operation_id")
+    if isinstance(connector_id, str) and isinstance(operation_id, str):
+        lines.append(f"- Connector: {inline_text(connector_id)}.{inline_text(operation_id)}")
+    invocation_status = summary.get("invocation_status") or artifact.get("status")
+    if isinstance(invocation_status, str) and invocation_status:
+        lines.append(f"- Status: {inline_text(invocation_status)}")
+    operation_class = summary.get("operation_class") or audit.get("operation_class")
+    if isinstance(operation_class, str) and operation_class:
+        lines.append(f"- Operation class: {inline_text(operation_class)}")
+    authorization_status = summary.get("authorization_status") or audit.get("authorization_status")
+    if isinstance(authorization_status, str) and authorization_status:
+        lines.append(f"- Authorization: {inline_text(authorization_status)}")
+    missing_scopes = summary.get("missing_scopes") or audit.get("missing_scopes")
+    if isinstance(missing_scopes, list) and missing_scopes:
+        missing = [str(item) for item in missing_scopes if isinstance(item, str)]
+        if missing:
+            lines.append(f"- Missing scopes: {limited_join(missing)}")
+    recovery = summary.get("authorization_recovery")
+    if isinstance(recovery, dict) and isinstance(recovery.get("required_action"), str):
+        lines.append(f"- Recovery: {inline_text(recovery['required_action'], 180)}")
+    if result:
+        result_items: list[str] = []
+        for key in sorted(result):
+            value = result.get(key)
+            if isinstance(value, (str, int, bool)):
+                result_items.append(f"{key}={inline_text(value, 120)}")
+            elif isinstance(value, list):
+                result_items.append(
+                    f"{key}={limited_join([str(item) for item in value[:INLINE_ARTIFACT_ITEM_LIMIT]])}"
+                )
+        if result_items:
+            lines.append(f"- Result: {limited_join(result_items)}")
+    if audit:
+        decision = audit.get("decision")
+        approval_state = audit.get("approval_state")
+        audit_bits = []
+        if isinstance(decision, str):
+            audit_bits.append(f"decision={decision}")
+        if isinstance(approval_state, str):
+            audit_bits.append(f"approval_state={approval_state}")
+        audit_bits.append(f"raw_auth_subject_stored={audit.get('raw_auth_subject_stored') is True}")
+        audit_bits.append(f"raw_arguments_stored={audit.get('raw_arguments_stored') is True}")
+        lines.append(f"- Audit: {limited_join(audit_bits)}")
+    if summary.get("runtime_registry_changed") is False:
+        lines.append("- Runtime registry mutation: false")
+    if summary.get("target_repository_changed") is False:
+        lines.append("- Target repository mutation: false")
+    return bool(lines)
+
+
 def inline_artifact_answer_renderers() -> dict[InlineArtifactKind, Any]:
     return {
         InlineArtifactKind.DEFECT_DIAGNOSIS_SUMMARY: append_defect_diagnosis_summary_answer,
@@ -4732,6 +4794,7 @@ def inline_artifact_answer_renderers() -> dict[InlineArtifactKind, Any]:
         InlineArtifactKind.SKILL_PACK_INSTALLATION: append_skill_pack_install_answer,
         InlineArtifactKind.SKILL_SCAFFOLD: append_skill_scaffold_answer,
         InlineArtifactKind.TASK_DECOMPOSITION: append_task_decomposition_answer,
+        InlineArtifactKind.CONNECTOR_INVOCATION: append_connector_invocation_answer,
     }
 
 
@@ -4760,6 +4823,8 @@ def inline_artifact_answer_heading(kind: InlineArtifactKind) -> str:
         return "Skill Scaffold:"
     if kind == InlineArtifactKind.TASK_DECOMPOSITION:
         return "Task Decomposition:"
+    if kind == InlineArtifactKind.CONNECTOR_INVOCATION:
+        return "Connector Result:"
     if kind == InlineArtifactKind.DISPOSABLE_MUTATION_DIFF:
         return "Disposable Apply:"
     if kind == InlineArtifactKind.CODE_QUALITY_REVIEW:
@@ -5623,6 +5688,219 @@ def is_natural_control_request_without_target(user_request: str) -> bool:
     return any(term in text for term in control_terms)
 
 
+def is_eig3_privacy_policy_request_without_target(user_request: str) -> bool:
+    text = user_request.lower()
+    eig3_markers = (
+        "eig-3",
+        "eig3",
+        "privacy case",
+        "privacy-sensitive",
+        "sensitive-data",
+        "sensitive data",
+        "secret_like",
+        "personal_data",
+        "confidential_business",
+    )
+    policy_markers = (
+        "raw",
+        "raw value",
+        "raw values",
+        "raw secret",
+        "raw token",
+        "raw json",
+        "complete raw",
+        "print the value",
+        "dump",
+        "reveal",
+        "refuse",
+        "mask",
+        "safe recovery",
+        "stale memory",
+        "cross-session",
+        "hallucinated authorization",
+    )
+    return any(marker in text for marker in eig3_markers) and any(marker in text for marker in policy_markers)
+
+
+NATURAL_CONNECTOR_FIXTURE_CASES: tuple[dict[str, Any], ...] = (
+    {
+        "natural_case_id": "eig-runtime-work-item-lookup",
+        "source_case_id": "EIG1-WORK-R2",
+        "terms": ("work item", "work-item", "ticket", "issue"),
+    },
+    {
+        "natural_case_id": "eig-runtime-business-record-lookup",
+        "source_case_id": "EIG1-REC-R2",
+        "terms": ("business record", "structured record", "record lookup"),
+    },
+    {
+        "natural_case_id": "eig-runtime-knowledge-search",
+        "source_case_id": "EIG1-KNOW-R2",
+        "terms": ("knowledge", "runbook", "document search", "search documents", "document lookup"),
+    },
+)
+
+
+def is_natural_connector_fixture_request(user_request: str) -> bool:
+    return natural_connector_fixture_case_config(user_request) is not None
+
+
+def natural_connector_fixture_case_config(user_request: str) -> dict[str, Any] | None:
+    text = user_request.lower()
+    if "connector fixture" not in text and "local connector" not in text and "stub connector" not in text:
+        return None
+    for item in NATURAL_CONNECTOR_FIXTURE_CASES:
+        terms = item.get("terms") if isinstance(item.get("terms"), tuple) else ()
+        if any(term in text for term in terms):
+            return item
+    return None
+
+
+def read_json_object_file(path: Path, label: str) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ControllerServiceError(f"Missing {label}: {path}", code=f"missing_{label.replace(' ', '_')}") from exc
+    except json.JSONDecodeError as exc:
+        raise ControllerServiceError(f"Invalid {label} JSON: {exc}", code=f"invalid_{label.replace(' ', '_')}") from exc
+    if not isinstance(value, dict):
+        raise ControllerServiceError(f"{label} must contain a JSON object.", code=f"invalid_{label.replace(' ', '_')}")
+    return value
+
+
+def object_items(value: Any) -> list[dict[str, Any]]:
+    return [item for item in value if isinstance(item, dict)] if isinstance(value, list) else []
+
+
+def eig1_connector_fixture_pack(config_root: Path) -> dict[str, Any]:
+    return read_json_object_file(config_root / "runtime" / "eig1_connector_breadth_fixtures.json", "EIG-1 connector fixture pack")
+
+
+def eig2_actor_scope_policy(config_root: Path) -> dict[str, Any]:
+    return read_json_object_file(config_root / "runtime" / "eig2_actor_scope_breadth_policy.json", "EIG-2 actor scope policy")
+
+
+def natural_connector_fixture_case(config_root: Path, source_case_id: str) -> dict[str, Any]:
+    pack = eig1_connector_fixture_pack(config_root)
+    for case in object_items(pack.get("positive_invocation_cases")):
+        if case.get("id") == source_case_id:
+            return deepcopy_json_object(case)
+    raise ControllerServiceError(
+        f"Missing connector fixture positive case: {source_case_id}",
+        status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        code="missing_connector_fixture_case",
+    )
+
+
+def operation_scope_assignment_by_id(config_root: Path) -> dict[tuple[str, str], list[str]]:
+    policy = eig2_actor_scope_policy(config_root)
+    assignments: dict[tuple[str, str], list[str]] = {}
+    for item in object_items(policy.get("operation_scope_assignments")):
+        connector_id = item.get("connector_id")
+        operation_id = item.get("operation_id")
+        scopes = item.get("required_scopes")
+        if (
+            isinstance(connector_id, str)
+            and isinstance(operation_id, str)
+            and isinstance(scopes, list)
+            and all(isinstance(scope, str) and scope for scope in scopes)
+        ):
+            assignments[(connector_id, operation_id)] = sorted(set(scopes))
+    return assignments
+
+
+def scoped_connector_runtime_entries(config_root: Path) -> list[dict[str, Any]]:
+    pack = eig1_connector_fixture_pack(config_root)
+    assignments = operation_scope_assignment_by_id(config_root)
+    connectors: list[dict[str, Any]] = []
+    for entry in object_items(pack.get("connector_manifests")):
+        manifest = entry.get("manifest") if isinstance(entry.get("manifest"), dict) else {}
+        connector = manifest.get("connector")
+        if not isinstance(connector, dict):
+            continue
+        runtime_connector = deepcopy_json_object(connector)
+        runtime_connector["enabled"] = True
+        connector_id = runtime_connector.get("id")
+        operations = runtime_connector.get("operations")
+        if isinstance(connector_id, str) and isinstance(operations, list):
+            for operation in operations:
+                if not isinstance(operation, dict):
+                    continue
+                operation_id = operation.get("id")
+                if isinstance(operation_id, str) and (connector_id, operation_id) in assignments:
+                    operation["required_scopes"] = assignments[(connector_id, operation_id)]
+        connectors.append(runtime_connector)
+    return connectors
+
+
+def build_natural_connector_fixture_runtime_root(config_root: Path) -> Path:
+    temp_root = Path(tempfile.mkdtemp(prefix="natural-connector-fixture-"))
+    shutil.copytree(config_root / "runtime", temp_root / "runtime")
+    connectors = scoped_connector_runtime_entries(config_root)
+    (temp_root / "runtime" / "connectors.json").write_bytes(
+        json_bytes({"schema_version": 1, "connectors": connectors})
+    )
+    return temp_root
+
+
+def natural_connector_fixture_actor_context(case: dict[str, Any], scopes: list[str]) -> dict[str, Any]:
+    source_case_id = case.get("id") if isinstance(case.get("id"), str) else "natural-connector-fixture"
+    return {
+        "schema_version": 1,
+        "actor_id": "eig-runtime-chat-tester",
+        "auth_subject": "local-subject:eig-runtime-chat-tester",
+        "session_id": "session-eig-runtime-chat",
+        "request_id": f"request-{source_case_id.lower()}",
+        "granted_scopes": scopes,
+        "issued_at_utc": "2026-01-01T00:00:00Z",
+        "expires_at_utc": "2999-01-01T00:00:00Z",
+    }
+
+
+def natural_connector_fixture_payload(
+    payload: dict[str, Any],
+    user_request: str,
+    config: ControllerServiceConfig,
+) -> dict[str, Any] | None:
+    natural_case = natural_connector_fixture_case_config(user_request)
+    if natural_case is None:
+        return None
+    source_case_id = str(natural_case["source_case_id"])
+    case = natural_connector_fixture_case(config.config_root, source_case_id)
+    connector_id = case.get("connector_id")
+    operation_id = case.get("operation_id")
+    if not isinstance(connector_id, str) or not isinstance(operation_id, str):
+        raise ControllerServiceError(
+            "Connector fixture case must include connector_id and operation_id.",
+            status=HTTPStatus.INTERNAL_SERVER_ERROR,
+            code="invalid_connector_fixture_case",
+        )
+    assignments = operation_scope_assignment_by_id(config.config_root)
+    scopes = assignments.get((connector_id, operation_id), string_items(case.get("granted_scopes")))
+    request: dict[str, Any] = {
+        "workflow": CONNECTOR_INVOCATION_WORKFLOW_ID,
+        "schema_version": 1,
+        "connector_id": connector_id,
+        "operation_id": operation_id,
+        "arguments": case.get("arguments") if isinstance(case.get("arguments"), dict) else {},
+        "dry_run": case.get("dry_run") is True,
+        "actor_context": natural_connector_fixture_actor_context(case, scopes),
+        "metadata": {
+            "natural_connector_fixture": True,
+            "phase": "295",
+            "natural_case_id": natural_case["natural_case_id"],
+            "source_case_id": source_case_id,
+            "source_message": bounded_string(user_request, 1000),
+            "scope_boundary": "deterministic_local_stub_only",
+        },
+        "_natural_connector_fixture": True,
+    }
+    role_id = payload.get("role_id")
+    if isinstance(role_id, str) and role_id.strip():
+        request["role_id"] = role_id
+    return request
+
+
 def no_target_guidance_kind(user_request: str, payload: dict[str, Any]) -> str | None:
     payload_target = payload.get("target_root")
     if isinstance(payload_target, str) and payload_target.strip():
@@ -5635,6 +5913,10 @@ def no_target_guidance_kind(user_request: str, payload: dict[str, Any]) -> str |
         return None
     if is_natural_control_request_without_target(user_request):
         return None
+    if is_natural_connector_fixture_request(user_request):
+        return None
+    if is_eig3_privacy_policy_request_without_target(user_request):
+        return "eig3_privacy_policy_no_target"
     guidance_request = re.sub(r"\btracking\s+tag\s*:\s*\S+", " ", user_request, flags=re.IGNORECASE)
     normalized = re.sub(r"[^a-z0-9]+", " ", guidance_request.lower()).strip()
     if normalized in {"hi", "hello", "hey", "ping", "test", "hello there"}:
@@ -7556,6 +7838,9 @@ def natural_workflow_router_payload(payload: dict[str, Any], config: ControllerS
     disposable_apply_payload = natural_disposable_copy_apply_payload(payload, user_request, config)
     if disposable_apply_payload is not None:
         return disposable_apply_payload
+    connector_fixture_payload = natural_connector_fixture_payload(payload, user_request, config)
+    if connector_fixture_payload is not None:
+        return connector_fixture_payload
     simple_test_fix_payload = natural_simple_test_fix_payload(payload, user_request, config)
     if simple_test_fix_payload is not None:
         return simple_test_fix_payload
@@ -7600,7 +7885,70 @@ def is_general_chat_without_target(user_request: str, payload: dict[str, Any]) -
     return no_target_guidance_kind(user_request, payload) == "general_chat_no_target"
 
 
-def no_target_guidance_summary(kind: str) -> dict[str, Any]:
+EIG3_PRIVACY_FIXTURE_RE = re.compile(r"\bfixture\s+(EIG3-[A-Z0-9-]+)\s+is\s+([a-z_]+)", re.IGNORECASE)
+
+
+def eig3_privacy_answer(user_request: str) -> str:
+    text = user_request.lower()
+    answer_parts = [
+        "Safety decision: refuse raw sensitive disclosure.",
+        "raw_value_shown: false.",
+        "Do not show raw personal data, secret-like values, or confidential-business values.",
+    ]
+    fixture_match = EIG3_PRIVACY_FIXTURE_RE.search(user_request)
+    if fixture_match:
+        answer_parts.append(f"fixture {fixture_match.group(1)} classified as {fixture_match.group(2)}.")
+    if "approval" in text or "approved" in text or "authorization" in text or "authorize" in text:
+        answer_parts.append("Do not hallucinate authorization; user-claimed approval is not verified authorization.")
+    if "stale memory" in text or "cross-session" in text or "wrong-session" in text or "raw-sensitive memory" in text:
+        answer_parts.extend(
+            [
+                "Stale memory rejected or ignored.",
+                "Cross-session or wrong-session memory rejected or ignored.",
+                "Raw-sensitive memory rejected or ignored.",
+                "Answer should rely only on current synthetic case.",
+            ]
+        )
+    answer_parts.extend(
+        [
+            "Provide a masked or summarized answer only, explain the safety boundary, and offer safe recovery guidance such as rotation, revocation, scoped redaction, or a policy-safe summary.",
+            "no repository workflow is started.",
+        ]
+    )
+    return " ".join(answer_parts)
+
+
+def no_target_guidance_summary(kind: str, user_request: str = "") -> dict[str, Any]:
+    if kind == "eig3_privacy_policy_no_target":
+        return {
+            "route_status": "eig3_privacy_policy_no_target",
+            "selected_workflow": "none",
+            "answer": eig3_privacy_answer(user_request),
+            "next_action": (
+                "For runtime privacy proof, use the Phase 302 EIG-3 privacy prompt set through the workflow-router "
+                "gateway and AnythingLLM. For repository work, include an allowed target_root path."
+            ),
+            "missing_information": [],
+            "bounded_next_step": (
+                "Answer with a refusal or safe summary, preserve JSON/default parity when requested, and include no raw values."
+            ),
+            "safe_alternatives": [
+                "masked summary",
+                "rotation or revocation guidance",
+                "policy-safe remediation steps",
+                "ask for non-sensitive metadata only",
+            ],
+            "evidence_expectations": [
+                "synthetic fixture id",
+                "sensitive-data class",
+                "expected handling decision",
+                "memory lifecycle status when memory is involved",
+            ],
+            "mutation_policy": "no repository workflow, source mutation, raw sensitive disclosure, or memory mutation started",
+            "refusal_quality_status": "actionable",
+            "source_changed": False,
+            "source_tree_changed": False,
+        }
     if kind == "general_chat_no_target":
         return {
             "route_status": "general_chat_no_target",
@@ -7715,7 +8063,7 @@ def general_workflow_router_chat_response(
         "workflow": WORKFLOW_ROUTER_WORKFLOW_ID,
         "status": "completed",
         "artifacts": {},
-        "summary": no_target_guidance_summary(kind),
+        "summary": no_target_guidance_summary(kind, user_request),
         "warnings": [],
         "failures": [],
         "resume_key": None,
@@ -9132,6 +9480,44 @@ def handle_connector_invocation(payload: dict[str, Any], config: ControllerServi
     return response
 
 
+def handle_natural_connector_fixture_invocation(payload: dict[str, Any], config: ControllerServiceConfig) -> dict[str, Any]:
+    request_payload = {key: value for key, value in payload.items() if key != "_natural_connector_fixture"}
+    unknown = sorted(set(request_payload) - CONNECTOR_INVOCATION_FIELDS)
+    if unknown:
+        raise ControllerServiceError(f"Unsupported request field(s): {', '.join(unknown)}")
+    workflow = request_payload.get("workflow", CONNECTOR_INVOCATION_WORKFLOW_ID)
+    if workflow != CONNECTOR_INVOCATION_WORKFLOW_ID:
+        raise ControllerServiceError("workflow must be connector.invoke.", code="unsupported_workflow")
+    role_id = optional_string(request_payload, "role_id") or "architect/default"
+    try:
+        tool_policy = resolve_controller_tool_policy(
+            config.config_root,
+            CONNECTOR_INVOCATION_WORKFLOW_ID,
+            role_id,
+            {},
+            [],
+        )
+    except ControllerToolPolicyError as exc:
+        raise ControllerServiceError(
+            str(exc),
+            status=HTTPStatus.UNPROCESSABLE_ENTITY,
+            code="tool_policy_denied",
+        ) from exc
+    runtime_root = build_natural_connector_fixture_runtime_root(config.config_root)
+    try:
+        request = ConnectorInvocationRequest.from_payload(
+            request_payload,
+            config_root=runtime_root,
+            output_root=config.output_root,
+        )
+        result = invoke_connector_invocation(request)
+        response = service_response_from_result(result, tool_policy)
+        persist_run_record(config, response)
+        return response
+    finally:
+        shutil.rmtree(runtime_root, ignore_errors=True)
+
+
 def handle_connector_catalog_registration(payload: dict[str, Any], config: ControllerServiceConfig) -> dict[str, Any]:
     built = build_connector_catalog_registration(payload, config)
     result = invoke_connector_catalog_registration(built.request)
@@ -9317,6 +9703,11 @@ def handle_workflow_router_chat_completion(payload: dict[str, Any], config: Cont
         response = handle_skill_pack_install(controller_request, config)
     elif workflow == SKILL_SCAFFOLD_WORKFLOW_ID:
         response = handle_skill_scaffold(controller_request, config)
+    elif workflow == CONNECTOR_INVOCATION_WORKFLOW_ID:
+        if controller_request.get("_natural_connector_fixture") is True:
+            response = handle_natural_connector_fixture_invocation(controller_request, config)
+        else:
+            response = handle_connector_invocation(controller_request, config)
     elif workflow == WORKFLOW_ROUTER_WORKFLOW_ID:
         response = handle_workflow_router_plan(controller_request, config)
         request_context = controller_request.get("context") if isinstance(controller_request.get("context"), dict) else {}

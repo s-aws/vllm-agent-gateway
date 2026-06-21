@@ -101,6 +101,7 @@ def test_phase237_target_settings_accepts_split_anythingllm_base_url() -> None:
     result = target_settings_result(
         AnythingLLMFreshChatResponsivenessConfig(
             config_root=Path("."),
+            anythingllm_api_base_url="http://192.168.0.208:3001",
             workflow_router_gateway_base_url="http://127.0.0.1:8500/v1",
             anythingllm_workflow_router_base_url="http://100.100.12.45:8500/v1",
         ),
@@ -114,6 +115,8 @@ def test_phase237_target_settings_accepts_split_anythingllm_base_url() -> None:
     )
 
     assert result["status"] == FreshChatStatus.PASSED.value
+    assert result["required"]["api_base_url"] == "http://192.168.0.208:3001"
+    assert result["required"]["policy_api_base_url"] == "http://127.0.0.1:3001"
     assert result["required"]["workflow_router_base_url"] == "http://100.100.12.45:8500/v1"
     assert result["policy_required"]["workflow_router_base_url"] == "http://127.0.0.1:8500/v1"
 

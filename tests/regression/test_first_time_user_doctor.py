@@ -71,6 +71,7 @@ def fake_json_request_factory(
     config_root: Path,
     target_roots: tuple[Path, ...],
     anythingllm_base: str = "http://127.0.0.1:8500/v1",
+    chat_mode: str = "chat",
     allowed_roots: list[str] | None = None,
 ):
     allowed = allowed_roots or [str(config_root), *(str(root) for root in target_roots)]
@@ -110,6 +111,8 @@ def fake_json_request_factory(
             return 200, {"online": True}
         if url == "http://127.0.0.1:3001/api/v1/workspaces":
             return 200, {"workspaces": [{"slug": "my-workspace"}]}
+        if url == "http://127.0.0.1:3001/api/workspace/my-workspace":
+            return 200, {"workspace": {"slug": "my-workspace", "chatMode": chat_mode}}
         if url == "http://127.0.0.1:3001/api/v1/system":
             return 200, {"settings": {"GenericOpenAiBasePath": anythingllm_base}}
         raise AssertionError(f"unexpected URL {url}")
@@ -171,6 +174,27 @@ def test_first_time_user_doctor_fails_when_anythingllm_points_to_wrong_gateway(t
 
     assert report["status"] == "failed"
     assert "anythingllm.target_url" in report["summary"]["failed_check_ids"]
+
+
+def test_first_time_user_doctor_fails_when_anythingllm_chat_mode_is_automatic(tmp_path: Path, monkeypatch) -> None:
+    config, roots = doctor_config(tmp_path)
+    monkeypatch.setenv("ANYTHINGLLM_API_KEY", "test-key")
+    monkeypatch.setattr(
+        doctor,
+        "json_request",
+        fake_json_request_factory(
+            config_root=config.config_root,
+            target_roots=roots,
+            chat_mode="automatic",
+        ),
+    )
+
+    report = run_first_time_user_doctor(config)
+
+    assert report["status"] == "failed"
+    assert "anythingllm.chat_mode" in report["summary"]["failed_check_ids"]
+    chat_mode_check = next(item for item in report["checks"] if item["id"] == "anythingllm.chat_mode")
+    assert "automatic mode invokes AnythingLLM agent mode" in chat_mode_check["next_action"]
 
 
 def test_first_time_user_doctor_fails_when_controller_allowed_roots_are_missing(tmp_path: Path, monkeypatch) -> None:

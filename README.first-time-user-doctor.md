@@ -29,6 +29,15 @@ if (-not $key) { throw 'ANYTHINGLLM_API_KEY is not set in Windows environment' }
 wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$key" python3 scripts/run_first_time_user_doctor.py
 ```
 
+If `127.0.0.1:3001` is owned by another local app, pass the reachable AnythingLLM API network URL explicitly:
+
+```powershell
+$key=$env:ANYTHINGLLM_API_KEY
+wsl.exe --cd /mnt/c/agentic_agents -- env "ANYTHINGLLM_API_KEY=$key" python3 scripts/run_first_time_user_doctor.py `
+  --anythingllm-api-base-url http://192.168.0.208:3001 `
+  --expected-anythingllm-llm-base-url http://100.100.12.45:8500/v1
+```
+
 Expected markers:
 
 ```text
@@ -60,6 +69,7 @@ The most common blocking failures are:
 
 - `anythingllm.api_key`: set `ANYTHINGLLM_API_KEY` in Windows and inject it into WSL with the command shown in `checks[].details.powershell_wsl_env_example`.
 - `anythingllm.target_url`: point AnythingLLM at `http://127.0.0.1:8500/v1`.
+- `anythingllm.ping` or `anythingllm.workspace` with HTTP `404`: `127.0.0.1:3001` may be a different local app; rerun with `--anythingllm-api-base-url` set to the reachable network AnythingLLM API URL.
 - `controller.allowed_roots`: restart the stack with the project and both frozen repos in `CONTROLLER_ALLOWED_TARGET_ROOTS`.
 - `port.workflow_router_gateway`: restart the local harness from Bash.
 - `fixtures.coinbase-frozen-git`: restore the git-enabled frozen fixture if content changed; line-ending-only Bash git noise is reported as a warning.

@@ -99,6 +99,33 @@ Expected rejection code:
 unsafe_connector_write_operation
 ```
 
+Operation-level scope narrowing for an `oauth_user_scope` connector:
+
+```json
+{
+  "auth": {
+    "type": "oauth_user_scope",
+    "required_scopes": ["tickets:read", "tickets:write"]
+  },
+  "operations": [
+    {
+      "id": "lookup_ticket",
+      "operation_class": "read",
+      "approval_required": false,
+      "required_scopes": ["tickets:read"]
+    },
+    {
+      "id": "dry_run_update_ticket",
+      "operation_class": "write",
+      "approval_required": true,
+      "required_scopes": ["tickets:write"]
+    }
+  ]
+}
+```
+
+The operation scopes must be non-empty subsets of the connector-level `auth.required_scopes`. If an operation omits `required_scopes`, connector-level scopes remain the fallback.
+
 Run the focused regression gate:
 
 ```bash
@@ -294,6 +321,7 @@ Write-class connector dry-run approval:
     "actor_id": "tester-actor",
     "session_id": "session-001",
     "request_id": "request-002",
+    "granted_scopes": ["tickets:write"],
     "approval_refs": ["approved-change-record"]
   }
 }

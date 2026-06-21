@@ -1,0 +1,76 @@
+{
+  "benchmark_policy": {
+    "answer_minimum_score": 85,
+    "chat_overhead_token_allowance": 1024,
+    "hardware_memory_snapshot_required": true,
+    "max_model_len_required": 262144,
+    "metrics_snapshot_required": false,
+    "raw_500k_prompt_support_claim_allowed": false,
+    "tokenizer_required": true
+  },
+  "context_classes": [
+    {
+      "id": "ctx-32k",
+      "label": "32K",
+      "max_output_tokens": 128,
+      "minimum_prompt_tokens": 30000,
+      "target_context_tokens": 32768,
+      "timeout_seconds": 180
+    },
+    {
+      "id": "ctx-64k",
+      "label": "64K",
+      "max_output_tokens": 128,
+      "minimum_prompt_tokens": 62000,
+      "target_context_tokens": 65536,
+      "timeout_seconds": 300
+    },
+    {
+      "id": "ctx-128k",
+      "label": "128K",
+      "max_output_tokens": 128,
+      "minimum_prompt_tokens": 125000,
+      "target_context_tokens": 131072,
+      "timeout_seconds": 600
+    },
+    {
+      "id": "ctx-256k",
+      "label": "256K",
+      "max_output_tokens": 128,
+      "minimum_prompt_tokens": 245000,
+      "target_context_tokens": 262144,
+      "timeout_seconds": 900
+    }
+  ],
+  "expected_answer": {
+    "forbidden_controlling_fragments": [
+      "controlling decision id is SILVER-11",
+      "current decision is SILVER-11",
+      "use SILVER-11"
+    ],
+    "must_include_fragments": [
+      "BRIDGE-42",
+      "LANTERN-29",
+      "ALPHA-32",
+      "BRAVO-64",
+      "CHARLIE-128",
+      "DELTA-256",
+      "SILVER-11"
+    ]
+  },
+  "kind": "context_ceiling_benchmark_policy",
+  "model": {
+    "base_url": "http://127.0.0.1:8000",
+    "expected_model": "Qwen3-Coder-30B-A3B-Instruct"
+  },
+  "phase": 318,
+  "priority_backlog_id": "P0-M7-318",
+  "required_claim_boundaries": [
+    "measures_raw_prompt_classes_only",
+    "does_not_claim_raw_500k_prompt_support",
+    "does_not_change_supported_500k_project_usability_path",
+    "does_not_mutate_runtime_baseline_corpus",
+    "does_not_promote_eig_candidates"
+  ],
+  "schema_version": 1
+}

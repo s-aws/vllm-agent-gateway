@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from vllm_agent_gateway.acceptance.productized_setup import CommandExecutionResult
 from vllm_agent_gateway.acceptance.stable_release_reset_rehearsal import (
     DEFAULT_DISPOSABLE_RUNTIME_STATE_ROOT,
@@ -22,6 +24,7 @@ from vllm_agent_gateway.acceptance.stable_release_reset_rehearsal import (
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 POLICY_PATH = REPO_ROOT / DEFAULT_POLICY_PATH
+pytestmark = pytest.mark.serial
 
 
 def policy() -> dict[str, Any]:

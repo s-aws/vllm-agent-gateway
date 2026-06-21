@@ -21,7 +21,8 @@ AnythingLLM Desktop exposes its backend API on `http://127.0.0.1:3001`, but the 
 ## Prerequisites
 
 - AnythingLLM Desktop is installed and running.
-- AnythingLLM is configured to use `http://127.0.0.1:8500/v1`.
+- AnythingLLM is configured to use the workflow-router gateway. On split Windows/WSL hosts, this is usually the WSL network URL printed by `start-agent-prompt-proxies.sh`, while Bash-side validators still use `http://127.0.0.1:8500/v1` internally.
+- The AnythingLLM workspace chat mode is `chat`, not `automatic`.
 - `ANYTHINGLLM_API_KEY` is available in the Windows user environment.
 - Python Playwright is installed: `pip install playwright`.
 - A Playwright browser is installed. The default uses bundled Chromium; run `python -m playwright install chromium` if needed.
@@ -50,6 +51,27 @@ Reports and screenshots are written under:
 
 ```text
 runtime-state/anythingllm-ui/
+```
+
+From Bash/WSL on the current split-address host, pass the AnythingLLM API base reachable from Bash:
+
+```bash
+export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
+python3 scripts/validate_anythingllm_ui_e2e.py \
+  --anythingllm-api-base-url http://192.168.0.208:3001 \
+  --workspace my-workspace \
+  --ui-dist-root runtime-state/anythingllm-ui/asar-dist/dist \
+  --timeout-seconds 900 \
+  --output-path runtime-state/anythingllm-ui/phase335/phase335-priority0-ui-replay.json \
+  --case-id UI126-CQ116-001 \
+  --case-id UI126-CQ116-009 \
+  --case-id UI126-DD117-001 \
+  --case-id UI126-DD117-002 \
+  --case-id UI126-EJ118-001 \
+  --case-id UI126-EJ118-002 \
+  --case-id UI126-DM119-001 \
+  --case-id UI126-DM119-002 \
+  --case-id UI167-GENCHAT-001
 ```
 
 ## Safety
@@ -100,5 +122,7 @@ It records watched-file hashes and git status before and after the UI run. The r
 ## Notes
 
 The validator can run from Bash or PowerShell when the selected Playwright browser is available. Pass `--browser-channel chrome` only when intentionally using a Windows/system Chrome channel.
+
+If the report shows `@agent: Swapping over to agent chat`, the AnythingLLM workspace is in agent/automatic mode. Set the workspace `chatMode` to `chat` before UI testing; `automatic` mode does not exercise the workflow-router chat answer path.
 
 See [docs/examples/anythingllm-ui-e2e.md](docs/examples/anythingllm-ui-e2e.md) for commands and troubleshooting.

@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "kind": "eig2_approval_replay_breadth_policy",
+  "milestones": [
+    "M21",
+    "M22",
+    "M30"
+  ],
+  "actor_scope_policy": "runtime/eig2_actor_scope_breadth_policy.json",
+  "scope_boundary": {
+    "execution": "local_stub_only",
+    "approval_binding": "actor_session_request_connector_operation_scope_state",
+    "audit_model": "local_replay_safe_artifacts_only",
+    "real_oauth_provider_allowed": false,
+    "external_network_allowed": false,
+    "raw_mcp_allowed": false,
+    "direct_model_tool_access_allowed": false,
+    "runtime_registry_mutation_allowed": false,
+    "target_repository_mutation_allowed": false,
+    "external_audit_sink_allowed": false
+  },
+  "approval_replay_cases": [
+    {
+      "id": "EIG2-APPROVAL-ALLOW",
+      "scenario": "approved_dry_run_success",
+      "source_case_id": "EIG1-WORK-R3",
+      "actor_granted_scopes": [
+        "work:write"
+      ],
+      "dry_run": true,
+      "approval_mutation": "none",
+      "expected_report_status": "completed"
+    },
+    {
+      "id": "EIG2-APPROVAL-WRONG-ACTOR",
+      "scenario": "wrong_actor",
+      "source_case_id": "EIG1-WORK-R3",
+      "actor_granted_scopes": [
+        "work:write"
+      ],
+      "dry_run": true,
+      "approval_mutation": "wrong_actor",
+      "expected_report_status": "failed",
+      "expected_error_code": "stale_connector_invocation_approval"
+    },
+    {
+      "id": "EIG2-APPROVAL-WRONG-SESSION",
+      "scenario": "wrong_session",
+      "source_case_id": "EIG1-WORK-R3",
+      "actor_granted_scopes": [
+        "work:write"
+      ],
+      "dry_run": true,
+      "approval_mutation": "wrong_session",
+      "expected_report_status": "failed",
+      "expected_error_code": "stale_connector_invocation_approval"
+    },
+    {
+      "id": "EIG2-APPROVAL-WRONG-REQUEST",
+      "scenario": "wrong_request",
+      "source_case_id": "EIG1-WORK-R3",
+      "actor_granted_scopes": [
+        "work:write"
+      ],
+      "dry_run": true,
+      "approval_mutation": "wrong_request",
+      "expected_report_status": "failed",
+      "expected_error_code": "stale_connector_invocation_approval"
+    },
+    {
+      "id": "EIG2-APPROVAL-WRONG-CONNECTOR",
+      "scenario": "wrong_connector",
+      "source_case_id": "EIG1-WORK-R3",
+      "actor_granted_scopes": [
+        "work:write"
+      ],
+      "dry_run": true,
+      "approval_mutation": "wrong_connector",
+      "expected_report_status": "failed",
+      "expected_error_code": "stale_connector_invocation_approval"
+    },
+    {
+      "id": "EIG2-APPROVAL-WRONG-OPERATION",
+      "scenario": "wrong_operation",
+      "source_case_id": "EIG1-WORK-R3",
+      "actor_granted_scopes": [
+        "work:write"
+      ],
+      "dry_run": true,
+      "approval_mutation": "wrong_operation",
+      "expected_report_status": "failed",
+      "expected_error_code": "stale_connector_invocation_approval"
+    },
+    {
+      "id": "EIG2-APPROVAL-MISSING-SCOPE-STATE",
+      "scenario": "stale_approval_scope_state",
+      "source_case_id": "EIG1-WORK-R3",
+      "actor_granted_scopes": [
+        "work:write"
+      ],
+      "dry_run": true,
+      "approval_mutation": "missing_scope_state",
+      "expected_report_status": "failed",
+      "expected_error_code": "stale_connector_invocation_approval"
+    },
+    {
+      "id": "EIG2-APPROVAL-SCOPE-CHANGE",
+      "scenario": "scope_change",
+      "source_case_id": "EIG1-WORK-R3",
+      "actor_granted_scopes": [
+        "work:write",
+        "records:read"
+      ],
+      "approval_granted_scopes": [
+        "work:write"
+      ],
+      "dry_run": true,
+      "approval_mutation": "scope_change",
+      "expected_report_status": "failed",
+      "expected_error_code": "stale_connector_invocation_approval"
+    },
+    {
+      "id": "EIG2-APPROVAL-NON-DRY-RUN",
+      "scenario": "non_dry_run_write",
+      "source_case_id": "EIG1-WORK-R3",
+      "actor_granted_scopes": [
+        "work:write"
+      ],
+      "dry_run": false,
+      "approval_mutation": "none",
+      "expected_report_status": "failed",
+      "expected_error_code": "connector_write_execution_not_supported"
+    }
+  ],
+  "deferred_items": [
+    {
+      "id": "EIG2-APPROVAL-D1",
+      "item": "real_approval_store_or_signature",
+      "reason": "Phase 294 proves local replay-safe approval binding only."
+    },
+    {
+      "id": "EIG2-APPROVAL-D2",
+      "item": "external_audit_sink_integration",
+      "reason": "Phase 294 writes local deterministic proof artifacts only."
+    },
+    {
+      "id": "EIG2-APPROVAL-D3",
+      "item": "natural_language_connector_chat_proof",
+      "reason": "Natural workflow exposure is Phase 295."
+    }
+  ]
+}

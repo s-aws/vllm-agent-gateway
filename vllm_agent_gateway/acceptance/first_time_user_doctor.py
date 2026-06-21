@@ -244,6 +244,17 @@ def find_key(value: Any, key: str) -> Any:
     return None
 
 
+def workspace_object_from_body(body: dict[str, Any]) -> dict[str, Any]:
+    workspace = body.get("workspace")
+    if isinstance(workspace, dict):
+        return workspace
+    if isinstance(workspace, list):
+        for item in workspace:
+            if isinstance(item, dict):
+                return item
+    return {}
+
+
 def json_request(
     url: str,
     *,
@@ -549,7 +560,7 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                 )
             )
     if not api_key:
-        for check_id in ("anythingllm.ping", "anythingllm.workspace", "anythingllm.target_url"):
+        for check_id in ("anythingllm.ping", "anythingllm.workspace", "anythingllm.chat_mode", "anythingllm.target_url"):
             checks.append(
                 check(
                     check_id,
@@ -591,14 +602,27 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
             headers=headers,
             timeout_seconds=config.timeout_seconds,
         )
-        workspaces = workspace_body.get("workspaces") if isinstance(workspace_body, dict) else []
+        raw_workspaces = workspace_body.get("workspaces") if isinstance(workspace_body, dict) else []
+        workspaces = raw_workspaces if isinstance(raw_workspaces, list) else []
         slugs = [str(item.get("slug")) for item in workspaces if isinstance(item, dict) and item.get("slug")]
         found = config.workspace in slugs
+        workspace_message = (
+            f"AnythingLLM workspace {config.workspace!r} {'was found' if found else 'was not found'}."
+            if workspace_status == 200
+            else f"AnythingLLM workspace lookup returned HTTP {workspace_status}."
+        )
+        workspace_next_action = (
+            ""
+            if found
+            else "Create the workspace or pass --workspace with an existing AnythingLLM workspace slug."
+            if workspace_status == 200
+            else "Start AnythingLLM or correct --anythingllm-api-base-url."
+        )
         checks.append(
             check(
                 "anythingllm.workspace",
                 DoctorStatus.PASSED if workspace_status == 200 and found else DoctorStatus.FAILED,
-                f"AnythingLLM workspace {config.workspace!r} {'was found' if found else 'was not found'}.",
+                workspace_message,
                 category="anythingllm",
                 details={
                     "url": f"{api_root}/api/v1/workspaces",
@@ -607,7 +631,7 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                     "workspace_found": found,
                     "workspace_slugs": slugs,
                 },
-                next_action="" if found else "Create the workspace or pass --workspace with an existing AnythingLLM workspace slug.",
+                next_action=workspace_next_action,
             )
         )
     except Exception as exc:  # noqa: BLE001
@@ -617,6 +641,46 @@ def anythingllm_checks(config: FirstTimeUserDoctorConfig) -> list[dict[str, Any]
                 f"AnythingLLM workspace lookup failed: {type(exc).__name__}: {exc}",
                 category="anythingllm",
                 details={"url": f"{api_root}/api/v1/workspaces", **exception_details(exc)},
+                next_action="Check ANYTHINGLLM_API_KEY and the AnythingLLM API base URL.",
+            )
+        )
+    try:
+        workspace_detail_status, workspace_detail_body = run_get_json(
+            f"{api_root}/api/workspace/{config.workspace}",
+            headers=headers,
+            timeout_seconds=config.timeout_seconds,
+        )
+        workspace_detail = workspace_object_from_body(
+            workspace_detail_body if isinstance(workspace_detail_body, dict) else {}
+        )
+        chat_mode = workspace_detail.get("chatMode") if isinstance(workspace_detail.get("chatMode"), str) else None
+        passed = workspace_detail_status == 200 and chat_mode == "chat"
+        checks.append(
+            check(
+                "anythingllm.chat_mode",
+                DoctorStatus.PASSED if passed else DoctorStatus.FAILED,
+                "AnythingLLM workspace chatMode is chat."
+                if passed
+                else "AnythingLLM workspace chatMode is not configured for normal chat.",
+                category="anythingllm",
+                details={
+                    "url": f"{api_root}/api/workspace/{config.workspace}",
+                    "http_status": workspace_detail_status,
+                    "workspace": config.workspace,
+                    "chatMode": chat_mode,
+                },
+                next_action=""
+                if passed
+                else "Set the AnythingLLM workspace chat mode to chat; automatic mode invokes AnythingLLM agent mode on /stream-chat.",
+            )
+        )
+    except Exception as exc:  # noqa: BLE001
+        checks.append(
+            failed_check(
+                "anythingllm.chat_mode",
+                f"AnythingLLM workspace detail lookup failed: {type(exc).__name__}: {exc}",
+                category="anythingllm",
+                details={"url": f"{api_root}/api/workspace/{config.workspace}", **exception_details(exc)},
                 next_action="Check ANYTHINGLLM_API_KEY and the AnythingLLM API base URL.",
             )
         )

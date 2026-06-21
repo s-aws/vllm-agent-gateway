@@ -1,0 +1,637 @@
+{
+  "schema_version": 1,
+  "kind": "eig1_connector_breadth_fixtures",
+  "milestones": [
+    "M17",
+    "M18",
+    "M26"
+  ],
+  "source_matrix": "docs/EIG1_CONNECTOR_ARCHETYPE_BREADTH_MATRIX.md",
+  "scope_boundary": {
+    "execution": "local_stub_only",
+    "mediation": "controller_owned",
+    "external_network_allowed": false,
+    "raw_mcp_allowed": false,
+    "direct_model_tool_access_allowed": false,
+    "runtime_registry_mutation_allowed": false,
+    "target_repository_mutation_allowed": false
+  },
+  "connector_manifests": [
+    {
+      "archetype": "work_tracking",
+      "required": true,
+      "manifest": {
+        "schema_version": 1,
+        "kind": "connector_admission_manifest",
+        "connector": {
+          "id": "work_tracking_stub",
+          "owner": "agentic_agents",
+          "description": "Deterministic local work-tracking connector used for EIG-1 breadth validation only.",
+          "protocol": "local_stub",
+          "mediation": "controller_owned",
+          "auth": {
+            "type": "oauth_user_scope",
+            "required_scopes": [
+              "work:read",
+              "work:write"
+            ]
+          },
+          "safety": {
+            "data_classification": "internal",
+            "pii_policy": "masked_required",
+            "external_network": false,
+            "raw_mcp_allowed": false,
+            "direct_model_tool_access": false
+          },
+          "operations": [
+            {
+              "id": "lookup_work_item",
+              "description": "Look up one deterministic work item by identifier for EIG-1 breadth validation.",
+              "operation_class": "read",
+              "approval_required": false,
+              "input_schema": {
+                "type": "object",
+                "properties": {
+                  "work_item_id": {
+                    "type": "string"
+                  },
+                  "include_history": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "work_item_id"
+                ]
+              },
+              "output_schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "priority": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status",
+                  "title"
+                ]
+              },
+              "allowed_workflows": [
+                "workflow_router.plan"
+              ],
+              "eval_fixtures": [
+                "connector_eval.work_tracking.lookup_work_item.basic",
+                "connector_eval.work_tracking.lookup_work_item.json",
+                "connector_eval.work_tracking.lookup_work_item.holdout"
+              ],
+              "stub_response": {
+                "status": "open",
+                "title": "Synthetic work item ready for review",
+                "priority": "medium"
+              }
+            },
+            {
+              "id": "dry_run_update_work_item",
+              "description": "Prepare a deterministic dry-run work item update without applying a mutation.",
+              "operation_class": "write",
+              "approval_required": true,
+              "input_schema": {
+                "type": "object",
+                "properties": {
+                  "work_item_id": {
+                    "type": "string"
+                  },
+                  "new_status": {
+                    "type": "string"
+                  },
+                  "comment": {
+                    "type": "string"
+                  },
+                  "notify_watchers": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "work_item_id",
+                  "new_status",
+                  "comment"
+                ]
+              },
+              "output_schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "would_update": {
+                    "type": "boolean"
+                  },
+                  "requires_approval": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "status",
+                  "would_update",
+                  "requires_approval"
+                ]
+              },
+              "allowed_workflows": [
+                "workflow_router.plan"
+              ],
+              "eval_fixtures": [
+                "connector_eval.work_tracking.dry_run_update_work_item.basic",
+                "connector_eval.work_tracking.dry_run_update_work_item.denial",
+                "connector_eval.work_tracking.dry_run_update_work_item.holdout"
+              ],
+              "stub_response": {
+                "status": "dry_run_update_ready",
+                "would_update": true,
+                "requires_approval": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "archetype": "knowledge_lookup",
+      "required": true,
+      "manifest": {
+        "schema_version": 1,
+        "kind": "connector_admission_manifest",
+        "connector": {
+          "id": "knowledge_lookup_stub",
+          "owner": "agentic_agents",
+          "description": "Deterministic local knowledge lookup connector used for EIG-1 breadth validation only.",
+          "protocol": "local_stub",
+          "mediation": "controller_owned",
+          "auth": {
+            "type": "service_read_only",
+            "required_scopes": []
+          },
+          "safety": {
+            "data_classification": "internal",
+            "pii_policy": "not_allowed",
+            "external_network": false,
+            "raw_mcp_allowed": false,
+            "direct_model_tool_access": false
+          },
+          "operations": [
+            {
+              "id": "search_documents",
+              "description": "Search deterministic knowledge records with bounded result metadata.",
+              "operation_class": "read",
+              "approval_required": false,
+              "input_schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  },
+                  "limit": {
+                    "type": "integer"
+                  },
+                  "filters": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              },
+              "output_schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "result_count": {
+                    "type": "integer"
+                  },
+                  "top_titles": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "status",
+                  "result_count"
+                ]
+              },
+              "allowed_workflows": [
+                "workflow_router.plan"
+              ],
+              "eval_fixtures": [
+                "connector_eval.knowledge_lookup.search_documents.basic",
+                "connector_eval.knowledge_lookup.search_documents.filtered",
+                "connector_eval.knowledge_lookup.search_documents.holdout"
+              ],
+              "stub_response": {
+                "status": "found",
+                "result_count": 2,
+                "top_titles": [
+                  "Synthetic runbook",
+                  "Synthetic policy note"
+                ]
+              }
+            },
+            {
+              "id": "read_document_summary",
+              "description": "Read a deterministic document summary with source references.",
+              "operation_class": "read",
+              "approval_required": false,
+              "input_schema": {
+                "type": "object",
+                "properties": {
+                  "document_id": {
+                    "type": "string"
+                  },
+                  "include_sections": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "document_id"
+                ]
+              },
+              "output_schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "summary": {
+                    "type": "string"
+                  },
+                  "source_refs": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "status",
+                  "summary"
+                ]
+              },
+              "allowed_workflows": [
+                "workflow_router.plan"
+              ],
+              "eval_fixtures": [
+                "connector_eval.knowledge_lookup.read_document_summary.basic",
+                "connector_eval.knowledge_lookup.read_document_summary.holdout"
+              ],
+              "stub_response": {
+                "status": "summarized",
+                "summary": "Synthetic document summary for connector breadth validation.",
+                "source_refs": [
+                  "doc:synthetic-runbook#section-1"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "archetype": "business_record",
+      "required": true,
+      "manifest": {
+        "schema_version": 1,
+        "kind": "connector_admission_manifest",
+        "connector": {
+          "id": "business_record_stub",
+          "owner": "agentic_agents",
+          "description": "Deterministic local structured business record connector used for EIG-1 breadth validation only.",
+          "protocol": "local_stub",
+          "mediation": "controller_owned",
+          "auth": {
+            "type": "oauth_user_scope",
+            "required_scopes": [
+              "records:read"
+            ]
+          },
+          "safety": {
+            "data_classification": "internal",
+            "pii_policy": "masked_required",
+            "external_network": false,
+            "raw_mcp_allowed": false,
+            "direct_model_tool_access": false
+          },
+          "operations": [
+            {
+              "id": "lookup_business_record",
+              "description": "Look up one deterministic structured business record with typed filters.",
+              "operation_class": "read",
+              "approval_required": false,
+              "input_schema": {
+                "type": "object",
+                "properties": {
+                  "record_id": {
+                    "type": "string"
+                  },
+                  "include_metrics": {
+                    "type": "boolean"
+                  },
+                  "filters": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "record_id",
+                  "include_metrics"
+                ]
+              },
+              "output_schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "record_state": {
+                    "type": "string"
+                  },
+                  "metric_count": {
+                    "type": "integer"
+                  },
+                  "flags": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "status",
+                  "record_state"
+                ]
+              },
+              "allowed_workflows": [
+                "workflow_router.plan"
+              ],
+              "eval_fixtures": [
+                "connector_eval.business_record.lookup_business_record.basic",
+                "connector_eval.business_record.lookup_business_record.metrics",
+                "connector_eval.business_record.lookup_business_record.holdout"
+              ],
+              "stub_response": {
+                "status": "found",
+                "record_state": "active",
+                "metric_count": 3,
+                "flags": [
+                  "synthetic"
+                ]
+              }
+            },
+            {
+              "id": "query_business_records",
+              "description": "Query deterministic structured business records with typed query fields.",
+              "operation_class": "read",
+              "approval_required": false,
+              "input_schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  },
+                  "limit": {
+                    "type": "integer"
+                  },
+                  "tags": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              },
+              "output_schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "result_count": {
+                    "type": "integer"
+                  },
+                  "record_ids": {
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "status",
+                  "result_count"
+                ]
+              },
+              "allowed_workflows": [
+                "workflow_router.plan"
+              ],
+              "eval_fixtures": [
+                "connector_eval.business_record.query_business_records.basic",
+                "connector_eval.business_record.query_business_records.holdout"
+              ],
+              "stub_response": {
+                "status": "found",
+                "result_count": 2,
+                "record_ids": [
+                  "BR-SYN-001",
+                  "BR-SYN-002"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "positive_invocation_cases": [
+    {
+      "id": "EIG1-WORK-R2",
+      "archetype": "work_tracking",
+      "connector_id": "work_tracking_stub",
+      "operation_id": "lookup_work_item",
+      "arguments": {
+        "work_item_id": "WORK-SYN-1042",
+        "include_history": true
+      },
+      "dry_run": true,
+      "granted_scopes": [
+        "work:read",
+        "work:write"
+      ],
+      "expected_operation_class": "read"
+    },
+    {
+      "id": "EIG1-WORK-R3",
+      "archetype": "work_tracking",
+      "connector_id": "work_tracking_stub",
+      "operation_id": "dry_run_update_work_item",
+      "arguments": {
+        "work_item_id": "WORK-SYN-1042",
+        "new_status": "review_ready",
+        "comment": "Synthetic dry-run update.",
+        "notify_watchers": false
+      },
+      "dry_run": true,
+      "granted_scopes": [
+        "work:read",
+        "work:write"
+      ],
+      "approval_required": true,
+      "expected_operation_class": "write"
+    },
+    {
+      "id": "EIG1-KNOW-R2",
+      "archetype": "knowledge_lookup",
+      "connector_id": "knowledge_lookup_stub",
+      "operation_id": "search_documents",
+      "arguments": {
+        "query": "synthetic runbook",
+        "limit": 2,
+        "filters": {
+          "document_type": "runbook"
+        }
+      },
+      "dry_run": true,
+      "granted_scopes": [],
+      "expected_operation_class": "read"
+    },
+    {
+      "id": "EIG1-KNOW-R3",
+      "archetype": "knowledge_lookup",
+      "connector_id": "knowledge_lookup_stub",
+      "operation_id": "read_document_summary",
+      "arguments": {
+        "document_id": "DOC-SYN-1",
+        "include_sections": [
+          "overview"
+        ]
+      },
+      "dry_run": true,
+      "granted_scopes": [],
+      "expected_operation_class": "read"
+    },
+    {
+      "id": "EIG1-REC-R2",
+      "archetype": "business_record",
+      "connector_id": "business_record_stub",
+      "operation_id": "lookup_business_record",
+      "arguments": {
+        "record_id": "BR-SYN-001",
+        "include_metrics": true,
+        "filters": {
+          "region": "synthetic"
+        }
+      },
+      "dry_run": true,
+      "granted_scopes": [
+        "records:read"
+      ],
+      "expected_operation_class": "read"
+    },
+    {
+      "id": "EIG1-REC-R3",
+      "archetype": "business_record",
+      "connector_id": "business_record_stub",
+      "operation_id": "query_business_records",
+      "arguments": {
+        "query": "synthetic account status",
+        "limit": 2,
+        "tags": [
+          "synthetic"
+        ]
+      },
+      "dry_run": true,
+      "granted_scopes": [
+        "records:read"
+      ],
+      "expected_operation_class": "read"
+    }
+  ],
+  "negative_controls": [
+    {
+      "id": "EIG1-X-N1",
+      "scenario": "unknown_connector",
+      "expected_error_code": "unknown_connector"
+    },
+    {
+      "id": "EIG1-X-N2",
+      "scenario": "disabled_connector",
+      "expected_error_code": "connector_not_enabled"
+    },
+    {
+      "id": "EIG1-X-N3",
+      "scenario": "unknown_operation",
+      "expected_error_code": "unknown_connector_operation"
+    },
+    {
+      "id": "EIG1-X-N4",
+      "scenario": "unsupported_argument",
+      "expected_error_code": "unsupported_connector_argument"
+    },
+    {
+      "id": "EIG1-X-N5",
+      "scenario": "missing_required_argument",
+      "expected_error_code": "missing_connector_argument"
+    },
+    {
+      "id": "EIG1-WORK-N1",
+      "scenario": "write_without_approval",
+      "expected_error_code": "missing_connector_invocation_approval"
+    },
+    {
+      "id": "EIG1-WORK-N2",
+      "scenario": "write_non_dry_run",
+      "expected_error_code": "connector_write_execution_not_supported"
+    },
+    {
+      "id": "EIG1-X-N6",
+      "scenario": "non_local_stub_runtime",
+      "expected_error_code": "connector_protocol_not_executable"
+    },
+    {
+      "id": "EIG1-X-N7",
+      "scenario": "raw_mcp_allowed_manifest",
+      "expected_error_code": "raw_mcp_bypass_not_allowed"
+    },
+    {
+      "id": "EIG1-X-N8",
+      "scenario": "direct_model_tool_access_manifest",
+      "expected_error_code": "direct_model_tool_bypass_not_allowed"
+    }
+  ],
+  "holdout_cases": [
+    {
+      "id": "EIG1-WORK-H1",
+      "archetype": "work_tracking",
+      "prompt_intent": "Find a synthetic work item and explain whether a safe status update can be prepared."
+    },
+    {
+      "id": "EIG1-KNOW-H1",
+      "archetype": "knowledge_lookup",
+      "prompt_intent": "Find the relevant synthetic runbook guidance and summarize source-backed next steps."
+    },
+    {
+      "id": "EIG1-REC-H1",
+      "archetype": "business_record",
+      "prompt_intent": "Look up a synthetic business record and summarize status without inventing missing fields."
+    }
+  ],
+  "deferred_items": [
+    {
+      "id": "EIG1-D1",
+      "item": "real_vendor_connector_execution",
+      "reason": "Phase 289 proves deterministic local-stub breadth only."
+    },
+    {
+      "id": "EIG1-D2",
+      "item": "real_oauth_token_exchange",
+      "reason": "EIG-2 currently uses deterministic actor context and scope fixtures, not identity-provider integration."
+    },
+    {
+      "id": "EIG1-D3",
+      "item": "raw_mcp_connector_exposure",
+      "reason": "The approved architecture requires controller-owned mediation."
+    }
+  ]
+}

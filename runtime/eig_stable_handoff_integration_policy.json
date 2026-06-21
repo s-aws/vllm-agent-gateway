@@ -1,0 +1,87 @@
+{
+  "kind": "eig_stable_handoff_integration_policy",
+  "phase": 304,
+  "required_docs": [
+    "README.getting-started.md",
+    "README.stable-handoff.md",
+    "README.release-notes.md",
+    "README.eig-stable-handoff-integration.md",
+    "README.eig-breadth-closeout.md",
+    "README.eig3-breadth-closeout.md",
+    "docs/CURRENT_PROJECT_ARCHITECTURE.md",
+    "docs/examples/eig-stable-handoff-integration.md"
+  ],
+  "required_markers": {
+    "README.getting-started.md": [
+      "Phase 296",
+      "Phase 303",
+      "local-stub connector",
+      "synthetic privacy",
+      "real external connector execution is not shipped"
+    ],
+    "README.stable-handoff.md": [
+      "Phase 296",
+      "Phase 303",
+      "local-stub connector",
+      "synthetic privacy",
+      "production OAuth token exchange is not shipped"
+    ],
+    "README.release-notes.md": [
+      "Phase 296",
+      "Phase 303",
+      "local-stub connector",
+      "synthetic privacy",
+      "persistent hidden memory is not shipped"
+    ],
+    "docs/CURRENT_PROJECT_ARCHITECTURE.md": [
+      "Phase 296",
+      "Phase 303",
+      "local-stub",
+      "synthetic privacy"
+    ]
+  },
+  "required_milestones": [
+    "M14",
+    "M17",
+    "M18",
+    "M19",
+    "M20",
+    "M21",
+    "M22",
+    "M23",
+    "M24",
+    "M25",
+    "M26",
+    "M27",
+    "M28",
+    "M29",
+    "M30",
+    "M31",
+    "M32",
+    "M33",
+    "M34",
+    "M35",
+    "M36"
+  ],
+  "required_runtime_files": [
+    "runtime/eig_breadth_closeout_policy.json",
+    "runtime/eig3_breadth_closeout_policy.json",
+    "runtime/eig_runtime_breadth_chat_cases.json",
+    "runtime/eig3_privacy_runtime_chat_cases.json"
+  ],
+  "required_scripts": [
+    "scripts/validate_eig_breadth_closeout.py",
+    "scripts/validate_eig3_breadth_closeout.py",
+    "scripts/validate_eig_runtime_breadth_chat.py",
+    "scripts/validate_eig3_privacy_runtime_chat.py"
+  ],
+  "schema_version": 1,
+  "scope_boundary": {
+    "arbitrary_natural_connector_calls_shipped": false,
+    "persistent_hidden_memory_shipped": false,
+    "production_oauth_token_exchange_shipped": false,
+    "raw_mcp_access_shipped": false,
+    "real_external_connector_execution_shipped": false,
+    "real_sensitive_data_ingestion_shipped": false
+  }
+}

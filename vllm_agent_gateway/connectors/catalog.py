@@ -185,7 +185,13 @@ def validate_safety_policy(connector: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def validate_operation(raw_operation: Any, *, connector_auth_type: str, workflows: dict[str, dict[str, Any]]) -> dict[str, Any]:
+def validate_operation(
+    raw_operation: Any,
+    *,
+    connector_auth_type: str,
+    connector_required_scopes: list[str],
+    workflows: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
     operation = require_object(raw_operation, "connector.operations[]")
     required = {
         "id",
@@ -218,6 +224,21 @@ def validate_operation(raw_operation: Any, *, connector_auth_type: str, workflow
         raise ConnectorCatalogError("write connector operations must require approval.", code="unsafe_connector_write_operation")
     if connector_auth_type == ConnectorAuthType.SERVICE_READ_ONLY.value and operation_class == ConnectorOperationClass.WRITE.value:
         raise ConnectorCatalogError("service_read_only connectors cannot expose write operations.", code="unsafe_connector_auth")
+    if "required_scopes" in operation:
+        operation_required_scopes = string_list(operation["required_scopes"], "connector.operation.required_scopes")
+        if connector_auth_type != ConnectorAuthType.OAUTH_USER_SCOPE.value:
+            raise ConnectorCatalogError(
+                "operation-level required_scopes are allowed only for oauth_user_scope connectors.",
+                code="unsafe_connector_auth",
+            )
+        undeclared_scopes = sorted(set(operation_required_scopes) - set(connector_required_scopes))
+        if undeclared_scopes:
+            raise ConnectorCatalogError(
+                f"connector operation required_scopes must be declared by connector.auth.required_scopes: {', '.join(undeclared_scopes)}",
+                code="invalid_connector_operation_scope",
+            )
+    else:
+        operation_required_scopes = connector_required_scopes
     validate_json_schema_object(operation["input_schema"], "connector.operation.input_schema")
     validate_json_schema_object(operation["output_schema"], "connector.operation.output_schema")
     allowed_workflows = string_list(operation["allowed_workflows"], "connector.operation.allowed_workflows")
@@ -230,6 +251,7 @@ def validate_operation(raw_operation: Any, *, connector_auth_type: str, workflow
         "description": operation["description"],
         "operation_class": operation_class,
         "approval_required": approval_required,
+        "required_scopes": operation_required_scopes,
         "input_schema": operation["input_schema"],
         "output_schema": operation["output_schema"],
         "allowed_workflows": allowed_workflows,
@@ -271,7 +293,15 @@ def validate_connector_shape(raw_connector: Any, config_root: Path) -> dict[str,
     if not isinstance(raw_operations, list) or not raw_operations:
         raise ConnectorCatalogError("connector.operations must be a non-empty list.", code="invalid_connector_manifest")
     workflows = workflows_by_id(config_root)
-    operations = [validate_operation(item, connector_auth_type=auth["type"], workflows=workflows) for item in raw_operations]
+    operations = [
+        validate_operation(
+            item,
+            connector_auth_type=auth["type"],
+            connector_required_scopes=auth["required_scopes"],
+            workflows=workflows,
+        )
+        for item in raw_operations
+    ]
     operation_ids = [item["id"] for item in operations]
     duplicate_operation_ids = sorted({item for item in operation_ids if operation_ids.count(item) > 1})
     if duplicate_operation_ids:

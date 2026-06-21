@@ -267,6 +267,7 @@ def route_case(config_root: Path, policy: dict[str, Any], output_root: Path, cas
 
 def chat_case_result(config_root: Path, policy: dict[str, Any], output_root: Path) -> dict[str, Any]:
     target_root = resolve_path(config_root, str(policy.get("target_root"))).resolve()
+    context_index_policy_path = resolve_path(config_root, str(policy.get("context_index_policy_path")))
     config = ControllerServiceConfig(config_root=config_root, output_root=output_root, allowed_target_roots=(config_root, target_root))
     body = handle_workflow_router_chat_completion(
         {
@@ -277,6 +278,7 @@ def chat_case_result(config_root: Path, policy: dict[str, Any], output_root: Pat
                     "content": f"In {target_root}, produce a long evidence report with all relevant top files for the order replay pipeline.",
                 }
             ],
+            "context": {"context_index_policy_path": str(context_index_policy_path)},
         },
         config,
     )

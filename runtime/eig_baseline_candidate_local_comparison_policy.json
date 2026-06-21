@@ -1,0 +1,33 @@
+{
+  "blind_baselines": {
+    "expected_case_count": 7,
+    "path": "runtime/eig_baseline_candidate_blind_baselines.json",
+    "sha256": "eb7b38d871de9f28e72cbd5f65e24c96fe22576589deb205a6d84fa854e33f16"
+  },
+  "comparison_policy": {
+    "hard_failures_allowed": 0,
+    "minimum_score": 85,
+    "promotion_allowed": false,
+    "recorded_evidence_type": "local_model_comparison",
+    "required_response_count": 14,
+    "required_surfaces": [
+      "workflow_router_gateway",
+      "anythingllm"
+    ],
+    "stable_corpus_mutation_allowed": false
+  },
+  "kind": "eig_baseline_candidate_local_comparison_policy",
+  "phase": 313,
+  "required_milestones": [
+    "M2",
+    "M4",
+    "M9",
+    "M13",
+    "M14",
+    "M19",
+    "M25",
+    "M31",
+    "M36"
+  ],
+  "schema_version": 1
+}

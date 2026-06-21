@@ -1,0 +1,58 @@
+{
+  "forbidden_tracked_path_fragments": [
+    "runtime-state/",
+    ".tmp_pytest/",
+    "vllm-agent-gateway/"
+  ],
+  "kind": "eig_pr_merge_readiness_policy",
+  "merge_policy": {
+    "main_mutation_allowed": false,
+    "merge_allowed": false,
+    "stable_corpus_promotion_allowed": false
+  },
+  "phase": 310,
+  "pr": {
+    "expected_base_ref": "main",
+    "expected_head_ref": "codex/eig-stable-handoff",
+    "number": 1,
+    "required_merge_state_statuses": [
+      "CLEAN"
+    ],
+    "required_state": "OPEN"
+  },
+  "required_docs": [
+    "README.eig-stable-handoff-integration.md",
+    "README.eig-baseline-candidate-intake.md",
+    "README.eig-baseline-candidate-live-replay.md",
+    "README.eig-pr-merge-readiness.md",
+    "docs/examples/eig-pr-merge-readiness.md",
+    "docs/ACTIONABLE_WORKFLOW_ROADMAP.md",
+    "docs/PROJECT_MILESTONES.md"
+  ],
+  "required_milestones": [
+    "M14"
+  ],
+  "required_phases": [
+    304,
+    305,
+    306,
+    307,
+    308,
+    309
+  ],
+  "required_pr_body_markers": [
+    "Phase 307 baseline-candidate intake",
+    "Phase 308 live gateway and AnythingLLM replay",
+    "live_result_count=14",
+    "Stable baseline corpus promotion remains a separate future phase requiring founder approval",
+    "does not ship real external connector execution"
+  ],
+  "required_scripts": [
+    "scripts/check_docs_index.py",
+    "scripts/validate_eig_stable_handoff_integration.py",
+    "scripts/validate_eig_baseline_candidate_intake.py",
+    "scripts/validate_eig_baseline_candidate_live_replay.py",
+    "scripts/validate_eig_pr_merge_readiness.py"
+  ],
+  "schema_version": 1
+}

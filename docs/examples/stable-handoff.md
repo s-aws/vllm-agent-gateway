@@ -23,8 +23,9 @@ cd /mnt/c/agentic_agents
 export ANYTHINGLLM_API_KEY="$(powershell.exe -NoProfile -Command '[Console]::Out.Write([Environment]::GetEnvironmentVariable("ANYTHINGLLM_API_KEY","User"))')"
 python3 scripts/validate_stable_handoff.py \
   --release-candidate-report runtime/release_proofs/v1-1-release-candidate-stable-proof.json \
+  --anythingllm-api-base-url http://192.168.0.208:3001 \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
-  --expected-anythingllm-llm-base-url http://127.0.0.1:8500/v1 \
+  --expected-anythingllm-llm-base-url http://100.100.12.45:8500/v1 \
   --controller-base-url http://127.0.0.1:8400 \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp \
   --target-root /mnt/c/coinbase_testing_repo_frozen_tmp.github \
@@ -41,7 +42,7 @@ STABLE HANDOFF PASS
 
 The smoke can still report a warning for the git-enabled frozen fixture when Bash sees Windows/WSL line-ending dirtiness. Continue only when watched hashes are unchanged and protected fixture state is not changed.
 
-If AnythingLLM is configured to the WSL network URL printed by `start-agent-prompt-proxies.sh`, keep `--workflow-router-gateway-base-url` on `http://127.0.0.1:8500/v1` for Bash-side validation and pass the printed network URL to `--expected-anythingllm-llm-base-url`.
+If AnythingLLM is configured to the WSL network URL printed by `start-agent-prompt-proxies.sh`, keep `--workflow-router-gateway-base-url` on `http://127.0.0.1:8500/v1` for Bash-side validation, pass the printed network workflow-router URL to `--expected-anythingllm-llm-base-url`, and use the AnythingLLM API base reachable from Bash for `--anythingllm-api-base-url`.
 
 ## Refresh Field-Test Closeout
 

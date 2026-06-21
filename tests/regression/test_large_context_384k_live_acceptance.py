@@ -135,6 +135,39 @@ def target_settings() -> dict:
     return {"status": "passed", "checks": {"generic_openai_base_path": True}, "errors": []}
 
 
+def test_phase261_target_settings_accepts_anythingllm_api_base_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_json_request(url: str, *, headers: dict, timeout_seconds: int) -> tuple[int, dict]:
+        assert url == "http://192.168.0.208:3001/api/v1/system"
+        return (
+            200,
+            {
+                "settings": {
+                    "LLMProvider": "generic-openai",
+                    "LLMModel": "Qwen3-Coder-30B-A3B-Instruct",
+                    "GenericOpenAiBasePath": "http://100.100.12.45:8500/v1",
+                }
+            },
+        )
+
+    monkeypatch.setattr(phase261, "json_request", fake_json_request)
+
+    result = phase261.target_settings_result(
+        LargeContext384kLiveAcceptanceConfig(
+            config_root=REPO_ROOT,
+            anythingllm_api_base_url="http://192.168.0.208:3001",
+            anythingllm_workflow_router_base_url="http://100.100.12.45:8500/v1",
+        ),
+        policy(),
+        api_key="key",
+    )
+
+    assert result["status"] == "passed"
+    assert result["checks"]["api_base_url"] is True
+    assert result["required"]["api_base_url"] == "http://192.168.0.208:3001"
+    assert result["required"]["policy_api_base_url"] == "http://127.0.0.1:3001"
+    assert result["checks"]["generic_openai_base_path"] is True
+
+
 def parity_pass() -> dict:
     return {"case_id": "P261-PARITY-001", "status": "passed", "errors": []}
 

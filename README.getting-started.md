@@ -4,7 +4,9 @@ This is the shortest path for a first-time tester to run the natural-language wo
 
 Use this before the deeper founder-testing recipes. The goal is to prove that AnythingLLM can send a normal L1 coding-agent message, the controller can select and run the right workflow, artifacts are written, and the frozen validation repos are not mutated.
 
-Current handoff status: Phase 277 is the active stable tester handoff refresh for governed 500k-token project usability. It supersedes the Phase 266 384k stable handoff after the Phase 276 decision returned `ship`. The 384k-token project usability baseline remains preserved as lineage. The Phase 273 live 500k candidate proof passed through the workflow-router gateway and AnythingLLM with all five large-context strategies covered, split-url target settings verified, JSON/default parity verified, and zero high or critical findings. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor, but first-time large-context testing should follow the current 500k path below.
+Current handoff status: Phase 352 is the active PR/stable-handoff review floor on branch `codex/eig-stable-handoff`. The current proof chain includes full split-lane regression, fresh Priority 0 drift replay, stable handoff smoke replay, bounded and full browser-visible AnythingLLM UI replay, clean-clone UI replay, and non-merge PR readiness. Phase 351 proved the full governed browser-visible UI suite with `case_count=21`, `error_count=0`, and `fixture_unchanged=true`; Phase 352 replayed that proof from a clean clone with `37 passed` and no active-workspace runtime-state dependency. Phase 277 remains the stable governed 500k-token project-usability handoff, and Phase 304 integrates the completed EIG proof chain into that handoff. The 384k-token project usability baseline remains preserved as lineage. Earlier Phase 247 stable ship metadata still exists as the committed V1.1 handoff floor.
+
+The EIG handoff is intentionally bounded: real external connector execution is not shipped, arbitrary connector chat is not shipped, production OAuth token exchange is not shipped, real sensitive-data ingestion is not shipped, and persistent hidden memory is not shipped. Current EIG testing uses deterministic local-stub connector fixtures and synthetic privacy fixtures only.
 
 ## What This Proves
 
@@ -13,6 +15,8 @@ Current handoff status: Phase 277 is the active stable tester handoff refresh fo
 - The current Priority 0 chat-quality proof can be revalidated after restart.
 - Runtime recovery reliability passes with small-repo and large-context prompt proof.
 - Large-context prompts target usable 500k-token projects through governed context strategy: retrieval, chunking, summarization, artifact paging, evidence selection, and model-context-aware routing instead of raw prompt stuffing.
+- Current EIG connector prompts prove selected local-stub connector chat behavior through Phase 296 closeout.
+- Current EIG privacy prompts prove synthetic privacy and memory-safety behavior through Phase 303 closeout.
 - Small skill admission works for the Python-service fixture without manual skill injection.
 - A normal natural-language request routes to `workflow_router.plan`.
 - The controller can run small read-only L1 investigations against the frozen Coinbase fixtures.
@@ -20,13 +24,14 @@ Current handoff status: Phase 277 is the active stable tester handoff refresh fo
 - The controller can draft small config-default, exact-message, and assertion-update test proposals through the existing implementation workflow without mutating source files.
 - The controller can apply exact approved packet operations to a disposable copy, roll the copy back, and prove frozen source files did not change.
 - Source fixture files remain unchanged.
-- Current Phase 184 UI replay cases for evidence relevance and related-test discovery pass through the browser-visible AnythingLLM path.
-- Future blind-baseline audits can start from the Phase 185 contextless-agent audit pack.
+- Current Phase 351 UI replay proves the full governed browser-visible AnythingLLM prompt catalog with 21 case/root executions, zero errors, and unchanged frozen fixtures.
+- Current Phase 352 clean-clone replay proves the pushed Phase 351 UI proof metadata and clone-safe UI policy tests can be audited without active-workspace runtime-state.
+- Future blind-baseline audits can start from the Phase 185 contextless-agent audit pack and the newer Phase 333 fresh Priority 0 drift replay.
 
 ## Prerequisites
 
 - vLLM OpenAI-compatible server is already running on `http://127.0.0.1:8000/v1`.
-- AnythingLLM is running on `http://127.0.0.1:3001`.
+- AnythingLLM is running. The usual API base is `http://127.0.0.1:3001`; if that returns HTML or `404`, use the reachable network API base such as `http://192.168.0.208:3001`.
 - The test fixtures exist:
   - `/mnt/c/coinbase_testing_repo_frozen_tmp`
   - `/mnt/c/coinbase_testing_repo_frozen_tmp.github`
@@ -339,6 +344,9 @@ In AnythingLLM, configure the LLM provider as a Generic OpenAI-compatible provid
 - Base URL: `http://127.0.0.1:8500/v1`
 - Model: `Qwen3-Coder-30B-A3B-Instruct`
 - API key: any non-empty value if the UI requires one
+- Workspace chat mode: `chat`, not `automatic`
+
+`automatic` chat mode invokes AnythingLLM's agent layer on `/stream-chat`, which can display `@agent` session messages instead of the workflow-router answer. For workflow-router testing through the AnythingLLM UI, keep the workspace in normal chat mode.
 
 Optional API update from PowerShell:
 
@@ -349,6 +357,21 @@ $body = @{
   GenericOpenAiModelPref = "Qwen3-Coder-30B-A3B-Instruct"
 } | ConvertTo-Json
 Invoke-RestMethod -Uri "http://127.0.0.1:3001/api/system/update-env" -Headers $headers -Method Post -Body $body
+```
+
+If `127.0.0.1:3001` is a different local app, use the working AnythingLLM API base for API calls:
+
+```powershell
+Invoke-RestMethod -Uri "http://192.168.0.208:3001/api/system/update-env" -Headers $headers -Method Post -Body $body
+```
+
+Optional workspace chat-mode update from PowerShell:
+
+```powershell
+$apiBase = "http://192.168.0.208:3001"
+$headers = @{ Authorization = "Bearer $env:ANYTHINGLLM_API_KEY"; "Content-Type" = "application/json" }
+$workspaceBody = @{ chatMode = "chat" } | ConvertTo-Json
+Invoke-RestMethod -Uri "$apiBase/api/workspace/my-workspace/update" -Headers $headers -Method Post -Body $workspaceBody
 ```
 
 ## 3. Send One Natural Test Message
@@ -413,7 +436,7 @@ Optional automated Desktop UI E2E from PowerShell:
 ```powershell
 $env:ANYTHINGLLM_API_KEY=[Environment]::GetEnvironmentVariable('ANYTHINGLLM_API_KEY','User')
 python scripts\validate_anythingllm_ui_e2e.py `
-  --anythingllm-api-base-url http://127.0.0.1:3001 `
+  --anythingllm-api-base-url http://192.168.0.208:3001 `
   --workspace my-workspace `
   --prompt-catalog-path runtime\anythingllm_ui_prompt_cases.json `
   --timeout-seconds 900 `

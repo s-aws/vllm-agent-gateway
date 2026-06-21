@@ -7336,6 +7336,7 @@ def test_workflow_router_chat_l2_runtime_reproduction_checklist_returns_artifact
     assert checklist["mutation_policy"] == "read_only_no_source_mutation"
 
 
+@pytest.mark.serial
 def test_workflow_router_chat_l2_user_facing_message_test_target_returns_artifact(tmp_path: Path) -> None:
     target = make_l1_expansion_repo(tmp_path)
     sentinel = target / "dashboard_server.py"
@@ -12574,6 +12575,92 @@ def test_workflow_router_chat_natural_skill_scaffold_routes_without_manual_skill
     assert route_decision["approval_required"] is False
     assert sha256_file(config_root / "runtime" / "skills.json") == before_skills
     assert sha256_file(config_root / "runtime" / "skill_evals.json") == before_evals
+
+
+@pytest.mark.parametrize(
+    ("prompt", "connector_id", "operation_id", "expected_scopes", "expected_content"),
+    [
+        (
+            "Using the local connector fixture, look up the work item status. Read only. Return the result and audit summary.",
+            "work_tracking_stub",
+            "lookup_work_item",
+            ["work:read"],
+            "title=Synthetic work item ready for review",
+        ),
+        (
+            "Using the local connector fixture, look up the business record. Read only. Return the result and audit summary.",
+            "business_record_stub",
+            "lookup_business_record",
+            ["records:read"],
+            "record_state=active",
+        ),
+        (
+            "Using the local connector fixture, search documents for the synthetic runbook. Read only. Return the result and audit summary.",
+            "knowledge_lookup_stub",
+            "search_documents",
+            [],
+            "top_titles=Synthetic runbook; Synthetic policy note",
+        ),
+    ],
+    ids=("work_item_lookup", "business_record_lookup", "knowledge_search"),
+)
+def test_workflow_router_chat_natural_connector_fixture_returns_inline_result_without_registry_mutation(
+    tmp_path: Path,
+    prompt: str,
+    connector_id: str,
+    operation_id: str,
+    expected_scopes: list[str],
+    expected_content: str,
+) -> None:
+    connectors_path = REPO_ROOT / "runtime" / "connectors.json"
+    before_connectors = sha256_file(connectors_path)
+    config = ControllerServiceConfig(
+        config_root=REPO_ROOT,
+        output_root=tmp_path / ".agentic_controller",
+        allowed_target_roots=(tmp_path / "allowed",),
+        port=0,
+    )
+
+    with RunningControllerService(config) as service:
+        host, port = service.base_url
+        status, body = request_json(
+            host,
+            port,
+            "POST",
+            "/v1/controller/workflow-router/chat/completions",
+            {
+                "model": "agentic-workflow-router",
+                "messages": [{"role": "user", "content": prompt}],
+            },
+        )
+
+    assert status == 200
+    compact = body["agentic_controller_response"]
+    content = body["choices"][0]["message"]["content"]
+    assert compact["workflow"] == "connector.invoke"
+    assert compact["status"] == "completed"
+    assert compact["summary"]["connector_id"] == connector_id
+    assert compact["summary"]["operation_id"] == operation_id
+    assert compact["summary"]["required_scopes"] == expected_scopes
+    assert compact["summary"]["authorization_status"] == "allowed"
+    assert compact["summary"]["runtime_registry_changed"] is False
+    assert compact["summary"]["target_repository_changed"] is False
+    assert "Connector Result:" in content
+    assert f"- Connector: {connector_id}.{operation_id}" in content
+    assert expected_content in content
+    assert "- Audit: decision=allowed; approval_state=not_required" in content
+    assert "- Runtime registry mutation: false" in content
+    assert "- Target repository mutation: false" in content
+    connector_artifact = json.loads(Path(compact["artifacts"]["connector_invocation"]).read_text(encoding="utf-8"))
+    assert connector_artifact["audit"]["raw_auth_subject_stored"] is False
+    assert connector_artifact["audit"]["raw_arguments_stored"] is False
+    assert connector_artifact["audit"]["runtime_registry_changed"] is False
+    assert connector_artifact["audit"]["target_repository_changed"] is False
+    route_decision = json.loads(Path(compact["artifacts"]["route_decision"]).read_text(encoding="utf-8"))
+    assert route_decision["selected_workflow"] == "connector.invoke"
+    assert route_decision["controller_request"]["metadata"]["natural_connector_fixture"] is True
+    assert route_decision["controller_request"]["metadata"]["phase"] == "295"
+    assert sha256_file(connectors_path) == before_connectors
 
 
 def test_workflow_router_chat_natural_skill_pack_validation_supports_json_output(tmp_path: Path) -> None:

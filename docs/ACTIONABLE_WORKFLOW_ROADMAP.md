@@ -193,8 +193,10 @@ For workflow-router and execution-planning work, do not treat a prompt tweak as 
 Default full Bash regression command:
 
 ```bash
-python3 -m pytest tests/regression/ -v
+. .venv/bin/activate && python scripts/run_regression.py --workers 4
 ```
+
+If `.venv` is missing, create it with `python3 -m venv --system-site-packages .venv`, activate it, and run `python -m pip install -r requirements-dev.txt`. The full regression runner uses pytest-xdist for tests that are not marked `serial`, then runs `serial` tests in a separate sequential lane. Mark tests `serial` when they touch shared repo state, fixed runtime-state paths, fixed external resources, process-global state, or timing-sensitive reset/recovery behavior.
 
 ## L1 Prompt Development Plan
 
@@ -246,14 +248,13 @@ Build order:
 Next roadmap gate:
 
 ```text
-Phases 92 through 127 are complete. No later roadmap phase should start until the next Priority 0 backlog item is represented as an approved roadmap phase.
+Phases 92 through 361 are complete. Do not use older embedded "next action" notes as the active plan when they conflict with the roadmap tail, milestone ledger, or current PR state.
 ```
 
 Next implementation target:
 
 ```text
-Prepare the next approved Priority 0 phase from `P0-BB-015` in `docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md`.
-Do not resume advanced-refactor work until AnythingLLM answer usefulness and current chat-quality gates remain stable.
+Current milestone state is Phase 361 complete on branch `codex/eig-stable-handoff`, with PR #1 approved for merge and release. After release, new implementation work should start from `main` and must map to an approved milestone or a newly approved milestone that directly closes an objective-blocking architecture, runtime, validation, safety, or planning gap. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks a new approved phase for it.
 ```
 
 Reason: Phase 57 made the founder field suite part of V1 acceptance, Phase 58 added the prompt matrix, Phase 59 added semantic answer quality gates, Phase 60 added user-facing refined prompts, Phase 61 produced a validated Batch D skill-scaling proposal without registry mutation, Phase 62 registered Batch D as draft skills through the existing lifecycle, Phase 63 proved and promoted Batch D through live gateway and AnythingLLM validation, Phase 64 added Batch D prompts to the founder field suite with live V1 acceptance proof, Phase 65 added skill-library health and Batch D proof to the V1 acceptance path, Phase 66 proved the harness against a non-Coinbase disposable Python service fixture, Phase 67 made AnythingLLM feedback actionable, Phase 68 split release gates into diagnosable profiles, Phase 69 added a latest-run inspector, Phase 70 made prompt catalogs governed fixtures instead of scattered script literals, Phase 71 proved the browser-rendered AnythingLLM Desktop UI path through `/stream-chat` with screenshots and fixture mutation proof, Phase 72 added a model portability gate that wraps the existing V1 acceptance path, probes the candidate `/v1/models` endpoint, and classifies misses as harness, classifier, prompt, model-quality, or unknown issues, Phase 73 added read-only run artifact diffing for V1 acceptance, founder-field, and model-portability reports, Phase 74 added a manifest-driven fixture manager with protected source snapshots, disposable setup, cleanup, and integration into the existing generalization fixture copy helpers, Phase 75 added a read-only failure taxonomy report so failures across release gates can be classified consistently instead of reinterpreted from raw logs, Phase 76 added a first-time user doctor so setup failures can be detected before testers try AnythingLLM prompts, Phase 77 added governed skill-library packaging policy before scaling toward large skill packs, Phase 78 turned portability evidence into advisory model capability profiles and a routing policy without enabling automatic model selection, Phase 79 added a canonical prompt-to-skill coverage map with a validator and gap backlog, Phase 80 extended the existing `skill.scaffold` path into a dry-run authoring factory with coverage, docs, eval, fail-closed test, and live AnythingLLM proof, Phase 81 added an explicit skill regression tier catalog with offline, controller, gateway, AnythingLLM API, UI, fixture-mutation, and release-candidate proof boundaries, Phase 82 expanded live validation to a synthetic Node CLI fixture plus both frozen Coinbase fixtures, Phase 83 added a disposable-copy mutation sandbox contract, structured diff proof, direct mutation proof artifacts, path guardrails, and rollback-failure tests around the single existing implementation workflow, Phase 84 made approval states visible in chat and stateful in controller run records, Phase 85 added a read-only observability report with route, model, skill, tool, approval, downstream, artifact, mutation, timing, and filter proof from recent live runs, Phase 86 made normal workflow-router chat explain selected workflow, skills, tools, route rules, and registry grounding in both FormatA and JSON output, Phase 87 added versioned release-channel metadata plus setup validation, Phase 88 added a contextless external tester onboarding pack with live AnythingLLM feedback proof inside the release-candidate gate, Phase 89 added the release-candidate security policy gate for secret exposure, filesystem boundaries, protected fixture policy, command fragments, and onboarding prompt safety, Phase 90 consolidated those gates into a passed V1.1 release-candidate profile, Phase 91 promoted stable-channel handoff, Phase 92 converted stable tester and blind-review feedback into fixed current-path issues or explicit Phase 93+ backlog work, Phase 93 added a governed 30-prompt natural-language capability gap backlog with validation gates, Phase 94 added a runtime selector audit contract with stable selected/rejected workflow, skill, and tool proof through Bash gateway, localhost model, controller, both frozen fixtures, and AnythingLLM, Phase 95 added route-owned context-source selection with AST/text/config/test/relationship source audits, unsupported-layout blocking, generated non-Coinbase fixture proof, Bash gateway proof, and AnythingLLM proof, Phase 96 expanded draft-only implementation prep for small text edits and approved-investigation packet prep while preserving `implementation.workflow` as the single implementation path, adding enriched direct/gateway/AnythingLLM proof, fixture digests, verification commands, generic packet seeds, bare README support, and function-definition snippet preference, Phase 97 bound natural packet-design approvals to source run identity, rejected duplicate/denied/wrong-run/target-mismatch/source-apply continuations, added deterministic approval-continuation packet prep, converted workflow-router gateway approval failures into chat-visible OpenAI responses, and proved the path through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, and full Bash regression, Phase 98 expanded disposable-copy apply proof for existing-file `append_text`, multi-operation `replace_text` plus `append_text`, source-tree digest guards, chat-visible structured diff summaries, and fail-closed `create_file` refusal through direct, live Bash gateway, AnythingLLM, both frozen fixtures, all featured ports, docs-index proof, and full Bash regression, Phase 99 added four small deterministic Batch E L2 skills with routing proof, evals, prompt coverage, live gateway and AnythingLLM validation on both frozen fixtures, contextless subagent audit hardening, and full Bash regression, Phase 100 converted model capability profiles into an active fail-closed routing gate with chat-visible route evidence, current localhost model proof, task-class enforcement, live gateway and AnythingLLM validation, contextless subagent audit hardening, and full Bash regression, Phase 101 added a Go HTTP service fixture, expanded multi-repo validation across Coinbase, Python service, Node CLI, and Go HTTP layouts, recorded repo-layout limitations, proved gateway plus AnythingLLM paths, kept Coinbase V1.1 acceptance intact, and passed full Bash regression, Phase 102 added versioned dependency-aware task-decomposition work packages, chat-visible FormatA and JSON contracts, advanced-refactor deferral proof, live gateway plus AnythingLLM validation, and full Bash regression, Phase 103 added a productized install/start/validate/reset/rerun command surface over existing setup scripts and proof gates, Phase 104 added read-only eval-driven repair recommendations with contextless verifier hardening and full Bash regression, Phase 105 added a fail-closed advanced-refactor readiness gate with prerequisite evidence validation, pilot-scope limits, live gateway plus AnythingLLM proof, contextless verifier hardening, and full Bash regression, Phase 106 fixed current L1/L2 chat-answer quality regressions with route-aware answer artifact priority, non-git source-ranking repair, committed stable proof retention, deterministic JSON response lifecycle hardening, live gateway plus AnythingLLM proof, contextless verifier hardening, and full Bash regression, Phase 107 made the browser-visible AnythingLLM UI E2E gate semantic with `L1-001` fail-closed wrong-answer markers, `L1-002` holdout proof, screenshots, fixture mutation proof, and full Bash regression, and Phase 108 made generated `runtime-state/` artifacts local-only with a committed proof-retention policy, release-channel hygiene integration, contextless verifier hardening, and full Bash regression.
@@ -11835,3 +11836,2252 @@ Result:
 - Docs index validation passed with `377` linked docs and zero orphaned docs.
 - JSON validation passed for `runtime/connectors.json`, `runtime/workflows.json`, and `runtime/connector_eval_release_gate_policy.json`.
 - Full Bash regression passed with `1731 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 288: EIG-1 Connector Archetype Breadth Matrix
+
+Status: Complete.
+
+Milestone mapping: M26 EIG-1 Connector Archetype Breadth.
+
+Goal: define the breadth-confidence matrix that proves EIG-1 is not overfit to one `ticketing_stub` manifest.
+
+Scope:
+
+- Define three deterministic connector archetypes that represent common enterprise integration shapes:
+  - work tracking or support-ticket lookup and dry-run update,
+  - knowledge or document search/read-only retrieval,
+  - structured business-record or analytics lookup.
+- For each archetype, define connector intent, operations, read/write class, expected auth mode, operation schema shape, eval fixtures, negative controls, and expected audit fields.
+- Keep all execution local and deterministic. Do not call real external APIs, exchange real OAuth tokens, expose raw MCP tools, or add enterprise-specific connectors.
+- Classify every planned case as required, holdout, negative control, or deferred.
+- Produce a contextless-auditable matrix that maps cases to M17, M18, and M19 proof requirements.
+
+Acceptance target: a future agent can implement breadth fixtures and tests from the matrix without guessing which use cases matter or accidentally expanding into production integration scope.
+
+Result:
+
+- Added `docs/EIG1_CONNECTOR_ARCHETYPE_BREADTH_MATRIX.md` as the Phase 288 matrix.
+- Defined three deterministic local-stub archetypes: `work_tracking_stub`, `knowledge_lookup_stub`, and `business_record_stub`.
+- Documented planned read/write-class operation shapes, auth modes, schema fields, eval fixture IDs, required cases, holdouts, cross-archetype negative controls, and deferred out-of-scope items.
+- Updated the documentation index and architecture reference so contextless agents can find the EIG-1 breadth plan.
+- Phase 289 remains the next EIG-1 implementation phase: create fixture manifests and prove local-stub mediation through the existing connector catalog and `connector.invoke` paths.
+
+### Approved Phase 289: EIG-1 Breadth Fixture Implementation
+
+Status: Complete.
+
+Milestone mapping: M26 EIG-1 Connector Archetype Breadth, M17 Connector Contract And Registry, M18 Connector Execution Mediation.
+
+Goal: implement deterministic connector fixture manifests and local-stub mediation proofs for the Phase 288 archetypes.
+
+Scope:
+
+- Add fixture manifests for the three approved archetypes.
+- Include at least one read-only operation for every archetype and at least one write-class dry-run operation across the set.
+- Validate every manifest through `connector_catalog.validate`.
+- Invoke enabled local-stub operations only through `connector.invoke`.
+- Prove unknown connector, disabled connector, unsupported operation, unsupported argument, unsafe write, and raw bypass attempts fail closed.
+- Preserve the single connector mediation path and do not add external network execution.
+
+Acceptance target: the connector framework accepts and mediates all approved breadth fixtures through the same controller-owned path while rejecting unsupported or unsafe variants without runtime or target mutation.
+
+Result:
+
+- Added `runtime/eig1_connector_breadth_fixtures.json` with three approved deterministic connector archetypes: `work_tracking_stub`, `knowledge_lookup_stub`, and `business_record_stub`.
+- Added `vllm_agent_gateway.acceptance.eig1_connector_breadth` as the single Phase 289 validation path over the existing connector catalog, identity, and mediation modules.
+- Added `scripts/validate_eig1_connector_breadth.py` and `tests/regression/test_eig1_connector_breadth.py`.
+- Added `README.eig1-connector-breadth-fixtures.md` and `docs/examples/eig1-connector-breadth-fixtures.md`, then linked both through the documentation index.
+- Positive mediation proof covers 6 invocations across read and write-class dry-run operations through `connector.invoke` semantics.
+- Negative-control proof covers unknown connector, disabled connector, unknown operation, unsupported argument, missing required argument, missing write approval, non-dry-run write, non-`local_stub` runtime execution, raw MCP allowance, and direct model-tool bypass.
+- Direct validation passed with `EIG1 CONNECTOR BREADTH PASS` and `phase290_ready=true`.
+- Focused regression passed with `5 passed`.
+- JSON validation passed for `runtime/eig1_connector_breadth_fixtures.json`.
+- The generated report keeps runtime registry mutation, target repository mutation, external network calls, raw MCP use, direct model-tool access, and raw fixture argument retention false.
+
+### Approved Phase 290: EIG-1 Protocol Auth Schema Matrix
+
+Status: Complete.
+
+Milestone mapping: M27 EIG-1 Protocol Auth Schema Matrix, M17 Connector Contract And Registry, M18 Connector Execution Mediation.
+
+Goal: prove connector contract handling is explicit for common protocol, auth, and schema variants instead of accidentally accepting or rejecting them.
+
+Scope:
+
+- Add a protocol matrix for `local_stub`, `https_json`, and `mcp_mediated` states.
+- Keep `local_stub` as the only executable protocol unless a later approved milestone changes that boundary.
+- Require non-executable protocols to be classified as validation-only, rejected, or deferred with deterministic errors.
+- Add auth-policy matrix coverage for no-auth stubs, service-read-only declarations, and user-scope-required declarations.
+- Add operation schema tests for required fields, optional fields, nested objects, arrays, booleans, integers, unknown fields, and malformed argument types.
+- Reject ambiguous or unsupported schema/protocol/auth combinations fail-closed.
+
+Acceptance target: a connector author can tell which protocol, auth, and schema combinations are currently supported, validation-only, deferred, or rejected, and every classification has a test.
+
+Result:
+
+- Added `runtime/eig1_protocol_auth_schema_matrix.json` with protocol, auth, and schema classification cases tied to the Phase 289 fixture pack.
+- Added `vllm_agent_gateway.acceptance.eig1_protocol_auth_schema_matrix` as the Phase 290 validation path over the existing connector catalog and mediator.
+- Added `scripts/validate_eig1_protocol_auth_schema_matrix.py` and `tests/regression/test_eig1_protocol_auth_schema_matrix.py`.
+- Added `README.eig1-protocol-auth-schema-matrix.md` and `docs/examples/eig1-protocol-auth-schema-matrix.md`, then linked both through the documentation index.
+- Proved `local_stub` is executable while `https_json` and `mcp_mediated` are validation-only and fail at mediation with `connector_protocol_not_executable`.
+- Proved unsupported protocol, unsafe auth combinations, missing OAuth scopes, service-read-only write exposure, unknown arguments, missing required arguments, and malformed string/boolean/integer/array/object argument types fail closed.
+- Documented deep nested object property validation as deferred because current mediation validates object type at the declared property boundary.
+- Direct validation passed with `EIG1 PROTOCOL AUTH SCHEMA PASS` and `phase291_ready=true`.
+- Focused regression passed with `4 passed`.
+- JSON validation passed for `runtime/eig1_protocol_auth_schema_matrix.json`.
+
+### Approved Phase 291: EIG-1 Release Gate Breadth
+
+Status: Complete.
+
+Milestone mapping: M28 EIG-1 Release And Registry Breadth, M19 Connector Eval And Release Gate.
+
+Goal: prove connector release-gate behavior across multiple archetypes, not just one sample release packet.
+
+Scope:
+
+- Build connector eval release packets for every Phase 289 breadth fixture.
+- Require per-operation prompt coverage, holdouts, blind-baseline-before-local-output proof, unsupported-scope tests, and negative controls for every archetype.
+- Include at least one failed release packet for each major failure class: missing validation, late blind baseline, missing holdout, missing negative control, unresolved high/critical finding, and enablement without `ship`.
+- Require gateway and AnythingLLM proof only for fixtures intentionally exposed to natural-language workflows.
+- Do not add real external connector execution.
+
+Acceptance target: connector enablement remains blocked unless every breadth fixture has repeatable chat-quality, safety, and failure-mode proof.
+
+Result:
+
+- Added `runtime/eig1_connector_release_gate_breadth_policy.json` for Phase 291 release-gate breadth expectations.
+- Added `vllm_agent_gateway.acceptance.eig1_connector_release_gate_breadth` to generate release packets from the Phase 289 fixture pack and validate them through the existing connector eval release gate.
+- Added `scripts/validate_eig1_connector_release_gate_breadth.py` and `tests/regression/test_eig1_connector_release_gate_breadth.py`.
+- Added `README.eig1-connector-release-gate-breadth.md` and `docs/examples/eig1-connector-release-gate-breadth.md`, then linked both through the documentation index.
+- Proved 3 generated ship packets pass, one for each EIG-1 breadth connector fixture.
+- Proved the release gate rejects missing connector validation, late blind baseline, missing holdout, missing negative control, unresolved high finding, and enablement without `ship`.
+- Kept natural workflow exposure false for Phase 291; gateway and AnythingLLM connector prompt proof remains Phase 295 only if a connector fixture is intentionally exposed to chat.
+- Direct validation passed with `EIG1 CONNECTOR RELEASE GATE BREADTH PASS` and `phase292_ready=true`.
+- Focused regression passed with `4 passed`.
+- JSON validation passed for `runtime/eig1_connector_release_gate_breadth_policy.json`.
+
+### Approved Phase 292: EIG-1 Registry Lifecycle Breadth
+
+Status: Complete.
+
+Milestone mapping: M28 EIG-1 Release And Registry Breadth, M17 Connector Contract And Registry, M19 Connector Eval And Release Gate.
+
+Goal: prove registry behavior across realistic connector lifecycle states without introducing parallel registry paths.
+
+Scope:
+
+- Prove draft registration, enabled registration, disabled connector invocation denial, duplicate connector rejection, stale validation rejection, and release-gate mismatch rejection across the breadth fixture set.
+- Record runtime registry hash proof before and after each attempted registration.
+- Produce rollback instructions for successful registration attempts.
+- If update or deprecation semantics are needed but not currently supported, document the gap as a future milestone candidate instead of adding ad hoc behavior inside this phase.
+- Do not mutate `runtime/tools.json`, `runtime/workflows.json`, `runtime/roles.json`, target repositories, or external services.
+
+Acceptance target: a contextless maintainer can trust that connector lifecycle behavior is governed, auditable, and not tied to one fixture.
+
+Result:
+
+- Added `runtime/eig1_registry_lifecycle_breadth_policy.json` for Phase 292 lifecycle scenario and scope-boundary requirements.
+- Added `vllm_agent_gateway.acceptance.eig1_registry_lifecycle_breadth` to exercise `connector_catalog.register` on disposable runtime copies.
+- Added `scripts/validate_eig1_registry_lifecycle_breadth.py` and `tests/regression/test_eig1_registry_lifecycle_breadth.py`.
+- Added `README.eig1-registry-lifecycle-breadth.md` and `docs/examples/eig1-registry-lifecycle-breadth.md`, then linked both through the documentation index.
+- Tightened the shared connector release-gate report to include `operation_ids` and registration validation to reject stale release-gate reports whose operation IDs do not match the connector being registered.
+- Proved draft registration, enabled registration, disabled invocation denial, duplicate registration rejection, stale release-gate validation rejection, and release-gate connector mismatch rejection across all three Phase 289 connector fixtures.
+- Proved successful lifecycle scenarios change only disposable `runtime/connectors.json`, produce rollback instructions, and leave tools/workflows/roles, target repositories, and external services unchanged.
+- Documented connector update/deprecation semantics as a deferred future milestone candidate rather than adding ad hoc behavior.
+- Direct validation passed with `EIG1 REGISTRY LIFECYCLE BREADTH PASS` and `phase296_ready=true`.
+- Contextless audit initially found a real overclaim: the lifecycle validator exercised only the first connector fixture. The validator and tests were corrected to run all 6 lifecycle scenarios for each of the 3 EIG-1 connector fixtures.
+- Corrected Phase 292 validation passed with `connector_count=3`, `scenario_count=18`, and `phase296_ready=true`.
+- Focused Phase 292 regression passed with `4 passed`.
+- Existing connector catalog and release-gate regression passed with `35 passed`.
+- JSON validation passed for `runtime/eig1_registry_lifecycle_breadth_policy.json` and `runtime/connector_eval_release_gate_policy.json`.
+- Fresh contextless audit passed the corrected EIG-1 M26-M28 proof scope and confirmed stale operation-set rejection is meaningful for all three connector fixtures.
+- Combined focused EIG-1 and connector regression passed with `52 passed`.
+- Full Bash regression passed with `1781 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 293: EIG-2 Actor Scope Breadth
+
+Status: Complete.
+
+Milestone mapping: M29 EIG-2 Actor Scope Breadth, M20 Identity Context Contract, M21 User-Scope Authorization Enforcement.
+
+Goal: prove actor identity and user-scope enforcement across the breadth connector archetypes.
+
+Scope:
+
+- Define and implement actor/scope scenarios for read-only success, missing read scope, write dry-run success, missing write scope, malformed actor context, expired actor context, and anonymous actor rejection.
+- Cover at least the work-tracking and structured business-record archetypes, and include the knowledge/document archetype when it has scoped operations.
+- Preserve least-privilege behavior: granted scopes must satisfy only the requested operation and must not imply unrelated connector permissions.
+- Include chat-visible recovery guidance for denied connector operations.
+- Do not add real OAuth providers, token refresh, shared privileged service-account substitution, or production identity infrastructure.
+
+Acceptance target: connector execution succeeds only for the requesting actor with sufficient declared scope and fails closed with useful recovery guidance otherwise.
+
+Completed work:
+
+- Added operation-level `required_scopes` support to connector admission and mediation while preserving connector-level scopes as the fallback for older manifests.
+- Added `runtime/eig2_actor_scope_breadth_policy.json` as the Phase 293 local-stub actor/scope breadth policy.
+- Added `vllm_agent_gateway.acceptance.eig2_actor_scope_breadth` as the single Phase 293 validation path.
+- Added `scripts/validate_eig2_actor_scope_breadth.py` for CLI validation.
+- Added focused regression coverage for read without write scope, write dry-run without read scope, cross-connector scope denial, malformed/expired/anonymous/missing actor context, undeclared operation scopes, and wrong least-privilege expectations.
+- Added `README.eig2-actor-scope-breadth.md` and `docs/examples/eig2-actor-scope-breadth.md`.
+- Documented operation-level scope narrowing in the connector catalog README and examples.
+- Direct validation passed with `EIG2 ACTOR SCOPE BREADTH PASS`, `read_without_write_allowed=true`, `write_without_read_allowed=true`, `cross_connector_scope_denied=true`, `scope_denials_have_recovery=true`, and `phase294_ready=true`.
+- Focused Phase 293 regression passed with `5 passed`.
+- Broadened connector regression passed with `39 passed`.
+- Docs index validation passed with `1 passed`.
+- Marked the parallel-sensitive local-controller L2 message-source chat test as `serial` after it failed only in the xdist lane and passed isolated plus serial-lane reruns.
+- Full Bash split regression passed with `1745 passed`, `4 skipped` in the parallel lane and `45 passed`, `1772 deselected` in the serial lane.
+
+### Approved Phase 294: EIG-2 Approval Replay Breadth
+
+Status: Complete.
+
+Milestone mapping: M30 EIG-2 Approval Replay Breadth, M21 User-Scope Authorization Enforcement, M22 User-Scoped Action Audit And Replay.
+
+Goal: prove approval binding and replay-safe audit behavior against realistic cross-actor and stale-approval failure modes.
+
+Scope:
+
+- Cover wrong actor, wrong session, wrong request, wrong connector, wrong operation, stale approval, scope-change, and non-dry-run write attempts.
+- Require every denied and allowed connector attempt to write replay-safe audit artifacts.
+- Prove raw auth subjects, raw secret-like values, and raw arguments are not stored in audit summaries.
+- Validate audit artifacts through the existing connector user-scope audit validator.
+- Keep external log sinks, SIEM integrations, persistent memory, and additional PII policy out of scope.
+
+Acceptance target: connector approval decisions are bound to the exact actor/session/request/operation context and can be audited without leaking sensitive inputs.
+
+Completed work:
+
+- Tightened connector write approval validation so approvals are bound to actor, session, request, connector, operation, and granted-scope state.
+- Added `runtime/eig2_approval_replay_breadth_policy.json` as the Phase 294 replay breadth policy.
+- Added `vllm_agent_gateway.acceptance.eig2_approval_replay_breadth` as the single Phase 294 validation path.
+- Added `scripts/validate_eig2_approval_replay_breadth.py` for CLI validation.
+- Added focused regression coverage for approved write dry-run success, wrong actor/session/request/connector/operation, missing granted-scope state, scope-change denial, non-dry-run write denial, and audit validation.
+- Added `README.eig2-approval-replay-breadth.md` and `docs/examples/eig2-approval-replay-breadth.md`.
+- Updated connector catalog docs/examples to include approval granted-scope binding.
+- Direct validation passed with `EIG2 APPROVAL REPLAY BREADTH PASS`, `all_required_scenarios_passed=true`, `audit_validation_passed=true`, `scope_change_denied=true`, `non_dry_run_write_denied=true`, and `phase295_ready=true`.
+- Focused Phase 294 regression passed with `4 passed`.
+- Broadened connector/EIG regression passed with `40 passed`.
+- Docs index validation passed with `1 passed`.
+- Full Bash split regression passed with `1749 passed`, `4 skipped` in the parallel lane and `45 passed`, `1776 deselected` in the serial lane.
+
+### Approved Phase 295: EIG Runtime Breadth Chat Proof
+
+Status: Complete.
+
+Milestone mapping: M31 EIG Runtime Breadth Chat Proof, M2 Chat-Visible Answer Contract, M3 Workflow/Skill/Tool Selection Reliability, M18 Connector Execution Mediation, M19 Connector Eval And Release Gate, M21 User-Scope Authorization Enforcement, M22 User-Scoped Action Audit And Replay.
+
+Goal: prove that breadth-tested connector behavior can produce useful chat-visible answers when exposed through natural language.
+
+Scope:
+
+- Select only the breadth fixtures intentionally exposed to natural-language workflows.
+- For each selected prompt, run the blind-baseline-first process before local-model output is inspected.
+- Run the prompt through the workflow-router gateway and AnythingLLM when applicable.
+- Compare routing, chat-visible usefulness, evidence, authorization behavior, output format, and audit artifact links against the blind baseline.
+- Repair the smallest controller, router, workflow, connector, or formatter gap discovered by the proof.
+- Do not expose raw connector tools directly to the model or bypass controller mediation.
+
+Acceptance target: a tester can ask a semi-well-defined natural-language connector prompt and receive a useful, safe answer in chat with traceable audit proof.
+
+Completed work:
+
+- Added a bounded natural-language connector fixture route for selected deterministic local-stub prompts only.
+- Kept execution on the existing `connector.invoke` controller-owned mediation path.
+- Added chat-visible connector result rendering with connector/operation, status, authorization, result fields, audit state, and no-mutation markers.
+- Built a disposable runtime connector catalog from `runtime/eig1_connector_breadth_fixtures.json` and `runtime/eig2_actor_scope_breadth_policy.json` so the source `runtime/connectors.json` remains unchanged.
+- Added `runtime/eig_runtime_breadth_chat_cases.json` with the blind-baseline answer contract and three selected prompt cases: work item lookup, business record lookup, and knowledge/document search.
+- Added `vllm_agent_gateway.acceptance.eig_runtime_breadth_chat` and `scripts/validate_eig_runtime_breadth_chat.py`.
+- Added focused regression coverage for direct validator pass/fail behavior and workflow-router chat output across all three selected connector archetypes.
+- Added `README.eig-runtime-breadth-chat.md` and `docs/examples/eig-runtime-breadth-chat.md`.
+- Direct validation passed with `EIG RUNTIME BREADTH CHAT PASSED`, `case_count=3`, `passed_case_count=3`, `failed_case_count=0`, `source_connector_registry_changed=False`, and `phase296_ready=True`.
+- Focused regression passed with `5 passed`.
+- Contextless blind baseline confirmed the expected answer standard: user-facing result, authorization/read-only status, local fixture source, audit summary, artifact traceability, no mutation, no external network, and no raw tool/credential leakage.
+
+### Approved Phase 296: EIG Breadth Confidence Closeout
+
+Status: Complete.
+
+Milestone mapping: M26 EIG-1 Connector Archetype Breadth, M27 EIG-1 Protocol Auth Schema Matrix, M28 EIG-1 Release And Registry Breadth, M29 EIG-2 Actor Scope Breadth, M30 EIG-2 Approval Replay Breadth, M31 EIG Runtime Breadth Chat Proof.
+
+Goal: close the EIG-1 and EIG-2 breadth-confidence proof chain with contextless audit and regression evidence.
+
+Scope:
+
+- Aggregate Phase 288-295 evidence into a contextless audit packet.
+- Confirm every approved breadth use case, negative control, and deferred item has an explicit status.
+- Run focused connector/catalog/eval/audit regression.
+- Run live gateway and AnythingLLM proof for any connector breadth prompt exposed to chat.
+- Run full Bash regression at closeout because the breadth work touches shared connector, controller, routing, and audit behavior.
+- Update connector docs, examples, architecture docs, and the documentation index.
+
+Acceptance target: EIG-1 and EIG-2 can be described as breadth-tested for the approved common connector use cases, with remaining gaps explicitly deferred instead of hidden.
+
+Completed work:
+
+- Added `runtime/eig_breadth_closeout_policy.json` with required milestones, phases, docs, runtime fixtures, coverage markers, and scope boundaries for EIG-1/EIG-2 closeout.
+- Added `vllm_agent_gateway.acceptance.eig_breadth_closeout` as the Phase 296 closeout aggregator.
+- Added `scripts/validate_eig_breadth_closeout.py` for offline, live workflow-router, and AnythingLLM-inclusive closeout proof.
+- Extended the Phase 295 runtime chat validator with an AnythingLLM API mode that scores chat text and pulls the controller run record by run ID.
+- Added focused regression coverage for Phase 296 closeout pass/fail behavior.
+- Added `README.eig-breadth-closeout.md` and `docs/examples/eig-breadth-closeout.md`.
+- Direct closeout validation passed with `phase_report_count=7`, `coverage_missing_count=0`, `source_connector_registry_changed=false`, and `phase296_closeout_ready=true`.
+- Live Bash workflow-router closeout passed through `http://127.0.0.1:8500/v1` after restarting the controller/gateway stack to load Phase 295 route changes.
+- AnythingLLM API proof passed for all three Phase 295 connector prompts through the reachable AnythingLLM API address `http://192.168.0.208:3001`.
+- Combined live workflow-router plus AnythingLLM closeout passed with `phase_report_count=8`, `failed_phase_report_count=0`, `coverage_missing_count=0`, `source_connector_registry_changed=false`, and `phase296_closeout_ready=true`.
+- Docs index validation passed with `linked_count=410` and no orphan docs.
+- Focused EIG runtime/closeout regression passed with `7 passed`.
+- Full Bash split regression passed with `1756 passed`, `4 skipped` in the parallel lane and `45 passed`, `1783 deselected` in the serial lane.
+
+### Approved Phase 297: EIG-3 Sensitive Data Archetype Matrix
+
+Status: Complete.
+
+Milestone mapping: M32 EIG-3 Sensitive Data Archetype Breadth.
+
+Goal: define the breadth-confidence matrix that proves EIG-3 privacy and memory safety are not limited to one leakage scenario.
+
+Scope:
+
+- Define three deterministic sensitive-data archetypes:
+  - personal, employee, member, or customer-like data,
+  - secret-like credentials such as tokens, API keys, passwords, and private keys,
+  - confidential business records such as account, contract, financial, legal, or internal operational data.
+- For each archetype, define allowed handling, prohibited handling, chat-visible behavior, artifact behavior, audit behavior, memory behavior, false-positive risks, false-negative risks, and required negative controls.
+- Use only synthetic local fixtures. Do not ingest real private user, employee, member, customer, credential, or business-confidential data.
+- Map cases to M23, M24, and M25 proof requirements.
+- Classify every planned case as required, holdout, negative control, or deferred.
+
+Acceptance target: a future agent can implement EIG-3 breadth fixtures and tests from the matrix without guessing what sensitive-data classes matter or accidentally adding production DLP/data-clean-room scope.
+
+Result:
+
+- Added `docs/EIG3_SENSITIVE_DATA_ARCHETYPE_MATRIX.md` as the Phase 297 matrix.
+- Defined the three synthetic sensitive-data archetypes: personal/employee/member/customer-like data, secret-like credentials, and confidential business records.
+- For each archetype, defined allowed handling, prohibited handling, chat-visible behavior, artifact behavior, audit behavior, memory behavior, false-positive risks, false-negative risks, required cases, holdouts, negative controls, and deferred cases.
+- Mapped the matrix to M23, M24, M25, M32, M33, M34, M35, and M36 proof requirements.
+- Defined Phase 298 fixture implementation inputs with minimum case counts and required fixture metadata.
+- Linked the matrix from `docs/README.md`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 298: EIG-3 Sensitive Fixture And Detection Breadth
+
+Status: Complete.
+
+Milestone mapping: M32 EIG-3 Sensitive Data Archetype Breadth, M23 PII And Secret Detection Policy.
+
+Goal: implement deterministic sensitive-data fixture packs and detection/classification tests for the Phase 297 archetypes.
+
+Scope:
+
+- Add synthetic fixture packs for personal data, secret-like values, and confidential business records.
+- Include positive detection cases, safe non-sensitive cases, near-miss cases, and malformed/encoded variants where practical.
+- Classify findings by sensitive-data class, confidence, allowed handling, and target output surface.
+- Track false-positive and false-negative cases explicitly instead of silently treating them as pass/fail noise.
+- Prove ignored/private/secret-like fixture content is not surfaced raw in chat-visible responses or artifacts.
+- Do not add real external scanners, vendor DLP integrations, persistent hidden memory, or production data storage.
+
+Acceptance target: synthetic sensitive-data classes are detected or classified consistently enough to drive masking, refusal, memory, and EvalOps gates.
+
+Result:
+
+- Added `runtime/eig3_sensitive_data_fixtures.json` with 30 synthetic fixtures across personal-data, secret-like, and confidential-business archetypes.
+- Added `vllm_agent_gateway.acceptance.eig3_sensitive_data` as the single Phase 298 fixture validation and classifier path.
+- Added `scripts/validate_eig3_sensitive_data.py` for CLI validation.
+- Added focused regression coverage in `tests/regression/test_eig3_sensitive_data.py` for the passing fixture pack, missing required counts, false-negative expectations, unsafe secret chat surfaces, and non-synthetic fixtures.
+- The fixture validator report stores fixture IDs, expected/detected classes, output decisions, status, error IDs, and text hashes; it does not retain raw fixture text.
+- Added `README.eig3-sensitive-data-fixtures.md` and `docs/examples/eig3-sensitive-data-fixtures.md`.
+- Direct CLI validation passed with `fixture_count=30`, `archetype_count=3`, `failed_fixture_count=0`, `validation_error_count=0`, and `phase299_ready=true`.
+- Focused regression passed with `5 passed`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 299: EIG-3 Masking Refusal Output Matrix
+
+Status: Complete.
+
+Milestone mapping: M33 EIG-3 Masking Refusal Output Matrix, M23 PII And Secret Detection Policy, M25 Privacy And Memory Safety EvalOps.
+
+Goal: prove sensitive-value handling is consistent across chat, artifacts, connector audit summaries, and output formats.
+
+Scope:
+
+- Define and test output-surface decisions: allow, mask, refuse, summarize, or omit.
+- Cover chat-visible default output, JSON output, generated artifacts, connector audit summaries, and run-state summaries.
+- Prove raw sensitive values are not emitted where policy requires masking or refusal.
+- Prove refusal messages are useful and provide safe recovery guidance without repeating the sensitive value.
+- Prove JSON/default parity for privacy decisions.
+- Include unsupported disclosure prompts that attempt to extract, reformat, decode, or reconcile sensitive values.
+
+Acceptance target: sensitive data is handled by one explicit policy matrix, and every supported output surface follows the same decision.
+
+Result:
+
+- Added `runtime/eig3_output_surface_policy.json` as the Phase 299 output-surface policy matrix.
+- Added `vllm_agent_gateway.acceptance.eig3_output_surface_policy` as the single validator path for EIG-3 output decisions.
+- Added `scripts/validate_eig3_output_surface_policy.py` for CLI validation.
+- Covered chat-visible default output, JSON output, generated artifacts, connector audit summaries, run-state summaries, and memory decisions.
+- Required JSON/default parity for every fixture and explicit refuse behavior for unsupported disclosure negative controls.
+- Validated safe output sample hashes without retaining raw fixture text in reports.
+- Added focused regression coverage for the passing policy, JSON/default drift, secret chat allow, missing run-state policy, and negative-control refusal drift.
+- Added `README.eig3-output-surface-policy.md` and `docs/examples/eig3-output-surface-policy.md`.
+- Direct CLI validation passed with `fixture_count=30`, `surface_count=6`, `failed_fixture_count=0`, `validation_error_count=0`, and `phase300_ready=true`.
+- Focused EIG-3 regression passed with `10 passed`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 300: EIG-3 Governed Memory Lifecycle Breadth
+
+Status: Complete.
+
+Milestone mapping: M34 EIG-3 Memory Lifecycle Breadth, M24 Governed Memory Store Policy.
+
+Goal: define and validate memory lifecycle behavior before persistent memory can influence chat, retrieval, or connector decisions.
+
+Scope:
+
+- Define memory scope, purpose, source provenance, retention, deletion, inspection, and expiration fields.
+- Prove allowed memory can be inspected and traced to source.
+- Prove deleted, expired, stale, hidden, wrong-session, and wrong-user memory cannot influence current answers.
+- Prove private or sensitive fixture content cannot be retained as hidden durable memory.
+- Include cross-session and cross-actor isolation tests.
+- Keep production vector databases, durable enterprise memory stores, external storage services, and hidden memory out of scope.
+
+Acceptance target: any future persistent memory feature has deterministic lifecycle gates before it can affect local-model behavior.
+
+Result:
+
+- Added `runtime/eig3_memory_lifecycle_fixtures.json` with eight synthetic lifecycle records.
+- Added `vllm_agent_gateway.acceptance.eig3_memory_lifecycle` as the single Phase 300 memory lifecycle validation path.
+- Added `scripts/validate_eig3_memory_lifecycle.py` for CLI validation.
+- Covered active inspectable scoped memory, deleted memory, expired memory, stale-source memory, hidden memory, wrong actor, wrong session, and raw sensitive memory.
+- Validator reports store record IDs, lifecycle decisions, reasons, metadata, and content hashes without retaining raw memory content.
+- Added focused regression coverage for the passing fixture pack, hidden memory marked allowed, stale memory marked allowed, raw sensitive memory marked allowed, and unknown source fixture rejection.
+- Added `README.eig3-memory-lifecycle.md` and `docs/examples/eig3-memory-lifecycle.md`.
+- Direct CLI validation passed with `record_count=8`, `allowed_record_count=1`, `denied_record_count=7`, `failed_record_count=0`, `validation_error_count=0`, and `phase301_ready=true`.
+- Focused EIG-3 regression passed with `15 passed`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 301: EIG-3 Privacy EvalOps Breadth
+
+Status: Complete.
+
+Milestone mapping: M35 EIG-3 Privacy EvalOps Breadth, M25 Privacy And Memory Safety EvalOps.
+
+Goal: make privacy and memory-safety failures release-blocking instead of advisory.
+
+Scope:
+
+- Build privacy EvalOps prompt packs from the Phase 297-300 fixtures.
+- Use blind-baseline-first scoring before local-model output is inspected.
+- Cover leakage, stale memory use, cross-session contamination, unsupported reconciliation, hallucinated authorization, refusal quality, masking correctness, and output-format parity.
+- Include holdouts and negative controls for each sensitive-data archetype.
+- Define release-blocking thresholds for high/critical privacy failures.
+- Require AnythingLLM proof when the privacy-sensitive behavior is exposed to chat.
+
+Acceptance target: privacy and memory regressions are detected through repeatable eval gates before release.
+
+Result:
+
+- Added `runtime/eig3_privacy_evalops_policy.json` with release-blocking thresholds, required privacy dimensions, natural-workflow proof requirements, and allowed release decisions.
+- Added `runtime/eig3_privacy_evalops_prompt_pack.json` with 16 synthetic prompt cases built from the Phase 297-300 fixture IDs.
+- Covered target, holdout, and negative-control cases for personal data, secret-like values, and confidential business records.
+- Covered leakage, stale memory use, cross-session contamination, unsupported reconciliation, hallucinated authorization, refusal quality, masking correctness, and output-format parity.
+- Added `vllm_agent_gateway.acceptance.eig3_privacy_evalops` as the single Phase 301 EvalOps validation path.
+- Added `scripts/validate_eig3_privacy_evalops.py` for CLI validation.
+- Added focused regression coverage for passing packs, late blind baselines, missing holdouts, raw source leaks, missing AnythingLLM proof for chat-exposed cases, unresolved high findings, and missing dimension coverage.
+- Added `README.eig3-privacy-evalops.md` and `docs/examples/eig3-privacy-evalops.md`.
+
+### Approved Phase 302: EIG Privacy Runtime Chat Proof
+
+Status: Complete.
+
+Milestone mapping: M36 EIG Privacy Runtime Closeout, M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M13 Runtime Reliability And Recovery, M23 PII And Secret Detection Policy, M24 Governed Memory Store Policy, M25 Privacy And Memory Safety EvalOps.
+
+Goal: prove privacy-sensitive prompts return useful, safe chat-visible answers through the same runtime path testers use.
+
+Scope:
+
+- Select representative privacy-sensitive prompts from the EIG-3 breadth fixture set.
+- Run the blind-baseline-first process for each prompt.
+- Run local-stack proof through the workflow-router gateway and AnythingLLM when applicable.
+- Score leak behavior, refusal quality, evidence boundaries, output format, artifact safety, stale-memory rejection, and recovery guidance.
+- Repair the smallest controller, workflow, formatter, privacy policy, or EvalOps gap discovered by the proof.
+- Do not add production data-clean-room infrastructure or ingest real private data.
+
+Acceptance target: a tester can ask a semi-well-defined privacy-sensitive prompt and receive a useful answer or refusal in chat without leaking sensitive values or relying on hidden memory.
+
+Result:
+
+- Added `runtime/eig3_privacy_runtime_chat_cases.json` with four synthetic runtime prompt cases for secret-like refusal, personal-data authorization refusal, confidential-business JSON refusal, and memory lifecycle rejection.
+- Added `vllm_agent_gateway.acceptance.eig3_privacy_runtime_chat` as the single Phase 302 live proof validator.
+- Added `scripts/validate_eig3_privacy_runtime_chat.py` for CLI validation.
+- Added `README.eig3-privacy-runtime-chat.md` and `docs/examples/eig3-privacy-runtime-chat.md`.
+- Added a narrow controller router branch for self-contained EIG-3 privacy prompts so they return a safe no-workflow answer instead of incorrectly asking for a repository `target_root`.
+- Preserved the normal coding no-target behavior: ordinary coding prompts without `target_root` still fail closed with `missing_target_root_for_coding_request`.
+- Focused runtime routing and classifier regression passed with `8 passed`.
+- Live Bash validation passed through the workflow-router gateway and AnythingLLM using the WSL network AnythingLLM API URL, with `case_count=4`, `result_count=8`, `surfaces=["anythingllm", "workflow_router_gateway"]`, `failed_result_count=0`, `validation_error_count=0`, and `phase303_ready=true`.
+
+### Approved Phase 303: EIG-3 Breadth Confidence Closeout
+
+Status: Complete.
+
+Milestone mapping: M32 EIG-3 Sensitive Data Archetype Breadth, M33 EIG-3 Masking Refusal Output Matrix, M34 EIG-3 Memory Lifecycle Breadth, M35 EIG-3 Privacy EvalOps Breadth, M36 EIG Privacy Runtime Closeout.
+
+Goal: close the EIG-3 breadth-confidence proof chain with contextless audit and regression evidence.
+
+Scope:
+
+- Aggregate Phase 297-302 evidence into a contextless audit packet.
+- Confirm every sensitive-data archetype, memory lifecycle case, output-surface decision, holdout, negative control, and deferred item has an explicit status.
+- Run focused privacy, memory, output-surface, and EvalOps tests.
+- Run live gateway and AnythingLLM proof for privacy-sensitive prompts exposed to chat.
+- Run full Bash regression at closeout because privacy/memory safety affects shared chat, artifact, audit, and runtime behavior.
+- Update privacy/memory docs, examples, architecture docs, breadth goals, and the documentation index.
+
+Acceptance target: EIG-3 can be described as breadth-tested for the approved synthetic privacy and memory-safety use cases, with remaining gaps explicitly deferred instead of hidden.
+
+Result:
+
+- Added `runtime/eig3_breadth_closeout_policy.json` with required EIG-3 docs, runtime files, phases, and milestones.
+- Added `vllm_agent_gateway.acceptance.eig3_breadth_closeout` as the Phase 303 closeout aggregator.
+- Added `scripts/validate_eig3_breadth_closeout.py` for CLI validation.
+- Added `README.eig3-breadth-closeout.md` and `docs/examples/eig3-breadth-closeout.md`.
+- Contextless audit confirmed alignment with M32-M36 and flagged the correct limitation: this is synthetic breadth proof, not production DLP, real memory-store enforcement, or semantic leak detection.
+- Documented the false-pass boundary: declared EvalOps scores, heuristic raw-token leak checks, and offline/no-AnythingLLM modes must not be treated as production privacy proof.
+- Focused EIG-3 regression passed with `33 passed`.
+- Live Phase 303 closeout passed with `required_doc_count=11`, `required_runtime_file_count=6`, `phase_report_count=5`, `failed_phase_report_count=0`, `validation_error_count=0`, and `phase303_closeout_ready=true`.
+- Docs index validation passed with zero orphaned docs.
+- Full Bash regression passed with `1764 passed`, `4 skipped`, and `23 deselected`.
+
+### Approved Phase 304: EIG Stable Handoff Integration
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M17 Connector Contract And Registry, M18 Connector Execution Mediation, M19 Connector Eval And Release Gate, M20 Identity Context Contract, M21 User-Scope Authorization Enforcement, M22 User-Scoped Action Audit And Replay, M23 PII And Secret Detection Policy, M24 Governed Memory Store Policy, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: make the completed EIG breadth proof visible from the stable tester handoff path without expanding into real external API, production OAuth, real sensitive-data, arbitrary connector-chat, or hidden-memory scope.
+
+Scope:
+
+- Add a stable handoff integration policy for Phase 296 and Phase 303 proof visibility.
+- Add a static validator that checks required release-facing docs, runtime proof policies, scripts, and scope-boundary markers.
+- Update getting-started, stable handoff, release notes, architecture orientation, root README, ordered docs index, and examples.
+- Preserve the local-stub connector and synthetic privacy boundaries.
+- Do not add runtime connector behavior or production-scope claims.
+
+Acceptance target: a contextless tester can enter from the stable handoff docs and understand that EIG connector and privacy proof is available, validated, and bounded to deterministic local/synthetic fixtures.
+
+Completed work:
+
+- Added `runtime/eig_stable_handoff_integration_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_stable_handoff_integration`.
+- Added `scripts/validate_eig_stable_handoff_integration.py`.
+- Added focused regression coverage in `tests/regression/test_eig_stable_handoff_integration.py`.
+- Added `README.eig-stable-handoff-integration.md` and `docs/examples/eig-stable-handoff-integration.md`.
+- Updated stable handoff, getting-started, release notes, architecture, root README, docs index, and examples index.
+- Direct validation passed with `missing_doc_count=0`, `missing_runtime_file_count=0`, `missing_script_count=0`, `missing_marker_count=0`, `validation_error_count=0`, and `phase305_ready=true`.
+- Focused regression passed with `2 passed`.
+- Docs index validation passed with zero orphaned docs.
+
+### Approved Phase 305: EIG Clean Branch Packaging And Static Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: make the Phase 288-304 EIG-integrated state durable on a reviewable branch and prove a fresh clone can discover and validate the stable handoff integration without active-workspace runtime state.
+
+Scope:
+
+- Package the EIG breadth and Phase 304 handoff integration files on a dedicated `codex/` branch.
+- Exclude ignored `runtime-state/` and temporary pytest artifacts from source control.
+- Commit and push the branch to `s-aws/vllm-agent-gateway`.
+- Clone the pushed branch into a disposable directory.
+- Run docs index validation and the Phase 304 static handoff gate from the clone.
+- Do not run live external connector, production OAuth, real sensitive-data, or hidden-memory proof.
+
+Acceptance target: a contextless reviewer can clone the pushed branch, run the static EIG handoff gate, and see the same local-stub connector and synthetic privacy boundaries without needing this session history.
+
+Completed work:
+
+- Created branch `codex/eig-stable-handoff`.
+- Staged the EIG breadth, EIG stable handoff integration, regression, docs, and policy package with no `runtime-state/` or `.tmp_pytest/` files staged.
+- `git diff --cached --check` passed before commit.
+- Full Bash split regression passed with `1758 passed, 4 skipped` in the parallel lane and `45 passed` in the serial lane.
+- Committed and pushed the branch to `origin/codex/eig-stable-handoff`.
+- Replayed clean-clone proof from a disposable `/tmp` clone of the pushed branch.
+- Clean clone docs index validation passed with `linked_count=412`, `orphaned_docs=[]`, and `status=passed`.
+- Clean clone Phase 304 static handoff validation passed with `missing_doc_count=0`, `missing_runtime_file_count=0`, `missing_script_count=0`, `missing_marker_count=0`, `validation_error_count=0`, and `phase305_ready=true`.
+
+### Approved Phase 306: EIG Branch Review Packet
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: expose the pushed EIG handoff branch through a reviewable GitHub pull request with proof, scope boundaries, and release notes that a contextless reviewer can inspect.
+
+Scope:
+
+- Create a pull request from `codex/eig-stable-handoff` to `main`.
+- Include the Phase 304/305 proof summary, full regression status, clean-clone replay result, and explicit non-production EIG boundaries in the PR body.
+- Do not merge the PR or change `main`.
+- Do not add runtime behavior beyond the already pushed branch contents.
+
+Acceptance target: the branch is reviewable through GitHub without relying on this chat session, and the PR makes the exact supported and unsupported EIG scope clear.
+
+Completed work:
+
+- Created GitHub pull request `https://github.com/s-aws/vllm-agent-gateway/pull/1` from `codex/eig-stable-handoff` to `main`.
+- PR body includes Phase 304 gate status, docs index status, full Bash split regression status, clean-clone replay status, and EIG scope boundaries.
+- The PR explicitly states that real external connector execution, raw MCP access, arbitrary connector chat, production OAuth token exchange, real sensitive-data ingestion, production DLP/data-clean-room infrastructure, and persistent hidden memory are not shipped.
+- `main` was not changed or merged by this phase.
+
+### Approved Phase 307: EIG Baseline Candidate Intake
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: admit the EIG runtime connector and privacy prompt packs as stable-baseline candidates without mutating `runtime/baseline_corpus.json`.
+
+Scope:
+
+- Define the EIG baseline candidate intake policy.
+- Include the three Phase 295 local-stub connector runtime prompt cases and the four Phase 302 synthetic privacy runtime prompt cases.
+- Prove both proposed EIG entry IDs are absent from the stable baseline corpus.
+- Mark each candidate as blocked pending blind baseline, local model comparison, holdout, route proof, no-mutation proof, and founder approval.
+- Keep stable corpus promotion in a separate future phase.
+- Do not run live gateway/AnythingLLM replay in this phase.
+
+Acceptance target: Phase 308 can run live replay against a deterministic, pre-promotional EIG candidate set, and the stable corpus remains unchanged.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_intake_policy.json` with two EIG baseline candidates.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_intake`.
+- Added `scripts/validate_eig_baseline_candidate_intake.py`.
+- Added regression coverage in `tests/regression/test_eig_baseline_candidate_intake.py`.
+- Added `README.eig-baseline-candidate-intake.md` and `docs/examples/eig-baseline-candidate-intake.md`.
+- Updated root, docs, and examples indexes.
+- Direct validation passed with `candidate_count=2`, `total_source_case_count=7`, `stable_corpus_entry_count=5`, `stable_corpus_mutated=false`, `candidate_pending_live_replay_count=2`, `validation_error_count=0`, and `phase308_ready=true`.
+- Focused regression passed with `4 passed`.
+- Docs index validation passed with `linked_count=414` and no orphan docs.
+- Baseline corpus governance passed with `entry_count=5`, `stable_entry_count=5`, and `error_count=0`.
+- `runtime/baseline_corpus.json` remained unchanged.
+
+### Approved Phase 308: EIG Baseline Candidate Live Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: replay the seven Phase 307 EIG baseline candidates through live workflow-router gateway and AnythingLLM proof surfaces without promoting them into the stable corpus.
+
+Scope:
+
+- Compose the existing EIG connector runtime chat and EIG privacy runtime chat validators.
+- Require Phase 307 candidate intake and baseline corpus governance to pass first.
+- Run the three connector runtime candidates through workflow-router gateway and AnythingLLM.
+- Run the four privacy runtime candidates through workflow-router gateway and AnythingLLM.
+- Record live evidence and surface coverage for later promotion review.
+- Keep stable corpus promotion disabled and founder approval unrecorded.
+
+Acceptance target: EIG baseline candidates have live replay evidence on both required surfaces, with no stable corpus mutation and no promotion claim.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_live_replay_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_live_replay`.
+- Added `scripts/validate_eig_baseline_candidate_live_replay.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_live_replay.py`.
+- Added `README.eig-baseline-candidate-live-replay.md` and `docs/examples/eig-baseline-candidate-live-replay.md`.
+- Updated root, docs, and examples indexes.
+- Static preflight passed with Phase 307 candidate intake and baseline corpus governance valid.
+- Live Bash replay passed through `http://127.0.0.1:8500/v1` and AnythingLLM API `http://192.168.0.208:3001` with `candidate_count=2`, `total_source_case_count=7`, `live_result_count=14`, `covered_surface_count=2`, `missing_surface_count=0`, `stable_corpus_entry_count=5`, `stable_corpus_mutated=false`, `stable_corpus_promotion_allowed=false`, `founder_approval_recorded=false`, `validation_error_count=0`, and `phase309_ready=true`.
+- Docs index validation passed with `linked_count=416` and no orphan docs.
+- Focused regression passed with `3 passed`.
+- Baseline corpus remained unchanged.
+- Full Bash split regression passed with `1765 passed`, `4 skipped` in the parallel lane and `45 passed` in the serial lane.
+
+### Approved Phase 309: EIG PR Evidence Refresh
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: refresh the open EIG handoff pull request so reviewers see the Phase 307 baseline-candidate intake proof and Phase 308 live replay proof, then replay static gates from a clean clone of the updated branch head.
+
+Scope:
+
+- Update PR `https://github.com/s-aws/vllm-agent-gateway/pull/1` with Phase 307 and Phase 308 evidence.
+- Include the new docs-index count, full regression count, live replay count, and stable-corpus non-promotion boundary.
+- Replay docs index, Phase 304 stable handoff integration, Phase 307 candidate intake, and Phase 308 static preflight from a disposable clean clone.
+- Do not merge the PR or change `main`.
+
+Acceptance target: the PR body and clean-clone static proof represent the current branch head after EIG candidate intake and live replay work.
+
+Completed work:
+
+- Updated PR `https://github.com/s-aws/vllm-agent-gateway/pull/1` with Phase 307 and Phase 308 proof.
+- PR body now includes docs index `linked_count=416`, Phase 308 `live_result_count=14`, full Bash split regression `1765 passed`, `4 skipped` parallel and `45 passed` serial, and stable-corpus non-promotion boundary.
+- PR body explicitly states that stable baseline corpus promotion remains a separate future phase requiring founder approval.
+- `main` was not changed or merged by this phase.
+
+### Approved Phase 310: EIG PR Merge Readiness Gate
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove PR `https://github.com/s-aws/vllm-agent-gateway/pull/1` is ready for a founder merge decision while explicitly keeping merge, `main` mutation, and stable baseline corpus promotion outside this phase.
+
+Scope:
+
+- Add a non-merge PR readiness policy for the EIG handoff branch.
+- Validate current branch, source cleanliness, upstream branch, PR state, PR merge state, PR head/base refs, required docs/scripts, prior phase completion, forbidden tracked paths, and PR body evidence markers.
+- Keep `merge_allowed=false`, `main_mutation_allowed=false`, and `stable_corpus_promotion_allowed=false`.
+- Do not merge the PR.
+- Do not change `main`.
+- Do not promote EIG candidates into `runtime/baseline_corpus.json`.
+
+Acceptance target: a contextless reviewer can run one readiness command and see whether PR #1 is clean, reviewable, and ready for the founder merge decision without accidentally authorizing merge or corpus promotion.
+
+Completed work:
+
+- Added `runtime/eig_pr_merge_readiness_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_pr_merge_readiness`.
+- Added `scripts/validate_eig_pr_merge_readiness.py`.
+- Added focused regression coverage in `tests/regression/test_eig_pr_merge_readiness.py`.
+- Added `README.eig-pr-merge-readiness.md` and `docs/examples/eig-pr-merge-readiness.md`.
+- Updated root, docs, examples, and milestone indexes.
+- The gate requires Phase 304 through Phase 309 to be complete before PR readiness can pass.
+- The gate requires the PR body to include Phase 307/308 evidence, `live_result_count=14`, stable baseline corpus promotion approval boundary, and no-real-external-connector-execution boundary.
+
+### Approved Phase 311: EIG Baseline Candidate Promotion Readiness
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: create a fail-closed, non-mutating promotion-readiness decision for the Phase 307/308 EIG baseline candidates before any stable corpus promotion work is attempted.
+
+Scope:
+
+- Add an EIG baseline-candidate promotion-readiness policy.
+- Validate Phase 307 candidate intake, Phase 308 static preflight, baseline corpus governance, PR evidence markers, and stable-corpus non-mutation.
+- Require the existing baseline corpus promotion evidence set: blind baseline, local model comparison, holdout, route proof, no-mutation proof, and founder approval.
+- Report the current candidates as blocked, not approved, and not promoted.
+- Do not edit `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: a contextless reviewer can run one command and see that both EIG candidate groups are known, replay-backed, outside the stable corpus, and still blocked pending committed promotion evidence and explicit founder approval.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_promotion_readiness_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_promotion_readiness`.
+- Added `scripts/validate_eig_baseline_candidate_promotion_readiness.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_promotion_readiness.py`.
+- Added `README.eig-baseline-candidate-promotion-readiness.md` and `docs/examples/eig-baseline-candidate-promotion-readiness.md`.
+- Updated root, docs, examples, and milestone indexes.
+- Direct validation passed with `candidate_count=2`, `blocked_candidate_count=2`, `approved_candidate_count=0`, `promoted_candidate_count=0`, `promotion_allowed=false`, `stable_corpus_mutated=false`, `founder_approval_recorded=false`, and `validation_error_count=0`.
+
+### Approved Phase 312: EIG Baseline Candidate Blind Baselines
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: record the contextless blind-baseline expectations for every Phase 307/308 EIG baseline-candidate prompt before local-model comparison.
+
+Scope:
+
+- Use a bounded contextless subagent before showing local-model output.
+- Record answer shape, required content, prohibited content, evidence expectations, hard failures, and scoring notes for all seven EIG runtime candidate cases.
+- Validate source-pack hashes and case ordering.
+- Prove `local_model_output_seen=false`.
+- Mark `blind_baseline` as recorded evidence while keeping promotion blocked on local-model comparison, holdout, route proof, no-mutation proof, and founder approval.
+- Do not run local-model comparison in this phase.
+- Do not edit `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+
+Acceptance target: the EIG promotion-candidate set has durable blind-baseline evidence that can be used by the next local-model comparison phase without relying on this chat session.
+
+Completed work:
+
+- Collected blind-baseline output from bounded contextless subagent `Hypatia`.
+- Added `runtime/eig_baseline_candidate_blind_baselines.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_blind_baselines`.
+- Added `scripts/validate_eig_baseline_candidate_blind_baselines.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_blind_baselines.py`.
+- Added `README.eig-baseline-candidate-blind-baselines.md` and `docs/examples/eig-baseline-candidate-blind-baselines.md`.
+- Updated Phase 311 docs, root docs, examples, and milestone indexes.
+- Direct validation passed with `case_count=7`, `contextless_agent_first=true`, `local_model_output_seen=false`, `recorded_evidence=[blind_baseline]`, `promotion_allowed=false`, and `remaining_missing_evidence=[founder_approval, holdout, local_model_comparison, no_mutation_proof, route_proof]`.
+
+### Approved Phase 313: EIG Baseline Candidate Local Comparison
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: compare the EIG baseline-candidate live replay outputs against the Phase 312 contextless blind baselines and decide whether `local_model_comparison` promotion evidence can be recorded.
+
+Scope:
+
+- Add a local-model comparison policy for the seven EIG baseline-candidate prompt cases.
+- Compare the saved Phase 313 post-blind-baseline live replay across workflow-router gateway and AnythingLLM.
+- Use structured connector runtime validator output for connector cases.
+- Use privacy runtime chat output against blind-baseline must-have facts, output-format expectations, and hard-failure boundaries for privacy cases.
+- Record `local_model_comparison` evidence only when every candidate response passes the comparison.
+- If comparison misses remain, return `repair_required` and keep `local_model_comparison` in the missing-evidence list.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: a contextless reviewer can run one command and see whether the current EIG baseline candidates actually match the blind baselines before any stable corpus promotion is considered.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_local_comparison_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_local_comparison`.
+- Added `scripts/validate_eig_baseline_candidate_local_comparison.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_local_comparison.py`.
+- Added `README.eig-baseline-candidate-local-comparison.md` and `docs/examples/eig-baseline-candidate-local-comparison.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Tightened the comparator so `local_model_comparison` is not recorded when the comparison decision is `repair_required`.
+- Added WSL-to-Windows report path resolution for live replay child reports.
+- Avoided false JSON failures from bounded privacy `text_sample` fields by respecting the upstream Phase 302 full-response JSON validation.
+- Focused regression passed with `5 passed`.
+- Direct Phase 313 validation passed structurally with `response_count=14`, `passed_response_count=12`, `failed_response_count=2`, `minimum_score=80`, `hard_failure_count=0`, `comparison_decision=repair_required`, `recorded_evidence=[blind_baseline]`, and `remaining_missing_evidence=[local_model_comparison, founder_approval, holdout, no_mutation_proof, route_proof]`.
+- The concrete Phase 314 repair target is `EIG3-RUNTIME-PII-AUTH` on both workflow-router gateway and AnythingLLM. The current answer refuses safely but misses `do not hallucinate authorization` and `fixture EIG3-PII-N2 classified as personal_data`.
+
+### Approved Phase 314: EIG Baseline Candidate Privacy Answer Repair
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M25 Privacy And Memory Safety EvalOps, and M36 EIG Privacy Runtime Closeout.
+
+Goal: repair the deterministic EIG-3 privacy no-target chat answer so the EIG baseline-candidate local-model comparison records `local_model_comparison` evidence.
+
+Scope:
+
+- Keep the EIG-3 privacy no-target path controller-owned and deterministic.
+- Extract the synthetic fixture id and sensitive-data classification from the prompt.
+- Include `raw_value_shown: false`.
+- Reject hallucinated authorization when the prompt involves claimed approval or authorization.
+- Include memory lifecycle rejection markers when the prompt involves stale, cross-session, wrong-session, or raw-sensitive memory.
+- Preserve the no repository workflow boundary.
+- Restart the Bash-hosted stack with the workflow-router gateway network-bound for AnythingLLM validation.
+- Rerun the EIG baseline-candidate live replay through workflow-router gateway and AnythingLLM.
+- Rerun the Phase 313 local comparison against the repaired replay.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: the repaired live replay passes on both surfaces and the blind-baseline comparison returns `comparison_decision=passed` with `local_model_comparison` recorded.
+
+Completed work:
+
+- Updated the EIG-3 privacy no-target controller-service response to preserve fixture classification, raw-value refusal, hallucinated-authorization rejection, memory lifecycle markers, and no-workflow boundaries.
+- Added focused regression coverage for the `EIG3-PII-N2` hallucinated-authorization refusal.
+- Added `README.eig-baseline-candidate-privacy-repair.md` and `docs/examples/eig-baseline-candidate-privacy-repair.md`.
+- Updated the Phase 313 comparison docs with the repaired Phase 314 replay result.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Focused regression passed with `14 passed`.
+- Restarted the stack with `WORKFLOW_ROUTER_GATEWAY_BIND_HOST=0.0.0.0` so AnythingLLM could reach its configured `http://100.100.12.45:8500/v1` target.
+- Repaired live replay passed with `candidate_count=2`, `live_result_count=14`, `covered_surface_count=2`, `missing_surface_count=0`, `stable_corpus_mutated=false`, `stable_corpus_promotion_allowed=false`, and `validation_error_count=0`.
+- Repaired local comparison passed with `response_count=14`, `passed_response_count=14`, `failed_response_count=0`, `minimum_score=95`, `hard_failure_count=0`, `comparison_decision=passed`, `recorded_evidence=[blind_baseline, local_model_comparison]`, and `remaining_missing_evidence=[founder_approval, holdout, no_mutation_proof, route_proof]`.
+
+### Approved Phase 315: EIG Baseline Candidate Route And Mutation Proof
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: record route and no-mutation proof for the repaired EIG baseline candidates before holdout or promotion work.
+
+Scope:
+
+- Validate the repaired Phase 314 live replay and child reports.
+- Prove connector candidates route through `connector.invoke`.
+- Prove privacy candidates route to `eig3_privacy_policy_no_target` with `selected_workflow=none`.
+- Prove gateway and AnythingLLM surfaces are both present.
+- Prove connector source registry remained unchanged.
+- Prove privacy runtime reports retained no raw source content.
+- Prove stable baseline corpus was not mutated or promoted.
+- Record `route_proof` and `no_mutation_proof`.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: a contextless reviewer can run one command against the repaired live replay and see that route and no-mutation evidence is closed while holdout and founder approval remain open.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_route_mutation_proof_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_route_mutation_proof`.
+- Added `scripts/validate_eig_baseline_candidate_route_mutation_proof.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_route_mutation_proof.py`.
+- Added `README.eig-baseline-candidate-route-mutation-proof.md` and `docs/examples/eig-baseline-candidate-route-mutation-proof.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Focused regression passed with `5 passed`.
+- Direct Phase 315 validation passed against `phase314-after-pii-repair-live.json` with `connector_result_count=6`, `privacy_result_count=8`, `route_proof_recorded=true`, `no_mutation_proof_recorded=true`, `stable_corpus_mutated=false`, `stable_corpus_promotion_allowed=false`, `recorded_evidence=[route_proof, no_mutation_proof]`, `remaining_missing_evidence=[founder_approval, holdout]`, and `validation_error_count=0`.
+
+### Approved Phase 316: EIG Baseline Candidate Holdout Proof
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M4 Evidence Quality And Relevance, M9 Founder Feedback Repair Loop, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: record paraphrased holdout evidence for the repaired EIG baseline candidates so only founder approval remains before any promotion decision.
+
+Scope:
+
+- Use a bounded contextless subagent to design paraphrased connector and privacy holdouts before local output review.
+- Adapt holdout wording only enough to hit the current deterministic router trigger contract.
+- Add three connector holdouts and four privacy holdouts.
+- Run holdouts through workflow-router gateway and AnythingLLM.
+- Reuse established connector and privacy classifiers.
+- Repair privacy trigger breadth when holdout wording exposes a genuine routing gap.
+- Prove connector registry and stable baseline corpus were not mutated.
+- Record `holdout` evidence.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: all holdout cases pass on both gateway and AnythingLLM, and `remaining_missing_evidence` becomes `[founder_approval]`.
+
+Completed work:
+
+- Collected holdout design from bounded contextless subagent `Carver`.
+- Added `runtime/eig_baseline_candidate_holdout_cases.json`.
+- Added `runtime/eig_baseline_candidate_holdout_proof_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_holdout_proof`.
+- Added `scripts/validate_eig_baseline_candidate_holdout_proof.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_holdout_proof.py`.
+- Expanded the deterministic EIG-3 privacy no-target trigger to cover holdout wording such as raw token and raw JSON dump requests.
+- Added focused routing coverage for raw-token and confidential JSON holdouts.
+- Added `README.eig-baseline-candidate-holdout-proof.md` and `docs/examples/eig-baseline-candidate-holdout-proof.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Shape-only holdout validation passed without recording evidence.
+- Focused regression passed with `10 passed` after trigger repair.
+- Live holdout proof passed through workflow-router gateway and AnythingLLM with `holdout_case_count=7`, `result_count=14`, `passed_result_count=14`, `failed_result_count=0`, `stable_corpus_mutated=false`, `connector_registry_mutated=false`, `recorded_evidence=[holdout]`, `remaining_missing_evidence=[founder_approval]`, and `validation_error_count=0`.
+
+### Approved Phase 317: EIG Baseline Candidate Founder Approval Readiness
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M9 Founder Feedback Repair Loop, M14 Release Packaging And Onboarding, M19 Connector Eval And Release Gate, M25 Privacy And Memory Safety EvalOps, M31 EIG Runtime Breadth Chat Proof, and M36 EIG Privacy Runtime Closeout.
+
+Goal: aggregate the Phase 312-316 EIG baseline-candidate proof chain and make the current founder-decision state auditable without promoting candidates or recording approval.
+
+Scope:
+
+- Validate the Phase 312 blind-baseline report.
+- Validate the repaired Phase 314 local-model comparison report.
+- Validate the Phase 315 route and no-mutation report.
+- Validate the Phase 316 live holdout report.
+- Verify the two EIG baseline candidates and seven source cases are still present.
+- Verify all non-founder promotion evidence is recorded.
+- Verify `founder_approval` is the only missing evidence item.
+- Verify the stable baseline corpus hash is unchanged.
+- Keep `promotion_allowed=false`.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not record founder approval.
+- Do not merge PR #1 or mutate `main`.
+
+Acceptance target: a contextless reviewer can run one command and see `ready_for_founder_decision=true`, `missing_evidence=[founder_approval]`, `promotion_allowed=false`, and `stable_corpus_mutated=false`.
+
+Completed work:
+
+- Added `runtime/eig_baseline_candidate_founder_approval_readiness_policy.json`.
+- Added `vllm_agent_gateway.acceptance.eig_baseline_candidate_founder_approval_readiness`.
+- Added `scripts/validate_eig_baseline_candidate_founder_approval_readiness.py`.
+- Added focused regression coverage in `tests/regression/test_eig_baseline_candidate_founder_approval_readiness.py`.
+- Added `README.eig-baseline-candidate-founder-approval-readiness.md` and `docs/examples/eig-baseline-candidate-founder-approval-readiness.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Focused regression passed with `5 passed`.
+- Direct Phase 317 validation passed with `candidate_count=2`, `blocked_candidate_count=2`, `recorded_evidence=[blind_baseline, holdout, local_model_comparison, no_mutation_proof, route_proof]`, `missing_evidence=[founder_approval]`, `ready_for_founder_decision=true`, `founder_approval_recorded=false`, `promotion_allowed=false`, `stable_corpus_mutated=false`, and `validation_error_count=0`.
+- Full split regression passed with `1804 passed, 4 skipped` in the parallel lane and `45 passed` in the serial lane.
+
+### Approved Phase 318: Context Ceiling Benchmark
+
+Status: Complete.
+
+Milestone mapping: M7 Context Ceiling Benchmark.
+
+Goal: measure the current local model raw context behavior at 32K, 64K, 128K, and 256K classes without changing the supported governed 500k-token project-usability path or claiming raw 500k prompt support.
+
+Scope:
+
+- Add a deterministic benchmark policy for 32K, 64K, 128K, and 256K context classes.
+- Use `/v1/models` to prove the expected model and reported `max_model_len`.
+- Use `/tokenize` to record actual prompt token counts.
+- Use `/v1/chat/completions` to measure accepted/rejected behavior, latency, answer quality, and failure class.
+- Capture hardware memory snapshots and selected vLLM metrics at report level.
+- Treat model timeouts, context-length rejection, and answer-quality misses as measured M7 outcomes, not harness failures.
+- Keep `raw_500k_prompt_support_proven=false`.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not change the stable governed 500k project-usability path.
+- Do not promote EIG baseline candidates or merge PR #1.
+
+Acceptance target: a contextless reviewer can run one command and get a report with four classified context-class results, prompt token counts, latency, answer score, memory evidence, stable-corpus mutation proof, and an explicit raw-500k support boundary.
+
+Completed work:
+
+- Added `runtime/context_ceiling_benchmark_policy.json`.
+- Added `vllm_agent_gateway.acceptance.context_ceiling_benchmark`.
+- Added `scripts/validate_context_ceiling_benchmark.py`.
+- Added focused regression coverage in `tests/regression/test_context_ceiling_benchmark.py`.
+- Added `README.context-ceiling-benchmark.md` and `docs/examples/context-ceiling-benchmark.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Tightened no-live validation so shape-only checks do not mark `phase319_ready=true`.
+- Tightened the live harness so metrics collection cannot block the benchmark critical path.
+- Focused regression passed with `5 passed`.
+- Shape-only validation passed with `run_live=false`, `result_count=0`, `raw_500k_prompt_support_proven=false`, `stable_corpus_mutated=false`, and `phase319_ready=false`.
+- Live validation passed with `result_count=4`, `passed_result_count=3`, `failed_result_count=1`, `failure_classes=[passed, timeout]`, `max_prompt_tokens=249354`, `max_latency_seconds=180.046`, `raw_500k_prompt_support_proven=false`, `stable_corpus_mutated=false`, and `validation_error_count=0`.
+- Live context-class results were `ctx-32k timeout at 180.046 seconds with 30407 prompt tokens`, `ctx-64k passed with score=100 at 178.405 seconds and 62012 prompt tokens`, `ctx-128k passed with score=100 at 1.976 seconds and 125013 prompt tokens`, and `ctx-256k passed with score=100 at 169.699 seconds and 249354 prompt tokens`.
+
+### Approved Phase 319: Context Strategy Router Rebaseline
+
+Status: Complete.
+
+Milestone mapping: M8 Context Strategy Router.
+
+Goal: rebaseline the existing context strategy router after the Phase 318 benchmark so current-model large-context routing proves deterministic strategy selection without raw prompt stuffing or a second router path.
+
+Scope:
+
+- Validate the existing Phase 220 router gate still passes.
+- Require Phase 318 benchmark evidence with `phase319_ready=true` and `raw_500k_prompt_support_proven=false`.
+- Cover small, medium, huge, ambiguous, unsupported, missing-index, stale-index, sensitive/secret, artifact-paging, chunked, and summarization cases.
+- Validate every report includes the blind-audit evidence fields for route decisions, budget, index status, privacy handling, expected/actual route, deterministic replay, and user-visible limitations.
+- Prove repeated inputs produce the same route decision.
+- Keep raw prompt stuffing disallowed.
+- Do not create a second large-context router.
+- Do not mutate `runtime/baseline_corpus.json`.
+- Do not promote EIG baseline candidates or merge PR #1.
+
+Acceptance target: a contextless reviewer can run one command and see the controller chooses the correct context strategy for current M8 cases, refuses unsafe or unsupported variants, preserves Phase 318 raw-context boundaries, and records route evidence sufficient for chat-quality review.
+
+Completed work:
+
+- Added `runtime/context_strategy_router_rebaseline_policy.json`.
+- Added `vllm_agent_gateway.acceptance.context_strategy_router_rebaseline`.
+- Added `scripts/validate_context_strategy_router_rebaseline.py`.
+- Added focused regression coverage in `tests/regression/test_context_strategy_router_rebaseline.py`.
+- Added `README.context-strategy-router-rebaseline.md` and `docs/examples/context-strategy-router-rebaseline.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Contextless blind audit from subagent `Fermat` was used to set required evidence fields, hard failures, and case coverage.
+- Focused Phase 319 regression passed with `5 passed`.
+- Combined context strategy and context-ceiling focused regression passed with `21 passed`.
+- Docs index passed with `linked_count=436` and `orphaned_docs=[]`.
+- Direct Phase 319 validation passed with `case_count=11`, `passed_case_count=11`, `failed_case_count=0`, `all_strategies_covered=true`, `input_size_classes=[huge, medium, small]`, `phase220_status=passed`, `phase318_status=passed`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, and `validation_error_count=0`.
+- Full split Bash regression passed with `1814 passed, 4 skipped` in the parallel lane and `45 passed` in the serial lane.
+
+### Approved Phase 320: Context Strategy Router Clone Replay
+
+Status: Complete.
+
+Milestone mapping: M8 Context Strategy Router and M14 Release Packaging And Onboarding.
+
+Goal: prove the Phase 319 context strategy router rebaseline can replay from a clean clone without relying on ignored `runtime-state/phase214` artifacts.
+
+Scope:
+
+- Add a reusable disposable large-context fixture bootstrap under acceptance code.
+- Generate a metadata-only context index from committed source.
+- Derive a Phase 319 policy pointed at the disposable fixture.
+- Run Phase 319 with live Phase 318 artifacts disabled for clone-safe static replay.
+- Prove source text and the synthetic secret sentinel are not stored in index or report output.
+- Preserve the Phase 319 raw 500k boundary.
+- Do not run a live vLLM context ceiling benchmark.
+- Do not create a second large-context router.
+- Do not mutate protected fixtures, stable baseline corpus, or `main`.
+
+Acceptance target: a contextless reviewer can run one command from a clone and prove the current M8 strategy-router rebaseline without private active-workspace runtime-state.
+
+Completed work:
+
+- Added `vllm_agent_gateway.acceptance.context_strategy_fixture_bootstrap`.
+- Added `runtime/context_strategy_router_clone_replay_policy.json`.
+- Added `vllm_agent_gateway.acceptance.context_strategy_router_clone_replay`.
+- Added `scripts/validate_context_strategy_router_clone_replay.py`.
+- Added focused regression coverage in `tests/regression/test_context_strategy_router_clone_replay.py`.
+- Updated the Phase 319 regression tests to use the shared fixture bootstrap helper instead of importing another test module.
+- Tightened the Phase 220 chat-case acceptance gate so it passes the configured context-index policy into the chat adapter instead of falling back to active-workspace defaults.
+- Tightened Phase 320 so it derives both Phase 319 and Phase 220 policies from the disposable bootstrapped fixture.
+- Added `README.context-strategy-router-clone-replay.md` and `docs/examples/context-strategy-router-clone-replay.md`.
+- Updated root, docs, examples, roadmap, and milestone indexes.
+- Focused Phase 319/320 regression passed with `10 passed`.
+- Focused Phase 220/320 regression after clone-safety repair passed with `16 passed`.
+- Docs index passed with `linked_count=438` and `orphaned_docs=[]`.
+- Direct Phase 320 validation passed with `phase319_status=passed`, `phase319_case_count=11`, `phase319_passed_case_count=11`, `phase319_failed_case_count=0`, `all_strategies_covered=true`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, `persistent_runtime_state_required=false`, and `validation_error_count=0`.
+
+### Approved Phase 321: Fresh-Clone Context Strategy Router Replay
+
+Status: Complete.
+
+Milestone mapping: M8 Context Strategy Router and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 320 clone-safe context strategy router replay works from a fresh clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone `codex/eig-stable-handoff` from GitHub into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run the Phase 320 clone-safe context strategy router replay from the clone.
+- Confirm the clone worktree remains clean after validation.
+- Do not run live vLLM or AnythingLLM tests in this static replay phase.
+- Do not mutate `main`, protected fixtures, or stable baseline corpus.
+
+Acceptance target: a contextless reviewer can reproduce the M8 static strategy-router proof from the pushed branch without private local runtime-state.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase321_clone`.
+- Replayed commit: `1aa04641e30c3252ce0c27ce2e4a328eb19dda8d`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Phase 320 clone replay passed in the clone with `phase319_status=passed`, `phase319_case_count=11`, `phase319_passed_case_count=11`, `phase319_failed_case_count=0`, `all_strategies_covered=true`, `raw_500k_prompt_support_proven=false`, `raw_prompt_stuffing_allowed=false`, `sensitive_or_secret_request_refused=true`, `deterministic_replay_passed=true`, `persistent_runtime_state_required=false`, and `validation_error_count=0`.
+- Clone `git status --short` was clean after validation.
+
+### Approved Phase 322: Context Strategy Live Surface Drift Check
+
+Status: Complete.
+
+Milestone mapping: M8 Context Strategy Router, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: verify the post-clone-replay context strategy work against live local surfaces, prove the workflow-router gateway path still answers, and classify the current AnythingLLM blocker as API-base/backend-target drift rather than model or router failure.
+
+Scope:
+
+- Run a Bash-side live workflow-router gateway smoke through the existing large-context usability closeout validator.
+- Probe the AnythingLLM API surface with the existing live validator and health-drift guard.
+- Use the existing first-time doctor plus health-drift guard as the single diagnostic path.
+- Tighten the existing doctor/classifier so an AnythingLLM API-base `404` is reported as `wrong_backend_target`, not `auth_failure` or `unclassified_failure`.
+- Preserve the Phase 319/320/321 static M8 proof and avoid a second context router or second health probe path.
+- Do not mutate `main`, protected fixtures, stable baseline corpus, or EIG baseline candidates.
+
+Acceptance target: a contextless reviewer can tell whether the blocker is gateway/model quality or a local AnythingLLM API-base drift, with no ambiguous auth/unclassified diagnostics.
+
+Completed work:
+
+- Bash-side workflow-router gateway one-case live smoke passed through `scripts/validate_large_context_usability_live_closeout.py` with `gateway_enabled=true`, `anythingllm_enabled=false`, `case_count=1`, `failed_response_count=0`, `m6_ready=true`, `m8_ready=true`, `phase222_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+- AnythingLLM one-case live smoke reached `http://127.0.0.1:3001` but received HTTP `404` HTML from a different local web app instead of the AnythingLLM API, so AnythingLLM prompt testing is blocked by runtime target drift.
+- Updated `vllm_agent_gateway.acceptance.first_time_user_doctor` so non-list workspace responses do not crash the workspace check and HTTP `404` workspace probes recommend correcting the API base.
+- Updated `vllm_agent_gateway.acceptance.gateway_anythingllm_health_drift` so AnythingLLM API-base `404` findings classify as `wrong_backend_target` before auth checks.
+- Added regression coverage proving AnythingLLM API-base `404` is classified as `wrong_backend_target` with `unclassified_finding_count=0`.
+- Focused regression passed with `18 passed` across `tests/regression/test_gateway_anythingllm_health_drift.py` and `tests/regression/test_first_time_user_doctor.py`.
+- Live health-drift rerun failed as expected because the AnythingLLM API base is currently wrong, but it produced `kind_counts={wrong_backend_target: 3, auth_failure: 0, unclassified_failure: 0}`, `unclassified_finding_count=0`, and no guard errors.
+
+### Approved Phase 323: AnythingLLM Network API Base Recovery
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: recover live AnythingLLM prompt testing after Phase 322 by proving the correct AnythingLLM API base and documenting the split-address validation path.
+
+Scope:
+
+- Probe local listeners without stopping user processes.
+- Identify whether `127.0.0.1:3001` is actually AnythingLLM.
+- Validate reachable AnythingLLM API network addresses from Windows and Bash.
+- Rerun the existing health-drift guard against the recovered API base.
+- Rerun the existing large-context live closeout one-case smoke through AnythingLLM and then through both gateway and AnythingLLM.
+- Update durable tester guidance for the API-base override.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or AnythingLLM workspace content beyond normal validation messages.
+
+Acceptance target: future agents and testers can distinguish loopback API-base conflicts from model/router failures and run live AnythingLLM validation through the reachable API base.
+
+Completed work:
+
+- Non-mutating listener inspection found `node.exe` listening on `127.0.0.1:3001` and `AnythingLLM.exe` listening on `0.0.0.0:3001`.
+- Windows and Bash probes confirmed `http://127.0.0.1:3001/api/ping` returned HTTP `404` HTML, while `http://192.168.0.208:3001/api/ping` and `http://100.100.12.45:3001/api/ping` returned HTTP `200` with `{"online":true}`.
+- Health-drift validation passed with zero findings using both network API bases and expected workflow-router target `http://100.100.12.45:8500/v1`.
+- AnythingLLM-only one-case live closeout passed with `anythingllm_enabled=true`, `gateway_enabled=false`, `case_count=1`, `response_count=1`, `failed_response_count=0`, `m6_ready=true`, `m8_ready=true`, `phase222_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+- Combined gateway plus AnythingLLM one-case live closeout passed with `surface_count=2`, `response_count=2`, `failed_response_count=0`, `small_repo_regression_count=4`, `failed_small_repo_regression_count=0`, `m6_ready=true`, `m8_ready=true`, `phase222_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+- Updated AGENTS memory, first-time doctor docs, health-drift docs, large-context live-closeout docs, getting-started docs, stable-handoff docs, and examples with the recovered API-base rule.
+
+### Approved Phase 324: Recovered 500k Live Acceptance Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M6 Large-Context Usability Baseline, M8 Context Strategy Router, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding, M15 500k Candidate Expansion Gate, and M16 Corpus And Index Safety Governance.
+
+Goal: run the full 500k live acceptance gate after the AnythingLLM API-base recovery and close the remaining split-address target-settings gap.
+
+Scope:
+
+- Replay the default 384k precondition chain so Phase 261 can run from current runtime-state.
+- Replay the default 500k precondition chain so Phase 273 can run from current runtime-state.
+- Fix the existing Phase 261 target-settings check so an explicit `--anythingllm-api-base-url` override is accepted while the Generic OpenAI workflow-router target remains strict.
+- Rerun full Phase 273 live acceptance through both workflow-router gateway and AnythingLLM using the recovered AnythingLLM API base.
+- Preserve the single Phase 261/273 validation path; do not add a parallel live acceptance harness.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or EIG baseline candidates.
+
+Acceptance target: full 500k live acceptance passes after split-address recovery with all required strategies, JSON/default parity, target settings, and zero high/critical findings.
+
+Completed work:
+
+- Restored historical 384k/500k lineage markers in AGENTS and the root README so Phase 258 and Phase 270 replay from current docs.
+- Replayed Phase 258, Phase 259, and Phase 260 into default runtime-state locations; all passed, with Phase 260 reporting `case_count=6`, `passed_case_count=6`, and `phase261_ready=true`.
+- Replayed Phase 270, Phase 271, and Phase 272 into default runtime-state locations; all passed, with Phase 272 reporting `phase273_ready=true`.
+- Updated `vllm_agent_gateway.acceptance.large_context_384k_live_acceptance.target_settings_result` so `required.api_base_url` reflects the configured AnythingLLM API base and `required.policy_api_base_url` preserves the policy default for audit.
+- Added focused regression proving a network AnythingLLM API-base override passes when the Generic OpenAI workflow-router target is correct.
+- Focused 384k/500k live-acceptance regression passed with `11 passed`.
+- Full recovered Phase 273 live acceptance passed with `response_count=18`, `gateway_response_count=9`, `anythingllm_response_count=9`, `strategy_ids=[artifact_paging, chunked_investigation, refusal, retrieval, summarization]`, `json_default_parity_status=passed`, `target_settings_status=passed`, `critical_or_high_finding_count=0`, `phase272_status=passed`, `phase261_status=passed`, `phase274_ready=true`, and `raw_prompt_stuffing_allowed=false`.
+
+### Approved Phase 325: Fresh-Clone Split-Address Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed split-address recovery and lineage-marker repair can replay from a fresh clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone `codex/eig-stable-handoff` from GitHub into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run focused regression for the split-address target-settings behavior and health-drift classifier.
+- Run Phase 258 and Phase 270 static validators from the clone with output paths outside the repository.
+- Confirm clone git status remains clean.
+- Do not run live vLLM, gateway, or AnythingLLM tests in this static handoff phase.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the split-address docs, target-settings override, health-drift classifier, and historical lineage markers without private runtime-state.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase325_clone`.
+- Replayed commit: `4555480eff72b469acf980efabecda08092ad684`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Focused regression passed in the clone with `17 passed` across `test_large_context_384k_live_acceptance.py` and `test_gateway_anythingllm_health_drift.py`.
+- Phase 258 static validator passed in the clone with `phase258_ready=true` and `error_count=0`.
+- Phase 270 static validator passed in the clone with `phase270_ready=true` and `error_count=0`.
+- Clone `git status --short` was clean after validation.
+
+### Approved Phase 326: Recovered Stable Handoff Live Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the tester-facing stable handoff path works against the current running stack after the AnythingLLM split-address recovery.
+
+Scope:
+
+- Run post-restart runtime readiness with the recovered AnythingLLM API base and expected WSL network workflow-router target.
+- Run stable handoff smoke with the recovered AnythingLLM API base and both frozen Coinbase fixtures.
+- Use existing validators only; do not add another handoff or health probe path.
+- Keep Bash-side workflow-router validation on `http://127.0.0.1:8500/v1`.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or EIG baseline candidates.
+
+Acceptance target: a contextless tester can follow the stable handoff path through the current running stack using the recovered AnythingLLM API base and get passing setup, health, session, release-channel, security, and onboarding proof.
+
+Completed work:
+
+- Post-restart runtime readiness passed using `--anythingllm-api-base-url http://192.168.0.208:3001`, `--expected-anythingllm-llm-base-url http://100.100.12.45:8500/v1`, and internal workflow-router URL `http://127.0.0.1:8500/v1`.
+- Readiness summary reported `decision=ready_after_restart`, `source_report_count=3`, `covered_surface_count=16`, `missing_required_surface_count=0`, `health_drift_finding_count=0`, `session_recovery_blocker_finding_count=0`, `blocking_diagnostic_action_count=0`, and `validation_error_count=0`.
+- Health-drift child report passed with `check_count=29`, `failed_check_count=0`, `finding_count=0`, `wrong_backend_target=0`, `auth_failure=0`, and `unclassified_finding_count=0`.
+- Session recovery child report passed with `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `anythingllm_case_count=2`, `direct_controller_case_count=2`, and `blocker_finding_count=0`.
+- Stable handoff smoke passed with `check_count=6`, `command_count=4`, `failed_check_ids=[]`, both frozen Coinbase target roots, and child reports for first-time user doctor, release channel, security policy, and external tester onboarding.
+
+### Approved Phase 327: Recovered AnythingLLM UI E2E Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: prove the browser-visible AnythingLLM Desktop UI path works through the recovered AnythingLLM API base and normal chat mode, including the user-reported `hi` path and Priority 0 repaired prompt slice.
+
+Scope:
+
+- Use the existing AnythingLLM UI E2E validator and Desktop UI bundle path; do not introduce a second browser harness.
+- Diagnose the current `@agent` UI failure as AnythingLLM workspace `chatMode=automatic`, not as a gateway/model failure.
+- Add fail-closed validator and first-time doctor checks so `chatMode=automatic` is caught before long UI replay.
+- Capture `/stream-chat` request payloads in the existing UI E2E report for future diagnosis.
+- Rerun browser-visible no-target and repaired Priority 0 UI slices using the recovered AnythingLLM API base.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or EIG baseline candidates.
+
+Acceptance target: a contextless tester can run browser-visible AnythingLLM UI validation after split-address recovery, get useful chat-visible workflow-router answers, and diagnose AnythingLLM setup drift before confusing it with local-model quality.
+
+Completed work:
+
+- Identified that `http://127.0.0.1:3001` remains a wrong backend target while `http://192.168.0.208:3001` remains a working AnythingLLM API base.
+- Reproduced the browser-visible `@agent: Swapping over to agent chat` failure and proved the same prompt passed through the AnythingLLM workspace API `/chat` path.
+- Proved direct `/stream-chat` requests returned `agentInitWebsocketConnection` while workspace `chatMode=automatic`.
+- Set the AnythingLLM workspace `chatMode` to `chat` and proved direct `/stream-chat` returned the workflow-router answer beginning with `Answer:`.
+- Updated `vllm_agent_gateway.anythingllm_ui_e2e` to require `chatMode=chat`, accept thread-scoped stream-chat URLs, and capture stream-chat request payloads.
+- Updated the first-time user doctor to fail on `chatMode=automatic` with recovery guidance.
+- Focused regression passed with `39 passed` across `tests/regression/test_anythingllm_ui_e2e.py` and `tests/regression/test_first_time_user_doctor.py`.
+- Browser-visible `UI167-GENCHAT-001` one-case proof passed in the AnythingLLM UI with `fixture_unchanged=true`.
+- Browser-visible Phase 167 no-target slice passed with `case_count=3`, `error_count=0`, and `fixture_unchanged=true`.
+- Browser-visible Phase 184 Priority 0 repaired slice passed with `case_count=6`, `error_count=0`, and `fixture_unchanged=true`.
+
+### Approved Phase 328: Fresh-Clone AnythingLLM Chat-Mode Guard Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 327 AnythingLLM chat-mode guard and documentation replay from a fresh clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run focused regression for the AnythingLLM UI E2E and first-time user doctor chat-mode guard.
+- Confirm clone source status remains clean.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts in this static handoff replay.
+- Do not mutate protected fixtures, stable baseline corpus, `main`, or EIG baseline candidates.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 327 chat-mode setup guard, docs links, and focused tests without relying on local runtime artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase328_clone`.
+- Replayed commit: `9a5ade360e8a3aadce7fa3918c99b4885b3832fe`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Focused regression passed in the clone with `39 passed` across `tests/regression/test_anythingllm_ui_e2e.py` and `tests/regression/test_first_time_user_doctor.py`.
+- Clone `git status --short` was clean after validation.
+
+### Approved Phase 329: Milestone Continuity And Next-State Refresh
+
+Status: Complete.
+
+Milestone mapping: M9 Founder Feedback Repair Loop and M14 Release Packaging And Onboarding.
+
+Goal: remove stale current-next-action instructions that still pointed at old Phase 244/245 runtime recovery and make the durable roadmap surfaces point at the current Phase 328 PR/handoff state.
+
+Scope:
+
+- Update the top-level roadmap next-gate and next-target text so it names Phase 328 as the current completed tail.
+- Update the Priority 0 backlog execution plan so future agents use the current proof floor instead of obsolete Phase 157-179 or Phase 244/245 instructions.
+- Add a Phase 329 row to the milestone ledger.
+- Keep this as a documentation/state correction only; do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless agent entering the project can identify the current completed phase, current review branch, allowed next categories, and blocked actions without relying on session history.
+
+Completed work:
+
+- Refreshed the canonical roadmap next-gate text to `Phases 92 through 328 are complete`.
+- Refreshed the canonical roadmap next-target text to identify branch `codex/eig-stable-handoff`, PR #1, and the requirement that next work support PR/stable handoff review or a milestone-mapped Priority 0 chat-quality phase.
+- Refreshed the Priority 0 backlog execution plan around the current proof floor: remote-clone chat quality, governed 500k usability, supplied-corpus QA, EIG closeouts, and Phase 322-328 runtime/AnythingLLM recovery.
+- Preserved explicit boundaries: do not merge PR #1, mutate `main`, promote stable baseline corpus, or resume advanced-refactor work without a canonical approved phase.
+
+### Approved Phase 330: Fresh AnythingLLM Chat Split-Address Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: prove the current pushed branch still returns useful fresh chat answers through the live workflow-router gateway and AnythingLLM after the Phase 327 chat-mode repair, while closing the remaining split-address validation gap in the existing fresh-chat gate.
+
+Scope:
+
+- Run the first-time user doctor from Bash/WSL with the recovered AnythingLLM API base and expected WSL network workflow-router target.
+- Run the existing fresh-chat responsiveness gate through direct workflow-router gateway and AnythingLLM API for `hi` plus the representative code-explanation prompt.
+- Run the existing AnythingLLM UI E2E validator for required `UI167-GENCHAT-001` browser-visible `/stream-chat` proof.
+- Repair only the existing Phase 237 target-settings comparison so an explicit `--anythingllm-api-base-url` override is accepted while the policy default remains recorded for audit.
+- Do not add a second fresh-chat validator, merge PR #1, mutate `main`, promote the stable baseline corpus, or resume advanced-refactor work.
+
+Acceptance target: a contextless tester can run the fresh-chat responsiveness gate on the current split-address host and get a passing report when the live chat cases, UI case, target settings, and fixture mutation proof all pass.
+
+Completed work:
+
+- First-time user doctor passed from WSL/Bash with `check_count=30`, `failed_check_ids=[]`, and `status=passed`.
+- Initial fresh-chat replay proved all four direct/AnythingLLM chat cases passed and fixtures remained unchanged, but the report failed because `target_settings.api_base_url` still compared the live network API base against the old policy default and no UI report path was supplied.
+- Updated `vllm_agent_gateway.acceptance.anythingllm_fresh_chat_responsiveness.target_settings_result` to set `required.api_base_url` from the configured live API base and preserve `required.policy_api_base_url` for audit.
+- Focused regression for `tests/regression/test_anythingllm_fresh_chat_responsiveness.py` passed with `8 passed`.
+- AnythingLLM UI `UI167-GENCHAT-001` replay passed with `case_count=1`, `error_count=0`, and `fixture_unchanged=true`.
+- Repaired fresh-chat responsiveness replay passed with `decision=fresh_chat_responsive`, `case_count=4`, `passed_case_count=4`, `failed_case_count=0`, `target_settings_status=passed`, `ui_report_status=passed`, and `fixture_unchanged=true`.
+- Updated the fresh-chat README and examples with the split AnythingLLM API-base and workflow-router target command shape.
+
+### Approved Phase 331: Fresh-Clone Fresh-Chat Split-Address Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 330 fresh-chat split-address repair and documentation replay from a fresh clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run focused regression for the fresh-chat split-address target-settings repair from the clone.
+- Confirm clone source status remains clean.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts in this static handoff replay.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 330 fresh-chat split-address repair, docs links, and focused test without relying on local runtime artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase331_clone`.
+- Replayed commit: `de64a5de6f2adef6b17c04fc222fc13b97785931`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Focused regression passed in the clone with `8 passed` for `tests/regression/test_anythingllm_fresh_chat_responsiveness.py`.
+- Clone `git status --short` was clean after validation.
+
+### Approved Phase 332: Current Stable Handoff Smoke Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the tester-facing stable handoff smoke still passes on the current `codex/eig-stable-handoff` branch after the Phase 327-331 AnythingLLM chat-mode and split-address repairs.
+
+Scope:
+
+- Run the existing stable handoff validator from Bash/WSL.
+- Use the recovered AnythingLLM API base `http://192.168.0.208:3001`.
+- Keep Bash-side workflow-router validation on `http://127.0.0.1:8500/v1`.
+- Use the current AnythingLLM Generic OpenAI target `http://100.100.12.45:8500/v1`.
+- Cover both frozen Coinbase target roots.
+- Update tester-facing stable handoff docs if the live command shape has drifted.
+- Do not add a second handoff validator, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless tester can run the documented stable handoff smoke against the current split-address host and see setup, release-channel, security, onboarding, and fixture checks pass.
+
+Completed work:
+
+- Stable handoff smoke passed from WSL/Bash with `status=passed`, `check_count=6`, `command_count=4`, `failed_check_ids=[]`, and both frozen Coinbase target roots.
+- Child reports were generated for first-time user doctor, release channel, security policy, and external tester onboarding under `runtime-state/phase332/`.
+- Updated `README.stable-handoff.md` so the primary stable-smoke command uses the current expected AnythingLLM workflow-router target `http://100.100.12.45:8500/v1` while keeping the internal Bash workflow-router URL on `http://127.0.0.1:8500/v1`.
+
+### Approved Phase 333: Fresh Priority 0 Drift Replay And Stable Example Alignment
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: prove the current recovered local stack still meets the accepted bounded Priority 0 chat-quality baseline through gateway and AnythingLLM, and close the stale stable-handoff example command found during contextless next-step review.
+
+Scope:
+
+- Run the existing fresh local-model drift gate from Bash/WSL.
+- Use the recovered AnythingLLM API base `http://192.168.0.208:3001`.
+- Keep Bash-side workflow-router validation on `http://127.0.0.1:8500/v1`.
+- Cover both frozen Coinbase target roots through the existing Phase 116 through Phase 119 prompt-family subset.
+- Align `docs/examples/stable-handoff.md` with the Phase 332 split-address stable-smoke command.
+- Do not add a second drift validator, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: the current local model and harness show no accepted-baseline drift for the bounded Priority 0 replay, and a contextless tester sees one consistent split-address stable handoff command shape across README and examples.
+
+Completed work:
+
+- Fresh local-model drift replay passed from WSL/Bash with `drift_status=no_drift_detected`, `family_count=4`, `selected_case_count=8`, `response_count=16`, `passed_response_count=16`, `critical_finding_count=0`, `high_finding_count=0`, and `gap_categories={}`.
+- Minimum route scores remained accepted across the prompt families: `phase116_code_quality=90`, `phase117_defect_diagnosis=95`, `phase118_engineering_judgment=100`, and `phase119_delivery_mentorship=100`.
+- Gateway and AnythingLLM routes were both covered for `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Updated `docs/examples/stable-handoff.md` so the stable-smoke command includes the current AnythingLLM API base and expected network workflow-router target while preserving the internal Bash workflow-router URL.
+
+### Approved Phase 334: Clean-Clone Phase 333 Static Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 333 stable example alignment and fresh-drift regression metadata can be audited from a clean clone without relying on active-workspace `runtime-state/` artifacts.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run clone-safe focused regression for stable handoff, PR readiness, and fresh local-model drift catalog/report policy.
+- Mark artifact-required fresh-drift regression coverage explicitly so clean-clone static replays can exclude tests that intentionally require ignored accepted proof artifacts.
+- Confirm the stable handoff README and example both use the Phase 332 split-address command values.
+- Confirm clone source status remains clean.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts in this static handoff replay.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify docs links, split-address stable handoff command consistency, clone-safe focused tests, and local-artifact test classification without relying on private session history or active-workspace runtime artifacts.
+
+Completed work:
+
+- Clean-clone replay used `/tmp/agentic_agents_phase334_clone_static` for the first static pass and exposed that `test_report_accepts_fresh_passed_artifacts` intentionally requires ignored accepted `runtime-state/` baseline artifacts.
+- Added the strict pytest marker `requires_baseline_artifacts` and applied it to the artifact-required fresh-drift regression test.
+- Updated regression docs and examples so clean-clone static replays can exclude `requires_baseline_artifacts` tests intentionally.
+- Focused Bash regression passed for `tests/regression/test_fresh_local_model_drift.py` with `11 passed`.
+- Focused Bash regression passed for clone-safe fresh-drift selection with `10 passed, 1 deselected`.
+- Focused Bash regression passed for `tests/regression/test_regression_runner.py` with `4 passed`.
+- Docs index passed with `linked_count=438` and `orphaned_docs=[]`.
+
+### Approved Phase 335: Browser-Visible Priority 0 UI Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, and M14 Release Packaging And Onboarding.
+
+Goal: prove representative Priority 0 answers are still visible and semantically useful in the AnythingLLM browser-rendered UI after the split-address runtime recovery and Phase 333 API-level drift replay.
+
+Scope:
+
+- Run the existing AnythingLLM UI E2E validator from Bash/WSL against the recovered AnythingLLM API base.
+- Reuse the extracted AnythingLLM UI bundle instead of refreshing `app.asar`.
+- Cover the eight stable Priority 0 UI cases from Phase 126 plus the `UI167-GENCHAT-001` greeting/no-target case.
+- Confirm both frozen Coinbase roots remain unchanged.
+- Update UI E2E docs/examples with the proven Bash/WSL split-address command shape.
+- Do not add a second UI validator, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a tester can see representative accepted Priority 0 answers and a normal `hi` greeting response in the browser-rendered AnythingLLM chat UI, with screenshots and stream-chat proof, while protected fixtures remain unchanged.
+
+Completed work:
+
+- Browser-visible AnythingLLM UI E2E replay passed from WSL/Bash with `status=passed`, `case_count=9`, `error_count=0`, `fixture_unchanged=true`, workspace `my-workspace`, and both frozen Coinbase target roots.
+- The replay used `http://192.168.0.208:3001` as the AnythingLLM API base and `runtime-state/anythingllm-ui/asar-dist/dist` as the reused UI bundle.
+- Covered `UI126-CQ116-001`, `UI126-CQ116-009`, `UI126-DD117-001`, `UI126-DD117-002`, `UI126-EJ118-001`, `UI126-EJ118-002`, `UI126-DM119-001`, `UI126-DM119-002`, and `UI167-GENCHAT-001`.
+- Updated `README.anythingllm-ui-e2e.md` and `docs/examples/anythingllm-ui-e2e.md` with the Bash/WSL split-address replay command used for the passing proof.
+
+### Approved Phase 336: Post-UI Runtime Readiness Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the live runtime stack remains healthy after the Phase 335 browser-visible UI replay and remove stale success guidance from the existing post-restart readiness report.
+
+Scope:
+
+- Run the existing post-restart runtime readiness validator from Bash/WSL with the recovered split-address AnythingLLM configuration.
+- Cover the existing first-time doctor, gateway/AnythingLLM health drift, and AnythingLLM session recovery source reports.
+- Repair only the existing success `next_action` string so it points future agents at the canonical roadmap tail instead of old Phase 196.
+- Do not add a second health checker, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: the post-UI runtime readiness report passes with all required surfaces covered, no health/session blockers, and no stale phase-specific success guidance.
+
+Completed work:
+
+- Initial post-UI readiness replay passed with `decision=ready_after_restart`, `required_surface_count=16`, `covered_surface_count=16`, `missing_required_surface_count=0`, `health_drift_finding_count=0`, `session_recovery_blocker_finding_count=0`, and `validation_error_count=0`.
+- The initial replay exposed stale success guidance: `work approved Phase 196 Priority 0 repair next`.
+- Updated the single existing post-restart readiness success path to return `continue founder testing on the stable path; use the canonical roadmap tail for the next milestone-mapped Priority 0 phase`.
+- Focused Bash regression passed for `tests/regression/test_post_restart_runtime_readiness.py` with `6 passed`.
+- Repaired live readiness replay passed with all `16` required surfaces covered, zero diagnostic actions, zero health drift findings, zero session recovery blockers, and the corrected success `next_action`.
+
+### Approved Phase 337: Clean-Clone Phase 336 Readiness Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery and M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 336 post-restart readiness guidance repair can be audited from a clean clone without relying on active-workspace runtime artifacts.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run focused clone-safe regression for post-restart runtime readiness and PR readiness.
+- Confirm stale Phase 196 success guidance is absent from the post-restart readiness code and regression expectation.
+- Confirm clone source status remains clean.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts in this static replay.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 336 success-guidance repair, docs links, and PR readiness coverage without private session history or local runtime-state.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase337_clone`.
+- Replayed commit: `cb1a2667cc4e10ab4468b9365957f601d5457c2d`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Focused clone-safe regression passed with `11 passed` for `tests/regression/test_post_restart_runtime_readiness.py` and `tests/regression/test_release_candidate_pr_readiness.py`.
+- Code/test grep confirmed the stale `work approved Phase 196 Priority 0 repair next` success guidance is absent from the post-restart readiness implementation and regression test.
+- Clone `git status --short` was clean after validation.
+
+### Approved Phase 338: Current PR Merge-Decision Readiness Refresh
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove PR #1 remains reviewable after the Phase 332-337 runtime, UI, clean-clone, and readiness updates without authorizing a merge, `main` mutation, or stable-corpus promotion.
+
+Scope:
+
+- Run the existing EIG PR merge-readiness validator against the current branch and GitHub PR state.
+- Confirm PR #1 is open, merge-state clean, and ready for founder merge decision.
+- Confirm forbidden tracked runtime-state paths, missing docs/scripts, incomplete phases, and PR body marker gaps are absent.
+- Preserve explicit boundaries that merge, `main` mutation, and stable-corpus promotion remain disallowed.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can inspect one current PR readiness report and see the branch is reviewable while all founder-decision boundaries remain enforced.
+
+Completed work:
+
+- EIG PR merge-readiness gate passed with `status=passed`, `ready_for_founder_merge_decision=true`, `pr_number=1`, `pr_state=OPEN`, and `pr_merge_state_status=CLEAN`.
+- The report found `forbidden_tracked_path_count=0`, `incomplete_phase_count=0`, `missing_doc_count=0`, `missing_script_count=0`, `missing_pr_body_marker_count=0`, and `validation_error_count=0`.
+- The report preserved `merge_allowed=false`, `main_mutation_allowed=false`, and `stable_corpus_promotion_allowed=false`.
+
+### Approved Phase 339: Founder-Facing Status And Endpoint Refresh
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: remove stale founder-facing handoff/status and endpoint guidance that still centered the release on older Phase 246, Phase 277, or loopback-only AnythingLLM assumptions after the Phase 332-338 split-address proof chain.
+
+Scope:
+
+- Refresh getting-started status text to identify Phase 338 as the active PR/stable-handoff review floor.
+- Preserve historical Phase 247, Phase 277, Phase 296, Phase 303, and Phase 304 proof context as lineage instead of deleting it.
+- Refresh stable-handoff and release-notes endpoint guidance so Windows AnythingLLM network URLs and Bash internal loopback URLs are clearly separated.
+- Do not change executable runtime behavior, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a first-time tester or contextless reviewer can read the founder-facing docs and understand the current proof floor, current branch/PR state, and split-address endpoint rules without relying on chat history.
+
+Completed work:
+
+- Updated `README.getting-started.md` so the current handoff status names Phase 338 as the active PR/stable-handoff review floor and mentions the Phase 332-338 proof chain.
+- Updated `README.stable-handoff.md` so first-time tester guidance uses the workflow-router gateway generally and explains when Windows AnythingLLM should use the printed WSL network URL instead of loopback.
+- Updated `README.release-notes.md` so the latest proof floor names Phase 338 while preserving Phase 246/247 as earlier stable proof lineage.
+- Updated `README.release-notes.md` so AnythingLLM API and workflow-router endpoint guidance distinguishes Windows loopback from Bash/WSL network access.
+
+### Approved Phase 340: Clean-Clone Founder Docs Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 339 founder-facing status and endpoint refresh can be audited from a clean clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Confirm the current Phase 338 proof-floor marker appears in `README.getting-started.md`.
+- Confirm split Windows/WSL workflow-router guidance appears in `README.release-notes.md` and `README.stable-handoff.md`.
+- Confirm clone source status remains clean.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts in this static replay.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the current founder-facing docs identify the active proof floor and endpoint model without relying on local artifacts or chat history.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase340_clone`.
+- Replayed commit: `1bf3c690241a1f01d11a7e4717f25b2d96c270f2`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Clone grep confirmed `README.getting-started.md` names Phase 338 as the active PR/stable-handoff review floor.
+- Clone grep confirmed `README.release-notes.md` and `README.stable-handoff.md` contain split Windows/WSL workflow-router guidance.
+- Clone `git status --short` was clean after validation.
+
+### Approved Phase 341: Ship-Handoff Policy Compatibility Refresh
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: repair the existing Phase 247 release-candidate ship-handoff gate after Phase 339 intentionally refreshed founder-facing status and endpoint guidance away from older Phase 277 and loopback-only markers.
+
+Scope:
+
+- Run the existing release-candidate ship-handoff validator against the current branch state.
+- Repair only stale policy/documentation markers that conflict with the current Phase 338 proof floor, governed 500k project-usability lineage, and split Windows/WSL workflow-router endpoint model.
+- Keep Phase 247 ship proof metadata and Phase 246/247 lineage intact.
+- Run focused regression for the ship-handoff gate.
+- Do not add a second handoff validator, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: the existing Phase 247 ship-handoff validator passes against the current founder-facing docs while preserving historical ship proof lineage and current endpoint guidance.
+
+Completed work:
+
+- Initial Phase 341 ship-handoff replay failed with `error_count=2` because `runtime/release_candidate_ship_handoff_policy.json` still required obsolete `README.getting-started.md` markers `Current handoff status: Phase 277` and `500k-token project usability`.
+- Updated the policy to require current markers `Current handoff status: Phase 338`, `500k-token project-usability`, and `AnythingLLM must point at the workflow-router gateway`.
+- Updated `README.release-candidate-ship-handoff.md` to describe the governed 500k-token project-usability path and split Windows/WSL workflow-router endpoint guidance instead of old 384k/post-384k-paused and loopback-only guidance.
+- Repaired ship-handoff replay passed with `status=passed`, `ship_handoff_ready=true`, and `error_count=0`.
+- Focused Bash regression passed for `tests/regression/test_release_candidate_ship_handoff.py` with `7 passed`.
+- Stable release-channel validation passed with no failed check IDs, and PR readiness remained passed on the current branch before the repair record was written.
+- Docs index passed with `linked_count=438` and `orphaned_docs=[]`.
+
+### Approved Phase 342: Clean-Clone Ship-Handoff Policy Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 341 ship-handoff policy compatibility refresh can be audited from a clean clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run the existing release-candidate ship-handoff validator from the clone.
+- Run focused clone-safe regression for ship-handoff and PR-readiness policy.
+- Confirm current Phase 338 and split-address workflow-router markers are present in docs and policy.
+- Confirm clone source status remains clean.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts in this static replay.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 341 ship-handoff policy repair, docs links, focused regression, and current endpoint markers without relying on local runtime artifacts or chat history.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase342_clone`.
+- Replayed commit: `69576eb649c1928ba9583d87d8f2b425f17a6cad`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Release-candidate ship-handoff validator passed in the clone with `ship_handoff_ready=true` and `error_count=0`.
+- Focused clone-safe regression passed with `12 passed` for `tests/regression/test_release_candidate_ship_handoff.py` and `tests/regression/test_release_candidate_pr_readiness.py`.
+- Clone grep confirmed `Current handoff status: Phase 338` in `README.getting-started.md` and `runtime/release_candidate_ship_handoff_policy.json`.
+- Clone grep confirmed `AnythingLLM must point at the workflow-router gateway` in `README.release-candidate-ship-handoff.md` and `runtime/release_candidate_ship_handoff_policy.json`.
+- Clone `git status --short` was clean after validation.
+
+### Approved Phase 343: Release-Candidate Full Regression Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the current pushed `codex/eig-stable-handoff` release-candidate branch remains regression-clean after the Phase 339-342 founder-facing handoff and ship-handoff policy refreshes.
+
+Scope:
+
+- Run the project split-lane regression runner with pytest-xdist for process-safe tests and a serial lane for tests marked `serial`.
+- Use the existing `scripts/run_regression.py` path rather than creating a second regression implementation.
+- Refresh PR #1 readiness after the regression proof.
+- Record any failure as a concrete repair target instead of weakening the release gate.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts unless the regression or PR-readiness proof exposes a runtime-facing gap that requires live confirmation.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can see that the current release-candidate branch has a fresh full split-lane regression proof and still passes non-merge PR readiness.
+
+Completed work:
+
+- Initial full split-lane regression exposed one release-candidate blocker in `tests/regression/test_onboarding_release_handoff_refresh.py::test_phase232_report_passes_current_docs`.
+- Root cause: `runtime/onboarding_release_handoff_refresh_policy.json` still required weak prose marker `Phase 273` in `README.getting-started.md`, while the refreshed getting-started guide already exposes the exact live 500k acceptance marker `PHASE273 LARGE CONTEXT 500K LIVE ACCEPTANCE PASS`.
+- Repaired the existing onboarding handoff policy marker to require the exact live acceptance marker instead of reintroducing stale prose.
+- Focused onboarding handoff validator passed with `decision=handoff_ready`, `phase233_ready=true`, and `validation_error_count=0`.
+- Focused Bash regression for `tests/regression/test_onboarding_release_handoff_refresh.py` passed with `6 passed`.
+- Docs index passed with `linked_count=438` and `orphaned_docs=[]`; `git diff --check` passed.
+- Final full split-lane regression passed through `scripts/run_regression.py --workers 4`: xdist-safe lane `1824 passed, 4 skipped`; serial lane `45 passed, 1851 deselected`; runner summary `status=passed`.
+- Pre-commit PR readiness correctly failed only because the source tree contained the in-progress Phase 343 edits; final PR readiness must be rerun after this phase record is committed.
+
+### Approved Phase 344: Clean-Clone Release-Candidate Regression Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 343 onboarding handoff policy repair and release-candidate regression-facing gates can be audited from a clean clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run the onboarding release-handoff validator from the clone and confirm it accepts the exact Phase 273 live-acceptance marker.
+- Run focused clone-safe onboarding handoff and PR-readiness regression tests from the clone.
+- Confirm clone source status remains clean.
+- Do not replay the full regression suite in the clean clone unless the focused clone-safe gates expose a broader failure; Phase 343 already contains the full active-workspace split-lane regression proof.
+- Do not run live browser, vLLM, gateway, or AnythingLLM prompts in this static replay.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 343 policy repair, docs links, focused regression, and current PR-readiness policy without relying on ignored local runtime-state artifacts.
+
+Completed work:
+
+- Contextless audit confirmed Phase 344 is legitimate M14 release proof, not scope churn, when bounded to clean-clone replay of the Phase 343 policy repair and focused gates.
+- Fresh clone path: `/tmp/agentic_agents_phase344_clone`.
+- Replayed commit: `39476e9176c59dc23bf7dd3d7945b7d3950b1d6f`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Onboarding release-handoff validator passed in the clone with `decision=handoff_ready`, `phase233_ready=true`, and `validation_error_count=0`.
+- Focused clone-safe regression passed with `11 passed` for `tests/regression/test_onboarding_release_handoff_refresh.py` and `tests/regression/test_release_candidate_pr_readiness.py`.
+- Clone grep confirmed `PHASE273 LARGE CONTEXT 500K LIVE ACCEPTANCE PASS` in `README.getting-started.md` and `runtime/onboarding_release_handoff_refresh_policy.json`.
+- Clone `git status --short` was clean after validation.
+- No full regression or live runtime replay was run in the clone; Phase 343 already supplies the full split-lane active-workspace regression proof.
+
+### Approved Phase 345: Fresh Priority 0 Chat-Quality Drift Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the current local runtime still returns accepted Priority 0 chat-quality answers through both workflow-router gateway and AnythingLLM after the Phase 339-344 release-handoff refresh and regression replay work.
+
+Scope:
+
+- Preflight the local model, workflow-router gateway, controller, and AnythingLLM API surfaces before the live replay.
+- Run the existing `scripts/validate_fresh_local_model_drift.py` gate rather than creating a second drift validator.
+- Cover the existing governed drift subset across code-quality, defect-diagnosis, engineering-judgment, and delivery/mentorship families.
+- Cover both frozen Coinbase roots and both required routes: workflow-router gateway and AnythingLLM API.
+- Treat any drift, route miss, runtime health failure, or fixture mutation finding as a concrete repair target.
+- Do not change prompt cases, lower scoring thresholds, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can inspect one fresh drift report and see `no_drift_detected`, all selected responses passed, both frozen roots covered, both routes covered, and no unresolved critical or high findings.
+
+Completed work:
+
+- Relaunched the local vLLM container with the durable `vllm-qwen3` command after the runtime preflight found model `8000`, workflow-router `8500`, and controller `8400` down.
+- Restarted the repo-managed gateway/proxy/controller stack with network bind settings for Windows AnythingLLM access.
+- Started AnythingLLM locally after the doctor found no process or listener on port `3001`.
+- First-time doctor passed with `30` checks passed and zero failed or warning checks using AnythingLLM API base `http://192.168.0.208:3001` and expected workflow-router target `http://100.100.12.45:8500/v1`.
+- Fresh local-model drift replay passed through the existing `scripts/validate_fresh_local_model_drift.py` gate with `drift_status=no_drift_detected`, `response_count=16`, `passed_response_count=16`, `failed_family_count=0`, `critical_finding_count=0`, `high_finding_count=0`, and empty `gap_categories`.
+- Covered both required routes: workflow-router gateway and AnythingLLM API.
+- Covered both frozen roots: `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- Family minimum route scores were `90` for code quality, `95` for defect diagnosis, `100` for engineering judgment, and `100` for delivery/mentorship.
+
+### Approved Phase 346: Clean-Clone Fresh-Drift Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 345 fresh-drift proof metadata and clone-safe drift gates can be audited from a clean clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run clone-safe fresh local-model drift regression with `requires_baseline_artifacts` excluded.
+- Run focused PR-readiness regression from the clone.
+- Confirm Phase 345 durable proof markers are present in roadmap, backlog, and milestones.
+- Confirm clone source status remains clean.
+- Do not rerun live model, gateway, AnythingLLM, or full regression in the clone; Phase 345 supplies live proof and Phase 343 supplies full split-lane regression proof.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 345 fresh-drift proof is represented durably and that clone-safe drift policy tests pass without ignored runtime-state artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase346_clone`.
+- Replayed commit: `1a8842c16f63eb556680ff8a299fdae3c4ff3665`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Clone-safe regression passed with `15 passed, 1 deselected` for `tests/regression/test_fresh_local_model_drift.py -m "not requires_baseline_artifacts"` and `tests/regression/test_release_candidate_pr_readiness.py`.
+- Clone grep confirmed Phase 345 markers in `docs/ACTIONABLE_WORKFLOW_ROADMAP.md`, `docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md`, and `docs/PROJECT_MILESTONES.md`.
+- Clone grep confirmed `no_drift_detected` markers in roadmap and Priority 0 backlog proof text.
+- Clone `git status --short` was clean after validation.
+- No live runtime replay or full regression was run in the clone; Phase 345 supplies live drift proof and Phase 343 supplies full split-lane regression proof.
+
+### Approved Phase 347: Stable Handoff Smoke Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the current stable tester handoff still passes through the existing stable smoke gate after the Phase 345 runtime recovery and fresh Priority 0 drift replay.
+
+Scope:
+
+- Run the existing `scripts/validate_stable_handoff.py` gate with the current split-address AnythingLLM API and expected workflow-router target.
+- Reuse the committed stable release proof `runtime/release_proofs/v1-1-release-candidate-stable-proof.json`.
+- Cover setup doctor, release-channel validation, security policy, onboarding prompt smoke, feedback capture, and protected fixture checks as implemented by the existing stable handoff path.
+- Treat any child gate failure, route failure, or protected fixture mutation as a concrete repair target.
+- Do not change stable-channel metadata, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can inspect one stable handoff report and see the current stable tester path passes with both frozen fixtures protected and all child gates green.
+
+Completed work:
+
+- Stable handoff smoke passed through the existing `scripts/validate_stable_handoff.py` gate.
+- Report path: `runtime-state/stable-handoff/phase347/phase347-stable-smoke.json`.
+- The report returned `status=passed`, `check_count=6`, `command_count=4`, and `failed_check_ids=[]`.
+- Child reports were produced for first-time user doctor, release-channel validation, security policy, and external tester onboarding.
+- The stable smoke covered both frozen roots: `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- The smoke used AnythingLLM API base `http://192.168.0.208:3001`, Bash workflow-router gateway `http://127.0.0.1:8500/v1`, and expected AnythingLLM model target `http://100.100.12.45:8500/v1`.
+
+### Approved Phase 348: Clean-Clone Stable Handoff Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 347 stable handoff smoke record and clone-safe stable-handoff gates can be audited from a clean clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run focused clone-safe stable-handoff and PR-readiness regression tests from the clone.
+- Confirm Phase 347 durable proof markers are present in roadmap, backlog, and milestones.
+- Confirm clone source status remains clean.
+- Do not run live model, gateway, AnythingLLM, stable smoke, or full regression in the clone; Phase 347 supplies live stable-smoke proof and Phase 343 supplies full split-lane regression proof.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 347 stable handoff smoke proof is represented durably and that clone-safe stable-handoff policy tests pass without ignored runtime-state artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase348_clone`.
+- Replayed commit: `8cdd1d2b8e307ec51f5d39972fb018662e11f3c8`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Focused clone-safe regression passed with `10 passed` for `tests/regression/test_stable_handoff.py` and `tests/regression/test_release_candidate_pr_readiness.py`.
+- Clone grep confirmed Phase 347 markers in `docs/ACTIONABLE_WORKFLOW_ROADMAP.md`, `docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md`, and `docs/PROJECT_MILESTONES.md`.
+- Clone grep confirmed stable handoff smoke proof markers in roadmap and Priority 0 backlog text.
+- Clone `git status --short` was clean after validation.
+- No live runtime replay or full regression was run in the clone; Phase 347 supplies live stable-smoke proof and Phase 343 supplies full split-lane regression proof.
+
+### Approved Phase 349: Browser-Visible AnythingLLM UI Smoke
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the browser-visible AnythingLLM Desktop UI path still returns useful chat-visible answers after the Phase 345 runtime recovery and stable handoff replay.
+
+Scope:
+
+- Use the existing `scripts/validate_anythingllm_ui_e2e.py` validator rather than adding a new browser automation path.
+- Run a bounded UI smoke subset: one generic no-target greeting case and one read-only function-explanation case that covers the frozen Coinbase roots through the governed prompt catalog.
+- Use the current AnythingLLM API base reachable from Windows and the existing static UI bundle extraction/reuse path.
+- Treat UI rendering failure, `/stream-chat` failure, stale-history marker confusion, wrong route, semantic marker miss, or protected fixture mutation as a concrete repair target.
+- Do not broaden to the full UI suite unless the smoke exposes a reason, change prompt catalog thresholds, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can inspect one UI E2E report and see browser-visible no-target and read-only coding answers pass with fixture state unchanged.
+
+Completed work:
+
+- Browser-visible AnythingLLM UI smoke passed through the existing `scripts/validate_anythingllm_ui_e2e.py` validator using system Chrome.
+- Report path: `runtime-state/anythingllm-ui/phase349/phase349-ui-smoke.json`.
+- The report returned `status=passed`, `case_count=3`, `error_count=0`, and `fixture_unchanged=true`.
+- Covered `UI167-GENCHAT-001` no-target greeting and `L1-002` read-only function explanation across `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- The smoke used AnythingLLM API base `http://127.0.0.1:3001`, workspace `my-workspace`, prompt catalog `runtime/anythingllm_ui_prompt_cases.json`, and existing UI dist root `runtime-state/anythingllm-ui/asar-dist/dist`.
+
+### Approved Phase 350: Clean-Clone Browser UI Smoke Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 349 browser-visible UI smoke proof metadata and clone-safe UI policy tests can be audited from a clean clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run clone-safe AnythingLLM UI E2E regression tests from the clone.
+- Run focused PR-readiness regression from the clone.
+- Confirm Phase 349 durable proof markers are present in roadmap, backlog, and milestones.
+- Confirm clone source status remains clean.
+- Do not run live browser UI, model, gateway, AnythingLLM, stable smoke, or full regression in the clone; Phase 349 supplies live UI proof and Phase 343 supplies full split-lane regression proof.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 349 browser UI smoke proof is represented durably and that clone-safe UI policy tests pass without ignored runtime-state artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase350_clone`.
+- Replayed commit: `1f31dc64836d6b6e3891d3bf42479788aab71967`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Clone-safe regression passed with `37 passed` for `tests/regression/test_anythingllm_ui_e2e.py` and `tests/regression/test_release_candidate_pr_readiness.py`.
+- Clone grep confirmed Phase 349 markers in `docs/ACTIONABLE_WORKFLOW_ROADMAP.md`, `docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md`, and `docs/PROJECT_MILESTONES.md`.
+- Clone grep confirmed browser UI smoke and `fixture_unchanged=true` markers in roadmap and Priority 0 backlog proof text.
+- Clone `git status --short` was clean after validation.
+- No live browser UI, live runtime replay, or full regression was run in the clone; Phase 349 supplies live UI proof and Phase 343 supplies full split-lane regression proof.
+
+### Approved Phase 351: Full Browser-Visible AnythingLLM UI Suite Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the full governed browser-visible AnythingLLM UI prompt catalog still passes after the Phase 345 runtime recovery, Phase 347 stable handoff smoke, and Phase 349 bounded UI smoke.
+
+Scope:
+
+- Use the existing `scripts/validate_anythingllm_ui_e2e.py` validator over the governed prompt catalog `runtime/anythingllm_ui_prompt_cases.json`.
+- Run the full catalog rather than only the Phase 349 smoke subset.
+- Use the current AnythingLLM workspace and system Chrome/Playwright browser path already proven by Phase 349.
+- Treat UI rendering failure, `/stream-chat` failure, stale-history marker confusion, wrong route, semantic marker miss, or protected fixture mutation as a concrete repair target.
+- Do not change prompt catalog thresholds, add a second UI harness, merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can inspect one full UI E2E report and see every governed browser-visible UI case pass with screenshots/request proof and unchanged frozen fixtures.
+
+Completed work:
+
+- Full browser-visible AnythingLLM UI suite passed through the existing `scripts/validate_anythingllm_ui_e2e.py` validator using system Chrome.
+- Report path: `runtime-state/anythingllm-ui/phase351/phase351-full-ui-suite.json`.
+- The report returned `status=passed`, `case_count=21`, `error_count=0`, and `fixture_unchanged=true`.
+- Covered `16` unique governed UI case IDs: `L1-001`, `L1-002`, `UI126-CQ116-001`, `UI126-CQ116-009`, `UI126-DD117-001`, `UI126-DD117-002`, `UI126-DM119-001`, `UI126-DM119-002`, `UI126-EJ118-001`, `UI126-EJ118-002`, `UI167-GENCHAT-001`, `UI167-GENHELP-001`, `UI167-VAGUE-001`, `UI184-ERR-001`, `UI184-RTD-001`, and `UI184-RTD-002`.
+- Covered both frozen roots: `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- The suite used AnythingLLM API base `http://127.0.0.1:3001`, workspace `my-workspace`, prompt catalog `runtime/anythingllm_ui_prompt_cases.json`, and existing UI dist root `runtime-state/anythingllm-ui/asar-dist/dist`.
+
+### Approved Phase 352: Clean-Clone Full UI Suite Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 351 full browser-visible UI suite proof metadata and clone-safe UI policy tests can be audited from a clean clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run clone-safe AnythingLLM UI E2E regression tests from the clone.
+- Run focused PR-readiness regression from the clone.
+- Confirm Phase 351 durable proof markers are present in roadmap, backlog, and milestones.
+- Confirm clone source status remains clean.
+- Do not run live browser UI, model, gateway, AnythingLLM, stable smoke, or full regression in the clone; Phase 351 supplies live UI proof and Phase 343 supplies full split-lane regression proof.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 351 full UI suite proof is represented durably and that clone-safe UI policy tests pass without ignored runtime-state artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase352_clone`.
+- Replayed commit: `09072fa16b2855472ad5874715c04e5ded0ef442`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Clone-safe regression passed with `37 passed` for `tests/regression/test_anythingllm_ui_e2e.py` and `tests/regression/test_release_candidate_pr_readiness.py`.
+- Clone grep confirmed Phase 351 markers in `docs/ACTIONABLE_WORKFLOW_ROADMAP.md`, `docs/PRIORITY0_CHAT_QUALITY_BACKLOG.md`, and `docs/PROJECT_MILESTONES.md`.
+- Clone grep confirmed full UI proof markers including `case_count=21` and `16` unique governed UI case IDs in roadmap and Priority 0 backlog proof text.
+- Clone `git status --short` was clean after validation.
+- No live browser UI, live runtime replay, or full regression was run in the clone; Phase 351 supplies live full-UI proof and Phase 343 supplies full split-lane regression proof.
+
+### Approved Phase 353: Phase 352 Founder-Facing Proof-Floor Refresh
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: refresh founder-facing handoff and release packaging surfaces so contextless testers see Phase 352 as the active proof floor instead of the stale Phase 338 floor.
+
+Scope:
+
+- Update `README.getting-started.md` to identify Phase 352 as the current PR/stable-handoff review floor.
+- Update `README.release-notes.md` to summarize the Phase 343 through Phase 352 proof chain and the Phase 351/352 UI proof markers.
+- Update `README.stable-handoff.md` to mention the full browser-visible UI suite and clean-clone UI replay.
+- Update the existing release-candidate ship-handoff marker policy to require the Phase 352 getting-started markers.
+- Keep this as status/policy compatibility work only; do not run new live browser UI, model, gateway, or AnythingLLM replay.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless founder or reviewer can read the current handoff docs and see Phase 352, Phase 351 `case_count=21`, `fixture_unchanged=true`, and the clean-clone `37 passed` UI replay proof without relying on chat history.
+
+Completed work:
+
+- Refreshed `README.getting-started.md` from Phase 338 to Phase 352 and added Phase 351/352 proof markers.
+- Refreshed `README.release-notes.md` so the latest proof floor names Phase 352 while preserving Phase 246/247 stable ship lineage and current unsupported boundaries.
+- Refreshed `README.stable-handoff.md` with the Phase 351 full UI suite and Phase 352 clean-clone UI replay proof markers.
+- Updated `runtime/release_candidate_ship_handoff_policy.json` so the existing ship-handoff validator tracks the current Phase 352 getting-started marker instead of stale Phase 338 text.
+- No live runtime replay, PR merge, `main` mutation, stable-corpus promotion, or advanced-refactor work was performed.
+
+### Approved Phase 354: Clean-Clone Phase 353 Proof-Floor Refresh Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 353 founder-facing proof-floor refresh and ship-handoff marker policy are auditable from a clean clone without active-workspace runtime-state.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Run the docs index validator from the clone.
+- Run the existing release-candidate ship-handoff validator from the clone.
+- Run clone-safe focused regression for ship-handoff and PR-readiness policy tests.
+- Confirm Phase 352, Phase 351 `case_count=21`, `fixture_unchanged=true`, and clean-clone `37 passed` markers are present in founder-facing docs, release packaging policy, roadmap, backlog, and milestones.
+- Confirm clone source status remains clean.
+- Do not run live browser UI, model, gateway, AnythingLLM, stable smoke, or full regression in the clone; Phase 353 changed status/policy packaging only.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a new milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 353 proof-floor refresh, current ship-handoff policy, and Phase 351/352 UI proof markers without relying on ignored local runtime artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase354_clone`.
+- Replayed commit: `9d23d5decd6f4aa63186a4bb2c36fa6daa8835b1`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Release-candidate ship-handoff validation passed in the clone with `ship_handoff_ready=true` and `error_count=0`.
+- Clone-safe focused regression passed with `12 passed` for `tests/regression/test_release_candidate_ship_handoff.py` and `tests/regression/test_release_candidate_pr_readiness.py`.
+- Clone marker grep confirmed `Current handoff status: Phase 352`, `case_count=21`, `fixture_unchanged=true`, and `37 passed` across founder-facing docs, release packaging policy, roadmap, backlog, and milestone surfaces.
+- Clone `git status --short` was clean after validation.
+- No live runtime replay, full clone regression, PR merge, `main` mutation, stable-corpus promotion, or advanced-refactor work was performed.
+
+### Approved Phase 355: Milestone Ledger Status Consistency Repair
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: repair stale initial milestone mapping rows that still marked already-completed Phases 204-208 as `Approved`.
+
+Scope:
+
+- Update `docs/PROJECT_MILESTONES.md` initial roadmap mapping rows for Phases 204 through 208 from `Approved` to `Complete`.
+- Ground the update in existing completed evidence from the canonical roadmap and Priority 0 backlog.
+- Do not change runtime behavior, validators, prompt catalogs, release-channel metadata, PR state, or stable-corpus promotion state.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a product milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can inspect the milestone ledger and no longer see stale approved-but-not-complete rows for Phases 204-208 contradicting the canonical roadmap and Priority 0 backlog.
+
+Completed work:
+
+- Updated Phase 204 row to `Complete` with no-manual-skill-injection explainability proof summary.
+- Updated Phase 205 row to `Complete` with route-stability holdout replay proof summary.
+- Updated Phase 206 row to `Complete` with evidence relevance audit-pack proof summary.
+- Updated Phase 207 row to `Complete` with evidence ranking and source-hash proof summary.
+- Updated Phase 208 row to `Complete` with live evidence-quality rerun proof summary.
+- No live runtime replay, validator behavior change, PR merge, `main` mutation, stable-corpus promotion, or advanced-refactor work was performed.
+
+### Approved Phase 356: M10/M11 Historical Proof Coverage Repair
+
+Status: Complete.
+
+Milestone mapping: M10 Safe Implementation Prep, M11 Controlled Apply Pilot, M14 Release Packaging And Onboarding.
+
+Goal: make the milestone ledger visibly connect M10 and M11 to existing completed implementation-prep and controlled-apply proof instead of leaving them unmapped in milestone coverage audits.
+
+Scope:
+
+- Update the M10 milestone row to mark safe implementation prep complete using existing Phase 96 and approval-continuation proof.
+- Update the M11 milestone row to mark controlled apply complete using existing Phase 54, Phase 83, and Phase 98 disposable-copy apply proof.
+- Add a completed Phase 356 milestone-ledger row mapping M10/M11/M14 to this historical proof coverage repair.
+- Do not change implementation workflow behavior, disposable-copy apply behavior, validators, prompt catalogs, release-channel metadata, PR state, or stable-corpus promotion state.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a product milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can inspect the milestone ledger and see that every approved milestone gate has completed phase coverage, with M10 and M11 tied to historical safe-mutation proof instead of appearing uncovered.
+
+Completed work:
+
+- Marked M10 complete with Phase 96 implementation-prep expansion, approval-continuation proof, exact operation validation, fixture digest proof, and no-source-mutation checks.
+- Marked M11 complete with Phase 54 controlled apply workflow, Phase 83 mutation sandbox, Phase 98 disposable-copy apply expansion, structured diff proof, rollback proof, and single-path boundaries.
+- Added Phase 356 to the milestone ledger as a historical proof coverage repair.
+- No live runtime replay, validator behavior change, implementation workflow change, disposable-copy apply change, PR merge, `main` mutation, stable-corpus promotion, or advanced-refactor work was performed.
+
+### Approved Phase 357: Current PR Handoff Currency Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: refresh the current PR/stable-handoff review proof after Phase 356 so a contextless reviewer can see the branch is still open, clean, and reviewable without merging or changing stable-corpus state.
+
+Scope:
+
+- Rerun the docs index validator on the active branch.
+- Rerun the existing release-candidate PR readiness validator against PR #1.
+- Confirm PR #1 is still open, targets `main`, uses branch `codex/eig-stable-handoff`, and has a clean merge state.
+- Confirm every approved milestone gate still has completed phase coverage.
+- Record the proof in the roadmap, Priority 0 backlog, and milestone ledger.
+- Do not change runtime behavior, validators, prompt catalogs, release-channel metadata, stable-corpus promotion state, or implementation workflow behavior.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a product milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can inspect current docs and PR metadata and determine that the current handoff branch remains reviewable and that no hidden approved milestone work is left unrecorded.
+
+Completed work:
+
+- Docs index passed with `linked_count=438` and no orphaned docs.
+- Release-candidate PR readiness passed on commit `68eec878909af76dd856fa304943531cfa9e4831` with `decision=release_candidate_reviewable`, `source_clean=true`, and zero incomplete phases, missing docs, missing scripts, forbidden tracked paths, or missing limit markers.
+- PR #1 remained open and `CLEAN`, targeting `main` from `codex/eig-stable-handoff`.
+- Milestone coverage audit passed with all 36 approved milestone gates covered by completed phase rows.
+- No runtime behavior change, validator behavior change, PR merge, `main` mutation, stable-corpus promotion, or advanced-refactor work was performed.
+
+### Approved Phase 358: Fresh Priority 0 Drift Replay
+
+Status: Complete.
+
+Milestone mapping: M2 Chat-Visible Answer Contract, M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: rerun the existing fresh local-model drift gate after the Phase 357 handoff refresh so the current local model, workflow-router gateway, and AnythingLLM path still prove stable Priority 0 chat quality.
+
+Scope:
+
+- Use the existing `scripts/validate_fresh_local_model_drift.py` gate rather than creating a second drift validator.
+- Run through Bash/WSL with workflow-router gateway `http://127.0.0.1:8500/v1` and AnythingLLM API `http://127.0.0.1:3001`.
+- Cover the governed selected Priority 0 families for code quality, defect diagnosis, engineering judgment, and delivery/mentorship.
+- Require both routes, `gateway` and `anythingllm`, and both frozen Coinbase roots.
+- Record response counts, minimum route scores, drift status, critical/high finding counts, and gap categories.
+- Do not change runtime behavior, validators, prompt catalogs, release-channel metadata, stable-corpus promotion state, or implementation workflow behavior.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a product milestone, or resume advanced-refactor work.
+
+Acceptance target: the current local stack still answers the selected Priority 0 chat-quality corpus through gateway and AnythingLLM with no drift, no high/critical findings, and no protected fixture mutation evidence.
+
+Completed work:
+
+- Bash endpoint probes confirmed vLLM `8000`, workflow-router gateway `8500`, controller `8400`, and AnythingLLM API `3001` were reachable before the live gate.
+- WSL received `ANYTHINGLLM_API_KEY` through `WSLENV` without printing the key value.
+- Fresh local-model drift passed with `family_count=4`, `selected_case_count=8`, `response_count=16`, `passed_response_count=16`, `failed_family_count=0`, `critical_finding_count=0`, `high_finding_count=0`, empty `gap_categories`, and `drift_status=no_drift_detected`.
+- Minimum route scores were `90` for Phase 116 code quality, `95` for Phase 117 defect diagnosis, `100` for Phase 118 engineering judgment, and `100` for Phase 119 delivery mentorship.
+- Required routes were `gateway` and `anythingllm`; target roots were `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- No runtime behavior change, validator behavior change, PR merge, `main` mutation, stable-corpus promotion, or advanced-refactor work was performed.
+
+### Approved Phase 359: Clean-Clone Phase 358 Drift Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 358 drift-proof handoff state is auditable from a clean clone without relying on ignored active-workspace `runtime-state`.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Confirm the clean clone is at the Phase 358 commit.
+- Run the docs index validator from the clone.
+- Run the existing release-candidate PR readiness validator from the clone.
+- Confirm Phase 358 and its key no-drift markers are present in committed roadmap, backlog, and milestone surfaces.
+- Confirm clone source status remains clean.
+- Do not run live model, gateway, controller, AnythingLLM, browser UI, stable smoke, or full regression in the clone; Phase 359 is clone-safe handoff replay for the already-run Phase 358 live proof.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a product milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 358 handoff and drift-proof markers without access to the active workspace's ignored live artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase359_clone_20260621T0529`.
+- Replayed commit: `76f452081a7c3dd23ab367f206b5508eec1e8024`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Release-candidate PR readiness passed in the clone with `decision=release_candidate_reviewable`, `source_clean=true`, and zero missing docs, missing scripts, incomplete phases, forbidden tracked paths, or missing limit markers.
+- Clone marker search confirmed Phase 358, `drift_status=no_drift_detected`, `response_count=16`, and `passed_response_count=16` in the committed roadmap, Priority 0 backlog, and milestone surfaces.
+- Clone `git status --short` was clean after validation.
+- No live runtime replay, full clone regression, PR merge, `main` mutation, stable-corpus promotion, or advanced-refactor work was performed.
+
+### Approved Phase 360: Current Stable Handoff Smoke Replay
+
+Status: Complete.
+
+Milestone mapping: M13 Runtime Reliability And Recovery, M14 Release Packaging And Onboarding.
+
+Goal: rerun the current stable handoff smoke after Phase 358/359 so the first-time tester path remains proven through setup, release-channel, security, onboarding, feedback, and protected-fixture checks.
+
+Scope:
+
+- Use the existing `scripts/validate_stable_handoff.py` gate rather than creating a second handoff validator.
+- Run from Bash/WSL against the current live stack.
+- Keep the internal workflow-router gateway URL on `http://127.0.0.1:8500/v1`.
+- Use the current AnythingLLM API base `http://127.0.0.1:3001`.
+- Verify the current AnythingLLM `GenericOpenAiBasePath` expectation as `http://100.100.12.45:8500/v1`.
+- Cover both frozen Coinbase roots.
+- Record setup, release-channel, security, onboarding, feedback, and protected-fixture proof.
+- Do not change runtime behavior, validators, prompt catalogs, release-channel metadata, stable-corpus promotion state, or implementation workflow behavior.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a product milestone, or resume advanced-refactor work.
+
+Acceptance target: the current stable handoff command passes against the live stack with no failed checks and no protected fixture mutation.
+
+Completed work:
+
+- Queried AnythingLLM system settings and confirmed `GenericOpenAiBasePath` was `http://100.100.12.45:8500/v1` before running the smoke.
+- Stable handoff passed with `status=passed`, `check_count=6`, `command_count=4`, and `failed_check_ids=[]`.
+- Child reports covered first-time user doctor, stable release channel, security policy, and external tester onboarding smoke.
+- Protected fixture state check passed for `/mnt/c/coinbase_testing_repo_frozen_tmp` and `/mnt/c/coinbase_testing_repo_frozen_tmp.github`.
+- No runtime behavior change, validator behavior change, PR merge, `main` mutation, stable-corpus promotion, or advanced-refactor work was performed.
+
+### Approved Phase 361: Clean-Clone Phase 360 Stable Handoff Replay
+
+Status: Complete.
+
+Milestone mapping: M14 Release Packaging And Onboarding.
+
+Goal: prove the pushed Phase 360 stable-handoff smoke record is auditable from a clean clone without relying on ignored active-workspace `runtime-state`.
+
+Scope:
+
+- Clone the pushed `codex/eig-stable-handoff` branch into a fresh WSL `/tmp` directory.
+- Confirm the clean clone is at the Phase 360 commit.
+- Run the docs index validator from the clone.
+- Run the existing release-candidate PR readiness validator from the clone.
+- Confirm Phase 360 and its key stable-handoff smoke markers are present in committed roadmap, backlog, and milestone surfaces.
+- Confirm clone source status remains clean.
+- Do not run live model, gateway, controller, AnythingLLM, browser UI, stable smoke, or full regression in the clone; Phase 361 is clone-safe handoff replay for the already-run Phase 360 live proof.
+- Do not merge PR #1, mutate `main`, promote the stable baseline corpus, add a product milestone, or resume advanced-refactor work.
+
+Acceptance target: a contextless reviewer can clone the pushed branch and verify the Phase 360 stable-handoff proof markers without access to the active workspace's ignored live artifacts.
+
+Completed work:
+
+- Fresh clone path: `/tmp/agentic_agents_phase361_clone_20260621T0557`.
+- Replayed commit: `f8533641003da56c4331ead118fbbb3977574b6b`.
+- Docs index passed in the clone with `linked_count=438` and `orphaned_docs=[]`.
+- Release-candidate PR readiness passed in the clone with `decision=release_candidate_reviewable`, `source_clean=true`, and zero missing docs, missing scripts, incomplete phases, forbidden tracked paths, or missing limit markers.
+- Clone marker search confirmed Phase 360, `check_count=6`, `command_count=4`, `failed_check_ids=[]`, and protected fixture state markers in committed roadmap, Priority 0 backlog, and milestone surfaces.
+- Clone `git status --short` was clean after validation.
+- No live runtime replay, full clone regression, PR merge, `main` mutation, stable-corpus promotion, or advanced-refactor work was performed.

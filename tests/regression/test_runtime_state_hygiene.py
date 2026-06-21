@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from vllm_agent_gateway.acceptance.runtime_state_hygiene import (
     CommandExecutionResult,
     RuntimeStateHygieneConfig,
@@ -13,6 +15,7 @@ from vllm_agent_gateway.acceptance.runtime_state_hygiene import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+pytestmark = pytest.mark.serial
 
 
 def write_json(path: Path, value: dict[str, object]) -> Path:

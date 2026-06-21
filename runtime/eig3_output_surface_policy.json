@@ -1,0 +1,100 @@
+{
+  "derived_surfaces": {
+    "run_state_summary": {
+      "deferred_decision": "omit",
+      "safe_decision": "allow",
+      "sensitive_decision": "omit",
+      "source": "policy"
+    }
+  },
+  "fixture_pack": "runtime/eig3_sensitive_data_fixtures.json",
+  "kind": "eig3_output_surface_policy",
+  "negative_control": {
+    "artifact": "omit",
+    "audit_summary": "omit",
+    "chat": "refuse",
+    "json": "refuse",
+    "memory": "omit",
+    "run_state_summary": "omit"
+  },
+  "phase": 299,
+  "required_decisions": [
+    "allow",
+    "mask",
+    "refuse",
+    "summarize",
+    "omit"
+  ],
+  "schema_version": 1,
+  "source_matrix": "docs/EIG3_SENSITIVE_DATA_ARCHETYPE_MATRIX.md",
+  "surface_rules": {
+    "artifact": {
+      "safe_allowed": [
+        "allow"
+      ],
+      "sensitive_allowed": [
+        "mask",
+        "omit"
+      ]
+    },
+    "audit_summary": {
+      "safe_allowed": [
+        "allow"
+      ],
+      "sensitive_allowed": [
+        "omit"
+      ]
+    },
+    "chat": {
+      "safe_allowed": [
+        "allow"
+      ],
+      "sensitive_allowed": [
+        "mask",
+        "refuse",
+        "summarize"
+      ]
+    },
+    "json": {
+      "safe_allowed": [
+        "allow"
+      ],
+      "sensitive_allowed": [
+        "mask",
+        "refuse",
+        "summarize"
+      ]
+    },
+    "memory": {
+      "safe_allowed": [
+        "allow"
+      ],
+      "sensitive_allowed": [
+        "omit"
+      ]
+    },
+    "run_state_summary": {
+      "safe_allowed": [
+        "allow"
+      ],
+      "sensitive_allowed": [
+        "omit"
+      ]
+    }
+  },
+  "unsupported_disclosure_terms": [
+    "print",
+    "list all",
+    "reveal",
+    "extract",
+    "decode",
+    "reconstruct",
+    "store",
+    "save",
+    "reverse",
+    "base64",
+    "raw",
+    "infer",
+    "fill in"
+  ]
+}

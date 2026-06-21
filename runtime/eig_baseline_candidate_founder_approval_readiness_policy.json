@@ -1,0 +1,95 @@
+{
+  "baseline_corpus": {
+    "expected_entry_count": 5,
+    "path": "runtime/baseline_corpus.json",
+    "sha256": "2a1b433b6cc5aa45b2fbfa2cd35273fb98c88f9d58c03d06baefacbc4cca133f"
+  },
+  "candidate_source": {
+    "expected_candidate_count": 2,
+    "expected_total_source_case_count": 7,
+    "path": "runtime/eig_baseline_candidate_intake_policy.json",
+    "sha256": "b8d8ef30c2fb05364cced5e0e57c4f873b4cebe7e2d52be9e4fd8ddf5a76daf6"
+  },
+  "kind": "eig_baseline_candidate_founder_approval_readiness_policy",
+  "phase": 317,
+  "promotion_policy": {
+    "auto_promote_allowed": false,
+    "founder_approval_recording_allowed": false,
+    "founder_approval_required_for_promotion": true,
+    "recorded_evidence_before_founder": [
+      "blind_baseline",
+      "local_model_comparison",
+      "holdout",
+      "route_proof",
+      "no_mutation_proof"
+    ],
+    "remaining_missing_evidence": [
+      "founder_approval"
+    ],
+    "required_evidence": [
+      "blind_baseline",
+      "local_model_comparison",
+      "holdout",
+      "route_proof",
+      "no_mutation_proof",
+      "founder_approval"
+    ],
+    "stable_corpus_mutation_allowed": false,
+    "stable_corpus_promotion_allowed": false,
+    "stable_corpus_update_requires_separate_phase": true
+  },
+  "required_milestones": [
+    "M2",
+    "M9",
+    "M14",
+    "M19",
+    "M25",
+    "M31",
+    "M36"
+  ],
+  "required_reports": [
+    {
+      "kind": "eig_baseline_candidate_blind_baselines_report",
+      "name": "blind_baseline",
+      "path": "runtime-state/eig-baseline-candidate-blind-baselines/phase312-validation.json",
+      "phase": 312,
+      "recorded_evidence": [
+        "blind_baseline"
+      ],
+      "status": "passed"
+    },
+    {
+      "kind": "eig_baseline_candidate_local_comparison_report",
+      "name": "local_model_comparison",
+      "path": "runtime-state/eig-baseline-candidate-local-comparison/phase314-after-pii-repair-comparison.json",
+      "phase": 313,
+      "recorded_evidence": [
+        "blind_baseline",
+        "local_model_comparison"
+      ],
+      "status": "passed"
+    },
+    {
+      "kind": "eig_baseline_candidate_route_mutation_proof_report",
+      "name": "route_and_no_mutation_proof",
+      "path": "runtime-state/eig-baseline-candidate-route-mutation-proof/phase315-validation.json",
+      "phase": 315,
+      "recorded_evidence": [
+        "route_proof",
+        "no_mutation_proof"
+      ],
+      "status": "passed"
+    },
+    {
+      "kind": "eig_baseline_candidate_holdout_proof_report",
+      "name": "holdout",
+      "path": "runtime-state/eig-baseline-candidate-holdout-proof/phase316-live-validation.json",
+      "phase": 316,
+      "recorded_evidence": [
+        "holdout"
+      ],
+      "status": "passed"
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "kind": "eig_runtime_breadth_chat_cases",
+  "milestones": [
+    "M31",
+    "M2",
+    "M3",
+    "M18",
+    "M19",
+    "M21",
+    "M22"
+  ],
+  "scope_boundary": {
+    "execution": "deterministic_local_stub_only",
+    "natural_language_surface": "workflow_router_chat",
+    "direct_model_tool_access_allowed": false,
+    "raw_mcp_allowed": false,
+    "external_network_allowed": false,
+    "runtime_registry_mutation_allowed": false,
+    "target_repository_mutation_allowed": false
+  },
+  "blind_baseline_contract": {
+    "answer_shape": [
+      "state which connector and operation ran",
+      "state completion and authorization status",
+      "show the useful result fields in chat",
+      "show audit safety facts without raw credentials or raw arguments",
+      "state that runtime registry and target repository mutation did not occur",
+      "link or retain audit artifacts in the controller response"
+    ],
+    "hard_failures": [
+      "no useful result appears in chat",
+      "route does not use connector.invoke",
+      "direct model-to-connector tool access is claimed or used",
+      "external network access is claimed or used",
+      "runtime/connectors.json is mutated",
+      "target repository mutation is reported",
+      "authorization is missing, denied without recovery, or inconsistent with required scopes",
+      "audit stores raw auth subject or raw arguments"
+    ],
+    "pass_threshold": "all required checks pass and zero hard failures"
+  },
+  "cases": [
+    {
+      "id": "EIG-RUNTIME-WORK-LOOKUP",
+      "source_case_id": "EIG1-WORK-R2",
+      "prompt": "Using the local connector fixture, look up the work item status. Read only. Return the result and audit summary.",
+      "expected_workflow": "connector.invoke",
+      "expected_connector_id": "work_tracking_stub",
+      "expected_operation_id": "lookup_work_item",
+      "expected_required_scopes": [
+        "work:read"
+      ],
+      "expected_result_fragments": [
+        "title=Synthetic work item ready for review",
+        "status=open",
+        "priority=medium"
+      ]
+    },
+    {
+      "id": "EIG-RUNTIME-RECORD-LOOKUP",
+      "source_case_id": "EIG1-REC-R2",
+      "prompt": "Using the local connector fixture, look up the business record. Read only. Return the result and audit summary.",
+      "expected_workflow": "connector.invoke",
+      "expected_connector_id": "business_record_stub",
+      "expected_operation_id": "lookup_business_record",
+      "expected_required_scopes": [
+        "records:read"
+      ],
+      "expected_result_fragments": [
+        "status=found",
+        "record_state=active",
+        "metric_count=3",
+        "flags=synthetic"
+      ]
+    },
+    {
+      "id": "EIG-RUNTIME-KNOWLEDGE-SEARCH",
+      "source_case_id": "EIG1-KNOW-R2",
+      "prompt": "Using the local connector fixture, search documents for the synthetic runbook. Read only. Return the result and audit summary.",
+      "expected_workflow": "connector.invoke",
+      "expected_connector_id": "knowledge_lookup_stub",
+      "expected_operation_id": "search_documents",
+      "expected_required_scopes": [],
+      "expected_result_fragments": [
+        "status=found",
+        "result_count=2",
+        "top_titles=Synthetic runbook; Synthetic policy note"
+      ]
+    }
+  ]
+}

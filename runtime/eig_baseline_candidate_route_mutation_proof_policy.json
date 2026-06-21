@@ -1,0 +1,19 @@
+{
+  "kind": "eig_baseline_candidate_route_mutation_proof_policy",
+  "phase": 315,
+  "required_live_replay": {
+    "candidate_count": 2,
+    "live_result_count": 14,
+    "required_surfaces": [
+      "workflow_router_gateway",
+      "anythingllm"
+    ]
+  },
+  "recorded_evidence": [
+    "route_proof",
+    "no_mutation_proof"
+  ],
+  "schema_version": 1,
+  "stable_corpus_mutation_allowed": false,
+  "stable_corpus_promotion_allowed": false
+}

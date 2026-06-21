@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 from pathlib import Path
 
+import pytest
+
 from vllm_agent_gateway.acceptance.route_stability_holdout_replay import (
     DEFAULT_POLICY_PATH,
     RouteStabilityHoldoutReplayConfig,
@@ -18,6 +20,7 @@ from vllm_agent_gateway.acceptance.route_stability_holdout_replay import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+pytestmark = pytest.mark.serial
 
 
 def policy() -> dict:

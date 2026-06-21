@@ -35,10 +35,11 @@ python3 scripts/validate_anythingllm_fresh_chat_responsiveness.py \
   --timeout-seconds 180
 ```
 
-When AnythingLLM is configured to the WSL network URL because Windows `127.0.0.1` forwarding hangs before body bytes, keep the internal Bash gateway URL unchanged and pass the expected AnythingLLM target separately:
+When AnythingLLM uses a network API base because Windows `127.0.0.1:3001` reaches the wrong process, and its Generic OpenAI target is the WSL network workflow-router URL because Windows `127.0.0.1` forwarding hangs before body bytes, keep the internal Bash gateway URL unchanged and pass both split-address values:
 
 ```bash
 python3 scripts/validate_anythingllm_fresh_chat_responsiveness.py \
+  --anythingllm-api-base-url http://192.168.0.208:3001 \
   --workflow-router-gateway-base-url http://127.0.0.1:8500/v1 \
   --anythingllm-workflow-router-base-url http://100.100.12.45:8500/v1 \
   --ui-report-path runtime-state/anythingllm-ui/phase237/phase237-ui-hi.json \
@@ -55,6 +56,7 @@ ANYTHINGLLM FRESH CHAT RESPONSIVENESS PASS
 ## Failure Meaning
 
 - Target settings fail: AnythingLLM is not pointed at the expected workflow-router gateway URL for the current client surface.
+- API base settings fail: pass the working AnythingLLM API base with `--anythingllm-api-base-url`; the report keeps the policy default as `target_settings.required.policy_api_base_url` for audit.
 - Gateway cases fail: the controller/gateway path is not returning chat-visible content.
 - AnythingLLM API cases fail: AnythingLLM cannot reach or render the workflow-router response through its workspace API.
 - UI proof fails: the browser-visible `/stream-chat` path is not usable even if the API path works.

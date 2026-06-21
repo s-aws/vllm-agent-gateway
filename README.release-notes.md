@@ -6,23 +6,31 @@ Current status: `ship`.
 
 Stable channel compatibility marker: `ready_for_founder_testing`.
 
-Latest proof floor: Phase 246 reran the Phase 244 V1 release-candidate decision gate after Phase 245 restored runtime health. The release clone at decision source commit `bb0c6b0` returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`. Phase 247 packages that decision into committed handoff metadata and tester-facing docs.
+Latest proof floor: Phase 361 refreshes the current `codex/eig-stable-handoff` PR/stable-handoff review state. The current chain includes Phase 343 full split-lane regression, Phase 345 fresh Priority 0 local-model drift replay, Phase 347 stable handoff smoke replay, Phase 349 bounded browser-visible AnythingLLM UI smoke, Phase 351 full browser-visible AnythingLLM UI suite replay, Phase 352 clean-clone full UI suite replay, Phase 358 fresh Priority 0 drift replay, Phase 360 stable handoff smoke replay, Phase 361 clean-clone stable handoff replay, and the final pre-merge full Bash regression. PR #1 was approved for merge and release after Phase 361.
+
+Earlier stable proof floor: Phase 246 reran the Phase 244 V1 release-candidate decision gate after Phase 245 restored runtime health. The release clone at decision source commit `bb0c6b0` returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`. Phase 247 packages that decision into committed handoff metadata and tester-facing docs.
 
 Earlier proof floor: Phase 226 made M6/M8 large-context usability release-usable through retrieval-backed chat, artifact paging, context strategy routing, live gateway proof, and live AnythingLLM proof. M9 founder feedback rebaseline and repair rerun gates are in place. M12 small skill admission completed for the Python-service fixture without manual skill injection. Phase 231 proved runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack, including post-restart small-repo and large-context prompts through gateway and AnythingLLM.
 
+EIG proof floor: Phase 296 closes EIG-1/EIG-2 local-stub connector breadth for governed manifests, controller-owned mediation, actor/scope enforcement, approval replay, and selected natural-language connector chat. Phase 303 closes EIG-3 synthetic privacy breadth for sensitive-data classification, output-surface handling, governed memory lifecycle, privacy EvalOps, and privacy-sensitive runtime chat. Phase 304 connects those proof chains to the stable handoff docs without shipping real external connector execution, production OAuth token exchange, real sensitive-data ingestion, arbitrary connector chat, or persistent hidden memory. persistent hidden memory is not shipped.
+
 Earlier founder-field closeout: Phase 170 refreshed the stable proof floor after the Phase 163-169 chat-quality batch and kept the decision at `release_for_founder_testing`. Phases 171 through 176 closed the six Phase 169 product-gap proposals, and Phases 180 through 185 added chat-quality hardening: answer-first chat contract hardening, natural output-format selector stabilization, evidence relevance ranking, related-test discovery reliability, browser-visible AnythingLLM UI replay for repaired Priority 0 prompt families, and a reusable contextless-agent audit pack. Phase 230 admitted the first small skill-library fixture/eval coverage candidate using existing skills. Phase 231 proves the restarted runtime is ready with `decision=ready_after_recovery`.
 
-This release is a local coding-agent harness for chat-quality testing through the workflow-router gateway. The tested user-facing path is AnythingLLM configured to use:
+This release is a local coding-agent harness for chat-quality testing through the workflow-router gateway. Bash-side validation keeps the internal workflow-router URL on:
 
 ```text
 http://127.0.0.1:8500/v1
 ```
 
-AnythingLLM itself is expected at:
+On split Windows/WSL hosts, the Windows AnythingLLM client may need the WSL network workflow-router URL printed by `start-agent-prompt-proxies.sh` instead of loopback.
+
+AnythingLLM itself is usually expected at Windows loopback:
 
 ```text
 http://127.0.0.1:3001
 ```
+
+Bash/WSL validators may need the reachable Windows host network API base, such as `http://192.168.0.208:3001`.
 
 The AnythingLLM API checks use `ANYTHINGLLM_API_KEY` from the local environment.
 
@@ -56,6 +64,8 @@ runtime/release_proofs/v1-1-release-candidate-stable-proof.json
 - Runtime recovery reliability proof that restarts vLLM plus the repo-managed stack and then validates small-repo and large-context prompts through gateway and AnythingLLM.
 - Release-candidate ship handoff proof from the release clone after runtime health restoration.
 - Large-context usability through retrieval-backed evidence selection, context strategy routing, and artifact paging instead of raw prompt stuffing.
+- Governed local-stub connector admission, registry, mediation, eval release-gate, actor/scope, approval replay, and selected natural-language connector chat proof.
+- Synthetic privacy and memory-safety breadth proof covering sensitive-data classes, masking/refusal surfaces, governed memory lifecycle, privacy EvalOps, and privacy-sensitive runtime chat.
 - Small skill admission for Python-service endpoint and schema fixture coverage without manual skill injection.
 - Founder feedback rebaseline and repair rerun gates for useful, advisory, repair-worthy, rejected, deferred, baseline, and holdout outcomes.
 - Blind-baseline-first founder field round 2 with full response artifacts, route-surface proof, scoring, and prompt-advisory routing.
@@ -81,12 +91,16 @@ Validated fixture roots:
 - This is a local founder-testing release, not a production deployment.
 - Validation is centered on the current local model and the two frozen Coinbase fixtures.
 - Live runtime validators should be run from Bash/WSL because Windows clients can hit Bash-hosted localhost body-timeout behavior.
-- AnythingLLM must point at `http://127.0.0.1:8500/v1` for natural workflow routing. `8300` is ordinary model gateway chat, and `8400` is the controller service.
+- AnythingLLM must point at the workflow-router gateway for natural workflow routing. Use `http://127.0.0.1:8500/v1` only when the AnythingLLM client can reliably read loopback response bodies; otherwise use the printed WSL network workflow-router URL. `8300` is ordinary model gateway chat, and `8400` is the controller service.
 - `format_a` and `json` are the only governed output formats currently released.
 - Draft and apply flows are intentionally narrow. Unsupported mutation requests should block or require exact approved packet details.
 - The git-enabled frozen fixture can show Windows/WSL line-ending noise; watched-hash and protected-fixture mutation proof are the release checks.
 - Phase 169 converted 6 prompt-advisory product gaps into proposals: `FTR-P169-001-p08`, `FTR-P169-002-p21`, `FTR-P169-003-p29`, `FTR-P169-004-p30`, `FTR-P169-005-p33`, and `FTR-P169-006-p34`. That repair set is closed in Phases 171-176, but future broad prompt families still need their own blind-baseline and live validation before release.
 - Raw 1M-token prompt serving is not claimed. Large-context usability is currently implemented through retrieval, chunking, summarization, artifact paging, evidence selection, and routing.
+- Real external connector execution is not shipped. Current connector proof uses deterministic local-stub connector fixtures only.
+- Production OAuth token exchange is not shipped. Current identity and scope proof uses synthetic actor context and fixture scopes only.
+- Real sensitive-data ingestion is not shipped. Current privacy proof uses synthetic privacy fixtures only.
+- Persistent hidden memory is not shipped. Current governed memory proof is fixture-backed lifecycle validation only.
 
 ## Not Included
 
@@ -138,6 +152,11 @@ Current proof summary:
 - Release-candidate runtime health restoration: `decision=runtime_health_restored`, gateway run `workflow-router-20260614T225336875601Z`, AnythingLLM run `workflow-router-20260614T225345166828Z`, and `runtime_health_blocker_count=0`.
 - Release-candidate decision rerun: Phase 246 reran the Phase 244 gate from `/tmp/agentic_agents_phase243_remote_clone` at commit `bb0c6b0` and returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`.
 - Release-candidate ship handoff: Phase 247 validates the committed stable proof metadata, stable release-channel readiness, tester docs, known limits, and ship markers.
+- EIG-1/EIG-2 breadth closeout: Phase 296 validates local-stub connector breadth, actor/scope authorization, approval replay, natural connector chat, AnythingLLM proof, and source connector registry mutation proof.
+- EIG-3 breadth closeout: Phase 303 validates synthetic privacy and memory-safety breadth, privacy-sensitive runtime chat, AnythingLLM proof, and full regression.
+- EIG stable handoff integration: Phase 304 validates that Phase 296 and Phase 303 are visible in stable tester docs and that production-scope boundaries remain explicit.
+- Full browser-visible AnythingLLM UI suite replay: Phase 351 passed with `case_count=21`, `error_count=0`, `fixture_unchanged=true`, 16 unique governed UI case IDs, both frozen roots covered, and the current AnythingLLM workspace/browser path.
+- Clean-clone full UI suite replay: Phase 352 passed clone-safe UI E2E plus PR-readiness regression with `37 passed`, confirmed Phase 351, `case_count=21`, and `16` unique governed UI case markers, and left clone source status clean without active-workspace runtime-state dependency.
 
 Primary proof artifacts:
 
@@ -270,4 +289,6 @@ python3 scripts/validate_release_candidate_runtime_health_restoration.py \
 python3 scripts/validate_v1_release_candidate_decision_gate.py \
   --health-timeout-seconds 20
 python3 scripts/validate_release_candidate_ship_handoff.py
+python3 scripts/validate_eig_stable_handoff_integration.py \
+  --output-path runtime-state/eig-stable-handoff-integration/phase304-validation.json
 ```

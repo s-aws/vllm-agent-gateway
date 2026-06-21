@@ -6,12 +6,41 @@ This index is ordered for contextless entities: people or agents entering the pr
 
 - [Project README](../README.md): what this project is, tested setup, quick start, basic usage, and repository layout.
 - [Project Milestones](PROJECT_MILESTONES.md): approved product-state gates for reaching the local-model coding-agent objective, including large-context usability.
+- [External Integration Breadth Goals](EXTERNAL_INTEGRATION_BREADTH_GOALS.md): approved EIG-1, EIG-2, and EIG-3 breadth-confidence goals for common connector, identity, privacy, and memory-safety use cases.
+- [EIG-1 Connector Archetype Breadth Matrix](EIG1_CONNECTOR_ARCHETYPE_BREADTH_MATRIX.md): Phase 288 deterministic connector archetype matrix for work tracking, knowledge lookup, and structured business-record fixtures.
+- [EIG-1 Connector Breadth Fixtures README](../README.eig1-connector-breadth-fixtures.md): Phase 289 fixture pack and validator for deterministic local-stub connector breadth.
+- [EIG-1 Protocol Auth Schema Matrix README](../README.eig1-protocol-auth-schema-matrix.md): Phase 290 protocol, auth, and schema classification gate for EIG-1 connector admission and mediation.
+- [EIG-1 Connector Release Gate Breadth README](../README.eig1-connector-release-gate-breadth.md): Phase 291 release-packet breadth and release-gate failure-class proof for EIG-1 connectors.
+- [EIG-1 Registry Lifecycle Breadth README](../README.eig1-registry-lifecycle-breadth.md): Phase 292 disposable registry lifecycle proof for EIG-1 connector registration and enablement.
+- [EIG-2 Actor Scope Breadth README](../README.eig2-actor-scope-breadth.md): Phase 293 actor-context, operation-level scope, least-privilege, and fail-closed recovery proof for governed connector invocation.
+- [EIG-2 Approval Replay Breadth README](../README.eig2-approval-replay-breadth.md): Phase 294 approval binding, stale replay denial, granted-scope state, and replay-safe audit proof for governed connector invocation.
+- [EIG Runtime Breadth Chat README](../README.eig-runtime-breadth-chat.md): Phase 295 natural-language chat proof for selected EIG local-stub connector fixtures through `connector.invoke`.
+- [EIG Breadth Closeout README](../README.eig-breadth-closeout.md): Phase 296 contextless closeout packet for EIG-1 and EIG-2 connector breadth proof.
+- [EIG-3 Sensitive Data Archetype Matrix](EIG3_SENSITIVE_DATA_ARCHETYPE_MATRIX.md): Phase 297 synthetic privacy and memory-safety matrix for personal data, secret-like credentials, and confidential business records.
+- [EIG-3 Sensitive Data Fixtures README](../README.eig3-sensitive-data-fixtures.md): Phase 298 synthetic fixture pack, validator command, report shape, and safety boundary.
+- [EIG-3 Output Surface Policy README](../README.eig3-output-surface-policy.md): Phase 299 masking/refusal matrix for chat, JSON, artifacts, connector audit, run-state, and memory surfaces.
+- [EIG-3 Memory Lifecycle README](../README.eig3-memory-lifecycle.md): Phase 300 governed memory lifecycle fixture pack and validator for retention, deletion, provenance, inspection, and isolation.
+- [EIG-3 Privacy EvalOps README](../README.eig3-privacy-evalops.md): Phase 301 release-blocking privacy EvalOps gate for blind-baseline, holdout, negative-control, leak, memory, and output-format proof.
+- [EIG-3 Privacy Runtime Chat README](../README.eig3-privacy-runtime-chat.md): Phase 302 live gateway and AnythingLLM proof for safe privacy-sensitive chat answers.
+- [EIG-3 Breadth Closeout README](../README.eig3-breadth-closeout.md): Phase 303 contextless closeout packet for EIG-3 privacy and memory-safety breadth proof.
+- [EIG Stable Handoff Integration README](../README.eig-stable-handoff-integration.md): Phase 304 release-facing handoff gate for Phase 296 local-stub connector proof and Phase 303 synthetic privacy proof boundaries.
+- [EIG Baseline Candidate Intake README](../README.eig-baseline-candidate-intake.md): Phase 307 candidate intake gate for EIG runtime prompts before live replay or stable corpus promotion.
+- [EIG Baseline Candidate Live Replay README](../README.eig-baseline-candidate-live-replay.md): Phase 308 live gateway and AnythingLLM replay for EIG baseline candidates before promotion.
+- [EIG PR Merge Readiness README](../README.eig-pr-merge-readiness.md): Phase 310 non-merge readiness gate for the EIG handoff pull request.
+- [EIG Baseline Candidate Promotion Readiness README](../README.eig-baseline-candidate-promotion-readiness.md): Phase 311 fail-closed promotion-readiness decision for EIG baseline candidates.
+- [EIG Baseline Candidate Blind Baselines README](../README.eig-baseline-candidate-blind-baselines.md): Phase 312 contextless blind-baseline evidence for EIG baseline candidates.
+- [EIG Baseline Candidate Local Comparison README](../README.eig-baseline-candidate-local-comparison.md): Phase 313 local-model comparison against EIG blind baselines with repair-required promotion blocking.
+- [EIG Baseline Candidate Privacy Repair README](../README.eig-baseline-candidate-privacy-repair.md): Phase 314 deterministic privacy-answer repair closing EIG local-model comparison evidence.
+- [EIG Baseline Candidate Route And Mutation Proof README](../README.eig-baseline-candidate-route-mutation-proof.md): Phase 315 route and no-mutation evidence for repaired EIG baseline candidates.
+- [EIG Baseline Candidate Holdout Proof README](../README.eig-baseline-candidate-holdout-proof.md): Phase 316 paraphrased gateway and AnythingLLM holdout proof for EIG baseline candidates.
+- [EIG Baseline Candidate Founder Approval Readiness README](../README.eig-baseline-candidate-founder-approval-readiness.md): Phase 317 aggregate evidence gate showing founder approval is the only remaining promotion blocker.
 - [Current Project Architecture](CURRENT_PROJECT_ARCHITECTURE.md): current gateway/controller/workflow/model validation map plus approved future connector, identity, and privacy milestone goals.
 - [Getting Started With AnythingLLM](../README.getting-started.md): minimal first-time setup and validation path for natural workflow testing through AnythingLLM.
 - [Productized Setup README](../README.productized-setup.md): single setup command surface for install, start, validate, reset, and rerun.
 - [External Tester Onboarding README](../README.external-tester-onboarding.md): contextless release-candidate tester path with curated read-only prompts and linked feedback capture.
 - [External Tester Dry Run README](../README.external-tester-dry-run.md): Phase 147 minimum stable external tester dry run through setup, AnythingLLM, onboarding, feedback, and fixture proof.
 - [First-Time User Doctor README](../README.first-time-user-doctor.md): setup preflight for localhost ports, controller roots, AnythingLLM, and frozen fixtures.
+- [Regression Process README](../README.regression.md): split-lane pytest-xdist regression runner, serial marker policy, and closeout commands.
 - [Release Channels README](../README.release-channels.md): dev, release-candidate, and stable channel metadata, setup validator, stable readiness, and rollback path.
 - [Stable Handoff README](../README.stable-handoff.md): stable-channel smoke validation, first external tester prompt, feedback capture, and rollback.
 - [Runtime-State Hygiene README](../README.runtime-state.md): local-only generated report policy, committed release proof metadata, and hygiene validation.
@@ -46,12 +75,15 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Multi-Repo Live Generalization Rerun README](../README.multi-repo-live-generalization-rerun.md): Phase 212 live M5 rerun across Staterail and Coinbase holdouts.
 - [M5 Generalization Closeout README](../README.m5-generalization-closeout.md): Phase 213 M5 closeout decision and next-scope boundary.
 - [Large-Corpus Context Budget Inventory README](../README.large-corpus-context-budget-inventory.md): Phase 214 generated large-corpus fixture and context-budget inventory for M6/M7.
+- [Context Ceiling Benchmark README](../README.context-ceiling-benchmark.md): Phase 318 raw 32K/64K/128K/256K local-model context measurement for M7 without raw 500k support claims.
 - [Retrieval-First Context Strategy Design README](../README.retrieval-first-context-strategy-design.md): Phase 215 retrieval-first context strategy contract for M6/M8 before indexing or retrieval-backed chat implementation.
 - [Corpus Index Safety Governance README](../README.corpus-index-safety-governance.md): Phase 216 M16 safety gate for allowed roots, ignore rules, secret-like content, stale metadata, and leak prevention before durable indexing.
 - [Context Index Prototype README](../README.context-index-prototype.md): Phase 217 metadata-first local index prototype with Phase 216 safety enforcement and query smoke proof.
 - [Retrieval-Backed Chat Answer Gate README](../README.retrieval-backed-chat-answer-gate.md): Phase 218 chat-visible retrieval-backed large-corpus answers through the existing workflow-router path.
 - [Artifact Paging And Long Answer Usability README](../README.artifact-paging-long-answer-usability.md): Phase 219 paged evidence artifacts with answer-first chat and output-format parity.
 - [Context Strategy Router README](../README.context-strategy-router.md): Phase 220 deterministic selection of direct context, retrieval, chunking, summarization, artifact paging, or refusal.
+- [Context Strategy Router Rebaseline README](../README.context-strategy-router-rebaseline.md): Phase 319 current-model M8 rebaseline for small, medium, huge, ambiguous, unsupported, missing-index, stale-index, and sensitive large-context strategy routing after the Phase 318 benchmark.
+- [Context Strategy Router Clone Replay README](../README.context-strategy-router-clone-replay.md): Phase 320 clone-safe replay of the Phase 319 rebaseline with a disposable bootstrapped large-context fixture and metadata-only index.
 - [Large-Context Usability Live Closeout README](../README.large-context-usability-live-closeout.md): Phase 221 live gateway and AnythingLLM closeout for M6/M8 large-context usability.
 - [Chunked Investigation Executor Contract README](../README.chunked-investigation-executor-contract.md): Phase 222 executable contract for selected chunked-investigation strategy before implementation.
 - [Chunked Investigation Executor Implementation README](../README.chunked-investigation-executor-implementation.md): Phase 223 read-only chunked-investigation executor with answer-first chat, traceable artifacts, gateway proof, and AnythingLLM proof.
@@ -204,6 +236,7 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Chunked Investigation Executor Contract README](../README.chunked-investigation-executor-contract.md): current M6/M8 contract for moving chunked investigation from selected-but-blocked to implementable.
 - [Chunked Investigation Executor Implementation README](../README.chunked-investigation-executor-implementation.md): current M6/M8 implementation for selected chunked-investigation prompts through the existing workflow-router path.
 - [Skill Regression Tiers README](../README.skill-regression-tiers.md): explicit offline, controller, gateway, AnythingLLM, UI, fixture-mutation, and release-candidate proof tiers.
+- [Regression Examples](examples/regression.md): full split regression, focused pytest iteration, and serial/parallel lane debugging commands.
 - [Skill Packaging README](../README.skill-packaging.md): governed skill-pack layout, namespace ownership, dependency policy, versioning, import/export, and retirement rules.
 - [L1 Coding Agent Prompt Backlog](L1_CODING_AGENT_PROMPTS.md): validated simple prompt/skill/tool targets, full L1 suite proof boundaries, and gates before advanced refactor work resumes.
 - [L2 Coding Agent Prompt Backlog](L2_CODING_AGENT_PROMPTS.md): validated next-layer prompt expansion, failing-test diagnosis, multi-file investigation, dependency impact, test-selection rationale, Batch E CI/table/reproduction/message-target skills, acceptance standard, and deferred advanced boundaries.
@@ -390,6 +423,26 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Founder Feedback Repair Rerun Gate Examples](examples/founder-feedback-repair-rerun-gate.md)
 - [Engineering Tenet Coverage Examples](examples/engineering-tenets.md)
 - [Security Policy Examples](examples/security-policy.md)
+- [EIG-3 Sensitive Data Fixture Examples](examples/eig3-sensitive-data-fixtures.md)
+- [EIG-1 Connector Breadth Fixture Examples](examples/eig1-connector-breadth-fixtures.md)
+- [EIG-1 Protocol Auth Schema Matrix Examples](examples/eig1-protocol-auth-schema-matrix.md)
+- [EIG-1 Connector Release Gate Breadth Examples](examples/eig1-connector-release-gate-breadth.md)
+- [EIG-1 Registry Lifecycle Breadth Examples](examples/eig1-registry-lifecycle-breadth.md)
+- [EIG-2 Actor Scope Breadth Examples](examples/eig2-actor-scope-breadth.md)
+- [EIG-2 Approval Replay Breadth Examples](examples/eig2-approval-replay-breadth.md)
+- [EIG Runtime Breadth Chat Examples](examples/eig-runtime-breadth-chat.md)
+- [EIG Breadth Closeout Examples](examples/eig-breadth-closeout.md)
+- [EIG-3 Output Surface Policy Examples](examples/eig3-output-surface-policy.md)
+- [EIG-3 Memory Lifecycle Examples](examples/eig3-memory-lifecycle.md)
+- [EIG-3 Privacy EvalOps Examples](examples/eig3-privacy-evalops.md)
+- [EIG-3 Privacy Runtime Chat Examples](examples/eig3-privacy-runtime-chat.md)
+- [EIG-3 Breadth Closeout Examples](examples/eig3-breadth-closeout.md)
+- [EIG Stable Handoff Integration Examples](examples/eig-stable-handoff-integration.md)
+- [EIG Baseline Candidate Intake Examples](examples/eig-baseline-candidate-intake.md)
+- [EIG Baseline Candidate Live Replay Examples](examples/eig-baseline-candidate-live-replay.md)
+- [EIG PR Merge Readiness Examples](examples/eig-pr-merge-readiness.md)
+- [EIG Baseline Candidate Promotion Readiness Examples](examples/eig-baseline-candidate-promotion-readiness.md)
+- [EIG Baseline Candidate Blind Baselines Examples](examples/eig-baseline-candidate-blind-baselines.md)
 - [Controller Service Examples](examples/controller-service.md)
 - [Workflow Router Examples](examples/workflow-router.md)
 - [Runtime Skill Selection Hardening Examples](examples/skill-selection-hardening.md)
@@ -446,6 +499,11 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Adversarial Context Stitching Examples](examples/adversarial-context-stitching.md)
 - [Supplied Corpus QA Examples](examples/supplied-corpus-qa.md)
 - [Release-Candidate Baseline Corpus Promotion Examples](examples/release-candidate-baseline-corpus-promotion.md)
+- [EIG Baseline Candidate Local Comparison Examples](examples/eig-baseline-candidate-local-comparison.md)
+- [EIG Baseline Candidate Privacy Repair Examples](examples/eig-baseline-candidate-privacy-repair.md)
+- [EIG Baseline Candidate Route And Mutation Proof Examples](examples/eig-baseline-candidate-route-mutation-proof.md)
+- [EIG Baseline Candidate Holdout Proof Examples](examples/eig-baseline-candidate-holdout-proof.md)
+- [EIG Baseline Candidate Founder Approval Readiness Examples](examples/eig-baseline-candidate-founder-approval-readiness.md)
 - [External Tester Feedback Loop From Clone Examples](examples/external-tester-feedback-loop-from-clone.md)
 - [V1 Release-Candidate Decision Gate Examples](examples/v1-release-candidate-decision-gate.md)
 - [Release-Candidate Runtime Health Restoration Examples](examples/release-candidate-runtime-health-restoration.md)
@@ -500,12 +558,15 @@ This index is ordered for contextless entities: people or agents entering the pr
 - [Multi-Repo Live Generalization Rerun Examples](examples/multi-repo-live-generalization-rerun.md)
 - [M5 Generalization Closeout Examples](examples/m5-generalization-closeout.md)
 - [Large-Corpus Context Budget Inventory Examples](examples/large-corpus-context-budget-inventory.md)
+- [Context Ceiling Benchmark Examples](examples/context-ceiling-benchmark.md)
 - [Retrieval-First Context Strategy Design Examples](examples/retrieval-first-context-strategy-design.md)
 - [Corpus Index Safety Governance Examples](examples/corpus-index-safety-governance.md)
 - [Context Index Prototype Examples](examples/context-index-prototype.md)
 - [Retrieval-Backed Chat Answer Gate Examples](examples/retrieval-backed-chat-answer-gate.md)
 - [Artifact Paging And Long Answer Usability Examples](examples/artifact-paging-long-answer-usability.md)
 - [Context Strategy Router Examples](examples/context-strategy-router.md)
+- [Context Strategy Router Rebaseline Examples](examples/context-strategy-router-rebaseline.md)
+- [Context Strategy Router Clone Replay Examples](examples/context-strategy-router-clone-replay.md)
 - [Large-Context Usability Live Closeout Examples](examples/large-context-usability-live-closeout.md)
 - [Chunked Investigation Executor Contract Examples](examples/chunked-investigation-executor-contract.md)
 - [Chunked Investigation Executor Implementation Examples](examples/chunked-investigation-executor-implementation.md)

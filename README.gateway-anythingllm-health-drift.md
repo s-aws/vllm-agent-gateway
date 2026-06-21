@@ -18,7 +18,7 @@ Use this before founder or AnythingLLM prompt testing when chat quality appears 
 
 - `unreachable_port`: no listener, refused connection, or no response headers.
 - `headers_without_body_timeout`: response headers arrived, but body bytes timed out.
-- `wrong_backend_target`: gateway or AnythingLLM points at the wrong model, route, controller path, or gateway.
+- `wrong_backend_target`: gateway or AnythingLLM points at the wrong model, route, controller path, or gateway. This also covers AnythingLLM API-base drift where the configured API origin returns `404` for AnythingLLM API routes, such as when another local web app is serving on port `3001`.
 - `auth_failure`: AnythingLLM authorized endpoints returned `401` or `403`, or the API key is unavailable.
 - `unexpected_response`: HTTP and connectivity worked, but semantic validation failed.
 - `unclassified_failure`: guard failure because a doctor failure was not diagnosable enough.
@@ -48,3 +48,30 @@ The report is written under `runtime-state/gateway-anythingllm-health-drift/phas
 - summary counts by drift kind
 
 The gate passes only when the doctor passes and all required health surfaces are represented.
+
+## Known Drift Example
+
+If `http://127.0.0.1:3001` is reachable but is not the AnythingLLM API, the guard should fail with `wrong_backend_target`, not `auth_failure` or `unclassified_failure`.
+
+On the current Windows/WSL host, the failure was caused by `node.exe` listening on `127.0.0.1:3001` while `AnythingLLM.exe` listened on `0.0.0.0:3001`. The working API bases were:
+
+- `http://192.168.0.208:3001`
+- `http://100.100.12.45:3001`
+
+Use the working API base with `--anythingllm-api-base-url` and keep Bash-side gateway validation on `http://127.0.0.1:8500/v1`.
+
+Expected failed summary shape:
+
+```json
+{
+  "status": "failed",
+  "summary": {
+    "kind_counts": {
+      "wrong_backend_target": 3,
+      "auth_failure": 0,
+      "unclassified_failure": 0
+    },
+    "unclassified_finding_count": 0
+  }
+}
+```

@@ -284,6 +284,40 @@ def test_gateway_anythingllm_health_drift_classifies_auth_failure() -> None:
     assert finding_kinds(report) == {HealthDriftKind.AUTH_FAILURE.value}
 
 
+def test_gateway_anythingllm_health_drift_classifies_anythingllm_api_base_404() -> None:
+    doctor = passing_doctor_report()
+    replace_check(
+        doctor,
+        "anythingllm.ping",
+        check(
+            "anythingllm.ping",
+            "anythingllm",
+            status="failed",
+            message="AnythingLLM ping returned HTTP 404.",
+            details={"url": "http://127.0.0.1:3001/api/ping", "http_status": 404},
+            next_action="Start AnythingLLM or correct --anythingllm-api-base-url.",
+        ),
+    )
+    replace_check(
+        doctor,
+        "anythingllm.workspace",
+        check(
+            "anythingllm.workspace",
+            "anythingllm",
+            status="failed",
+            message="AnythingLLM workspace 'my-workspace' was not found.",
+            details={"url": "http://127.0.0.1:3001/api/v1/workspaces", "http_status": 404, "workspace_found": False},
+            next_action="Check ANYTHINGLLM_API_KEY and the AnythingLLM API base URL.",
+        ),
+    )
+
+    report = report_for(doctor)
+
+    assert report["status"] == "failed"
+    assert finding_kinds(report) == {HealthDriftKind.WRONG_BACKEND_TARGET.value}
+    assert report["summary"]["unclassified_finding_count"] == 0
+
+
 def test_gateway_anythingllm_health_drift_carries_api_key_bridge_recovery_command() -> None:
     doctor = passing_doctor_report()
     replace_check(

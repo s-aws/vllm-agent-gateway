@@ -173,7 +173,11 @@ def resolve_report_path(request: ConnectorCatalogRegistrationRequest, raw_path: 
     )
 
 
-def validate_release_gate_report(request: ConnectorCatalogRegistrationRequest, connector_id: str) -> dict[str, Any] | None:
+def validate_release_gate_report(
+    request: ConnectorCatalogRegistrationRequest,
+    connector_id: str,
+    operation_ids: list[str],
+) -> dict[str, Any] | None:
     approval = validate_approval(request.approval)
     if not approval["enabled"]:
         return None
@@ -200,6 +204,13 @@ def validate_release_gate_report(request: ConnectorCatalogRegistrationRequest, c
         raise ConnectorCatalogRegistrationError(
             "enabled connector registration requires release_decision=ship and connector_enabled_requested=true.",
             code="connector_release_gate_not_ship",
+            status=HTTPStatus.FORBIDDEN,
+        )
+    report_operation_ids = string_list(summary.get("operation_ids", []), "release_gate.summary.operation_ids", allow_empty=True)
+    if sorted(report_operation_ids) != sorted(operation_ids):
+        raise ConnectorCatalogRegistrationError(
+            "release gate operation_ids must match the registered connector operations.",
+            code="connector_release_gate_stale_validation",
             status=HTTPStatus.FORBIDDEN,
         )
     return {"path": str(report_path), "summary": summary}
@@ -288,7 +299,8 @@ def invoke_connector_catalog_registration(request: ConnectorCatalogRegistrationR
         )
 
     connector = validation_report["validation"]["connector"]
-    release_gate = validate_release_gate_report(request, connector["id"])
+    operation_ids = [operation["id"] for operation in connector["operations"] if isinstance(operation.get("id"), str)]
+    release_gate = validate_release_gate_report(request, connector["id"], operation_ids)
     connector_entry = runtime_connector_entry(connector)
     connector_entry["enabled"] = approval["enabled"]
     connectors_path = config_root / CONNECTOR_CATALOG_PATH

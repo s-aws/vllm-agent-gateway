@@ -58,15 +58,15 @@ flowchart TD
 - The supported large-context path is governed 500k-token project usability through context strategy, retrieval, chunked investigation, artifact paging, and safety checks. It is not a raw 500k prompt guarantee.
 - AnythingLLM is a tester-facing client surface. It should reach the workflow-router gateway when testing natural workflow behavior.
 - Runtime artifacts are local proof records. They are not source of truth for product design unless summarized in tracked docs.
-- Connector catalog validation, approval-gated connector registration, enabled local-stub connector mediation, connector eval release-gate validation, actor-bound connector invocation, user-scope checks for `oauth_user_scope` connectors, and replay-safe connector audit proof are available for governed manifest, registry append, dry-run/read-only proof, shippability checks, and user-scoped mediation proof. Real external connector execution, raw MCP access, enterprise-specific connectors, production OAuth token exchange, Kubernetes deployment, and persistent hidden memory are not currently shipped capabilities.
+- Connector catalog validation, approval-gated connector registration, enabled local-stub connector mediation, connector eval release-gate validation, actor-bound connector invocation, operation-level least-privilege scopes for `oauth_user_scope` connectors, approval binding to actor/session/request/connector/operation/granted-scope state, replay-safe connector audit proof, and selected natural-language local-stub connector chat proof are available for governed manifest, registry append, dry-run/read-only proof, shippability checks, user-scoped mediation proof, and chat-visible connector result proof. Phase 304 integrates this stable handoff language with the Phase 296 local-stub connector closeout and Phase 303 synthetic privacy closeout. Real external connector execution, raw MCP access, arbitrary natural-language connector calls, enterprise-specific connectors, production OAuth token exchange, Kubernetes deployment, real sensitive-data ingestion, and persistent hidden memory are not currently shipped capabilities.
 
 ## Future Goal Position
 
 The approved external-integration future goals are milestone goals, not implemented behavior:
 
-- `EIG-1`: governed connector framework maps to `M17 -> M18 -> M19`.
-- `EIG-2`: OAuth/user-scope identity propagation maps to `M20 -> M21 -> M22`; the current shipped slice provides explicit actor context, required-scope checks, and replay-safe audit for connector invocation without real OAuth provider integration.
-- `EIG-3`: PII and memory safety maps to `M23 -> M24 -> M25`.
+- `EIG-1`: governed connector framework maps to `M17 -> M18 -> M19`, with breadth-confidence proof through `M26 -> M27 -> M28`; the approved local-stub breadth slice is complete.
+- `EIG-2`: OAuth/user-scope identity propagation maps to `M20 -> M21 -> M22`, with breadth-confidence proof through `M29 -> M30 -> M31`; actor/scope breadth, approval replay breadth, selected local-stub runtime chat proof, and the Phase 296 EIG-1/EIG-2 breadth closeout are complete for the approved deterministic local-stub slice.
+- `EIG-3`: PII and memory safety maps to `M23 -> M24 -> M25`, with breadth-confidence proof through `M32 -> M33 -> M34 -> M35 -> M36`; the approved synthetic privacy and memory-safety breadth slice is complete.
 
 These goals should be implemented only through phases that preserve the existing single controller-owned path, fail-closed safety model, chat-quality validation, and contextless proof standards.
 
@@ -78,3 +78,4 @@ These goals should be implemented only through phases that preserve the existing
 - [Supplied Corpus QA README](../README.supplied-corpus-qa.md)
 - [Gateway Feature README](../README.gateway.md)
 - [Controller Service README](../README.controller-service.md)
+- [EIG Stable Handoff Integration README](../README.eig-stable-handoff-integration.md)

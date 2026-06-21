@@ -40,6 +40,10 @@ EXPECTED_PHASE = 163
 EXPECTED_BACKLOG_ID = "P0-BB-027"
 DEFAULT_POLICY_PATH = Path("runtime") / "post_restart_runtime_readiness_policy.json"
 DEFAULT_OUTPUT_DIR = Path("runtime-state") / "post-restart-runtime-readiness" / "phase163"
+READY_NEXT_ACTION = (
+    "continue founder testing on the stable path; use the canonical roadmap tail for the next "
+    "milestone-mapped Priority 0 phase"
+)
 
 
 class PostRestartRuntimeReadinessStatus(str, Enum):
@@ -372,11 +376,7 @@ def build_post_restart_runtime_readiness_report(
         if status == PostRestartRuntimeReadinessStatus.PASSED.value
         else PostRestartRuntimeReadinessDecision.BLOCKED_AFTER_RESTART.value
     )
-    next_action = (
-        "continue founder testing on the stable path; work approved Phase 196 Priority 0 repair next"
-        if not errors
-        else "fix restart readiness findings before founder testing"
-    )
+    next_action = READY_NEXT_ACTION if not errors else "fix restart readiness findings before founder testing"
     return {
         "schema_version": SCHEMA_VERSION,
         "kind": EXPECTED_REPORT_KIND,
