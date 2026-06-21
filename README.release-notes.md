@@ -6,7 +6,7 @@ Current status: `ship`.
 
 Stable channel compatibility marker: `ready_for_founder_testing`.
 
-Latest proof floor: Phase 352 refreshes the current `codex/eig-stable-handoff` PR/stable-handoff review state. The current chain includes Phase 343 full split-lane regression, Phase 345 fresh Priority 0 local-model drift replay, Phase 347 stable handoff smoke replay, Phase 349 bounded browser-visible AnythingLLM UI smoke, Phase 351 full browser-visible AnythingLLM UI suite replay, Phase 352 clean-clone full UI suite replay, and current non-merge PR readiness. PR #1 remains open and clean, with merge, `main` mutation, and stable-corpus promotion still blocked pending founder decision.
+Latest proof floor: Phase 361 refreshes the current `codex/eig-stable-handoff` PR/stable-handoff review state. The current chain includes Phase 343 full split-lane regression, Phase 345 fresh Priority 0 local-model drift replay, Phase 347 stable handoff smoke replay, Phase 349 bounded browser-visible AnythingLLM UI smoke, Phase 351 full browser-visible AnythingLLM UI suite replay, Phase 352 clean-clone full UI suite replay, Phase 358 fresh Priority 0 drift replay, Phase 360 stable handoff smoke replay, Phase 361 clean-clone stable handoff replay, and the final pre-merge full Bash regression. PR #1 was approved for merge and release after Phase 361.
 
 Earlier stable proof floor: Phase 246 reran the Phase 244 V1 release-candidate decision gate after Phase 245 restored runtime health. The release clone at decision source commit `bb0c6b0` returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`. Phase 247 packages that decision into committed handoff metadata and tester-facing docs.
 
