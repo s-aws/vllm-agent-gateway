@@ -244,6 +244,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 340 | M14 | Complete. Replayed the pushed Phase 339 founder-facing docs from a clean WSL clone with docs-index proof, current proof-floor markers, split-address endpoint markers, no active-workspace runtime-state dependency, and clean clone status. |
 | Phase 341 | M14 | Complete. Repaired stale Phase 247 ship-handoff policy and README markers after the Phase 339 status/endpoint refresh, then passed ship-handoff validation, focused ship-handoff regression, stable release-channel validation, and docs index validation. |
 | Phase 342 | M14 | Complete. Replayed the pushed Phase 341 ship-handoff policy repair from a clean WSL clone with docs-index proof, ship-handoff validator proof, focused ship-handoff and PR-readiness regression, current handoff/endpoint markers, no active-workspace runtime-state dependency, and clean clone status. |
+| Phase 343 | M14 | Complete. Replayed the full split-lane release-candidate regression, repaired the stale Phase 232 onboarding handoff marker policy exposed by the gate, passed focused onboarding validation and regression, and passed the final xdist-safe plus serial regression lanes. |
 
 ## Usage Rules
 

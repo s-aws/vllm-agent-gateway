@@ -178,13 +178,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-340 | clean-clone founder docs replay | Complete in Phase 340. Replayed the pushed Phase 339 founder-facing docs from a clean clone without active-workspace runtime-state. | Proof: clone commit `1bf3c690241a1f01d11a7e4717f25b2d96c270f2`; docs index passed with `linked_count=438`; current proof-floor and split-address markers were present in getting-started, release-notes, and stable-handoff docs. |
 | P0-M14-341 | ship-handoff policy compatibility refresh | Complete in Phase 341. Repaired the existing Phase 247 ship-handoff policy and README after current founder-facing docs moved from Phase 277/loopback-only markers to the Phase 338 split-address proof floor. | Proof: initial ship-handoff replay failed with `error_count=2`; after policy/doc repair the gate passed with `ship_handoff_ready=true`, focused regression passed with `7 passed`, stable channel validation passed, and docs index passed. |
 | P0-M14-342 | clean-clone ship-handoff policy replay | Complete in Phase 342. Replayed the pushed Phase 341 ship-handoff policy repair from a clean clone without active-workspace runtime-state. | Proof: clone commit `69576eb649c1928ba9583d87d8f2b425f17a6cad`; docs index passed; ship-handoff validator passed with `ship_handoff_ready=true`; focused ship-handoff and PR-readiness regression passed with `12 passed`; current Phase 338 and workflow-router gateway markers were present. |
+| P0-M14-343 | release-candidate full regression replay | Complete in Phase 343. Replayed the full split-lane regression runner on the current release-candidate branch, repaired the stale onboarding handoff marker exposed by the gate, and preserved non-merge release-candidate boundaries. | Proof: initial split-lane run failed only on stale Phase 232 onboarding marker policy; focused validator passed with `handoff_ready`; focused regression passed with `6 passed`; final `scripts/run_regression.py --workers 4` passed with xdist-safe lane `1824 passed, 4 skipped` and serial lane `45 passed, 1851 deselected`. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-342 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-342 runtime/AnythingLLM recovery proof as the active proof floor.
+1. Phases 157-343 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-343 runtime/AnythingLLM recovery proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -201,7 +202,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 342 Clean-Clone Ship-Handoff Policy Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
+Phase 343 Release-Candidate Full Regression Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 

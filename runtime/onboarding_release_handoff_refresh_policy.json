@@ -32,7 +32,7 @@
     ],
     "README.getting-started.md": [
       "Phase 277",
-      "Phase 273",
+      "PHASE273 LARGE CONTEXT 500K LIVE ACCEPTANCE PASS",
       "scripts/validate_runtime_recovery_reliability_rebaseline.py",
       "http://127.0.0.1:8500/v1",
       "python-service-code-explanation",
