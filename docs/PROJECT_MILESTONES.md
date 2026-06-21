@@ -255,6 +255,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 351 | M2/M13/M14 | Complete. Replayed the full governed browser-visible AnythingLLM UI prompt catalog through the existing UI E2E validator, proving all 21 case/root executions pass with zero errors, unchanged frozen fixtures, and current AnythingLLM workspace/browser coverage. |
 | Phase 352 | M2/M13/M14 | Complete. Replayed the pushed Phase 351 full UI suite proof metadata and clone-safe UI policy tests from a clean WSL clone with docs-index proof, PR-readiness regression, Phase 351 marker confirmation, full-UI marker confirmation, no active-workspace runtime-state dependency, and clean clone status. |
 | Phase 353 | M14 | Complete. Refreshed founder-facing getting-started, release-notes, stable-handoff, and ship-handoff marker policy surfaces so Phase 352 is the current PR/stable-handoff proof floor while preserving Phase 246/247 lineage and non-merge/non-promotion boundaries. |
+| Phase 354 | M14 | Complete. Replayed the pushed Phase 353 proof-floor refresh and ship-handoff marker policy from a clean WSL clone with docs-index proof, ship-handoff validation, focused PR-readiness regression, Phase 352/351 marker confirmation, no active-workspace runtime-state dependency, and clean clone status. |
 
 ## Usage Rules
 

@@ -189,13 +189,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M2-351 | full browser-visible AnythingLLM UI suite replay | Complete in Phase 351. Ran the full governed browser-visible UI prompt catalog through the existing AnythingLLM UI E2E validator after the bounded UI smoke. | Proof: full UI E2E passed with `case_count=21`, `error_count=0`, `fixture_unchanged=true`, `16` unique governed UI case IDs, both frozen roots covered, system Chrome, and the current AnythingLLM workspace. |
 | P0-M2-352 | clean-clone full UI suite replay | Complete in Phase 352. Replayed the pushed Phase 351 full UI suite proof metadata and clone-safe UI policy gates from a clean clone without active-workspace runtime-state. | Proof: clone commit `09072fa16b2855472ad5874715c04e5ded0ef442`; docs index passed; clone-safe UI E2E and PR-readiness regression passed with `37 passed`; Phase 351, `case_count=21`, and `16` unique case markers were present; clone source status remained clean. |
 | P0-M14-353 | founder-facing Phase 352 proof-floor refresh | Complete in Phase 353. Refreshed getting-started, release-notes, stable-handoff, and ship-handoff marker policy surfaces so Phase 352 is the current founder-facing proof floor. | Proof: docs now name Phase 352 as the current floor, preserve Phase 246/247 lineage, include Phase 351 `case_count=21` and `fixture_unchanged=true`, include Phase 352 clean-clone `37 passed`, and keep merge/main/stable-corpus promotion blocked. |
+| P0-M14-354 | clean-clone Phase 353 proof-floor refresh replay | Complete in Phase 354. Replayed the pushed Phase 353 founder-facing proof-floor refresh and ship-handoff marker policy from a clean clone without active-workspace runtime-state. | Proof: clone commit `9d23d5decd6f4aa63186a4bb2c36fa6daa8835b1`; docs index passed; ship-handoff validation passed with `ship_handoff_ready=true`; focused clone regression passed with `12 passed`; Phase 352, `case_count=21`, `fixture_unchanged=true`, and `37 passed` markers were present; clone source status remained clean. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-353 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-353 runtime/AnythingLLM recovery and handoff-refresh proof as the active proof floor.
+1. Phases 157-354 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-354 runtime/AnythingLLM recovery and handoff-refresh proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -212,7 +213,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 353 Phase 352 Founder-Facing Proof-Floor Refresh is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
+Phase 354 Clean-Clone Phase 353 Proof-Floor Refresh Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 
