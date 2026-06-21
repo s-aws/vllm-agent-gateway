@@ -247,6 +247,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 343 | M14 | Complete. Replayed the full split-lane release-candidate regression, repaired the stale Phase 232 onboarding handoff marker policy exposed by the gate, passed focused onboarding validation and regression, and passed the final xdist-safe plus serial regression lanes. |
 | Phase 344 | M14 | Complete. Replayed the pushed Phase 343 onboarding handoff policy repair and regression-facing gates from a clean WSL clone with docs-index proof, onboarding validator proof, focused onboarding and PR-readiness regression, contextless audit support, marker confirmation, and clean clone status. |
 | Phase 345 | M2/M13/M14 | Complete. Recovered the local runtime stack and replayed the governed fresh Priority 0 chat-quality drift gate through workflow-router gateway and AnythingLLM across both frozen Coinbase roots with no drift, no high/critical findings, both routes covered, and all selected responses passing. |
+| Phase 346 | M2/M13/M14 | Complete. Replayed the pushed Phase 345 fresh-drift proof metadata and clone-safe drift policy tests from a clean WSL clone with docs-index proof, PR-readiness regression, Phase 345 marker confirmation, no-drift marker confirmation, no active-workspace runtime-state dependency, and clean clone status. |
 
 ## Usage Rules
 
