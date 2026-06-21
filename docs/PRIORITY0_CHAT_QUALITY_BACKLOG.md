@@ -182,13 +182,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-344 | clean-clone release-candidate regression replay | Complete in Phase 344. Replayed the pushed Phase 343 onboarding policy repair and regression-facing gates from a clean clone without active-workspace runtime-state. | Proof: contextless audit accepted the phase as bounded M14 release proof; clone commit `39476e9176c59dc23bf7dd3d7945b7d3950b1d6f`; docs index passed; onboarding validator passed with `handoff_ready`; focused onboarding and PR-readiness regression passed with `11 passed`; clone source status remained clean. |
 | P0-M2-345 | fresh Priority 0 chat-quality drift replay | Complete in Phase 345. Reran the governed fresh local-model drift subset through workflow-router gateway and AnythingLLM across both frozen Coinbase roots after the release-handoff refresh. | Proof: runtime was recovered, first-time doctor passed `30/30`; fresh drift reported `no_drift_detected`, `16/16` responses passed, both required routes and both frozen roots were covered, zero critical/high findings, empty gap categories, and family minimum route scores of `90`, `95`, `100`, and `100`. |
 | P0-M2-346 | clean-clone fresh-drift replay | Complete in Phase 346. Replayed the pushed Phase 345 fresh-drift proof metadata and clone-safe drift gates from a clean clone without active-workspace runtime-state. | Proof: clone commit `1a8842c16f63eb556680ff8a299fdae3c4ff3665`; docs index passed; clone-safe fresh-drift and PR-readiness regression passed with `15 passed, 1 deselected`; Phase 345 and `no_drift_detected` markers were present; clone source status remained clean. |
+| P0-M14-347 | stable handoff smoke replay | Complete in Phase 347. Reran the existing stable handoff smoke gate after the Phase 345 runtime recovery and fresh Priority 0 drift replay. | Proof: `validate_stable_handoff.py` passed with `check_count=6`, `command_count=4`, `failed_check_ids=[]`, child reports for doctor/release-channel/security/onboarding, both frozen roots covered, and the current split-address AnythingLLM configuration. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-346 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-346 runtime/AnythingLLM recovery proof as the active proof floor.
+1. Phases 157-347 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-347 runtime/AnythingLLM recovery proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -205,7 +206,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 346 Clean-Clone Fresh-Drift Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
+Phase 347 Stable Handoff Smoke Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 

@@ -248,6 +248,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 344 | M14 | Complete. Replayed the pushed Phase 343 onboarding handoff policy repair and regression-facing gates from a clean WSL clone with docs-index proof, onboarding validator proof, focused onboarding and PR-readiness regression, contextless audit support, marker confirmation, and clean clone status. |
 | Phase 345 | M2/M13/M14 | Complete. Recovered the local runtime stack and replayed the governed fresh Priority 0 chat-quality drift gate through workflow-router gateway and AnythingLLM across both frozen Coinbase roots with no drift, no high/critical findings, both routes covered, and all selected responses passing. |
 | Phase 346 | M2/M13/M14 | Complete. Replayed the pushed Phase 345 fresh-drift proof metadata and clone-safe drift policy tests from a clean WSL clone with docs-index proof, PR-readiness regression, Phase 345 marker confirmation, no-drift marker confirmation, no active-workspace runtime-state dependency, and clean clone status. |
+| Phase 347 | M2/M13/M14 | Complete. Replayed the existing stable handoff smoke after runtime recovery and fresh drift proof, passing setup doctor, release-channel, security, onboarding, feedback, and protected-fixture checks against the current split-address AnythingLLM configuration and both frozen Coinbase roots. |
 
 ## Usage Rules
 
