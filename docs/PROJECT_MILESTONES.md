@@ -105,11 +105,11 @@ The first proposed milestone-aligned phase set is:
 | Phase 201 | M2 | Complete. Added deterministic fail-closed validation for the chat-visible answer contract. |
 | Phase 202 | M2 | Complete. Refreshed live default/JSON/AnythingLLM proof for answer usefulness and marked M2 ready. |
 | Phase 203 | M3 | Complete. Refreshed the workflow, skill, and tool selection matrix and queued Phase 204 explainability gaps. |
-| Phase 204 | M3 | Approved. Prove natural prompts work without manual skill injection and explain selection. |
-| Phase 205 | M3 | Approved. Replay route-stability holdouts after selection hardening. |
-| Phase 206 | M4 | Approved. Build the evidence relevance audit pack with blind baselines and scoring rules. |
-| Phase 207 | M4 | Approved. Add deterministic evidence ranking and source hash gates. |
-| Phase 208 | M4 | Approved. Rerun evidence-quality prompts live through gateway and AnythingLLM with holdouts. |
+| Phase 204 | M3 | Complete. Proved natural prompts select workflows, skills, and tools without manual skill injection, with live gateway plus AnythingLLM closeout across both frozen Coinbase roots and full regression proof. |
+| Phase 205 | M3 | Complete. Replayed target and holdout route signatures through gateway and AnythingLLM, proving route stability with zero failed responses, zero route drift, and full regression proof. |
+| Phase 206 | M4 | Complete. Built the contextless evidence relevance audit pack with blind baselines, source-report identity locking, governed gap records, docs, focused regression, and full regression proof. |
+| Phase 207 | M4 | Complete. Added deterministic evidence ranking and source-hash gates with negative controls, source proof, contextless audit, focused regression, and full regression proof. |
+| Phase 208 | M4 | Complete. Reran M4 evidence-quality prompts live through gateway and AnythingLLM with holdouts, source-hash revalidation, baseline rubric scoring, and `phase209_ready=true`. |
 | Phase 209 | M5 | Complete. Selected `s-aws/staterail` as the first non-Coinbase fixture and created the governed blind-baseline prompt pack without committing or pushing to that repository. |
 | Phase 210 | M5 | Complete. Ran multi-repo baseline comparison without repairs and classified the accepted `target_root_not_allowed` runtime-surface gap for `s-aws/staterail`. |
 | Phase 211 | M5 | Complete. Repaired accepted multi-repo generalization blockers through the existing single paths, including startup allowed-root coverage, generalized natural query expansion, related-test discovery term selection, and code-investigation test-reference accounting; live proof passed with zero gaps and full regression passed without committing or pushing to `s-aws/staterail`. |
@@ -256,6 +256,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 352 | M2/M13/M14 | Complete. Replayed the pushed Phase 351 full UI suite proof metadata and clone-safe UI policy tests from a clean WSL clone with docs-index proof, PR-readiness regression, Phase 351 marker confirmation, full-UI marker confirmation, no active-workspace runtime-state dependency, and clean clone status. |
 | Phase 353 | M14 | Complete. Refreshed founder-facing getting-started, release-notes, stable-handoff, and ship-handoff marker policy surfaces so Phase 352 is the current PR/stable-handoff proof floor while preserving Phase 246/247 lineage and non-merge/non-promotion boundaries. |
 | Phase 354 | M14 | Complete. Replayed the pushed Phase 353 proof-floor refresh and ship-handoff marker policy from a clean WSL clone with docs-index proof, ship-handoff validation, focused PR-readiness regression, Phase 352/351 marker confirmation, no active-workspace runtime-state dependency, and clean clone status. |
+| Phase 355 | M14 | Complete. Repaired stale initial milestone mapping rows for Phases 204-208 so the milestone ledger agrees with the completed roadmap and Priority 0 backlog proof for M3/M4 selection and evidence-quality work. |
 
 ## Usage Rules
 
