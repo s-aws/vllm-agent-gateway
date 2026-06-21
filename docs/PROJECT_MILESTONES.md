@@ -261,6 +261,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 357 | M14 | Complete. Refreshed current PR/stable-handoff review proof after Phase 356 with docs-index validation, release-candidate PR readiness proof, PR #1 open/CLEAN metadata, milestone coverage proof, and explicit non-merge/non-promotion boundaries. |
 | Phase 358 | M2/M13/M14 | Complete. Replayed the existing fresh local-model drift gate through Bash, workflow-router gateway, and AnythingLLM with 16/16 stable Priority 0 responses passing across both frozen Coinbase roots, no drift, no critical/high findings, and no runtime behavior changes. |
 | Phase 359 | M14 | Complete. Replayed the pushed Phase 358 drift-proof handoff state from a clean WSL clone with docs-index proof, clone PR-readiness proof, Phase 358/no-drift marker confirmation, no active-workspace runtime-state dependency, and clean clone status. |
+| Phase 360 | M13/M14 | Complete. Replayed the current stable handoff smoke through Bash against the live stack with setup, release-channel, security, onboarding, feedback, and protected-fixture checks passing across both frozen Coinbase roots. |
 
 ## Usage Rules
 

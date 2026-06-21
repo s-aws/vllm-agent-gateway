@@ -195,13 +195,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-357 | current PR handoff currency replay | Complete in Phase 357. Refreshed the current PR/stable-handoff review proof after Phase 356 without merging, mutating `main`, promoting stable corpus, or changing runtime behavior. | Proof: docs index passed with `linked_count=438`; PR readiness passed on commit `68eec878909af76dd856fa304943531cfa9e4831` with `decision=release_candidate_reviewable`; PR #1 remained open and `CLEAN`; milestone coverage audit passed for all 36 approved milestones. |
 | P0-M2-358 | fresh Priority 0 drift replay | Complete in Phase 358. Reran the existing fresh local-model drift gate through Bash, workflow-router gateway, and AnythingLLM after the Phase 357 handoff refresh. | Proof: drift gate passed with `drift_status=no_drift_detected`, `family_count=4`, `selected_case_count=8`, `response_count=16`, `passed_response_count=16`, `failed_family_count=0`, zero critical/high findings, empty gap categories, both frozen Coinbase roots, and routes `gateway` plus `anythingllm`. |
 | P0-M14-359 | clean-clone Phase 358 drift replay | Complete in Phase 359. Replayed the pushed Phase 358 drift-proof handoff state from a fresh WSL clone without active-workspace runtime-state. | Proof: clone commit `76f452081a7c3dd23ab367f206b5508eec1e8024`; docs index passed with `linked_count=438`; clone PR readiness passed with `decision=release_candidate_reviewable`; Phase 358 and no-drift markers were present; clone source status remained clean. |
+| P0-M14-360 | current stable handoff smoke replay | Complete in Phase 360. Reran the existing stable handoff smoke through Bash against the current live stack after Phase 358/359. | Proof: stable handoff passed with `status=passed`, `check_count=6`, `command_count=4`, `failed_check_ids=[]`, first-time doctor/release-channel/security/onboarding child reports, expected AnythingLLM target `http://100.100.12.45:8500/v1`, and protected fixture state unchanged for both frozen Coinbase roots. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-359 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-359 runtime/AnythingLLM recovery and handoff-refresh proof as the active proof floor.
+1. Phases 157-360 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-360 runtime/AnythingLLM recovery and handoff-refresh proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -218,7 +219,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 359 Clean-Clone Phase 358 Drift Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
+Phase 360 Current Stable Handoff Smoke Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 
