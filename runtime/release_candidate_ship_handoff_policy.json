@@ -16,7 +16,9 @@
       "http://127.0.0.1:8500/v1"
     ],
     "README.getting-started.md": [
-      "Current handoff status: Phase 338",
+      "Current handoff status: Phase 352",
+      "case_count=21",
+      "37 passed",
       "Earlier Phase 247 stable ship metadata",
       "500k-token project-usability"
     ],

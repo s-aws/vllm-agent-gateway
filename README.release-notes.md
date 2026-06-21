@@ -6,7 +6,7 @@ Current status: `ship`.
 
 Stable channel compatibility marker: `ready_for_founder_testing`.
 
-Latest proof floor: Phase 338 refreshes the current `codex/eig-stable-handoff` PR/stable-handoff review state. The current chain includes Phase 332 stable handoff smoke replay, Phase 333 fresh Priority 0 local-model drift replay, Phase 334 clean-clone static replay, Phase 335 browser-visible AnythingLLM UI replay, Phase 336 post-UI runtime readiness replay, Phase 337 clean-clone readiness replay, and Phase 338 non-merge PR readiness. PR #1 remains open and clean, with merge, `main` mutation, and stable-corpus promotion still blocked pending founder decision.
+Latest proof floor: Phase 352 refreshes the current `codex/eig-stable-handoff` PR/stable-handoff review state. The current chain includes Phase 343 full split-lane regression, Phase 345 fresh Priority 0 local-model drift replay, Phase 347 stable handoff smoke replay, Phase 349 bounded browser-visible AnythingLLM UI smoke, Phase 351 full browser-visible AnythingLLM UI suite replay, Phase 352 clean-clone full UI suite replay, and current non-merge PR readiness. PR #1 remains open and clean, with merge, `main` mutation, and stable-corpus promotion still blocked pending founder decision.
 
 Earlier stable proof floor: Phase 246 reran the Phase 244 V1 release-candidate decision gate after Phase 245 restored runtime health. The release clone at decision source commit `bb0c6b0` returned `decision=ship`, `blocker_count=0`, `runtime_health_blocker_count=0`, `machine_report_count=2`, and `phase_count=12`. Phase 247 packages that decision into committed handoff metadata and tester-facing docs.
 
@@ -155,6 +155,8 @@ Current proof summary:
 - EIG-1/EIG-2 breadth closeout: Phase 296 validates local-stub connector breadth, actor/scope authorization, approval replay, natural connector chat, AnythingLLM proof, and source connector registry mutation proof.
 - EIG-3 breadth closeout: Phase 303 validates synthetic privacy and memory-safety breadth, privacy-sensitive runtime chat, AnythingLLM proof, and full regression.
 - EIG stable handoff integration: Phase 304 validates that Phase 296 and Phase 303 are visible in stable tester docs and that production-scope boundaries remain explicit.
+- Full browser-visible AnythingLLM UI suite replay: Phase 351 passed with `case_count=21`, `error_count=0`, `fixture_unchanged=true`, 16 unique governed UI case IDs, both frozen roots covered, and the current AnythingLLM workspace/browser path.
+- Clean-clone full UI suite replay: Phase 352 passed clone-safe UI E2E plus PR-readiness regression with `37 passed`, confirmed Phase 351, `case_count=21`, and `16` unique governed UI case markers, and left clone source status clean without active-workspace runtime-state dependency.
 
 Primary proof artifacts:
 

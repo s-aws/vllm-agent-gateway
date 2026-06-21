@@ -17,6 +17,8 @@ Use this handoff only for the current product surface: natural-language L1/L2 re
 - Phase 277 refreshes stable handoff metadata and docs for 500k-token project usability through governed context strategy. The 384k-token project usability baseline remains preserved.
 - Phase 296 closes the EIG-1/EIG-2 local-stub connector breadth proof for governed connector manifests, controller-owned mediation, actor/scope enforcement, approval replay, and selected natural-language connector chat.
 - Phase 303 closes the EIG-3 synthetic privacy breadth proof for sensitive-data classification, output-surface handling, governed memory lifecycle, privacy EvalOps, and privacy-sensitive runtime chat.
+- Phase 351 proves the full governed browser-visible AnythingLLM UI suite with `case_count=21`, `error_count=0`, `fixture_unchanged=true`, and both frozen roots covered.
+- Phase 352 proves the pushed Phase 351 UI proof metadata and clone-safe UI policy tests are auditable from a clean clone with `37 passed` and no active-workspace runtime-state dependency.
 - Phase 230 admits the first M12 small skill-library fixture/eval coverage candidate without manual skill injection.
 - Phase 231 proves runtime recovery reliability after restarting vLLM and the repo-managed gateway/proxy/controller stack.
 - Feedback still records through `workflow_feedback.record`; Phase 227 classifies feedback outcomes and Phase 228 prevents accepted repairs from closing without target and holdout rerun proof.
