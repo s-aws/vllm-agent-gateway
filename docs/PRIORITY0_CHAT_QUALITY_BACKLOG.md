@@ -180,13 +180,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-342 | clean-clone ship-handoff policy replay | Complete in Phase 342. Replayed the pushed Phase 341 ship-handoff policy repair from a clean clone without active-workspace runtime-state. | Proof: clone commit `69576eb649c1928ba9583d87d8f2b425f17a6cad`; docs index passed; ship-handoff validator passed with `ship_handoff_ready=true`; focused ship-handoff and PR-readiness regression passed with `12 passed`; current Phase 338 and workflow-router gateway markers were present. |
 | P0-M14-343 | release-candidate full regression replay | Complete in Phase 343. Replayed the full split-lane regression runner on the current release-candidate branch, repaired the stale onboarding handoff marker exposed by the gate, and preserved non-merge release-candidate boundaries. | Proof: initial split-lane run failed only on stale Phase 232 onboarding marker policy; focused validator passed with `handoff_ready`; focused regression passed with `6 passed`; final `scripts/run_regression.py --workers 4` passed with xdist-safe lane `1824 passed, 4 skipped` and serial lane `45 passed, 1851 deselected`. |
 | P0-M14-344 | clean-clone release-candidate regression replay | Complete in Phase 344. Replayed the pushed Phase 343 onboarding policy repair and regression-facing gates from a clean clone without active-workspace runtime-state. | Proof: contextless audit accepted the phase as bounded M14 release proof; clone commit `39476e9176c59dc23bf7dd3d7945b7d3950b1d6f`; docs index passed; onboarding validator passed with `handoff_ready`; focused onboarding and PR-readiness regression passed with `11 passed`; clone source status remained clean. |
+| P0-M2-345 | fresh Priority 0 chat-quality drift replay | Complete in Phase 345. Reran the governed fresh local-model drift subset through workflow-router gateway and AnythingLLM across both frozen Coinbase roots after the release-handoff refresh. | Proof: runtime was recovered, first-time doctor passed `30/30`; fresh drift reported `no_drift_detected`, `16/16` responses passed, both required routes and both frozen roots were covered, zero critical/high findings, empty gap categories, and family minimum route scores of `90`, `95`, `100`, and `100`. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-344 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-344 runtime/AnythingLLM recovery proof as the active proof floor.
+1. Phases 157-345 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-345 runtime/AnythingLLM recovery proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -203,7 +204,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 344 Clean-Clone Release-Candidate Regression Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
+Phase 345 Fresh Priority 0 Chat-Quality Drift Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 
