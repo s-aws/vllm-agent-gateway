@@ -259,6 +259,7 @@ The first proposed milestone-aligned phase set is:
 | Phase 355 | M14 | Complete. Repaired stale initial milestone mapping rows for Phases 204-208 so the milestone ledger agrees with the completed roadmap and Priority 0 backlog proof for M3/M4 selection and evidence-quality work. |
 | Phase 356 | M10/M11/M14 | Complete. Cross-linked historical safe implementation-prep and controlled-apply proof into the milestone ledger so M10 and M11 are visibly covered by completed Phase 54, Phase 83, Phase 96, and Phase 98 work without expanding mutation scope. |
 | Phase 357 | M14 | Complete. Refreshed current PR/stable-handoff review proof after Phase 356 with docs-index validation, release-candidate PR readiness proof, PR #1 open/CLEAN metadata, milestone coverage proof, and explicit non-merge/non-promotion boundaries. |
+| Phase 358 | M2/M13/M14 | Complete. Replayed the existing fresh local-model drift gate through Bash, workflow-router gateway, and AnythingLLM with 16/16 stable Priority 0 responses passing across both frozen Coinbase roots, no drift, no critical/high findings, and no runtime behavior changes. |
 
 ## Usage Rules
 
