@@ -185,13 +185,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-347 | stable handoff smoke replay | Complete in Phase 347. Reran the existing stable handoff smoke gate after the Phase 345 runtime recovery and fresh Priority 0 drift replay. | Proof: `validate_stable_handoff.py` passed with `check_count=6`, `command_count=4`, `failed_check_ids=[]`, child reports for doctor/release-channel/security/onboarding, both frozen roots covered, and the current split-address AnythingLLM configuration. |
 | P0-M14-348 | clean-clone stable handoff replay | Complete in Phase 348. Replayed the pushed Phase 347 stable handoff smoke record and clone-safe stable-handoff gates from a clean clone without active-workspace runtime-state. | Proof: clone commit `8cdd1d2b8e307ec51f5d39972fb018662e11f3c8`; docs index passed; clone-safe stable-handoff and PR-readiness regression passed with `10 passed`; Phase 347 and stable-smoke markers were present; clone source status remained clean. |
 | P0-M2-349 | browser-visible AnythingLLM UI smoke | Complete in Phase 349. Ran a bounded browser-visible UI smoke through the existing AnythingLLM UI E2E validator after runtime recovery and stable handoff proof. | Proof: UI E2E passed with `case_count=3`, `error_count=0`, `fixture_unchanged=true`, no-target greeting plus L1-002 function explanation across both frozen roots, system Chrome, and the current AnythingLLM workspace. |
+| P0-M2-350 | clean-clone browser UI smoke replay | Complete in Phase 350. Replayed the pushed Phase 349 browser-visible UI smoke proof metadata and clone-safe UI policy gates from a clean clone without active-workspace runtime-state. | Proof: clone commit `1f31dc64836d6b6e3891d3bf42479788aab71967`; docs index passed; clone-safe UI E2E and PR-readiness regression passed with `37 passed`; Phase 349 and `fixture_unchanged=true` markers were present; clone source status remained clean. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-349 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-349 runtime/AnythingLLM recovery proof as the active proof floor.
+1. Phases 157-350 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-350 runtime/AnythingLLM recovery proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -208,7 +209,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 349 Browser-Visible AnythingLLM UI Smoke is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
+Phase 350 Clean-Clone Browser UI Smoke Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 
