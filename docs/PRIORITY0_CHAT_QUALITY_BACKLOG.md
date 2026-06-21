@@ -192,13 +192,14 @@ Default score target: `>= 85/100`, with no critical or high unresolved findings.
 | P0-M14-354 | clean-clone Phase 353 proof-floor refresh replay | Complete in Phase 354. Replayed the pushed Phase 353 founder-facing proof-floor refresh and ship-handoff marker policy from a clean clone without active-workspace runtime-state. | Proof: clone commit `9d23d5decd6f4aa63186a4bb2c36fa6daa8835b1`; docs index passed; ship-handoff validation passed with `ship_handoff_ready=true`; focused clone regression passed with `12 passed`; Phase 352, `case_count=21`, `fixture_unchanged=true`, and `37 passed` markers were present; clone source status remained clean. |
 | P0-M14-355 | milestone ledger status consistency repair | Complete in Phase 355. Repaired stale initial milestone mapping rows that still marked completed Phases 204-208 as `Approved`. | Proof: milestone ledger now marks Phases 204-208 as `Complete` with summaries matching the canonical roadmap and Priority 0 backlog proof for M3 selection reliability and M4 evidence quality. |
 | P0-M14-356 | M10/M11 historical proof coverage repair | Complete in Phase 356. Cross-linked historical safe implementation-prep and controlled-apply proof into the milestone ledger so M10 and M11 are visibly covered. | Proof: M10 now references Phase 96 implementation-prep and approval-continuation proof; M11 now references Phase 54 controlled apply, Phase 83 mutation sandbox, and Phase 98 disposable-copy apply proof; no mutation scope changed. |
+| P0-M14-357 | current PR handoff currency replay | Complete in Phase 357. Refreshed the current PR/stable-handoff review proof after Phase 356 without merging, mutating `main`, promoting stable corpus, or changing runtime behavior. | Proof: docs index passed with `linked_count=438`; PR readiness passed on commit `68eec878909af76dd856fa304943531cfa9e4831` with `decision=release_candidate_reviewable`; PR #1 remained open and `CLEAN`; milestone coverage audit passed for all 36 approved milestones. |
 
 ## Execution Plan
 
 Work the backlog in the same order as the active roadmap unless the founder explicitly changes priority.
 
-1. Phases 157-356 are complete.
-2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-356 runtime/AnythingLLM recovery and handoff-refresh proof as the active proof floor.
+1. Phases 157-357 are complete.
+2. Use the Phase 239-242 remote-clone Priority 0 proof, Phase 270-277 governed 500k proof, Phase 278-280 supplied-corpus QA proof, Phase 296 EIG-1/EIG-2 closeout, Phase 303 EIG-3 closeout, and Phase 322-357 runtime/AnythingLLM recovery and handoff-refresh proof as the active proof floor.
 3. PR #1 on `codex/eig-stable-handoff` is the current reviewable branch state; do not merge it or mutate `main` unless the founder explicitly directs that action.
 4. Stable baseline corpus promotion remains blocked until explicit founder approval is recorded by a separate promotion phase.
 5. The next Priority 0 phase should either support PR/stable handoff review without merging, or add a new milestone-mapped chat-quality validation/repair phase. Do not resume advanced-refactor work unless the canonical roadmap explicitly marks that phase active.
@@ -215,7 +216,7 @@ Stop and update the roadmap before continuing if:
 
 ## Next Action
 
-Phase 356 M10/M11 Historical Proof Coverage Repair is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
+Phase 357 Current PR Handoff Currency Replay is complete. The next implementation phase must map directly to approved milestones and should prioritize current PR/stable handoff review, fresh Priority 0 chat-quality validation, or a concrete repair required by one of those gates.
 
 ## Completed Work
 
